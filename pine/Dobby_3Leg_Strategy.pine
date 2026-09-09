@@ -1,0 +1,541 @@
+//@version=6
+// ============================================================================
+// DOBBY 3-LEG  -  STRATEGY BUILD
+//
+// Converted from the "Dobby" indicator. Same signal, same 3-leg management,
+// but run through Pine's order engine so the numbers are real fills instead
+// of a hand-rolled tally.
+//
+// WHAT CHANGED FROM THE INDICATOR
+//
+//  1. SPREAD IS NOW CHARGED ON EVERY LEG.
+//     The indicator charged none. Each leg is its own entry and its own exit,
+//     and commission is set to half the spread per order, so every leg pays a
+//     full spread on its round trip: 3 legs = 3 spreads per signal.
+//
+//  2. BREAK-EVEN NOW INCLUDES THE SPREAD.
+//     Old:  activeSLPrice := entryPrice          -> lost one spread per leg
+//     New:  long  BE = entry + spread
+//           short BE = entry - spread
+//     A long fills at ask and exits at bid, so a stop sitting exactly at the
+//     signal price returns minus one spread, not zero.
+//
+//  3. THE BE TRIGGER TESTS THE STOP, NOT THE ENTRY.
+//     The indicator compared price against entryPrice even after moving the
+//     stop, so raising BE would have had no effect at all. Exits now carry
+//     the actual stop level.
+//
+//  4. THE STOP DISTANCE IS BOUNDED.
+//     lastSwingLow can be hundreds of bars old. Unbounded, one signal could
+//     risk 15% of the account across three legs. Setups outside
+//     [MinRiskATR, MaxRiskATR] are skipped instead of taken at any size.
+//
+// KNOWN LIMITATION vs THE INDICATOR
+//   The indicator walked 1-minute bars inside each signal bar. A Pine
+//   strategy cannot: it resolves stops and targets at chart-bar granularity
+//   and, when a bar could hit both, assumes the worse one. Expect this build
+//   to report slightly WORSE results than the indicator on the same data.
+//   That direction is the safe one.
+// ============================================================================
+
+strategy("Dobby 3-Leg Strategy", overlay = true,
+     initial_capital         = 1000,
+     default_qty_type        = strategy.fixed,
+     default_qty_value       = 1,
+     commission_type         = strategy.commission.cash_per_contract,
+     commission_value        = 0.13,
+     pyramiding              = 3,
+     process_orders_on_close = true,
+     calc_on_every_tick      = false,
+     max_labels_count        = 500,
+     max_lines_count         = 500,
+     max_boxes_count         = 500)
+
+// ============================================================================
+// 1. MOVING AVERAGE ENGINE
+// ============================================================================
+grpMA   = "1. Moving Average Engine"
+maType  = input.string("EMA", "MA Type", options = ["SMA","EMA","WMA","RMA","VWMA"], group = grpMA)
+shortLen= input.int(9,  "Short MA Length", minval = 1, group = grpMA)
+longLen = input.int(21, "Long MA Length",  minval = 1, group = grpMA)
+
+f_ma(src, len, string t) =>
+    switch t
+        "SMA"  => ta.sma(src, len)
+        "EMA"  => ta.ema(src, len)
+        "WMA"  => ta.wma(src, len)
+        "RMA"  => ta.rma(src, len)
+        "VWMA" => ta.vwma(src, len)
+        => ta.ema(src, len)
+
+shortMAChart = f_ma(close, shortLen, maType)
+longMAChart  = f_ma(close, longLen,  maType)
+
+// ============================================================================
+// 2. OPTIONAL MA TIMEFRAME
+// ============================================================================
+grpMTF       = "2. Optional MA Timeframe"
+maTF         = input.timeframe("", "MA Timeframe (blank = chart TF)", group = grpMTF)
+waitForClose = input.bool(true, "Wait for Timeframe Close", group = grpMTF,
+     tooltip = "Default flipped to TRUE. With it off the higher-timeframe MA " +
+               "repaints while its bar is forming, so historical signals are " +
+               "not the signals you would have seen live.")
+useMTF = maTF != ""
+
+shortExpr() => waitForClose ? f_ma(close, shortLen, maType)[1] : f_ma(close, shortLen, maType)
+longExpr()  => waitForClose ? f_ma(close, longLen,  maType)[1] : f_ma(close, longLen,  maType)
+
+[shortMTF, longMTF] = request.security(syminfo.tickerid, useMTF ? maTF : timeframe.period,
+     [shortExpr(), longExpr()], lookahead = barmerge.lookahead_off)
+
+shortMA = useMTF ? shortMTF : shortMAChart
+longMA  = useMTF ? longMTF  : longMAChart
+
+plot(shortMA, "Short MA", color = color.aqua)
+plot(longMA,  "Long MA",  color = color.orange)
+
+// ============================================================================
+// 3. HIGHER-TIMEFRAME TREND FILTER
+// ============================================================================
+grpTrend           = "3. Higher-Timeframe Trend Filter"
+trendFilterEnabled = input.bool(true, "Enable Trend Filter", group = grpTrend)
+trendTF            = input.timeframe("15", "Trend Timeframe", group = grpTrend)
+trendEmaLen        = input.int(50, "Trend EMA Length", minval = 1, group = grpTrend)
+showTrendEMA       = input.bool(true, "Show Trend EMA", group = grpTrend)
+
+trendEMA = request.security(syminfo.tickerid, trendTF, ta.ema(close, trendEmaLen)[1],
+     lookahead = barmerge.lookahead_off)
+
+plot(showTrendEMA ? trendEMA : na, "Trend EMA", color = color.purple, linewidth = 2)
+
+// ============================================================================
+// 4. TREND CHANNEL
+// ============================================================================
+grpChan          = "4. Trend Channel"
+showTrendChannel = input.bool(true, "Show Trend Channel", group = grpChan)
+chanATRLen       = input.int(14,  "Channel ATR Length", minval = 1, group = grpChan)
+chanATRMult      = input.float(2.0, "Channel ATR Multiplier", minval = 0, group = grpChan)
+
+trendATR     = request.security(syminfo.tickerid, trendTF, ta.atr(chanATRLen)[1],
+     lookahead = barmerge.lookahead_off)
+upperChannel = trendEMA + trendATR * chanATRMult
+lowerChannel = trendEMA - trendATR * chanATRMult
+
+pUpper = plot(showTrendChannel ? upperChannel : na, "Channel Upper", color = color.new(color.purple, 60))
+pLower = plot(showTrendChannel ? lowerChannel : na, "Channel Lower", color = color.new(color.purple, 60))
+fill(pUpper, pLower, color = color.new(color.purple, 90))
+
+// ============================================================================
+// 7-9. STOP LOSS STRUCTURE
+// ============================================================================
+grpSwing         = "7-9. Stop Loss Structure"
+pivotLeft        = input.int(5,  "Swing Left Bars",  minval = 1, group = grpSwing)
+pivotRight       = input.int(5,  "Swing Right Bars", minval = 1, group = grpSwing)
+fallbackLookback = input.int(10, "Fallback Lookback", minval = 1, group = grpSwing)
+atrLen           = input.int(14, "ATR Length (SL)",  minval = 1, group = grpSwing)
+atrBufferMult    = input.float(0.0, "ATR Stop Buffer Multiplier", minval = 0, group = grpSwing)
+
+minRiskATR = input.float(0.30, "Min Risk (x ATR)", minval = 0.0, group = grpSwing,
+     tooltip = "Setups with a stop tighter than this are skipped. A stop only " +
+               "a few ticks away is noise, and the spread eats the whole R.")
+maxRiskATR = input.float(3.00, "Max Risk (x ATR)", minval = 0.1, group = grpSwing,
+     tooltip = "Setups with a stop wider than this are SKIPPED, not resized. " +
+               "An old swing can sit far enough away that one signal risks " +
+               "double-digit percent of the account across three legs.")
+
+// ============================================================================
+// 11. LOT / MONEY / SPREAD
+// ============================================================================
+grpMoney = "11. Lot / Money / Spread"
+lotSize  = input.float(0.01, "Lot Size Per Leg", minval = 0.01, step = 0.01, group = grpMoney)
+centPerPrice1At001Lot = input.float(1.0, "Cent per Price 1.00 at 0.01 Lot",
+     minval = 0.0001, group = grpMoney)
+startingBalanceCent   = input.float(1000.0, "Starting Balance (Cent)", minval = 0, group = grpMoney)
+
+spreadPrice = input.float(0.26, "Spread (price units)", minval = 0.0, step = 0.01, group = grpMoney,
+     tooltip = "Used for the break-even offset. KEEP THIS EQUAL TO 2x the " +
+               "commission set in the strategy header (0.13 -> spread 0.26). " +
+               "Pine needs the commission as a header constant, so the two " +
+               "cannot be linked automatically. The dashboard prints the cost " +
+               "per signal so you can check they agree.")
+
+qtyPerLeg          = centPerPrice1At001Lot * (lotSize / 0.01)
+moneyPerPrice1Cent = qtyPerLeg
+spreadCostPerLeg   = spreadPrice * qtyPerLeg
+spreadCostPerTrade = spreadCostPerLeg * 3.0
+
+// ============================================================================
+// 12. VISUALS
+// ============================================================================
+grpVis        = "12. Visuals & Markers"
+showTradeZone = input.bool(true, "Show Trade Zone", group = grpVis)
+rightOffset   = input.int(10, "Line/Label Right Offset", minval = 0, group = grpVis)
+showPriceTags = input.bool(true, "Show Price Tags", group = grpVis)
+showRR        = input.bool(true, "Show RR In Price Tags", group = grpVis)
+showDashboard = input.bool(true, "Show Dashboard", group = "14. Dashboard")
+
+// ============================================================================
+// SWING STRUCTURE
+// ============================================================================
+swingLowRaw  = ta.pivotlow(low,   pivotLeft, pivotRight)
+swingHighRaw = ta.pivothigh(high, pivotLeft, pivotRight)
+
+var float lastSwingLow  = na
+var float lastSwingHigh = na
+if not na(swingLowRaw)
+    lastSwingLow := swingLowRaw
+if not na(swingHighRaw)
+    lastSwingHigh := swingHighRaw
+
+fallbackLow  = ta.lowest(low,   fallbackLookback)
+fallbackHigh = ta.highest(high, fallbackLookback)
+atrMain      = ta.atr(atrLen)
+
+slForBuy  = (na(lastSwingLow)  ? fallbackLow  : lastSwingLow)  - atrMain * atrBufferMult
+slForSell = (na(lastSwingHigh) ? fallbackHigh : lastSwingHigh) + atrMain * atrBufferMult
+
+bullCross = ta.crossover(shortMA,  longMA)
+bearCross = ta.crossunder(shortMA, longMA)
+
+// ============================================================================
+// TRADE STATE
+// ============================================================================
+var float entryPrice     = na
+var float originalSL     = na
+var float beLevel        = na
+var float tp1Price       = na
+var float tp2Price       = na
+var float tp3Price       = na
+var float riskDistance   = na
+var float rMoney         = na
+var bool  tp1Hit         = false
+var bool  isLong         = false
+var int   tradeMonthKey  = na
+
+var line  slLine    = na
+var line  tp1Line   = na
+var line  tp2Line   = na
+var line  tp3Line   = na
+var line  entryLine = na
+var label entryPriceTag = na
+var label slTag  = na
+var label tp1Tag = na
+var label tp2Tag = na
+var label tp3Tag = na
+var box   profitZone = na
+var box   lossZone   = na
+
+// ============================================================================
+// STATISTICS
+// ============================================================================
+var int totalSignals = 0
+var int skippedRisk  = 0
+var int tp1Count = 0
+var int tp2Count = 0
+var int tp3Count = 0
+var int winCount = 0
+var int lossCount = 0
+var int leg1Win  = 0
+var int leg1Loss = 0
+var int leg1BE   = 0
+var int leg2Win  = 0
+var int leg2Loss = 0
+var int leg2BE   = 0
+var int leg3Win  = 0
+var int leg3Loss = 0
+var int leg3BE   = 0
+
+var float periodProfitLossCent = 0.0
+var float maxLossCent          = 0.0
+var int   lastClosedCount      = 0
+var float monthStartNetProfit  = 0.0
+
+// ============================================================================
+// MONTH ROLLOVER
+// ============================================================================
+curMonthNow     = month(time, "Asia/Bangkok")
+curYearNow      = year(time,  "Asia/Bangkok")
+currentMonthKey = curYearNow * 100 + curMonthNow
+
+var int curMonth      = na
+var int curYear       = na
+var int monthStartDay = na
+
+if na(curMonth)
+    curMonth      := curMonthNow
+    curYear       := curYearNow
+    monthStartDay := 1
+else if currentMonthKey != curYear * 100 + curMonth
+    curMonth      := curMonthNow
+    curYear       := curYearNow
+    monthStartDay := 1
+    totalSignals  := 0
+    skippedRisk   := 0
+    tp1Count := 0
+    tp2Count := 0
+    tp3Count := 0
+    winCount := 0
+    lossCount := 0
+    leg1Win  := 0
+    leg1Loss := 0
+    leg1BE   := 0
+    leg2Win  := 0
+    leg2Loss := 0
+    leg2BE   := 0
+    leg3Win  := 0
+    leg3Loss := 0
+    leg3BE   := 0
+    periodProfitLossCent := 0.0
+    maxLossCent          := 0.0
+    monthStartNetProfit  := strategy.netprofit
+
+// ============================================================================
+// DRAWING HELPERS
+// ============================================================================
+f_clearLines() =>
+    line.delete(slLine)
+    line.delete(tp1Line)
+    line.delete(tp2Line)
+    line.delete(tp3Line)
+    line.delete(entryLine)
+    box.delete(profitZone)
+    box.delete(lossZone)
+    label.delete(entryPriceTag)
+    label.delete(slTag)
+    label.delete(tp1Tag)
+    label.delete(tp2Tag)
+    label.delete(tp3Tag)
+
+f_priceTag(int x, float y, string title, float price, color bg) =>
+    label.new(x, y, title + "   " + str.tostring(price, format.mintick),
+         style = label.style_label_left, color = bg,
+         textcolor = color.white, size = size.small)
+
+// ============================================================================
+// ENTRIES
+// ============================================================================
+flat    = strategy.position_size == 0
+buyCond  = flat and bullCross and (not trendFilterEnabled or close > trendEMA)
+sellCond = flat and bearCross and (not trendFilterEnabled or close < trendEMA)
+
+// A Pine function cannot assign to globals, so the entry block is inline.
+// One block serves both sides; `up` selects the direction.
+candSL   = buyCond ? slForBuy : sellCond ? slForSell : na
+candRisk = na(candSL) ? na : math.abs(close - candSL)
+okRisk   = not na(candRisk) and candRisk >= minRiskATR * atrMain and candRisk <= maxRiskATR * atrMain
+
+if (buyCond or sellCond) and not okRisk
+    skippedRisk += 1
+
+if (buyCond or sellCond) and okRisk
+    bool up = buyCond
+    entryPrice   := close
+    originalSL   := candSL
+    riskDistance := candRisk
+    // Break-even sits one spread INSIDE profit: a long fills at ask and exits
+    // at bid, so a stop left at the signal price returns minus one spread.
+    beLevel  := up ? entryPrice + spreadPrice : entryPrice - spreadPrice
+    tp1Price := up ? entryPrice + riskDistance       : entryPrice - riskDistance
+    tp2Price := up ? entryPrice + riskDistance * 2.0 : entryPrice - riskDistance * 2.0
+    tp3Price := up ? entryPrice + riskDistance * 3.0 : entryPrice - riskDistance * 3.0
+    isLong   := up
+    tp1Hit   := false
+    rMoney   := riskDistance * moneyPerPrice1Cent
+    tradeMonthKey := currentMonthKey
+    totalSignals  += 1
+
+    strategy.entry("L1", up ? strategy.long : strategy.short, qty = qtyPerLeg)
+    strategy.entry("L2", up ? strategy.long : strategy.short, qty = qtyPerLeg)
+    strategy.entry("L3", up ? strategy.long : strategy.short, qty = qtyPerLeg)
+
+    // Attach protection immediately. The management block below does not run
+    // on the signal bar (the position is not open yet at that point), which
+    // would otherwise leave the first bar without a stop.
+    strategy.exit("X1", from_entry = "L1", stop = originalSL, limit = tp1Price)
+    strategy.exit("X2", from_entry = "L2", stop = originalSL, limit = tp2Price)
+    strategy.exit("X3", from_entry = "L3", stop = originalSL, limit = tp3Price)
+
+    f_clearLines()
+    entryLine := line.new(bar_index, entryPrice, bar_index + rightOffset, entryPrice, color = color.blue)
+    slLine    := line.new(bar_index, originalSL, bar_index + rightOffset, originalSL, color = color.red)
+    tp1Line   := line.new(bar_index, tp1Price,   bar_index + rightOffset, tp1Price,   color = color.green)
+    tp2Line   := line.new(bar_index, tp2Price,   bar_index + rightOffset, tp2Price,   color = color.green)
+    tp3Line   := line.new(bar_index, tp3Price,   bar_index + rightOffset, tp3Price,   color = color.green)
+    if showTradeZone
+        profitZone := box.new(bar_index, up ? tp3Price : entryPrice, bar_index + rightOffset,
+             up ? entryPrice : tp3Price, border_color = na, bgcolor = color.new(color.green, 84))
+        lossZone   := box.new(bar_index, up ? entryPrice : originalSL, bar_index + rightOffset,
+             up ? originalSL : entryPrice, border_color = na, bgcolor = color.new(color.red, 84))
+    label.new(bar_index, na, up ? "BUY" : "SELL",
+         yloc  = up ? yloc.belowbar : yloc.abovebar,
+         style = up ? label.style_label_up : label.style_label_down,
+         color = up ? color.blue : color.red, textcolor = color.white, size = size.small)
+    if showPriceTags
+        entryPriceTag := f_priceTag(bar_index + rightOffset, entryPrice, "ENTRY", entryPrice, color.blue)
+        slTag  := f_priceTag(bar_index + rightOffset, originalSL, "SL", originalSL, color.red)
+        tp1Tag := f_priceTag(bar_index + rightOffset, tp1Price, showRR ? "TP1  1:1" : "TP1", tp1Price, color.green)
+        tp2Tag := f_priceTag(bar_index + rightOffset, tp2Price, showRR ? "TP2  1:2" : "TP2", tp2Price, color.green)
+        tp3Tag := f_priceTag(bar_index + rightOffset, tp3Price, showRR ? "TP3  1:3" : "TP3", tp3Price, color.green)
+
+// ============================================================================
+// MANAGEMENT
+// ============================================================================
+// TP1 is judged on the bar's extreme. The break-even stop then applies from
+// the following bar, which is the honest timing: you cannot move a stop on
+// information the bar has not finished giving you.
+if strategy.position_size != 0 and not na(tp1Price)
+    if not tp1Hit and (isLong ? high >= tp1Price : low <= tp1Price)
+        tp1Hit := true
+        if not na(slLine)
+            line.set_y1(slLine, beLevel)
+            line.set_y2(slLine, beLevel)
+        if showPriceTags and not na(slTag)
+            label.set_y(slTag, beLevel)
+
+    runnerSL = tp1Hit ? beLevel : originalSL
+    strategy.exit("X1", from_entry = "L1", stop = originalSL, limit = tp1Price)
+    strategy.exit("X2", from_entry = "L2", stop = runnerSL,   limit = tp2Price)
+    strategy.exit("X3", from_entry = "L3", stop = runnerSL,   limit = tp3Price)
+
+    line.set_x2(entryLine, bar_index + rightOffset)
+    line.set_x2(slLine,    bar_index + rightOffset)
+    line.set_x2(tp1Line,   bar_index + rightOffset)
+    line.set_x2(tp2Line,   bar_index + rightOffset)
+    line.set_x2(tp3Line,   bar_index + rightOffset)
+    if not na(profitZone)
+        box.set_right(profitZone, bar_index + rightOffset)
+    if not na(lossZone)
+        box.set_right(lossZone, bar_index + rightOffset)
+    if showPriceTags
+        if not na(entryPriceTag)
+            label.set_x(entryPriceTag, bar_index + rightOffset)
+        if not na(slTag)
+            label.set_x(slTag,  bar_index + rightOffset)
+        if not na(tp1Tag)
+            label.set_x(tp1Tag, bar_index + rightOffset)
+        if not na(tp2Tag)
+            label.set_x(tp2Tag, bar_index + rightOffset)
+        if not na(tp3Tag)
+            label.set_x(tp3Tag, bar_index + rightOffset)
+
+// ============================================================================
+// LEG ACCOUNTING - read from real closed fills, commission included
+// ============================================================================
+if strategy.closedtrades > lastClosedCount
+    for i = lastClosedCount to strategy.closedtrades - 1
+        id  = strategy.closedtrades.entry_id(i)
+        pnl = strategy.closedtrades.profit(i)
+        band = na(rMoney) ? 0.0 : rMoney * 0.35
+        if tradeMonthKey == currentMonthKey
+            periodProfitLossCent += pnl
+            if pnl < 0
+                maxLossCent := math.max(maxLossCent, -pnl)
+            if id == "L1"
+                if pnl > 0
+                    tp1Count += 1
+                    winCount += 1
+                    leg1Win  += 1
+                else
+                    lossCount += 1
+                    leg1Loss  += 1
+            else if id == "L2"
+                if pnl > band
+                    tp2Count += 1
+                    leg2Win  += 1
+                else if pnl < -band
+                    leg2Loss += 1
+                else
+                    leg2BE += 1
+            else if id == "L3"
+                if pnl > band
+                    tp3Count += 1
+                    leg3Win  += 1
+                else if pnl < -band
+                    leg3Loss += 1
+                else
+                    leg3BE += 1
+    lastClosedCount := strategy.closedtrades
+
+if strategy.position_size == 0 and not na(entryPrice)
+    f_clearLines()
+    entryPrice := na
+    tp1Price   := na
+    tp1Hit     := false
+
+// ============================================================================
+// DASHBOARD
+// ============================================================================
+tp1Rate = totalSignals > 0 ? tp1Count / totalSignals * 100 : 0.0
+tp2Rate = totalSignals > 0 ? tp2Count / totalSignals * 100 : 0.0
+tp3Rate = totalSignals > 0 ? tp3Count / totalSignals * 100 : 0.0
+winRate = tp1Rate
+
+curDay           = dayofmonth(time, "Asia/Bangkok")
+daysElapsed      = math.max(1, curDay - monthStartDay + 1)
+averageProfitDay = periodProfitLossCent / daysElapsed
+currentBalance   = startingBalanceCent + strategy.netprofit
+
+grossWin  = strategy.grossprofit
+grossLoss = strategy.grossloss
+profitFactor = grossLoss > 0 ? grossWin / grossLoss : na
+maxDDPct = startingBalanceCent > 0 ? strategy.max_drawdown / startingBalanceCent * 100 : na
+
+var table dashTable = table.new(position.top_right, 2, 19, border_width = 1)
+monthNames = array.from("JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC")
+
+f_row(int r, string k, string v, color vc, color bgc) =>
+    table.cell(dashTable, 0, r, k, text_color = color.silver, bgcolor = bgc,
+         text_size = size.small, text_halign = text.align_left)
+    table.cell(dashTable, 1, r, v, text_color = vc, bgcolor = bgc, text_size = size.small)
+
+if showDashboard and barstate.islast
+    bg      = color.new(color.black, 20)
+    section = color.new(color.black, 5)
+    gr      = color.green
+    rd      = color.red
+    wh      = color.white
+
+    periodStr = str.tostring(monthStartDay) + "-" + str.tostring(curDay) + " " +
+         array.get(monthNames, curMonth - 1) + " " + str.tostring(curYear)
+
+    table.cell(dashTable, 0, 0, periodStr, text_color = wh, bgcolor = bg,
+         text_size = size.small, text_halign = text.align_left)
+    table.cell(dashTable, 1, 0, "LOT " + str.tostring(lotSize, "#.##"),
+         text_color = wh, bgcolor = bg, text_size = size.small)
+
+    f_row(1, "Win Rate", str.tostring(winRate, "#.##") + "%", winRate >= 50 ? gr : rd, bg)
+    f_row(2, "TP1  1:1", str.tostring(tp1Rate, "#.##") + "%", tp1Rate >= 50 ? gr : rd, bg)
+    f_row(3, "TP2  1:2", str.tostring(tp2Rate, "#.##") + "%", tp2Rate >= 50 ? gr : rd, bg)
+    f_row(4, "TP3  1:3", str.tostring(tp3Rate, "#.##") + "%", tp3Rate >= 50 ? gr : rd, bg)
+    f_row(5, "Win / Loss", str.tostring(winCount) + " / " + str.tostring(lossCount), wh, bg)
+    f_row(6, "Total Signals", str.tostring(totalSignals), wh, bg)
+    f_row(7, "Skipped (risk cap)", str.tostring(skippedRisk),
+         skippedRisk > totalSignals ? color.orange : color.silver, bg)
+
+    table.cell(dashTable, 0, 8, "3-LEG", text_color = wh, bgcolor = section,
+         text_size = size.small, text_halign = text.align_left)
+    table.cell(dashTable, 1, 8, "", bgcolor = section)
+
+    legText = "1:" + str.tostring(leg1Win) + "/" + str.tostring(leg1Loss) +
+         "  2:" + str.tostring(leg2Win) + "/" + str.tostring(leg2Loss) + "/" + str.tostring(leg2BE) +
+         "  3:" + str.tostring(leg3Win) + "/" + str.tostring(leg3Loss) + "/" + str.tostring(leg3BE)
+    f_row(9,  "3-Leg W/L/BE", legText, wh, bg)
+    f_row(10, "3-Leg TP Hits", "TP1 " + str.tostring(tp1Count) + " | TP2 " +
+         str.tostring(tp2Count) + " | TP3 " + str.tostring(tp3Count), wh, bg)
+    f_row(11, "After TP1", "SL = ENTRY +SPREAD", color.orange, bg)
+
+    table.cell(dashTable, 0, 12, "FINANCE", text_color = wh, bgcolor = section,
+         text_size = size.small, text_halign = text.align_left)
+    table.cell(dashTable, 1, 12, "", bgcolor = section)
+
+    f_row(13, "กำไร/ขาดทุน (Cent)", str.tostring(periodProfitLossCent, "#.##"),
+         periodProfitLossCent >= 0 ? gr : rd, bg)
+    f_row(14, "กำไรเฉลี่ย/วัน", str.tostring(averageProfitDay, "#.##"),
+         averageProfitDay >= 0 ? gr : rd, bg)
+    f_row(15, "ขาดทุนสูงสุด/ไม้", "-" + str.tostring(maxLossCent, "#.##"), rd, bg)
+    f_row(16, "Max Drawdown", str.tostring(maxDDPct, "#.##") + "%",
+         maxDDPct >= 35 ? rd : color.silver, bg)
+    f_row(17, "Profit Factor", na(profitFactor) ? "-" : str.tostring(profitFactor, "#.###"),
+         na(profitFactor) ? color.silver : (profitFactor >= 1.30 ? gr : rd), bg)
+    f_row(18, "Balance ปัจจุบัน", str.tostring(currentBalance, "#.##"),
+         currentBalance >= startingBalanceCent ? gr : rd, bg)
