@@ -9,37 +9,42 @@
 // WHAT CHANGED FROM THE INDICATOR
 //
 //  1. SPREAD IS NOW CHARGED ON EVERY LEG.
-//     The indicator charged none. Each leg is its own entry and its own exit,
-//     and commission is set to half the spread per order, so every leg pays a
-//     full spread on its round trip: 3 legs = 3 spreads per signal.
+//     Each leg is its own entry and its own exit, and commission is set to
+//     half the spread per contract, so every leg pays a full spread on its
+//     round trip: 3 legs = 3 spreads per signal.
 //
 //  2. BREAK-EVEN NOW INCLUDES THE SPREAD.
-//     Old:  activeSLPrice := entryPrice          -> lost one spread per leg
-//     New:  long  BE = entry + spread
-//           short BE = entry - spread
-//     A long fills at ask and exits at bid, so a stop sitting exactly at the
-//     signal price returns minus one spread, not zero.
+//     long BE = entry + spread, short BE = entry - spread. A long fills at
+//     ask and exits at bid, so a stop at the signal price returns minus one
+//     spread, not zero.
 //
 //  3. THE BE TRIGGER TESTS THE STOP, NOT THE ENTRY.
-//     The indicator compared price against entryPrice even after moving the
-//     stop, so raising BE would have had no effect at all. Exits now carry
-//     the actual stop level.
 //
-//  4. THE STOP DISTANCE IS BOUNDED.
-//     lastSwingLow can be hundreds of bars old. Unbounded, one signal could
-//     risk 15% of the account across three legs. Setups outside
-//     [MinRiskATR, MaxRiskATR] are skipped instead of taken at any size.
+//  4. THE STOP DISTANCE IS BOUNDED by [MinRiskATR, MaxRiskATR].
+//
+// ---------------------------------------------------------------------------
+// ENGINE BANKROLL vs CENT ACCOUNT  -  READ THIS
+//
+//   initial_capital is the TradingView ENGINE bankroll, not your account.
+//   TradingView refuses any order it cannot pay for outright. Three legs of
+//   gold is roughly 3 x 4400 = 13,200 of notional, so an initial_capital of
+//   1000 rejects every single order and the whole report comes back zero.
+//   The bankroll is therefore set large enough to never block a fill.
+//
+//   Your real cent account is modelled in the dashboard instead: engine USD
+//   profit is converted with "Cent per Price 1.00 at 0.01 Lot" and applied to
+//   "Starting Balance (Cent)". The FINANCE block is your account. The built-in
+//   TradingView summary panel is the engine's, and is not your account.
 //
 // KNOWN LIMITATION vs THE INDICATOR
 //   The indicator walked 1-minute bars inside each signal bar. A Pine
 //   strategy cannot: it resolves stops and targets at chart-bar granularity
 //   and, when a bar could hit both, assumes the worse one. Expect this build
 //   to report slightly WORSE results than the indicator on the same data.
-//   That direction is the safe one.
 // ============================================================================
 
 strategy("Dobby 3-Leg Strategy", overlay = true,
-     initial_capital         = 1000,
+     initial_capital         = 1000000,
      default_qty_type        = strategy.fixed,
      default_qty_value       = 1,
      commission_type         = strategy.commission.cash_per_contract,
@@ -50,6 +55,10 @@ strategy("Dobby 3-Leg Strategy", overlay = true,
      max_labels_count        = 500,
      max_lines_count         = 500,
      max_boxes_count         = 500)
+
+// Must mirror initial_capital above. Pine needs that as a header constant,
+// so the dashboard cannot read it back and has to be told separately.
+ENGINE_CAPITAL = 1000000.0
 
 // ============================================================================
 // 1. MOVING AVERAGE ENGINE
@@ -147,9 +156,16 @@ maxRiskATR = input.float(3.00, "Max Risk (x ATR)", minval = 0.1, group = grpSwin
 // 11. LOT / MONEY / SPREAD
 // ============================================================================
 grpMoney = "11. Lot / Money / Spread"
-lotSize  = input.float(0.01, "Lot Size Per Leg", minval = 0.01, step = 0.01, group = grpMoney)
+lotSize  = input.float(0.01, "Lot Size Per Leg", minval = 0.001, step = 0.01, group = grpMoney)
+contractsPerLot = input.float(100.0, "Contracts per 1.00 Lot", minval = 0.0001, group = grpMoney,
+     tooltip = "XAUUSD: 1.00 lot = 100 oz, so leave this at 100 and 0.01 lot " +
+               "becomes 1 contract. This only sizes the ENGINE order. Your " +
+               "cent-account result is converted separately below.")
 centPerPrice1At001Lot = input.float(1.0, "Cent per Price 1.00 at 0.01 Lot",
-     minval = 0.0001, group = grpMoney)
+     minval = 0.0001, group = grpMoney,
+     tooltip = "Your broker's cent P/L for a 1.00 gold move at 0.01 lot. " +
+               "This is the only bridge between the engine's USD result and " +
+               "the FINANCE block on the dashboard.")
 startingBalanceCent   = input.float(1000.0, "Starting Balance (Cent)", minval = 0, group = grpMoney)
 
 spreadPrice = input.float(0.26, "Spread (price units)", minval = 0.0, step = 0.01, group = grpMoney,
@@ -159,10 +175,12 @@ spreadPrice = input.float(0.26, "Spread (price units)", minval = 0.0, step = 0.0
                "cannot be linked automatically. The dashboard prints the cost " +
                "per signal so you can check they agree.")
 
-qtyPerLeg          = centPerPrice1At001Lot * (lotSize / 0.01)
-moneyPerPrice1Cent = qtyPerLeg
-spreadCostPerLeg   = spreadPrice * qtyPerLeg
-spreadCostPerTrade = spreadCostPerLeg * 3.0
+// Engine sizing (USD, contracts) and the cent-account bridge.
+contractsPerLeg  = lotSize * contractsPerLot
+centPerUsd       = centPerPrice1At001Lot
+spreadCostLegUsd = spreadPrice * contractsPerLeg
+spreadCostSignalCent = spreadCostLegUsd * 3.0 * centPerUsd
+beBandUsd        = spreadCostLegUsd * 2.0
 
 // ============================================================================
 // 12. VISUALS
@@ -200,17 +218,17 @@ bearCross = ta.crossunder(shortMA, longMA)
 // ============================================================================
 // TRADE STATE
 // ============================================================================
-var float entryPrice     = na
-var float originalSL     = na
-var float beLevel        = na
-var float tp1Price       = na
-var float tp2Price       = na
-var float tp3Price       = na
-var float riskDistance   = na
-var float rMoney         = na
-var bool  tp1Hit         = false
-var bool  isLong         = false
-var int   tradeMonthKey  = na
+var float entryPrice   = na
+var float originalSL   = na
+var float beLevel      = na
+var float tp1Price     = na
+var float tp2Price     = na
+var float tp3Price     = na
+var float riskDistance = na
+var bool  tp1Hit       = false
+var bool  isLong       = false
+var bool  tradeOpen    = false
+var int   entryBarIdx  = na
 
 var line  slLine    = na
 var line  tp1Line   = na
@@ -248,7 +266,6 @@ var int leg3BE   = 0
 var float periodProfitLossCent = 0.0
 var float maxLossCent          = 0.0
 var int   lastClosedCount      = 0
-var float monthStartNetProfit  = 0.0
 
 // ============================================================================
 // MONTH ROLLOVER
@@ -287,7 +304,6 @@ else if currentMonthKey != curYear * 100 + curMonth
     leg3BE   := 0
     periodProfitLossCent := 0.0
     maxLossCent          := 0.0
-    monthStartNetProfit  := strategy.netprofit
 
 // ============================================================================
 // DRAWING HELPERS
@@ -314,7 +330,7 @@ f_priceTag(int x, float y, string title, float price, color bg) =>
 // ============================================================================
 // ENTRIES
 // ============================================================================
-flat    = strategy.position_size == 0
+flat     = strategy.position_size == 0 and not tradeOpen
 buyCond  = flat and bullCross and (not trendFilterEnabled or close > trendEMA)
 sellCond = flat and bearCross and (not trendFilterEnabled or close < trendEMA)
 
@@ -340,13 +356,13 @@ if (buyCond or sellCond) and okRisk
     tp3Price := up ? entryPrice + riskDistance * 3.0 : entryPrice - riskDistance * 3.0
     isLong   := up
     tp1Hit   := false
-    rMoney   := riskDistance * moneyPerPrice1Cent
-    tradeMonthKey := currentMonthKey
-    totalSignals  += 1
+    tradeOpen    := true
+    entryBarIdx  := bar_index
+    totalSignals += 1
 
-    strategy.entry("L1", up ? strategy.long : strategy.short, qty = qtyPerLeg)
-    strategy.entry("L2", up ? strategy.long : strategy.short, qty = qtyPerLeg)
-    strategy.entry("L3", up ? strategy.long : strategy.short, qty = qtyPerLeg)
+    strategy.entry("L1", up ? strategy.long : strategy.short, qty = contractsPerLeg)
+    strategy.entry("L2", up ? strategy.long : strategy.short, qty = contractsPerLeg)
+    strategy.entry("L3", up ? strategy.long : strategy.short, qty = contractsPerLeg)
 
     // Attach protection immediately. The management block below does not run
     // on the signal bar (the position is not open yet at that point), which
@@ -383,7 +399,7 @@ if (buyCond or sellCond) and okRisk
 // TP1 is judged on the bar's extreme. The break-even stop then applies from
 // the following bar, which is the honest timing: you cannot move a stop on
 // information the bar has not finished giving you.
-if strategy.position_size != 0 and not na(tp1Price)
+if tradeOpen and strategy.position_size != 0 and not na(tp1Price)
     if not tp1Hit and (isLong ? high >= tp1Price : low <= tp1Price)
         tp1Hit := true
         if not na(slLine)
@@ -397,11 +413,16 @@ if strategy.position_size != 0 and not na(tp1Price)
     strategy.exit("X2", from_entry = "L2", stop = runnerSL,   limit = tp2Price)
     strategy.exit("X3", from_entry = "L3", stop = runnerSL,   limit = tp3Price)
 
-    line.set_x2(entryLine, bar_index + rightOffset)
-    line.set_x2(slLine,    bar_index + rightOffset)
-    line.set_x2(tp1Line,   bar_index + rightOffset)
-    line.set_x2(tp2Line,   bar_index + rightOffset)
-    line.set_x2(tp3Line,   bar_index + rightOffset)
+    if not na(entryLine)
+        line.set_x2(entryLine, bar_index + rightOffset)
+    if not na(slLine)
+        line.set_x2(slLine, bar_index + rightOffset)
+    if not na(tp1Line)
+        line.set_x2(tp1Line, bar_index + rightOffset)
+    if not na(tp2Line)
+        line.set_x2(tp2Line, bar_index + rightOffset)
+    if not na(tp3Line)
+        line.set_x2(tp3Line, bar_index + rightOffset)
     if not na(profitZone)
         box.set_right(profitZone, bar_index + rightOffset)
     if not na(lossZone)
@@ -423,41 +444,48 @@ if strategy.position_size != 0 and not na(tp1Price)
 // ============================================================================
 if strategy.closedtrades > lastClosedCount
     for i = lastClosedCount to strategy.closedtrades - 1
-        id  = strategy.closedtrades.entry_id(i)
-        pnl = strategy.closedtrades.profit(i)
-        band = na(rMoney) ? 0.0 : rMoney * 0.35
-        if tradeMonthKey == currentMonthKey
-            periodProfitLossCent += pnl
-            if pnl < 0
-                maxLossCent := math.max(maxLossCent, -pnl)
-            if id == "L1"
-                if pnl > 0
-                    tp1Count += 1
-                    winCount += 1
-                    leg1Win  += 1
-                else
-                    lossCount += 1
-                    leg1Loss  += 1
-            else if id == "L2"
-                if pnl > band
-                    tp2Count += 1
-                    leg2Win  += 1
-                else if pnl < -band
-                    leg2Loss += 1
-                else
-                    leg2BE += 1
-            else if id == "L3"
-                if pnl > band
-                    tp3Count += 1
-                    leg3Win  += 1
-                else if pnl < -band
-                    leg3Loss += 1
-                else
-                    leg3BE += 1
+        id      = strategy.closedtrades.entry_id(i)
+        pnlUsd  = strategy.closedtrades.profit(i)
+        pnlCent = pnlUsd * centPerUsd
+        periodProfitLossCent += pnlCent
+        if pnlCent < 0
+            maxLossCent := math.max(maxLossCent, -pnlCent)
+        if pnlUsd > beBandUsd
+            winCount += 1
+        else if pnlUsd < -beBandUsd
+            lossCount += 1
+        if id == "L1"
+            if pnlUsd > beBandUsd
+                tp1Count += 1
+                leg1Win  += 1
+            else if pnlUsd < -beBandUsd
+                leg1Loss += 1
+            else
+                leg1BE += 1
+        else if id == "L2"
+            if pnlUsd > beBandUsd
+                tp2Count += 1
+                leg2Win  += 1
+            else if pnlUsd < -beBandUsd
+                leg2Loss += 1
+            else
+                leg2BE += 1
+        else if id == "L3"
+            if pnlUsd > beBandUsd
+                tp3Count += 1
+                leg3Win  += 1
+            else if pnlUsd < -beBandUsd
+                leg3Loss += 1
+            else
+                leg3BE += 1
     lastClosedCount := strategy.closedtrades
 
-if strategy.position_size == 0 and not na(entryPrice)
+// The position is not registered until the bar AFTER the entry is submitted,
+// so this must never run on the signal bar itself - it would delete every
+// level the instant it was drawn and null tp1Price before management sees it.
+if tradeOpen and strategy.position_size == 0 and bar_index > entryBarIdx
     f_clearLines()
+    tradeOpen  := false
     entryPrice := na
     tp1Price   := na
     tp1Hit     := false
@@ -465,22 +493,27 @@ if strategy.position_size == 0 and not na(entryPrice)
 // ============================================================================
 // DASHBOARD
 // ============================================================================
-tp1Rate = totalSignals > 0 ? tp1Count / totalSignals * 100 : 0.0
-tp2Rate = totalSignals > 0 ? tp2Count / totalSignals * 100 : 0.0
-tp3Rate = totalSignals > 0 ? tp3Count / totalSignals * 100 : 0.0
-winRate = tp1Rate
+tp1Rate = totalSignals > 0 ? 100.0 * tp1Count / totalSignals : 0.0
+tp2Rate = totalSignals > 0 ? 100.0 * tp2Count / totalSignals : 0.0
+tp3Rate = totalSignals > 0 ? 100.0 * tp3Count / totalSignals : 0.0
+decided = winCount + lossCount
+winRate = decided > 0 ? 100.0 * winCount / decided : 0.0
 
 curDay           = dayofmonth(time, "Asia/Bangkok")
 daysElapsed      = math.max(1, curDay - monthStartDay + 1)
 averageProfitDay = periodProfitLossCent / daysElapsed
-currentBalance   = startingBalanceCent + strategy.netprofit
+currentBalance   = startingBalanceCent + strategy.netprofit * centPerUsd
 
-grossWin  = strategy.grossprofit
-grossLoss = strategy.grossloss
+grossWin     = strategy.grossprofit
+grossLoss    = strategy.grossloss
 profitFactor = grossLoss > 0 ? grossWin / grossLoss : na
-maxDDPct = startingBalanceCent > 0 ? strategy.max_drawdown / startingBalanceCent * 100 : na
+maxDDCent    = strategy.max_drawdown * centPerUsd
+maxDDPct     = startingBalanceCent > 0 ? maxDDCent / startingBalanceCent * 100 : na
 
-var table dashTable = table.new(position.top_right, 2, 20, border_width = 1)
+notionalPerSignal = close * contractsPerLeg * 3.0
+capitalOK         = notionalPerSignal < ENGINE_CAPITAL
+
+var table dashTable = table.new(position.top_right, 2, 22, border_width = 1)
 monthNames = array.from("JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC")
 
 f_row(int r, string k, string v, color vc, color bgc) =>
@@ -516,30 +549,35 @@ if showDashboard and barstate.islast
          text_size = size.small, text_halign = text.align_left)
     table.cell(dashTable, 1, 8, "", bgcolor = section)
 
-    legText = "1:" + str.tostring(leg1Win) + "/" + str.tostring(leg1Loss) +
+    legText = "1:" + str.tostring(leg1Win) + "/" + str.tostring(leg1Loss) + "/" + str.tostring(leg1BE) +
          "  2:" + str.tostring(leg2Win) + "/" + str.tostring(leg2Loss) + "/" + str.tostring(leg2BE) +
          "  3:" + str.tostring(leg3Win) + "/" + str.tostring(leg3Loss) + "/" + str.tostring(leg3BE)
     f_row(9,  "3-Leg W/L/BE", legText, wh, bg)
     f_row(10, "3-Leg TP Hits", "TP1 " + str.tostring(tp1Count) + " | TP2 " +
          str.tostring(tp2Count) + " | TP3 " + str.tostring(tp3Count), wh, bg)
-    f_row(11, "After TP1", "SL = ENTRY +SPREAD", color.orange, bg)
+    f_row(11, "Closed legs", str.tostring(strategy.closedtrades), wh, bg)
+    f_row(12, "After TP1", "SL = ENTRY +SPREAD", color.orange, bg)
     // Printed so a mismatch between this input and the header commission is
     // visible: 3 legs x round-trip spread should equal 6 x commission_value.
-    f_row(12, "Spread cost/signal", str.tostring(spreadCostPerTrade, "#.###") + " cent",
+    f_row(13, "Spread cost/signal", str.tostring(spreadCostSignalCent, "#.###") + " cent",
          color.orange, bg)
+    // If this ever reads BLOCKED, TradingView is refusing the orders because
+    // three legs cost more than the engine bankroll, and every stat stays 0.
+    f_row(14, "Engine capital", capitalOK ? "OK  " + str.tostring(notionalPerSignal, "#") + " notional"
+         : "BLOCKED  need " + str.tostring(notionalPerSignal, "#"), capitalOK ? gr : rd, bg)
 
-    table.cell(dashTable, 0, 13, "FINANCE", text_color = wh, bgcolor = section,
+    table.cell(dashTable, 0, 15, "FINANCE", text_color = wh, bgcolor = section,
          text_size = size.small, text_halign = text.align_left)
-    table.cell(dashTable, 1, 13, "", bgcolor = section)
+    table.cell(dashTable, 1, 15, "", bgcolor = section)
 
-    f_row(14, "กำไร/ขาดทุน (Cent)", str.tostring(periodProfitLossCent, "#.##"),
+    f_row(16, "กำไร/ขาดทุน (Cent)", str.tostring(periodProfitLossCent, "#.##"),
          periodProfitLossCent >= 0 ? gr : rd, bg)
-    f_row(15, "กำไรเฉลี่ย/วัน", str.tostring(averageProfitDay, "#.##"),
+    f_row(17, "กำไรเฉลี่ย/วัน", str.tostring(averageProfitDay, "#.##"),
          averageProfitDay >= 0 ? gr : rd, bg)
-    f_row(16, "ขาดทุนสูงสุด/ไม้", "-" + str.tostring(maxLossCent, "#.##"), rd, bg)
-    f_row(17, "Max Drawdown", str.tostring(maxDDPct, "#.##") + "%",
+    f_row(18, "ขาดทุนสูงสุด/ไม้", "-" + str.tostring(maxLossCent, "#.##"), rd, bg)
+    f_row(19, "Max Drawdown", str.tostring(maxDDPct, "#.##") + "%",
          maxDDPct >= 35 ? rd : color.silver, bg)
-    f_row(18, "Profit Factor", na(profitFactor) ? "-" : str.tostring(profitFactor, "#.###"),
+    f_row(20, "Profit Factor", na(profitFactor) ? "-" : str.tostring(profitFactor, "#.###"),
          na(profitFactor) ? color.silver : (profitFactor >= 1.30 ? gr : rd), bg)
-    f_row(19, "Balance ปัจจุบัน", str.tostring(currentBalance, "#.##"),
+    f_row(21, "Balance ปัจจุบัน", str.tostring(currentBalance, "#.##"),
          currentBalance >= startingBalanceCent ? gr : rd, bg)
