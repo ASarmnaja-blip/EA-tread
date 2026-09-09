@@ -26,6 +26,9 @@ public:
    double StopDistance(const double entry,const double structureLevel,const double atr) const
      {
       if(atr<=0.0) return 0.0;
+      // SL_FIXED_ATR reproduces the configuration that won the research:
+      // a flat 1.8 x ATR stop, no structure term, no buffer.
+      if(InpSLMode==SL_FIXED_ATR) return InpTrendSLATR*atr;
       double raw = MathAbs(entry-structureLevel) + InpSLBufferATR*atr;
       double lo  = InpMinSLATR*atr;
       double hi  = InpMaxSLATR*atr;

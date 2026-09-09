@@ -42,6 +42,7 @@
 #include <XAUM15/Statistics.mqh>
 #include <XAUM15/Logger.mqh>
 #include <XAUM15/Dashboard.mqh>
+#include <XAUM15/SpreadMonitor.mqh>
 
 //--- module instances -----------------------------------------------
 CBroker         g_broker;
@@ -61,11 +62,13 @@ CDrawdownGuard  g_ddGuard;
 CSetupA         g_setupA;
 CSetupB         g_setupB;
 CSetupC         g_setupC;
+CSetupTrendZone g_setupD;
 CQualityGrader  g_quality;
 CTradeManager   g_tm;
 CStatistics     g_stats;
 CTradeLogger    g_logger;
 CDashboard      g_dash;
+CSpreadMonitor  g_spread;
 
 //--- runtime state ---------------------------------------------------
 datetime g_lastBarTime      = 0;
@@ -105,16 +108,77 @@ int OnInit(void)
    PrintFormat("[INIT] equity %.2f | risk %.2f%%/setup | %d legs | daily +%.1f%%/-%.1f%% | DD stop %.0f%%",
                eq,InpRiskPercent,InpPositionsPerSetup,
                InpDailyProfitTarget,InpDailyLossLimit,InpDD_Preferred);
+   ReportCapitalAdequacy(eq);
    return INIT_SUCCEEDED;
   }
 
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
-   if(InpPrintStatsOnDeinit) g_stats.PrintReport();
+   if(InpPrintStatsOnDeinit)
+     {
+      g_stats.PrintReport();
+      g_spread.PrintReport(InpTrendSLATR*g_ctx.ATR(1));
+      g_spread.WriteCsv("XAUM15_spread_by_hour.csv");
+     }
    g_logger.Close();
    g_dash.Destroy();
    g_ctx.Deinit();
+  }
+
+//+------------------------------------------------------------------+
+//| Is the account large enough for the stop this market implies?      |
+//|                                                                    |
+//| The broker minimum lot cannot shrink. When it forces a risk larger  |
+//| than the configured cap, the EA will reject setups rather than      |
+//| over-risk - so the operator needs to see that before it happens,    |
+//| not after a week of silence.                                        |
+//+------------------------------------------------------------------+
+void ReportCapitalAdequacy(const double equity)
+  {
+   double atr=0.0;
+   int h=iATR(_Symbol,PERIOD_M15,InpAtrPeriod);
+   if(h!=INVALID_HANDLE)
+     {
+      double buf[]; ArraySetAsSeries(buf,true);
+      if(CopyBuffer(h,0,0,3,buf)>0) atr=buf[1];
+      IndicatorRelease(h);
+     }
+   if(atr<=0.0) { Print("[CAPITAL] ATR not available yet - check again after the first bars"); return; }
+
+   double slDist  = (InpSLMode==SL_FIXED_ATR) ? InpTrendSLATR*atr
+                                              : (InpMinSLATR+InpSLBufferATR)*atr;
+   double minRisk = g_broker.RiskMoney(g_broker.lotMin,slDist)*MathMax(1,InpPositionsPerSetup);
+   double minPct  = (equity>0.0) ? 100.0*minRisk/equity : 0.0;
+   double needEq  = (InpRiskPercent>0.0) ? minRisk/(InpRiskPercent/100.0) : 0.0;
+
+   Print("---------------- CAPITAL ADEQUACY ----------------");
+   PrintFormat("ATR(M15)            : %.2f",atr);
+   PrintFormat("Stop distance       : %.2f  (%s)",slDist,
+               InpSLMode==SL_FIXED_ATR?"fixed ATR":"structure + buffer");
+   PrintFormat("Minimum-lot risk    : %.2f  = %.2f%% of equity",minRisk,minPct);
+   PrintFormat("Target risk         : %.2f%%   -> needs equity %.2f",InpRiskPercent,needEq);
+
+   if(minPct > InpMaxRiskPercent)
+      PrintFormat("[CAPITAL] WARNING: minimum lot risks %.2f%%, above the %.2f%% cap. "
+                  "Setups will be REJECTED until equity reaches ~%.2f.",
+                  minPct,InpMaxRiskPercent,needEq);
+   else if(minPct > InpRiskPercent*1.5)
+      PrintFormat("[CAPITAL] NOTE: minimum lot risks %.2f%%, well above the %.2f%% target. "
+                  "Position sizing cannot go finer than this.",minPct,InpRiskPercent);
+
+   if(InpUseDailyLimits && minPct>0.0)
+     {
+      double lossesToStop=InpDailyLossLimit/minPct;
+      PrintFormat("Daily loss limit    : -%.2f%%  = %.1f losing trades",
+                  InpDailyLossLimit,lossesToStop);
+      if(lossesToStop<3.0)
+         PrintFormat("[CAPITAL] WARNING: the daily loss limit stops trading after only "
+                     "%.1f losses. A long-tail system with a low win rate will spend most "
+                     "days halted. Consider InpUseDailyLimits=false or more equity.",
+                     lossesToStop);
+     }
+   Print("-------------------------------------------------");
   }
 
 //+------------------------------------------------------------------+
@@ -272,6 +336,17 @@ bool CollectSignal(const datetime now,TradeSignal &best)
          if(g_quality.Allowed(cand.quality) && (!found || cand.quality>best.quality))
            { best=cand; found=true; }
         }
+
+      // Setup D deliberately bypasses the quality grader. The research
+      // found that every added confluence filter reduced expectancy; the
+      // six-line rule is the whole edge and grading it would re-introduce
+      // exactly the selection the evidence rejected.
+      if(g_setupD.Evaluate(g_ctx,g_vwap,g_vp,g_risk,isLong,cand))
+        {
+         cand.quality=Q_APLUS;
+         cand.spread=spread;
+         if(!found) { best=cand; found=true; }
+        }
      }
    return found;
   }
@@ -394,7 +469,9 @@ void UpdateDashboard(const datetime now)
                  g_daily.PLPercent(eq),g_daily.DDPercent(eq),g_ddGuard.currentDD,
                  g_stats.all.WinRate(),g_stats.all.ProfitFactor(),
                  g_stats.all.Expectancy(),g_stats.all.AvgR(),g_stats.all.trades,
-                 g_vp.sourceName);
+                 g_vp.sourceName,
+                 g_ctx.TrendZoneScore(1),
+                 g_ctx.InTrendZone(true,1)||g_ctx.InTrendZone(false,1));
   }
 
 //+------------------------------------------------------------------+
@@ -407,6 +484,7 @@ void OnTick(void)
    g_daily.Update(now,eq);
    g_ddGuard.Update(eq);
    g_stats.UpdateEquity(eq);
+   g_spread.Sample(now,g_broker.Spread());
 
    if(g_ddGuard.closeAllRequested && g_tm.hasOpenSetup)
       g_tm.CloseAll("drawdown emergency");

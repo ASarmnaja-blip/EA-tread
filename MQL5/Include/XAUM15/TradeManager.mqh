@@ -157,8 +157,11 @@ public:
          if(anyMoved) { current.beApplied=true; current.sl=be; }
         }
 
-      // Time stop on whatever is left.
-      if(InpUseTimeStop && barsElapsed>=InpTimeStopBars)
+      // Time stop on whatever is left. Under EXIT_TIME_STOP_ONLY no target
+      // is placed, so this is the only exit besides the stop - it cannot be
+      // switched off there without leaving the position open indefinitely.
+      bool timeStopRequired = (InpExitMode==EXIT_TIME_STOP_ONLY);
+      if((InpUseTimeStop||timeStopRequired) && barsElapsed>=InpTimeStopBars)
          CloseAll("time stop");
      }
 
@@ -189,7 +192,8 @@ public:
 
    static string SetupName(const ENUM_SETUP_ID s)
      {
-      switch(s) { case SETUP_A: return "A"; case SETUP_B: return "B"; case SETUP_C: return "C"; }
+      switch(s) { case SETUP_A: return "A"; case SETUP_B: return "B";
+                  case SETUP_C: return "C"; case SETUP_D: return "D"; }
       return "-";
      }
   };

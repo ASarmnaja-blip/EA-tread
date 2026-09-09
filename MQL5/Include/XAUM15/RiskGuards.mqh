@@ -34,6 +34,7 @@ public:
         }
       if(equity>dayPeakEquity) dayPeakEquity=equity;
 
+      if(!InpUseDailyLimits) { targetHit=false; lossHit=false; return; }
       double pl=PLPercent(equity);
       if(pl>= InpDailyProfitTarget) targetHit=true;
       if(pl<=-InpDailyLossLimit)    lossHit=true;

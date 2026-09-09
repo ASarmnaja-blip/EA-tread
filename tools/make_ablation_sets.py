@@ -31,18 +31,22 @@ ABLATION_FLAGS = [
 # Baseline that every run shares. Only the ablation flag differs.
 BASE = {
     "InpEnableTrading":     "true",
-    "InpRiskPercent":       "0.75",
+    "InpRiskPercent":       "0.5",
     "InpMaxRiskPercent":    "1.0",
-    "InpPositionsPerSetup": "3",
-    "InpDailyProfitTarget": "3.0",
-    "InpDailyLossLimit":    "2.5",
+    "InpPositionsPerSetup": "1",
+    "InpSLMode":            "1",     # SL_FIXED_ATR
+    "InpExitMode":          "1",     # EXIT_TIME_STOP_ONLY
+    "InpTrendSLATR":        "1.8",
+    "InpTimeStopBars":      "120",
+    "InpCooldownBarsLoss":  "0",
+    "InpEnableSetupA":      "false",
+    "InpEnableSetupB":      "false",
+    "InpEnableSetupC":      "false",
+    "InpEnableSetupD":      "true",
+    "InpUseDailyLimits":    "false",  # incompatible with a 23.8% win rate
     "InpDD_Preferred":      "35.0",
     "InpDD_Emergency":      "40.0",
-    "InpMaxTradesPerDay":   "3",
-    "InpEntryMode":         "1",     # ENTRY_RETEST
-    "InpAllowBSetup":       "false",
-    "InpAllowCSetup":       "false",
-    "InpShowDashboard":     "false", # faster tester runs
+    "InpShowDashboard":     "false",  # faster tester runs
     "InpWriteTradeLog":     "true",
 }
 
@@ -82,12 +86,34 @@ def main() -> None:
               "Structure + sweep + risk only (session kept for sane hours)")
     written.append("01_bare_entry_engine.set")
 
+    # The outstanding validation test: does the trend zone exist off gold?
+    # If it only appears on XAUUSD it was fitted to gold, not discovered.
+    write_set(out / "10_crossasset_check.set", {},
+              "Trend zone unchanged - run this on XAGUSD and EURUSD. "
+              "If the edge does not reproduce, it is gold overfit.")
+    written.append("10_crossasset_check.set")
+
+    # Risk ladder: the research measured 0.5/1.0/2.0% at 28/52/84% drawdown.
+    for pct, dd in (("0.5", "28%"), ("1.0", "52%"), ("2.0", "84%")):
+        name = f"risk_{pct.replace('.', 'p')}pct.set"
+        write_set(out / name, {"InpRiskPercent": pct},
+                  f"Risk {pct}% per trade - research measured ~{dd} max drawdown")
+        written.append(name)
+
+    # Zone boundary perturbation: a real effect sits on a plateau, not a spike.
+    for lo, hi in (("0.80", "7.21"), ("1.08", "7.21"),
+                   ("1.40", "7.21"), ("1.08", "5.00"), ("1.08", "9.00")):
+        name = f"zone_{lo.replace('.', 'p')}_{hi.replace('.', 'p')}.set"
+        write_set(out / name, {"InpTrendZoneMin": lo, "InpTrendZoneMax": hi},
+                  f"Trend zone [{lo}, {hi}] - boundary sensitivity")
+        written.append(name)
+
     if args.per_setup:
-        for letter in ("A", "B", "C"):
+        for letter in ("A", "B", "C", "D"):
             ov = {f"InpEnableSetup{x}": ("true" if x == letter else "false")
-                  for x in ("A", "B", "C")}
+                  for x in ("A", "B", "C", "D")}
             name = f"setup_{letter}_only.set"
-            write_set(out / name, ov, f"Setup {letter} in isolation (spec 16)")
+            write_set(out / name, ov, f"Setup {letter} in isolation")
             written.append(name)
 
     print(f"wrote {len(written)} set files to {out}/")

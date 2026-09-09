@@ -294,4 +294,129 @@ public:
       return true;
      }
   };
+
+//====================================================================
+// SETUP D - TREND ZONE
+//====================================================================
+// The whole rule is six lines. That is the point: every elaboration
+// tested on top of it made results worse.
+//
+//   z = (Close - SMA200) / ATR
+//   long  when  +1.08 <= z <= +7.21
+//   short when  -7.21 <= z <= -1.08
+//   stop  = 1.8 x ATR, flat
+//   exit  = time stop at InpTimeStopBars = 120 M15 bars (30 hours)
+//   size  = 0.5% of equity, one position
+//
+// No target. The edge lives in a long right tail, and every partial
+// close or early exit tested cut the tail off with it.
+//====================================================================
+class CSetupTrendZone
+  {
+public:
+   double lastScore;
+
+   CSetupTrendZone(void): lastScore(0.0) {}
+
+   bool Evaluate(CMarketContext &ctx,CVWAP &vwap,CVolumeProfile &vp,
+                 CRiskManager &rm,const bool tryLong,TradeSignal &sig)
+     {
+      ZeroSignal(sig);
+      if(!InpEnableSetupD) return false;
+      if(tryLong  && !InpTrendZoneLong)  return false;
+      if(!tryLong && !InpTrendZoneShort) return false;
+
+      double a=ctx.ATR(1);
+      if(a<=0.0) return false;
+
+      lastScore=ctx.TrendZoneScore(1);
+      if(!ctx.InTrendZone(tryLong,1)) return false;
+
+      // Fire on ENTERING the zone, not on every bar spent inside it.
+      // Without this the EA re-signals continuously and the trade count
+      // inflates far beyond the ~171/year the research measured.
+      if(InpTrendRequireEntry && ctx.InTrendZone(tryLong,2)) return false;
+
+      double px=ctx.rates[1].close;
+      double slDist=rm.StopDistance(px,px,a);   // flat ATR stop in SL_FIXED_ATR
+      if(slDist<=0.0) return false;
+
+      sig.valid=true; sig.setup=SETUP_D; sig.isLong=tryLong;
+      sig.entry=px;
+      sig.sl = tryLong ? px-slDist : px+slDist;
+      sig.riskDistance=slDist;
+
+      if(InpExitMode==EXIT_TP_LADDER)
+         rm.BuildTargets(tryLong,px,slDist,sig.tp[0],sig.tp[1],sig.tp[2]);
+      // EXIT_TIME_STOP_ONLY leaves tp[] at zero: no target is placed.
+
+      sig.atr=a;
+      sig.vwap=vwap.valid?vwap.value:0.0;
+      sig.poc=vp.valid?vp.poc:0.0; sig.vah=vp.valid?vp.vah:0.0; sig.val=vp.valid?vp.val:0.0;
+      sig.reason=StringFormat("D:trend zone z=%.2f",lastScore);
+      return true;
+     }
+  };
+//====================================================================
+// SETUP D - TREND ZONE
+//====================================================================
+// The whole rule is six lines. That is the point: every elaboration
+// tested on top of it made results worse.
+//
+//   z = (Close - SMA200) / ATR
+//   long  when  +1.08 <= z <= +7.21
+//   short when  -7.21 <= z <= -1.08
+//   stop  = 1.8 x ATR, flat
+//   exit  = time stop at InpTimeStopBars = 120 M15 bars (30 hours)
+//   size  = 0.5% of equity, one position
+//
+// No target. The edge lives in a long right tail, and every partial
+// close or early exit tested cut the tail off with it.
+//====================================================================
+class CSetupTrendZone
+  {
+public:
+   double lastScore;
+
+   CSetupTrendZone(void): lastScore(0.0) {}
+
+   bool Evaluate(CMarketContext &ctx,CVWAP &vwap,CVolumeProfile &vp,
+                 CRiskManager &rm,const bool tryLong,TradeSignal &sig)
+     {
+      ZeroSignal(sig);
+      if(!InpEnableSetupD) return false;
+      if(tryLong  && !InpTrendZoneLong)  return false;
+      if(!tryLong && !InpTrendZoneShort) return false;
+
+      double a=ctx.ATR(1);
+      if(a<=0.0) return false;
+
+      lastScore=ctx.TrendZoneScore(1);
+      if(!ctx.InTrendZone(tryLong,1)) return false;
+
+      // Fire on ENTERING the zone, not on every bar spent inside it.
+      // Without this the EA re-signals continuously and the trade count
+      // inflates far beyond the ~171/year the research measured.
+      if(InpTrendRequireEntry && ctx.InTrendZone(tryLong,2)) return false;
+
+      double px=ctx.rates[1].close;
+      double slDist=rm.StopDistance(px,px,a);   // flat ATR stop in SL_FIXED_ATR
+      if(slDist<=0.0) return false;
+
+      sig.valid=true; sig.setup=SETUP_D; sig.isLong=tryLong;
+      sig.entry=px;
+      sig.sl = tryLong ? px-slDist : px+slDist;
+      sig.riskDistance=slDist;
+
+      if(InpExitMode==EXIT_TP_LADDER)
+         rm.BuildTargets(tryLong,px,slDist,sig.tp[0],sig.tp[1],sig.tp[2]);
+      // EXIT_TIME_STOP_ONLY leaves tp[] at zero: no target is placed.
+
+      sig.atr=a;
+      sig.vwap=vwap.valid?vwap.value:0.0;
+      sig.poc=vp.valid?vp.poc:0.0; sig.vah=vp.valid?vp.vah:0.0; sig.val=vp.valid?vp.val:0.0;
+      sig.reason=StringFormat("D:trend zone z=%.2f",lastScore);
+      return true;
+     }
+  };
 #endif

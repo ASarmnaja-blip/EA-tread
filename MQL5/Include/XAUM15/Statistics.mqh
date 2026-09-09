@@ -69,7 +69,7 @@ class CStatistics
   {
 public:
    StatBucket all, longs, shorts;
-   StatBucket bySetup[4];      // index by ENUM_SETUP_ID
+   StatBucket bySetup[5];      // index by ENUM_SETUP_ID (A=1..D=4)
    StatBucket bySession[4];    // 0 asian 1 london 2 ny 3 overlap
    StatBucket byHour[24];
 
@@ -81,7 +81,8 @@ public:
    void ResetAll(void)
      {
       all.Reset(); longs.Reset(); shorts.Reset();
-      for(int i=0;i<4;i++) { bySetup[i].Reset(); bySession[i].Reset(); }
+      for(int i=0;i<5;i++) bySetup[i].Reset();
+      for(int i=0;i<4;i++) bySession[i].Reset();
       for(int i=0;i<24;i++) byHour[i].Reset();
      }
 
@@ -103,7 +104,7 @@ public:
      {
       all.Add(profit,r,durationMin);
       if(isLong) longs.Add(profit,r,durationMin); else shorts.Add(profit,r,durationMin);
-      if(setup>=0 && setup<4)        bySetup[setup].Add(profit,r,durationMin);
+      if(setup>=0 && setup<5)        bySetup[setup].Add(profit,r,durationMin);
       if(sessionIdx>=0&&sessionIdx<4)bySession[sessionIdx].Add(profit,r,durationMin);
       if(hour>=0 && hour<24)         byHour[hour].Add(profit,r,durationMin);
      }
@@ -138,6 +139,7 @@ public:
       PrintBucket("SETUP A",bySetup[SETUP_A]);
       PrintBucket("SETUP B",bySetup[SETUP_B]);
       PrintBucket("SETUP C",bySetup[SETUP_C]);
+      PrintBucket("SETUP D",bySetup[SETUP_D]);
 
       Print("--- by session ---");
       PrintBucket("ASIAN",bySession[0]);  PrintBucket("LONDON",bySession[1]);

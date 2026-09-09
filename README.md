@@ -2,14 +2,20 @@
 
 A modular MetaTrader 5 Expert Advisor for XAU/USD on **M15**.
 
-Entries come from a liquidity sweep confirmed by a market structure shift and
-a displacement candle, gated by session, news, regime, spread and drawdown
-checks, sized from account equity, and managed as three independent positions
-at 1R / 2R / 3R.
+The default entry is a **trend-zone** rule: go long when price sits between
+1.08 and 7.21 ATR above its 200-bar SMA, stop at 1.8 ATR, hold 30 hours, one
+position, 0.5 % risk. That is the whole signal.
 
-> **Status: not yet backtested.** The code and the test tooling are here; the
-> numbers are not. Run `docs/BACKTEST.md` on your own broker's history before
-> forming any view on whether this works. No performance is promised.
+It is deliberately plain, because a 16-round research program on 15 years of
+XAUUSD minute data found that the elaborate version did not work and the
+simple one did. **[docs/RESEARCH_FINDINGS.md](docs/RESEARCH_FINDINGS.md)
+records what was tested, what died, and what survived** — read it before
+changing any default.
+
+> **Status: the trend zone is a working hypothesis, not a validated edge.**
+> It was found on the full gold sample rather than a held-out half, and
+> cross-asset confirmation (silver, EURUSD) has not been run. If it does not
+> reproduce there, it is gold overfit. No performance is promised.
 
 ---
 
@@ -71,41 +77,56 @@ tick ──┬─ daily risk + drawdown guard        (every tick)
                            └─ grade quality → size → validate stops → order
 ```
 
-### The three setups are independent (spec 16)
+### Four independent setups, one on by default
 
-Setup A, B and C are separate evaluators with their own enable flags and
-their own statistics buckets. They never share a pooled score. If more than
-one qualifies on the same bar the higher grade wins, breaking ties A → B → C.
+Each setup is a separate evaluator with its own enable flag and its own
+statistics bucket. They never share a pooled score.
 
-| Setup | Idea |
-|---|---|
-| **A — AMD liquidity reversal** | Asian range → sweep of its extreme → close back inside → MSS → displacement → retest |
-| **B — Volume profile continuation** | Trend + VWAP side + pullback into value → acceptance → structure → displacement → retest |
-| **C — Opening range expansion** | London/NY opening range → breakout with volume *and* ATR expansion → structure → displacement → retest |
+| Setup | Default | Idea | Evidence |
+|---|---|---|---|
+| **D — Trend zone** | **on** | `(Close − SMA200)/ATR` in [1.08, 7.21] → long. Flat 1.8 ATR stop, 30 h hold, no target | permutation p = 0.0005; drift-adjusted t = +5.08; **cross-asset pending** |
+| A — AMD liquidity reversal | off | Asian range → sweep → close back inside → MSS → displacement → retest | **no edge at n = 43,353**; inversion test conclusive |
+| B — Volume profile continuation | off | Trend + VWAP + pullback into value → acceptance → structure → displacement | untested |
+| C — Opening range expansion | off | London/NY opening range → breakout with volume *and* ATR expansion → retest | untested |
 
-Setup C never enters on the breakout alone; a retest is required.
+Setup D bypasses the quality grader on purpose: every confluence filter
+tested on top of it reduced expectancy. Setups A–C remain in the codebase
+because switching a hypothesis off is not the same as losing the ability to
+re-test it.
 
 ## Key parameters
 
-Defaults are tuned for a **$1,000 USD demo** account.
+Every default below traces to a measurement in
+[docs/RESEARCH_FINDINGS.md](docs/RESEARCH_FINDINGS.md).
 
-| Input | Default | Notes |
+| Input | Default | Why |
 |---|---|---|
-| `InpRiskPercent` | 0.75 | % of equity per setup, split across legs |
+| `InpTrendZoneMin` / `Max` | 1.08 / 7.21 | the tested zone, in ATR from SMA200 |
+| `InpTrendSmaPeriod` | 200 | **SMA**, not EMA — matches the research |
+| `InpTrendZoneLong` / `Short` | true / false | long side t = +5.08, short only +2.65 |
+| `InpTrendSLATR` | 1.8 | flat stop of the winning configuration |
+| `InpTimeStopBars` | 120 | 30 hours; shortening it cut the tail |
+| `InpExitMode` | TIME_STOP_ONLY | partial closes halved profit in testing |
+| `InpPositionsPerSetup` | 1 | the ladder is available but unsupported by evidence |
+| `InpRiskPercent` | 0.50 | 0.5 % → 20.2 % p.a. at 28.2 % DD; 2 % → 64 % p.a. at **84 % DD** |
 | `InpMaxRiskPercent` | 1.00 | hard cap; setups that cannot fit are rejected |
-| `InpPositionsPerSetup` | 3 | three real positions, not one partial-closed |
-| `InpLotFitMode` | REDUCE_POSITIONS | degrade 3→2→1 legs rather than over-risk |
-| `InpSLBufferATR` | 0.35 | ATR buffer beyond the structure level |
-| `InpMinSLATR` / `InpMaxSLATR` | 0.50 / 3.00 | wider setups are rejected, not clipped |
-| `InpTP1R/2R/3R` | 1 / 2 / 3 | the ladder |
-| `InpBEMode` | BE_SPREAD | legs 2–3 to break-even once TP1 closes |
-| `InpDailyProfitTarget` | 3.0 | % — stops new trades |
-| `InpDailyLossLimit` | 2.5 | % — stops new trades |
-| `InpDD_Preferred` / `InpDD_Emergency` | 35 / 40 | % — halt / close-all |
-| `InpMaxTradesPerDay` | 3 | setups, not legs |
-| `InpEntryMode` | RETEST | market / retest / limit / breakout |
-| `InpAllowBSetup` | false | trade only A and A+ grades by default |
-| `InpMaxSpread` | 0.60 | price units ($) |
+| `InpCooldownBarsLoss` | 0 | losing streaks are normal here; a cooldown just deletes trades |
+| `InpUseDailyLimits` | true | **see the warning below** |
+| `InpDD_Preferred` / `Emergency` | 35 / 40 | % — halt / close-all |
+| `InpMaxSpread` | 0.60 | price units ($) — measure yours first |
+| `InpSLMode` | FIXED_ATR | STRUCTURE_ATR restores the Setup A/B/C behaviour |
+
+### The daily loss limit may need to be off
+
+At the current gold ATR, minimum lot on a 1000 USC ($10) account risks
+**2.04 % per trade**. A −2.5 % daily limit then halts trading after 1.2
+losses — and this system has a 23.8 % win rate with a 19-trade losing streak
+on record. It would sit halted almost every day.
+
+The EA prints a **capital adequacy report** at startup with the real numbers
+and warns when this applies. `InpUseDailyLimits = false` switches both daily
+rules off together. This is a real conflict between the original
+specification and the measured system, and it is your call.
 
 Times are **broker server hours**. `InpDSTOffsetHours` shifts every window at
 once when your broker's DST changes.
@@ -136,26 +157,32 @@ overstates results.
 
 ## Known limitations
 
-1. **Not yet backtested or forward tested.** No performance claim is made.
-2. **Lot granularity on small accounts.** At $1,000, minimum lot forces many
-   setups down to 1–2 legs. The trade distribution differs from a larger
-   account, so results do not transfer between account sizes.
-3. **Tick volume is not real volume.** See the disclosure above.
-4. **Calendar API is unavailable in the Strategy Tester** on most builds. Use
+1. **The trend zone is not yet validated.** Found on the full gold sample,
+   not a held-out half; cross-asset confirmation is the outstanding test.
+2. **Capital adequacy is the binding constraint.** At today's ATR, 0.5 % risk
+   needs about **$41**. On $10 the same rule risks 2.04 % per trade. The
+   startup report prints this for your live ATR.
+3. **Spread is unsettled by a factor of three** ($0.26 reported vs $0.4824
+   measured vs $0.7525 in Asian hours). `SpreadMonitor` writes
+   `XAUM15_spread_by_hour.csv` so you can settle it with your own broker.
+4. **Win rate is 23.8 %** with a 19-trade observed losing streak and ~29
+   expected. Profit is a long right tail. This is psychologically hard to run.
+5. **Tick volume is not real volume.** See the disclosure above.
+6. **Calendar API is unavailable in the Strategy Tester** on most builds. Use
    `InpManualNewsTimes` for backtests that need news blackouts, or accept that
    backtests trade through news that live trading would skip — this usually
    makes backtests look *better* than live.
-5. **DST is manual.** `InpDSTOffsetHours` is not automatic; session windows
+7. **DST is manual.** `InpDSTOffsetHours` is not automatic; session windows
    drift by an hour twice a year unless you set it.
-6. **Signal price vs. fill price.** Signals form on the closed M15 bar; the EA
+8. **Signal price vs. fill price.** Signals form on the closed M15 bar; the EA
    re-prices and re-sizes against the live bid/ask before ordering, but a fast
    market can still fill away from the intended entry.
-7. **Partial ladders are kept, not unwound.** If only some legs fill, the EA
+9. **Partial ladders are kept, not unwound.** If only some legs fill, the EA
    keeps them rather than paying spread twice to correct the ladder.
-8. **Sharpe in the report is per-trade R, not annualised.** It is comparable
+10. **Sharpe in the report is per-trade R, not annualised.** It is comparable
    between runs of this EA, not with published fund Sharpe ratios.
-9. **Single-symbol, single-timeframe.** No portfolio or correlation handling.
-10. **Higher-timeframe bias (H1/H4) is not implemented**; regime uses M15
+11. **Single-symbol, single-timeframe.** No portfolio or correlation handling.
+12. **Higher-timeframe bias (H1/H4) is not implemented**; regime uses M15
     EMA50/EMA200 only. Spec 1 lists HTF bias as optional.
 
 ## Repository layout
@@ -165,6 +192,7 @@ MQL5/Experts/XAUM15/   the EA
 MQL5/Include/XAUM15/   17 modules, one job each
 tools/                 MT5 data export, ablation set generator
 docs/BACKTEST.md       backtest, optimisation and robustness procedure
+docs/RESEARCH_FINDINGS.md  what was tested, what died, what survived
 ```
 
 ## Disclaimer

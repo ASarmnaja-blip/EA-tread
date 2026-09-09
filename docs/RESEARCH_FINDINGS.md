@@ -1,0 +1,228 @@
+# What the evidence changed
+
+This file records why the EA's defaults are what they are. It summarises a
+16-round research program run on 15 years of XAUUSD minute data
+(5,250,134 bars, 43,353 trades evaluated) and states, rule by rule, what
+survived and what did not.
+
+Source: *บันทึกวิจัย nonnor*, 9 September 2026 — OANDA data via QuantConnect.
+
+---
+
+## The headline: the original entry model has no edge
+
+The specification this EA was first written to is built on liquidity-sweep
+reversal — price takes a level, closes back, structure shifts, you enter the
+reversal. That family was tested at **n = 43,353** with minute-level exit
+evaluation, and then subjected to an **inversion test**:
+
+| | Expectancy |
+|---|---|
+| The setup | **−0.202 R** |
+| The same setup with every rule inverted | **−0.189 R** |
+| Sum | −0.391 R |
+| Two round turns of spread | 0.344 R |
+
+Both directions lose, and the two losses add up to roughly the spread paid
+twice. That is the signature of a series with **no directional information
+left in it**. Buying and selling the same moment both lose, by the cost of
+trading. There is nothing to invert into a winner and nothing to filter into
+one.
+
+Win rates against the gambler's-ruin baseline `1/(1+R)` were below chance at
+every target, most significantly at 0.5R (**E/se = −15.55**).
+
+**Consequence:** `InpEnableSetupA = false` by default. The code remains for
+reference and for anyone who wants to reproduce the result, but it is not a
+default trading path.
+
+## The Asian session was never tradeable
+
+An Asian-hours effect looked strong on the first half of the sample
+(+$0.60/day) and vanished on the second (−$0.004/day). The measured spread
+in those hours is **$0.7525**, not the $0.26 assumed. Recomputed against the
+real cost, the profit-to-cost ratio falls from a claimed 7.9× to **0.82×**.
+
+**Consequence:** the Asian range is no longer the structural centre of the
+system. `InpBlockAsianEntries` stays true, and Setup A — which was built on
+the Asian range — is off.
+
+## What survived: the trend zone
+
+One rule passed every test that was put to it:
+
+```
+z = (Close - SMA200) / ATR        on M15
+long when   +1.08 <= z <= +7.21
+```
+
+| Test | Value | Threshold | Result |
+|---|---|---|---|
+| Permutation test at 1.5R | p = 0.0005 | p < 0.01 | pass |
+| Permutation test at 2.5R | p = 0.0005 | p < 0.01 | pass |
+| In-zone vs out-of-zone (long) | t = +9.33 | \|t\| > 2.5 | pass |
+| Drift-adjusted, long | t = +5.08 | t > 2.0 | pass |
+| Drift-adjusted, short | t = +2.65 | t > 2.0 | pass |
+| **Cross-asset (silver, EURUSD)** | **not run** | — | **pending** |
+
+The drift adjustment matters: gold rose for fifteen years, so any long
+strategy shows a profit. Subtracting the market's own drift minute by minute
+and re-measuring is what separates the rule from the tide.
+
+**This is not yet a validated edge.** The zone was found on the *full* gold
+sample rather than a held-out half, and cross-asset confirmation has not been
+run. If it does not reproduce in silver and EURUSD, it is gold overfit. Ship
+it as the working hypothesis, not the answer.
+
+**Consequence:** implemented as **Setup D**, enabled by default, with the
+zone boundaries, the SMA period and both side toggles exposed as inputs so
+the cross-asset test can be run directly from the Strategy Tester.
+
+## Simplicity won
+
+The configuration that produced the best real equity curve was the plainest
+one tested: **long in the zone, 1.8×ATR stop, hold 30 hours, no partial
+close, 0.5% risk.** Every elaboration made it worse:
+
+| Elaboration | Effect |
+|---|---|
+| Partial close at 1.5R | drawdown better by 3.7 points, **profit halved** |
+| H4 direction filter | helped at every level, but only reached 1.44 of the 3.7 needed, and cut trade count in half |
+| Trading the sweep direction (Osler) | z ≈ 0 at n = 34,137 |
+
+The edge lives in a long right tail. Partial closes, tight time stops and
+post-loss cooldowns all cut the tail off along with the noise.
+
+**Consequences:**
+- `InpExitMode = EXIT_TIME_STOP_ONLY` — Setup D places **no target**
+- `InpTimeStopBars = 120` (30 hours), not 32
+- `InpPositionsPerSetup = 1`, not 3
+- `InpSLMode = SL_FIXED_ATR` at 1.8×ATR
+- `InpCooldownBarsLoss = 0`
+- `InpRiskPercent = 0.50`
+
+The 1R/2R/3R ladder from the original specification is still available via
+`InpExitMode = EXIT_TP_LADDER` with `InpPositionsPerSetup = 3`, but the
+evidence is against it for this entry model.
+
+## Position size, not strategy, controls drawdown
+
+Same strategy, three risk settings, on the same 15 years:
+
+| Risk/trade | Return p.a. | Max drawdown |
+|---|---|---|
+| 0.5 % | 20.2 % | 28.2 % |
+| 1.0 % | 38.6 % | 51.5 % |
+| 2.0 % | 64.1 % | 83.9 % |
+| *buy and hold gold* | *11.0 %* | *~20 %* |
+
+An 83.9% drawdown means the account was once worth one sixth of its peak.
+Nothing in the entry logic changes between those rows.
+
+**Fixed lot is strictly worse than percentage sizing**, and the difference
+compounds exactly when it hurts. Through a 29-trade losing streak: floating
+percentage leaves 550 USC, fixed 0.01 lot leaves **408 USC** — and the next
+trade still risks the same absolute amount, which by then is 5% of what is
+left. Percentage sizing shrinks with the account and mathematically cannot
+reach zero; minimum lot cannot shrink at all.
+
+**Consequence:** equity-based sizing was already the design and stays. The
+EA never uses a fixed lot as its primary sizing.
+
+## The numbers you must accept before running this
+
+- Win rate **23.8 %**
+- Longest losing streak actually observed: **19 trades**
+- Theoretically expected longest streak: **~29 trades**
+- Profit comes from a small number of large winners
+
+An operator who cannot sit through 19 consecutive losses will switch the
+system off in the middle of the drawdown it was designed to survive.
+
+## Capital adequacy: the binding constraint
+
+Minimum lot is 0.01, and it cannot go lower. On a cent account the contract
+is **1 oz per lot**, so 0.01 lot = 0.01 oz and a $1.00 gold move is 1 USC.
+1000 USC is **$10 of real money**.
+
+| ATR (M15) | Stop at 1.8×ATR | Risk on 1000 USC | Equity needed for 0.5 % |
+|---|---|---|---|
+| $11.35 (current) | $20.43 | **2.04 %** | **$41** |
+| $8.00 (last 12m) | $14.40 | 1.44 % | $29 |
+| $5.44 (2025) | $9.79 | 0.98 % | $20 |
+| $2.58 (15y mean) | $4.64 | 0.46 % | $9 |
+
+The backtest ran at 0.5% because the 15-year mean ATR is $2.58. **Current
+gold volatility is 4.4× that**, so the same rule on the same account now
+risks four times as much per trade.
+
+The EA prints a **capital adequacy report** on every init showing the
+minimum-lot risk at the live ATR, the equity needed for the configured
+target, and a warning when setups will be rejected.
+
+## The daily loss limit conflicts with this system
+
+At 2.04% risk per trade, a −2.5% daily loss limit halts trading after **1.2
+losses**. A system with a 23.8% win rate and a 19-trade losing streak cannot
+operate under that rule: it would be stopped out on most days, and the days
+it skips are indistinguishable from the days it needs.
+
+`InpUseDailyLimits` now switches both daily rules off as a pair. The init
+report warns when the limit is reachable in under three losses. This is a
+genuine conflict between the original specification and the measured
+character of the surviving edge — it is the operator's call, not a bug.
+
+## The open cost question
+
+| Source | Spread |
+|---|---|
+| Reported from the terminal | $0.26 |
+| OANDA data, same period, average | $0.4824 |
+| OANDA data, Asian hours | $0.7525 |
+
+Nearly a three-fold spread. At a 1.8×ATR stop that moves cost per trade from
+0.013R to 0.037R and expectancy from 0.142R to about 0.118R — a 17% haircut,
+survivable but material.
+
+**No backtest can settle this.** `SpreadMonitor.mqh` samples the live spread
+once a second, buckets it by broker hour, prints the table on deinit and
+writes `XAUM15_spread_by_hour.csv`. Run it on the $10 account for a month
+and the question is answered with your broker's real numbers.
+
+## Method that is worth keeping
+
+Independent of any strategy, these are reusable:
+
+- **Calibrate the measuring instrument first.** Run it on random data where
+  the true answer is known to be `1/(1+R)` exactly. This caught three bugs
+  that were about to ship, including a look-ahead error that produced a fake
+  z = 4.56.
+- **Block bootstrap nulls** (12-bar blocks) preserve candle shape and
+  volatility while destroying sequence — they answer whether *order* matters.
+- **Circular-shift nulls** for condition sweeps, because trades close in time
+  share price paths and a naive shuffle manufactures significance (one p-value
+  moved from 0.0075 to 0.31 when this was fixed).
+- **Subtract market drift** before crediting a long-only rule on a
+  fifteen-year uptrend.
+- **Write the prediction and the kill condition before the run**, and print
+  the multiple-comparison ceiling `√(2·ln k)` under every table.
+- **Minute-level exit evaluation.** M15 bars are too coarse: they miss stops
+  that were actually hit, inflating results by +0.06R at 1.5R and +0.20R at 3R.
+
+The EA's own reporting reflects the last point: `docs/BACKTEST.md` requires
+*every tick based on real ticks* for the same reason.
+
+---
+
+## Status of each setup in the code
+
+| Setup | Default | Evidence |
+|---|---|---|
+| **D — Trend zone** | **on** | survived every test run; cross-asset validation pending |
+| A — AMD liquidity reversal | off | tested at n = 43,353, no edge; inversion test conclusive |
+| B — Volume profile continuation | off | never tested; the VP/VWAP machinery it depends on added nothing |
+| C — Opening range expansion | off | never tested |
+
+Setups A, B and C remain in the codebase because turning a hypothesis off is
+different from deleting the ability to re-test it. Each has its own enable
+flag and its own statistics bucket.

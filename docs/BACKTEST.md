@@ -194,3 +194,57 @@ The 2 %/day figure in the specification is a target used to evaluate the
 system statistically over a long sample. It is **not** a guarantee, not a
 daily quota, and the EA is explicitly built to sit flat on days with no
 qualifying setup. Any day, week or month can be negative.
+
+---
+
+## 10. Priority test: cross-asset validation of the trend zone
+
+Everything in `docs/RESEARCH_FINDINGS.md` was measured on **gold only**, and
+the zone boundaries were found on the full sample rather than a held-out
+half. That makes cross-asset reproduction the single most informative test
+remaining — and the one most likely to kill the system.
+
+```bash
+python tools/make_ablation_sets.py --outdir sets --per-setup
+# then in Strategy Tester, load 10_crossasset_check.set and run it on:
+#   XAGUSD   (silver  - same metals complex, different liquidity)
+#   EURUSD   (FX      - unrelated market entirely)
+```
+
+Change **nothing** but the symbol. The zone boundaries, SMA period, stop
+multiple and hold time stay exactly as they are.
+
+| Result | Reading |
+|---|---|
+| Positive expectancy on both | the zone is a general effect; proceed to walk-forward |
+| Positive on silver, flat on EURUSD | plausibly a metals/volatility effect; narrow the claim |
+| Flat or negative on both | **fitted to gold.** Do not trade it |
+
+Do not tune the zone to make another asset work. Re-fitting per market is how
+a single overfit becomes three.
+
+### Boundary sensitivity
+
+`zone_*.set` steps the zone edges. A real effect degrades smoothly as the
+boundary moves; a fitted one collapses the moment 1.08 becomes 1.40. Look for
+a **plateau**, and treat a spike at exactly the published values as a warning
+rather than a confirmation.
+
+### Risk ladder
+
+`risk_*.set` reproduces the 0.5 / 1.0 / 2.0 % comparison. The research
+measured 28 % / 52 % / 84 % max drawdown across those three on identical
+entry logic. Confirming that relationship on your data is a cheap check that
+your equity accounting matches theirs.
+
+## 11. Measure your spread before trusting any of it
+
+```
+Run the EA on a live $10 account for a month with InpEnableTrading = false.
+It still samples spread. On deinit it writes XAUM15_spread_by_hour.csv.
+```
+
+The cost input is currently uncertain by a factor of three ($0.26 reported,
+$0.4824 measured elsewhere, $0.7525 in Asian hours). At a 1.8×ATR stop that
+is the difference between 0.013R and 0.037R per trade. Every backtest number
+above is conditional on which of those is true, and no backtest can tell you.

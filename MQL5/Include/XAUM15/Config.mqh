@@ -14,7 +14,9 @@ enum ENUM_REGIME       { REG_NONE, REG_TREND_UP, REG_TREND_DOWN, REG_RANGE,
 enum ENUM_AMD_PHASE    { AMD_NONE, AMD_ACCUMULATION, AMD_MANIPULATION, AMD_DISTRIBUTION };
 enum ENUM_VOLUME_SRC   { VOL_BROKER_TICK, VOL_EXTERNAL, VOL_AUTO };
 enum ENUM_ENTRY_MODE   { ENTRY_MARKET, ENTRY_RETEST, ENTRY_LIMIT, ENTRY_BREAKOUT };
-enum ENUM_SETUP_ID     { SETUP_NONE=0, SETUP_A=1, SETUP_B=2, SETUP_C=3 };
+enum ENUM_SETUP_ID     { SETUP_NONE=0, SETUP_A=1, SETUP_B=2, SETUP_C=3, SETUP_D=4 };
+enum ENUM_SL_MODE      { SL_STRUCTURE_ATR, SL_FIXED_ATR };
+enum ENUM_EXIT_MODE    { EXIT_TP_LADDER, EXIT_TIME_STOP_ONLY };
 enum ENUM_QUALITY      { Q_NONE=0, Q_C=1, Q_B=2, Q_A=3, Q_APLUS=4 };
 enum ENUM_DAILY_LOSS_ACTION { DL_STOP_NEW_TRADES, DL_CLOSE_ALL };
 enum ENUM_DD_ACTION    { DD_NOTHING, DD_STOP_NEW, DD_CLOSE_ALL_AND_STOP };
@@ -148,20 +150,52 @@ input group "=== M11 ENTRY ==="
 input ENUM_ENTRY_MODE InpEntryMode = ENTRY_RETEST;
 input int    InpRetestMaxBars      = 6;     // Bars to wait for retest before void
 input double InpRetestZoneATR      = 0.35;  // Retest tolerance around trigger level
-input bool   InpEnableSetupA       = true;
-input bool   InpEnableSetupB       = true;
-input bool   InpEnableSetupC       = true;
+input bool   InpEnableSetupA       = false;  // sweep-reversal: no edge found (n=43,353)
+input bool   InpEnableSetupB       = false;  // unvalidated
+input bool   InpEnableSetupC       = false;  // unvalidated
 input int    InpORMinutes          = 30;    // Opening range length (Setup C)
 input double InpORMinExpansionATR  = 0.8;   // Required expansion beyond OR
+
+
+//====================================================================
+// SETUP D - TREND ZONE  (the only hypothesis that survived testing)
+//====================================================================
+// Evidence, from the 16-round research log on 15 years of XAUUSD
+// minute data (5,250,134 bars):
+//   (Close - SMA200) / ATR inside [+1.08, +7.21] survived a permutation
+//   test at p=0.0005 on both the 1.5R and 2.5R targets, an in-zone vs
+//   out-of-zone contrast (t=+9.33 long), and a market-drift-adjusted
+//   retest (t=+5.08 long, +2.65 short).
+//
+// NOT YET VALIDATED: the zone was found on the FULL gold sample, not a
+// held-out half, and cross-asset confirmation (silver, EURUSD) has not
+// been run. If it does not reproduce there, this is gold overfit.
+//
+// Measured character: win rate ~23.8%, profit concentrated in a long
+// right tail, longest REAL losing streak 19 trades, theoretical
+// expectation ~29. Anything that trims the tail - partial closes,
+// tight time stops, cooldowns - destroyed the edge in testing.
+//====================================================================
+input group "=== M11 SETUP D (TREND ZONE) ==="
+input bool   InpEnableSetupD       = true;
+input int    InpTrendSmaPeriod     = 200;   // SMA, not EMA - matches the research
+input double InpTrendZoneMin       = 1.08;  // lower edge of the zone, in ATR
+input double InpTrendZoneMax       = 7.21;  // upper edge
+input bool   InpTrendZoneLong      = true;  // long side: strongest evidence
+input bool   InpTrendZoneShort     = false; // short side: weaker (t=+2.65)
+input double InpTrendSLATR         = 1.8;   // flat stop, the winning config
+input bool   InpTrendRequireEntry  = true;  // fire on ENTERING the zone only
 
 //====================================================================
 // MODULE 12 - RISK
 //====================================================================
 input group "=== M12 RISK ==="
-input double InpRiskPercent        = 0.75;  // Risk % of equity per SETUP
+input double InpRiskPercent        = 0.50;  // Risk % of equity per SETUP (research baseline)
 input double InpMaxRiskPercent     = 1.00;  // Hard cap per setup
-input int    InpPositionsPerSetup  = 3;     // Spec 19: three independent positions
+input int    InpPositionsPerSetup  = 1;     // 1 for Setup D; 3 = the 1R/2R/3R ladder
 input ENUM_LOTFIT_MODE InpLotFitMode = LOTFIT_REDUCE_POSITIONS;
+input ENUM_SL_MODE   InpSLMode     = SL_FIXED_ATR;   // FIXED_ATR = Setup D; STRUCTURE = A/B/C
+input ENUM_EXIT_MODE InpExitMode   = EXIT_TIME_STOP_ONLY; // LADDER = 1R/2R/3R targets
 input double InpSLBufferATR        = 0.35;  // ATR buffer added beyond structure
 input double InpMinSLATR           = 0.50;  // Floor for SL distance
 input double InpMaxSLATR           = 3.00;  // Ceiling; wider setups are rejected
@@ -178,18 +212,22 @@ input double InpBEBufferPoints     = 20;    // Extra buffer in points for BE_BUF
 input double InpBEBufferATR        = 0.05;  // For BE_ATR
 input bool   InpMoveBEOnTP1        = true;
 input bool   InpUseTimeStop        = true;
-input int    InpTimeStopBars       = 32;    // Close remainder after N M15 bars
+input int    InpTimeStopBars       = 120;   // 120 = 30h - the tested Setup D hold
 
 //====================================================================
 // MODULE 14 - DAILY RISK
 //====================================================================
 input group "=== M14 DAILY RISK ==="
+// A -2.5% daily stop is incompatible with a 23.8% win-rate system risking
+// ~2% per trade: one loss halts the day, every day. Keep the limits ON only
+// when risk-per-trade is small relative to the limit (see the OnInit report).
+input bool   InpUseDailyLimits     = true;  // master switch for the two below
 input double InpDailyProfitTarget  = 3.0;   // % - stop opening new trades
 input double InpDailyLossLimit     = 2.5;   // %
 input ENUM_DAILY_LOSS_ACTION InpDailyLossAction = DL_STOP_NEW_TRADES;
-input int    InpMaxTradesPerDay    = 3;     // Setups per day
+input int    InpMaxTradesPerDay    = 3;     // Setups per day (30h holds rarely reach this)
 input int    InpMaxConcurrentSetups= 1;
-input int    InpCooldownBarsLoss   = 2;
+input int    InpCooldownBarsLoss   = 0;     // long losing streaks are normal here
 input int    InpCooldownBarsWin    = 0;
 
 //====================================================================

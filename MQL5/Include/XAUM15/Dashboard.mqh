@@ -48,7 +48,8 @@ public:
                const double tp2,const double tp3,const double riskPct,
                const double dailyPL,const double dailyDD,const double totalDD,
                const double winRate,const double pf,const double expectancy,
-               const double avgR,const int totalTrades,const string volSource)
+               const double avgR,const int totalTrades,const string volSource,
+               const double trendZone,const bool zoneActive)
      {
       if(!InpShowDashboard) return;
       m_row=0;
@@ -72,6 +73,10 @@ public:
       Line("17",StringFormat("PrevDay H/L : %.2f / %.2f",pdh,pdl),clrSandyBrown);
       Line("18","",clrSilver);
 
+      Line("19",StringFormat("Trend zone  : %+.2f  [%.2f..%.2f]  %s",
+                             trendZone,InpTrendZoneMin,InpTrendZoneMax,
+                             zoneActive?"IN ZONE":"out"),
+                             zoneActive?clrLimeGreen:clrGray);
       Line("20","Bias        : "+bias,clrWhite);
       Line("21","Active setup: "+activeSetup,clrWhite);
       Line("22","Quality     : "+quality,clrWhite);
