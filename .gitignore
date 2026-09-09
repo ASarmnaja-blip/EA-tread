@@ -1,0 +1,6 @@
+data/
+sets/
+*.csv
+*.ex5
+*.log
+__pycache__/
