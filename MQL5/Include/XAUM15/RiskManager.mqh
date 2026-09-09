@@ -52,7 +52,8 @@ public:
       double budget = equity*(InpRiskPercent/100.0);
       double cap    = equity*(InpMaxRiskPercent/100.0);
 
-      for(int legs=InpPositionsPerSetup; legs>=1; legs--)
+      int wanted = MathMax(1,MathMin(InpPositionsPerSetup,LegsForExitMode()));
+      for(int legs=wanted; legs>=1; legs--)
         {
          double perLeg = budget/legs;
          double raw    = br.LotForRisk(perLeg,slDistance);
@@ -65,9 +66,9 @@ public:
            {
             r.ok=true; r.positions=legs; r.lot=lot;
             r.riskMoney=total; r.riskPercent=100.0*total/equity;
-            if(lot<=br.lotMin+1e-9 && legs<InpPositionsPerSetup)
+            if(lot<=br.lotMin+1e-9 && legs<wanted)
                r.reason=StringFormat("min lot floor: %d legs instead of %d",
-                                     legs,InpPositionsPerSetup);
+                                     legs,wanted);
             return r;
            }
 
@@ -95,6 +96,47 @@ public:
       tp1 = entry + s*slDistance*InpTP1R;
       tp2 = entry + s*slDistance*InpTP2R;
       tp3 = entry + s*slDistance*InpTP3R;
+     }
+
+   //--- how many real positions this exit mode needs -------------------
+   static int LegsForExitMode(void)
+     {
+      switch(InpExitMode)
+        {
+         case EXIT_TP_LADDER:      return 3;
+         case EXIT_PARTIAL_RUNNER: return 2;   // equal lots = the tested 50/50
+         default:                  return 1;   // single target, or time stop only
+        }
+     }
+
+   //--- fill tp[] according to the configured exit model ---------------
+   //    A zero entry in tp[] means "no target on that leg".
+   void BuildExit(const bool isLong,const double entry,const double slDistance,
+                  double &tp[]) const
+     {
+      double s = isLong?1.0:-1.0;
+      tp[0]=0.0; tp[1]=0.0; tp[2]=0.0;
+
+      switch(InpExitMode)
+        {
+         case EXIT_TP_LADDER:
+            tp[0]=entry+s*slDistance*InpTP1R;
+            tp[1]=entry+s*slDistance*InpTP2R;
+            tp[2]=entry+s*slDistance*InpTP3R;
+            break;
+
+         case EXIT_SINGLE_TARGET:
+            tp[0]=entry+s*slDistance*InpTargetR;
+            break;
+
+         case EXIT_PARTIAL_RUNNER:
+            tp[0]=entry+s*slDistance*InpPartialR;   // banked half
+            tp[1]=entry+s*slDistance*InpTargetR;    // runner
+            break;
+
+         case EXIT_TIME_STOP_ONLY:
+            break;                                  // nothing to place
+        }
      }
   };
 #endif

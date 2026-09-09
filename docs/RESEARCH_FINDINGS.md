@@ -78,6 +78,93 @@ it as the working hypothesis, not the answer.
 zone boundaries, the SMA period and both side toggles exposed as inputs so
 the cross-asset test can be run directly from the Strategy Tester.
 
+## Corrections after reading the notebook directly
+
+The summary this file was first written from compressed several results in
+ways that changed the design. Working from the notebook output itself:
+
+**The exit is an 8R target, not the absence of one.** The target scan on zone
+entries is monotone all the way out:
+
+| Target | Long E | Net | Sharpe |
+|---|---|---|---|
+| 1.5R | +0.0569 | +0.0008 | 0.02 |
+| 2.5R | +0.0891 | +0.0330 | 0.91 |
+| 4.0R | +0.1455 | +0.0894 | 2.46 |
+| 6.0R | +0.2351 | +0.1791 | 4.93 |
+| **8.0R** | **+0.2873** | **+0.2312** | **6.36** |
+
+The 30-hour hold (`max_hold=120` bars) is the backstop *behind* that target.
+An earlier revision of this repository placed no target at all and left the
+whole right tail uncaptured. Fixed: `EXIT_SINGLE_TARGET` at `InpTargetR = 8.0`.
+
+**Expectancy is +0.2312R net at 8R**, not the 0.142R quoted earlier — that
+figure is the ~4R row.
+
+**The drift decomposition inverts the direction story.** Gold rose across the
+entire sample, so raw long numbers contain that drift. Removing it minute by
+minute:
+
+| | Raw E | t | Skill (raw − drift) | t |
+|---|---|---|---|---|
+| longs in zone | +0.0569 | +4.45 | **−0.0494** | **−4.14** |
+| longs outside | −0.0293 | −2.82 | −0.1276 | −13.13 |
+| shorts in zone | +0.0102 | +0.75 | **+0.1092** | **+7.56** |
+| shorts outside | −0.0388 | −3.58 | +0.0600 | +5.14 |
+| longs in − out | +0.0862 | +5.24 | +0.0781 | +5.08 |
+| shorts in − out | +0.0490 | +2.83 | +0.0492 | +2.65 |
+
+The t = +5.08 and +2.65 quoted earlier are the **in-minus-out differentials**,
+which show the zone doing real timing work on both sides. But in absolute
+terms, **longs in the zone are negative once drift is removed**. Longs made
+money because gold went up. The short side is where the measured skill sits.
+
+Long-only is therefore a bet on gold continuing to trend up, *plus* the zone —
+not the side with the cleaner evidence. The default stays long-only because
+that is what the equity curves were built on, with the caveat recorded in
+`Config.mqh` beside the toggles.
+
+**The spread gap is worse than reported.** Measured OANDA quotes:
+
+| Period | Spread | Cost at 1.8×ATR (15y mean ATR) | Net E at 8R |
+|---|---|---|---|
+| terminal quote | $0.26 | 0.056R | +0.2312R |
+| 2012–2026 mean | $0.4824 | 0.104R | +0.1834R |
+| **2023–2026 mean** | **$0.7525** | **0.162R** | **+0.1253R** |
+
+That is a **46% haircut**, not the 17% quoted earlier. And it is not an
+Asian-hours problem — the hourly table sits between $0.72 and $0.91 all day.
+
+**Cost and affordability move in opposite directions.**
+
+| Year | ATR | Cost in R | Min-lot risk on 1000 units |
+|---|---|---|---|
+| 2018 | $1.14 | 0.222R | 0.21% |
+| 2021 | $2.13 | 0.128R | 0.38% |
+| 2024 | $2.93 | 0.084R | 0.53% |
+| 2025 | $5.44 | 0.051R | 0.98% |
+| 2026 | $11.35 | **0.025R** | **2.04%** |
+
+2026 is simultaneously the cheapest year to trade and the hardest to size on
+a small account. These cannot both be optimised away.
+
+**Partial exits are not settled.** Both configurations clear the DD < 35% bar:
+
+| Config | CAGR | Max DD |
+|---|---|---|
+| no partial, 8R | **20.2%** | 28.2% |
+| 50% at 1.5R, rest 8R | 12.3% | **24.5%** |
+
+No-partial wins on CAGR; the partial version wins on Sharpe, which is why the
+notebook's "best survivor" line names it. `EXIT_PARTIAL_RUNNER` supports it;
+choose deliberately.
+
+**Other figures corrected:** ~254 trades/year in the zone (not 171); the
+equity curves span ~10 years against a buy-and-hold benchmark of 11.0% CAGR;
+gold closed the sample at $4,437.88; and the base trade population the zone
+filters has gross E of −0.0064R at 1.5R — the zone lifts a zero-edge
+population, so it is a conditional filter, not a standalone signal.
+
 ## Simplicity won
 
 The configuration that produced the best real equity curve was the plainest

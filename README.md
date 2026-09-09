@@ -3,8 +3,9 @@
 A modular MetaTrader 5 Expert Advisor for XAU/USD on **M15**.
 
 The default entry is a **trend-zone** rule: go long when price sits between
-1.08 and 7.21 ATR above its 200-bar SMA, stop at 1.8 ATR, hold 30 hours, one
-position, 0.5 % risk. That is the whole signal.
+1.08 and 7.21 ATR above its 200-bar SMA, stop at 1.8 ATR, target 8R, one
+position, 0.5 % risk, with a 30-hour time stop behind the target. That is the
+whole signal.
 
 It is deliberately plain, because a 16-round research program on 15 years of
 XAUUSD minute data found that the elaborate version did not work and the
@@ -84,7 +85,7 @@ statistics bucket. They never share a pooled score.
 
 | Setup | Default | Idea | Evidence |
 |---|---|---|---|
-| **D — Trend zone** | **on** | `(Close − SMA200)/ATR` in [1.08, 7.21] → long. Flat 1.8 ATR stop, 30 h hold, no target | permutation p = 0.0005; drift-adjusted t = +5.08; **cross-asset pending** |
+| **D — Trend zone** | **on** | `(Close − SMA200)/ATR` in [1.08, 7.21] → long. Flat 1.8 ATR stop, **8R target**, 30 h time stop | permutation p = 0.0005; net E +0.2312R at 8R; **cross-asset pending**, and the long side is drift-dependent — see below |
 | A — AMD liquidity reversal | off | Asian range → sweep → close back inside → MSS → displacement → retest | **no edge at n = 43,353**; inversion test conclusive |
 | B — Volume profile continuation | off | Trend + VWAP + pullback into value → acceptance → structure → displacement | untested |
 | C — Opening range expansion | off | London/NY opening range → breakout with volume *and* ATR expansion → retest | untested |
@@ -115,6 +116,34 @@ Every default below traces to a measurement in
 | `InpDD_Preferred` / `Emergency` | 35 / 40 | % — halt / close-all |
 | `InpMaxSpread` | 0.60 | price units ($) — measure yours first |
 | `InpSLMode` | FIXED_ATR | STRUCTURE_ATR restores the Setup A/B/C behaviour |
+
+### The long side is drift-dependent
+
+Gold rose across the whole sample. Subtracting that drift minute by minute:
+
+| | Raw E | t | Skill (raw − drift) | t |
+|---|---|---|---|---|
+| longs in zone | +0.0569 | +4.45 | **−0.0494** | **−4.14** |
+| shorts in zone | +0.0102 | +0.75 | **+0.1092** | **+7.56** |
+| longs in − out | +0.0862 | +5.24 | +0.0781 | +5.08 |
+| shorts in − out | +0.0490 | +2.83 | +0.0492 | +2.65 |
+
+The zone does real timing work on **both** sides — that is what the in-minus-out
+rows say. But in absolute terms, longs in the zone are *negative* once drift is
+removed. **Long-only is a bet that gold keeps trending up, plus the zone.** The
+default stays long because that is what the equity curves were built on, not
+because it is the better-evidenced side.
+
+### Spread is the other open question
+
+| Source | Spread | Cost at 1.8×ATR | Net E at 8R |
+|---|---|---|---|
+| terminal quote | $0.26 | 0.056R | +0.2312R |
+| OANDA 2012–2026 | $0.4824 | 0.104R | +0.1834R |
+| **OANDA 2023–2026** | **$0.7525** | **0.162R** | **+0.1253R** |
+
+A 46 % haircut, and it is not confined to Asian hours — the hourly table runs
+$0.72–$0.91 all day. `SpreadMonitor` measures your broker's real figure.
 
 ### The daily loss limit may need to be off
 
@@ -159,7 +188,8 @@ overstates results.
 ## Known limitations
 
 1. **The trend zone is not yet validated.** Found on the full gold sample,
-   not a held-out half; cross-asset confirmation is the outstanding test.
+   not a held-out half; cross-asset confirmation (silver, EURUSD) was run but
+   its verdict has not been read back. Until it is, treat this as a hypothesis.
 2. **Capital adequacy is the binding constraint — and it is about volatility,
    not account currency.** A 1000 USC cent account is arithmetically identical
    to a $1,000 USD account ([proof](docs/ACCOUNT_SCALING.md)). What binds is

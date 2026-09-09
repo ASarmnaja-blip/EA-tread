@@ -178,6 +178,24 @@ void ReportCapitalAdequacy(const double equity)
       PrintFormat("[CAPITAL] NOTE: minimum lot risks %.2f%%, well above the %.2f%% target. "
                   "Position sizing cannot go finer than this.",minPct,InpRiskPercent);
 
+   // Cost in R is the number that decides whether the edge survives, and it
+   // moves the opposite way to affordability: high ATR makes the spread cheap
+   // in R and the minimum lot expensive in %. Both are printed so the trade-off
+   // is visible rather than discovered later.
+   double sp = g_broker.Spread();
+   if(sp>0.0 && slDist>0.0)
+     {
+      double costR = sp/slDist;
+      PrintFormat("Spread now          : %.4f  -> cost %.4f R per trade",sp,costR);
+      PrintFormat("  net expectancy at %.1fR would be %+.4f R "
+                  "(gross +0.2873 measured on zone entries)",
+                  InpTargetR,0.2873-costR);
+      if(costR>0.15)
+         PrintFormat("[COST] WARNING: %.4f R per trade is over half the measured "
+                     "gross edge. The notebook costed at 0.056R using a $0.26 "
+                     "spread; OANDA measured $0.7525 over 2023-2026.",costR);
+     }
+
    if(InpUseDailyLimits && minPct>0.0)
      {
       double lossesToStop=InpDailyLossLimit/minPct;

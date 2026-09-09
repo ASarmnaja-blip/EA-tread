@@ -16,7 +16,10 @@ enum ENUM_VOLUME_SRC   { VOL_BROKER_TICK, VOL_EXTERNAL, VOL_AUTO };
 enum ENUM_ENTRY_MODE   { ENTRY_MARKET, ENTRY_RETEST, ENTRY_LIMIT, ENTRY_BREAKOUT };
 enum ENUM_SETUP_ID     { SETUP_NONE=0, SETUP_A=1, SETUP_B=2, SETUP_C=3, SETUP_D=4 };
 enum ENUM_SL_MODE      { SL_STRUCTURE_ATR, SL_FIXED_ATR };
-enum ENUM_EXIT_MODE    { EXIT_TP_LADDER, EXIT_TIME_STOP_ONLY };
+enum ENUM_EXIT_MODE    { EXIT_TP_LADDER,        // 3 legs at 1R/2R/3R
+                         EXIT_TIME_STOP_ONLY,   // no target at all
+                         EXIT_SINGLE_TARGET,    // 1 leg at InpTargetR + time stop
+                         EXIT_PARTIAL_RUNNER };
 enum ENUM_QUALITY      { Q_NONE=0, Q_C=1, Q_B=2, Q_A=3, Q_APLUS=4 };
 enum ENUM_DAILY_LOSS_ACTION { DL_STOP_NEW_TRADES, DL_CLOSE_ALL };
 enum ENUM_DD_ACTION    { DD_NOTHING, DD_STOP_NEW, DD_CLOSE_ALL_AND_STOP };
@@ -181,8 +184,22 @@ input bool   InpEnableSetupD       = true;
 input int    InpTrendSmaPeriod     = 200;   // SMA, not EMA - matches the research
 input double InpTrendZoneMin       = 1.08;  // lower edge of the zone, in ATR
 input double InpTrendZoneMax       = 7.21;  // upper edge
-input bool   InpTrendZoneLong      = true;  // long side: strongest evidence
-input bool   InpTrendZoneShort     = false; // short side: weaker (t=+2.65)
+// DIRECTION: read the drift decomposition before changing these.
+// Gold rose for the whole sample, so raw long numbers contain that drift.
+// Subtracting it minute by minute:
+//                      RAW E      t   |  SKILL (raw-drift)      t
+//   longs in zone     +0.0569  +4.45  |        -0.0494      -4.14
+//   shorts in zone    +0.0102  +0.75  |        +0.1092      +7.56
+//   longs in - out    +0.0862  +5.24  |        +0.0781      +5.08
+//   shorts in - out   +0.0490  +2.83  |        +0.0492      +2.65
+// The zone does real timing work on BOTH sides (the in-minus-out rows are
+// what t=+5.08 and +2.65 refer to). But in ABSOLUTE terms the long side is
+// negative once drift is removed: longs made money because gold went up.
+// The short side is where the measured skill is.
+// Long-only is therefore a bet that gold keeps trending up, plus the zone.
+// It is not the side with the cleaner evidence.
+input bool   InpTrendZoneLong      = true;  // profitable historically, via drift
+input bool   InpTrendZoneShort     = false; // the side with positive SKILL
 input double InpTrendSLATR         = 1.8;   // flat stop, the winning config
 input bool   InpTrendRequireEntry  = true;  // fire on ENTERING the zone only
 
@@ -195,7 +212,25 @@ input double InpMaxRiskPercent     = 1.00;  // Hard cap per setup
 input int    InpPositionsPerSetup  = 1;     // 1 for Setup D; 3 = the 1R/2R/3R ladder
 input ENUM_LOTFIT_MODE InpLotFitMode = LOTFIT_REDUCE_POSITIONS;
 input ENUM_SL_MODE   InpSLMode     = SL_FIXED_ATR;   // FIXED_ATR = Setup D; STRUCTURE = A/B/C
-input ENUM_EXIT_MODE InpExitMode   = EXIT_TIME_STOP_ONLY; // LADDER = 1R/2R/3R targets
+input ENUM_EXIT_MODE InpExitMode   = EXIT_SINGLE_TARGET; // see the R scan below
+// The notebook's target scan on zone entries (mean ATR $2.58, spread $0.26)
+// is monotone all the way out - expectancy and Sharpe both keep rising:
+//     R      long E      net       Sharpe
+//   1.5     +0.0569   +0.0008        0.02
+//   2.5     +0.0891   +0.0330        0.91
+//   4.0     +0.1455   +0.0894        2.46
+//   6.0     +0.2351   +0.1791        4.93
+//   8.0     +0.2873   +0.2312        6.36   <- best
+// The 30-hour hold is the BACKSTOP behind that target, not the exit plan.
+// An earlier revision of this repository placed no target at all; that was a
+// misreading of the summary and left the whole right tail uncaptured.
+input double InpTargetR            = 8.0;   // EXIT_SINGLE_TARGET / runner leg
+input double InpPartialR           = 1.5;   // EXIT_PARTIAL_RUNNER first leg
+// Partial exits are NOT settled. Both of these clear the DD<35% bar:
+//   no partial, 8R      -> CAGR 20.2%, maxDD 28.2%   (wins on CAGR)
+//   50% at 1.5R, rest 8R-> CAGR 12.3%, maxDD 24.5%   (wins on Sharpe)
+// The notebook's "best survivor" line names the second because it ranks by
+// Sharpe. Choose deliberately; do not assume one is correct.
 input double InpSLBufferATR        = 0.35;  // ATR buffer added beyond structure
 input double InpMinSLATR           = 0.50;  // Floor for SL distance
 input double InpMaxSLATR           = 3.00;  // Ceiling; wider setups are rejected
@@ -249,7 +284,14 @@ input ENUM_DD_ACTION InpDDActionEmergency = DD_CLOSE_ALL_AND_STOP;
 // MODULE 25/26 - EXECUTION
 //====================================================================
 input group "=== M25 EXECUTION ==="
-input double InpMaxSpread          = 0.60;  // Max spread in price units ($)
+// MEASURED, not assumed. OANDA quoted spread on XAUUSD:
+//   2012-2026 mean : $0.4824
+//   2023-2026 mean : $0.7525   <- the regime you are actually trading in
+//   terminal quote : $0.26     <- what every backtest above was costed with
+// At a 1.8xATR stop on the 15-year mean ATR that is 0.056R vs 0.162R, which
+// takes net expectancy at 8R from +0.2312R to +0.1253R - a 46% haircut, not
+// the 17% an earlier summary claimed. Measure yours before trusting anything.
+input double InpMaxSpread          = 1.20;  // Max spread in price units ($)
 input double InpSpreadBuffer       = 0.05;
 input int    InpSlippagePoints     = 30;
 input int    InpMaxOrderRetries    = 3;
