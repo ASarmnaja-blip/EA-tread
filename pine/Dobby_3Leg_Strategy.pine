@@ -480,7 +480,7 @@ grossLoss = strategy.grossloss
 profitFactor = grossLoss > 0 ? grossWin / grossLoss : na
 maxDDPct = startingBalanceCent > 0 ? strategy.max_drawdown / startingBalanceCent * 100 : na
 
-var table dashTable = table.new(position.top_right, 2, 19, border_width = 1)
+var table dashTable = table.new(position.top_right, 2, 20, border_width = 1)
 monthNames = array.from("JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC")
 
 f_row(int r, string k, string v, color vc, color bgc) =>
@@ -523,19 +523,23 @@ if showDashboard and barstate.islast
     f_row(10, "3-Leg TP Hits", "TP1 " + str.tostring(tp1Count) + " | TP2 " +
          str.tostring(tp2Count) + " | TP3 " + str.tostring(tp3Count), wh, bg)
     f_row(11, "After TP1", "SL = ENTRY +SPREAD", color.orange, bg)
+    // Printed so a mismatch between this input and the header commission is
+    // visible: 3 legs x round-trip spread should equal 6 x commission_value.
+    f_row(12, "Spread cost/signal", str.tostring(spreadCostPerTrade, "#.###") + " cent",
+         color.orange, bg)
 
-    table.cell(dashTable, 0, 12, "FINANCE", text_color = wh, bgcolor = section,
+    table.cell(dashTable, 0, 13, "FINANCE", text_color = wh, bgcolor = section,
          text_size = size.small, text_halign = text.align_left)
-    table.cell(dashTable, 1, 12, "", bgcolor = section)
+    table.cell(dashTable, 1, 13, "", bgcolor = section)
 
-    f_row(13, "กำไร/ขาดทุน (Cent)", str.tostring(periodProfitLossCent, "#.##"),
+    f_row(14, "กำไร/ขาดทุน (Cent)", str.tostring(periodProfitLossCent, "#.##"),
          periodProfitLossCent >= 0 ? gr : rd, bg)
-    f_row(14, "กำไรเฉลี่ย/วัน", str.tostring(averageProfitDay, "#.##"),
+    f_row(15, "กำไรเฉลี่ย/วัน", str.tostring(averageProfitDay, "#.##"),
          averageProfitDay >= 0 ? gr : rd, bg)
-    f_row(15, "ขาดทุนสูงสุด/ไม้", "-" + str.tostring(maxLossCent, "#.##"), rd, bg)
-    f_row(16, "Max Drawdown", str.tostring(maxDDPct, "#.##") + "%",
+    f_row(16, "ขาดทุนสูงสุด/ไม้", "-" + str.tostring(maxLossCent, "#.##"), rd, bg)
+    f_row(17, "Max Drawdown", str.tostring(maxDDPct, "#.##") + "%",
          maxDDPct >= 35 ? rd : color.silver, bg)
-    f_row(17, "Profit Factor", na(profitFactor) ? "-" : str.tostring(profitFactor, "#.###"),
+    f_row(18, "Profit Factor", na(profitFactor) ? "-" : str.tostring(profitFactor, "#.###"),
          na(profitFactor) ? color.silver : (profitFactor >= 1.30 ? gr : rd), bg)
-    f_row(18, "Balance ปัจจุบัน", str.tostring(currentBalance, "#.##"),
+    f_row(19, "Balance ปัจจุบัน", str.tostring(currentBalance, "#.##"),
          currentBalance >= startingBalanceCent ? gr : rd, bg)
