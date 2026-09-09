@@ -145,6 +145,14 @@ Minimum lot is 0.01, and it cannot go lower. On a cent account the contract
 is **1 oz per lot**, so 0.01 lot = 0.01 oz and a $1.00 gold move is 1 USC.
 1000 USC is **$10 of real money**.
 
+**This is not a cent-account penalty.** Every ratio a strategy experiences —
+spread as % of equity, stop as % of equity — is identical between a 1000 USC
+cent account and a $1,000 USD standard account. The 100x scaling is exact;
+see [ACCOUNT_SCALING.md](ACCOUNT_SCALING.md) for the proof. What binds is
+that minimum lot does not scale with **volatility**, and gold's ATR is
+currently 4.4x its 15-year mean. A $1,000 USD account faces the same 2.04%
+floor and would need $4,086 for 0.5% risk — the same multiple.
+
 | ATR (M15) | Stop at 1.8×ATR | Risk on 1000 USC | Equity needed for 0.5 % |
 |---|---|---|---|
 | $11.35 (current) | $20.43 | **2.04 %** | **$41** |
@@ -158,7 +166,16 @@ risks four times as much per trade.
 
 The EA prints a **capital adequacy report** on every init showing the
 minimum-lot risk at the live ATR, the equity needed for the configured
-target, and a warning when setups will be rejected.
+target, and a warning when setups will be rejected — and a **signal
+accounting** block on deinit showing how many valid signals were skipped for
+being unaffordable, so a capital constraint is never mistaken for a strategy
+result.
+
+The instrument matters more than the account. On the same 1000-unit account
+the minimum lot floors gold near 2% per trade but EURUSD near 0.11% — about
+19x finer, and comfortably above the minimum so the account can size
+properly. `tools/capital_check.py` reads live contract specs and ranks every
+symbol your broker offers by how well it fits.
 
 ## The daily loss limit conflicts with this system
 

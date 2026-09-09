@@ -86,12 +86,24 @@ def main() -> None:
               "Structure + sweep + risk only (session kept for sane hours)")
     written.append("01_bare_entry_engine.set")
 
-    # The outstanding validation test: does the trend zone exist off gold?
-    # If it only appears on XAUUSD it was fitted to gold, not discovered.
+    # The outstanding validation test doubles as the affordability answer.
+    # On a 1000-unit cent account the minimum lot floors gold near 2% risk
+    # per trade but majors near 0.1-0.2% - about 19x finer. So the symbol
+    # that could prove the zone is real is also the one small accounts can
+    # actually size on.
     write_set(out / "10_crossasset_check.set", {},
-              "Trend zone unchanged - run this on XAGUSD and EURUSD. "
-              "If the edge does not reproduce, it is gold overfit.")
+              "Trend zone unchanged - run on EURUSD, GBPUSD, XAGUSD. "
+              "If the edge does not reproduce off gold, it is gold overfit. "
+              "If it does, majors are also affordable at minimum lot.")
     written.append("10_crossasset_check.set")
+
+    # Gold at a 0.5% cap on a small account: the EA will refuse most setups.
+    # Run it to see the signal accounting, not to make money.
+    write_set(out / "11_gold_strict_cap.set",
+              {"InpRiskPercent": "0.5", "InpMaxRiskPercent": "0.5"},
+              "Gold with a hard 0.5% cap - expect most signals to be skipped "
+              "as unaffordable. Read the SIGNAL ACCOUNTING block.")
+    written.append("11_gold_strict_cap.set")
 
     # Risk ladder: the research measured 0.5/1.0/2.0% at 28/52/84% drawdown.
     for pct, dd in (("0.5", "28%"), ("1.0", "52%"), ("2.0", "84%")):

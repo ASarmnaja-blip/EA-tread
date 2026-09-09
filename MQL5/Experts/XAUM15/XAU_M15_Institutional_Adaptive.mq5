@@ -79,6 +79,16 @@ string   g_blockReason      = "";
 TradeSignal g_lastSignal;
 datetime g_setupOpenTime    = 0;
 string   g_setupOpenSession = "";
+// A correctly-behaving EA that refuses every setup looks identical to a
+// broken one unless it says so. These counters make the difference visible.
+int      g_skipUnaffordable  = 0;
+int      g_skipOtherSizing   = 0;
+int      g_signalsSeen       = 0;
+double   g_worstMinLotPct    = 0.0;
+
+//--- forward declarations ------------------------------------------
+void ReportCapitalAdequacy(const double equity);
+void PrintSignalAccounting(void);
 
 //+------------------------------------------------------------------+
 int OnInit(void)
@@ -118,6 +128,7 @@ void OnDeinit(const int reason)
    if(InpPrintStatsOnDeinit)
      {
       g_stats.PrintReport();
+      PrintSignalAccounting();
       g_spread.PrintReport(InpTrendSLATR*g_ctx.ATR(1));
       g_spread.WriteCsv("XAUM15_spread_by_hour.csv");
      }
@@ -356,6 +367,7 @@ void TryEnter(const datetime now)
   {
    TradeSignal sig;
    if(!CollectSignal(now,sig)) { g_blockReason="no qualifying setup"; return; }
+   g_signalsSeen++;
 
    // The signal was formed on the closed bar; size against the price we
    // will actually be filled at, so risk% reflects the real fill.
@@ -375,8 +387,33 @@ void TryEnter(const datetime now)
    SizingResult sz=g_risk.Size(g_broker,equity,sig.riskDistance);
    if(!sz.ok)
      {
-      g_blockReason="sizing: "+sz.reason;
-      if(InpVerboseLog) PrintFormat("[SIZE] rejected: %s",sz.reason);
+      // Distinguish "the account is too small for this stop" from every other
+      // sizing failure. The first is a capital problem the operator must act
+      // on; the second is a bug or a broker quirk.
+      double minLotPct = 100.0*g_broker.RiskMoney(g_broker.lotMin,sig.riskDistance)
+                       * MathMax(1,InpPositionsPerSetup)/MathMax(1.0,equity);
+      if(minLotPct>g_worstMinLotPct) g_worstMinLotPct=minLotPct;
+
+      if(minLotPct > InpMaxRiskPercent)
+        {
+         g_skipUnaffordable++;
+         g_blockReason=StringFormat("min lot = %.2f%% risk > %.2f%% cap",
+                                    minLotPct,InpMaxRiskPercent);
+         if(g_skipUnaffordable==1 || g_skipUnaffordable%10==0)
+            PrintFormat("[CAPITAL] skipped %d valid signal(s): minimum lot risks "
+                        "%.2f%% at a %.2f stop, above the %.2f%% cap. "
+                        "Equity needed for %.2f%%: %.2f",
+                        g_skipUnaffordable,minLotPct,sig.riskDistance,
+                        InpMaxRiskPercent,InpRiskPercent,
+                        g_broker.RiskMoney(g_broker.lotMin,sig.riskDistance)
+                        *MathMax(1,InpPositionsPerSetup)/(InpRiskPercent/100.0));
+        }
+      else
+        {
+         g_skipOtherSizing++;
+         g_blockReason="sizing: "+sz.reason;
+         if(InpVerboseLog) PrintFormat("[SIZE] rejected: %s",sz.reason);
+        }
       return;
      }
    if(sz.reason!="" && InpVerboseLog) PrintFormat("[SIZE] %s",sz.reason);
@@ -472,6 +509,32 @@ void UpdateDashboard(const datetime now)
                  g_vp.sourceName,
                  g_ctx.TrendZoneScore(1),
                  g_ctx.InTrendZone(true,1)||g_ctx.InTrendZone(false,1));
+  }
+
+//+------------------------------------------------------------------+
+//| Signals found vs signals actually traded. A large unaffordable      |
+//| count means the strategy was fine and the account was not.          |
+//+------------------------------------------------------------------+
+void PrintSignalAccounting(void)
+  {
+   Print("==================== SIGNAL ACCOUNTING ====================");
+   PrintFormat("valid signals found      : %d",g_signalsSeen);
+   PrintFormat("  traded                 : %d",g_stats.all.trades);
+   PrintFormat("  skipped - min lot too big: %d",g_skipUnaffordable);
+   PrintFormat("  skipped - other sizing   : %d",g_skipOtherSizing);
+   if(g_worstMinLotPct>0.0)
+      PrintFormat("worst min-lot risk seen  : %.2f%% of equity (cap %.2f%%)",
+                  g_worstMinLotPct,InpMaxRiskPercent);
+   if(g_signalsSeen>0 && g_skipUnaffordable*2 > g_signalsSeen)
+     {
+      Print("");
+      Print("MORE THAN HALF OF ALL VALID SIGNALS WERE UNAFFORDABLE.");
+      Print("This is a capital constraint, not a strategy result. The measured");
+      Print("edge was never given the chance to express itself. Either raise");
+      Print("equity, or run the same rule on an instrument whose minimum lot is");
+      Print("small relative to this account - see tools/capital_check.py.");
+     }
+   Print("===========================================================");
   }
 
 //+------------------------------------------------------------------+

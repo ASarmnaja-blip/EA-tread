@@ -149,6 +149,7 @@ pip install MetaTrader5 pandas
 python tools/export_mt5_data.py --list
 python tools/export_mt5_data.py --symbol XAUUSD --years 6
 python tools/make_ablation_sets.py --outdir sets --per-setup
+python tools/capital_check.py --equity 1000 --risk 0.5   # what can this account trade?
 ```
 
 Use **every tick based on real ticks**. With three legs sharing one stop
@@ -159,9 +160,14 @@ overstates results.
 
 1. **The trend zone is not yet validated.** Found on the full gold sample,
    not a held-out half; cross-asset confirmation is the outstanding test.
-2. **Capital adequacy is the binding constraint.** At today's ATR, 0.5 % risk
-   needs about **$41**. On $10 the same rule risks 2.04 % per trade. The
-   startup report prints this for your live ATR.
+2. **Capital adequacy is the binding constraint — and it is about volatility,
+   not account currency.** A 1000 USC cent account is arithmetically identical
+   to a $1,000 USD account ([proof](docs/ACCOUNT_SCALING.md)). What binds is
+   that minimum lot does not shrink while gold's ATR sits 4.4× above its
+   15-year mean: 0.5 % risk needs ~4,000 units either way. At 2.04 % risk the
+   35 % drawdown guard fires with ~77 % probability inside a year, so that
+   configuration shuts itself down. Majors on the same account floor near
+   0.11 % — run `tools/capital_check.py` to see your broker's real table.
 3. **Spread is unsettled by a factor of three** ($0.26 reported vs $0.4824
    measured vs $0.7525 in Asian hours). `SpreadMonitor` writes
    `XAUM15_spread_by_hour.csv` so you can settle it with your own broker.
@@ -193,6 +199,7 @@ MQL5/Include/XAUM15/   17 modules, one job each
 tools/                 MT5 data export, ablation set generator
 docs/BACKTEST.md       backtest, optimisation and robustness procedure
 docs/RESEARCH_FINDINGS.md  what was tested, what died, what survived
+docs/ACCOUNT_SCALING.md    cent vs USD, minimum lot, and what fits
 ```
 
 ## Disclaimer
