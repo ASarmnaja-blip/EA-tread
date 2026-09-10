@@ -278,6 +278,39 @@ def main():
                   f"({best['trig']}, {best['ex']})")
         print()
 
+    # ---------------------------------------------------- RR decomposition --
+    print("=" * 94)
+    print("WHAT THE RISK:REWARD ACTUALLY IS, TRADE BY TRADE")
+    print("=" * 94)
+    print("Expectancy in R hides the thing traders actually ask about. A high")
+    print("R:R is free - move the target further away and it rises, while the")
+    print("win rate falls to meet it. What matters is  E = win% x avgWin -")
+    print("loss% x avgLoss,  so all four numbers belong in the same table.\n")
+    for tf, (rng, iv, hold, rmult) in {"D1": ("20y","1d",60,1.8),
+                                       "H1": ("730d","1h",240,1.8)}.items():
+        df = fetch("GC=F", rng, iv); P = prep(df)
+        print(f"gold {tf}")
+        hd = (f"  {'trigger':<20}{'exit':<19}{'n':>5}{'win%':>7}{'avgWin':>8}"
+              f"{'avgLoss':>9}{'realRR':>8}{'PF':>7}{'E':>8}{'maxLossStreak':>15}")
+        print(hd); print("  " + "-"*(len(hd)-2))
+        for tn, tfun in TRIGGERS.items():
+            for xn, dz in EXITS.items():
+                rows, _ = book(P, tfun(P), dz, hold, rmult, SPREAD)
+                if len(rows) < 20: continue
+                a = np.array(rows)
+                w, l = a[a > 0], a[a <= 0]
+                if len(w) == 0 or len(l) == 0: continue
+                aw, al = w.mean(), -l.mean()
+                pf = w.sum() / -l.sum() if l.sum() < 0 else float("inf")
+                st = mx = 0
+                for r in rows:
+                    st = st + 1 if r <= 0 else 0
+                    mx = max(mx, st)
+                print(f"  {tn:<20}{xn:<19}{len(a):>5}{len(w)/len(a):>7.1%}"
+                      f"{aw:>+8.2f}{al:>9.2f}{aw/al:>8.2f}{pf:>7.2f}"
+                      f"{a.mean():>+8.3f}{mx:>15}")
+        print()
+
     # ------------------------------------------------- split-sample check --
     print("=" * 94)
     print("SPLIT-SAMPLE CHECK, GOLD D1 - the number above that is least stable")
