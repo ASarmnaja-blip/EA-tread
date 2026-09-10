@@ -638,3 +638,53 @@ Roughly 47 configurations, all with random controls where drift could contaminat
 The single positive finding in all of it is that trend on a diversified futures
 book earns +0.2232R at t = +2.48 on **daily** bars, positive on 20 of 27 markets
 at binomial p = 0.0096 — and that it is worth **+0.130 R/day**, not 3.
+
+---
+
+## Gold on its own, daily — the last gap, and the frequency wall
+
+Gold had been searched on H1 and had appeared as one of 27 markets in the
+futures book. It had never been searched on **daily** bars as a single market.
+`research/gold_only_search.py` does that: eleven rules, 20 years, a random
+control on each.
+
+**A control bug had to be fixed first.** A long-only rule compared against
+random *direction* entries is compared against a driftless benchmark, and gold
+ran from roughly $450 to $4,400 over this sample — so the asset's drift arrives
+as free skill. Matching the control to the rule's own direction mix moved the
+headline from t = +3.18 to t = +2.78.
+
+| rule | n | E | t | skill vs matched random | skill t |
+|---|---|---|---|---|---|
+| **Donchian 55, long only** | 75 | **+1.6476** | +3.85 | **+1.4655** | **+2.78** |
+| Donchian 100 both ways | 88 | +1.1098 | +2.97 | +0.5045 | +1.07 |
+| trend zone (1.08–7.21) | 89 | +1.0993 | +2.77 | +0.5901 | +1.09 |
+| weekly Donchian 20 | 31 | +1.0720 | +1.75 | +0.4539 | +0.55 |
+| Donchian 55 both ways | 120 | +0.8206 | +2.46 | **−0.0983** | −0.23 |
+| Donchian 20 both ways | 189 | +0.6525 | +2.42 | **−0.0670** | −0.18 |
+| EMA 20/50 | 73 | +0.5455 | +1.31 | +0.0647 | +0.11 |
+| momentum 250d | 44 | +0.2814 | +0.51 | −0.5923 | −0.85 |
+
+The Bonferroni bar for eleven tests is **t > 2.84**, so the best reading lands
+**just under it** — the closest anything in this program has come on a properly
+controlled basis, and still not over the line. Note what the corrected control
+does to the two-sided variants: both collapse to negative skill. The edge, such
+as it is, is entirely in the long direction on an asset that rose tenfold.
+
+### The wall
+
+| rule | trades/year | R/day | frequency needed for 1 R/day |
+|---|---|---|---|
+| Donchian 55 long | 3.8 | 0.0247 | **40×** |
+| Donchian 55 both | 6.0 | 0.0197 | 51× |
+| Donchian 20 both | 9.5 | 0.0247 | 41× |
+
+**Gold alone cannot produce 1R/day, let alone 3.** The one rule with defensible
+skill fires under four times a year. Getting to 1R/day requires 40 times the
+frequency, and 40× the frequency is the intraday range where the identical
+structure measures **t = −6.23 across 26 markets** and where thirteen signal
+families on gold H1 produced a gross expectancy of −0.03R.
+
+Both ends are measured. Slow enough to have an edge means too few trades; fast
+enough for the trade count means the edge is gone. That is the whole answer for
+a single-market gold program.
