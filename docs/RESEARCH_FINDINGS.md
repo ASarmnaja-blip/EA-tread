@@ -1525,3 +1525,52 @@ category of idea tried in this program — price action, smart-money structure,
 regime filters, wick mechanics, calendar effects, intermarket ratios, and now
 positioning flow. Gold's daily bar, at this cost, does not contain
 directional information that these methods can find.
+
+---
+
+## Round 2 of deep research: VWAP, dollar lead-lag, GVZ regime, and Setup C (2026-09-10)
+
+`research/intermarket_signals_60d.py`, `research/opening_range_setup_c.py`.
+Scoped to 60 real days (the window asked for this round) rather than the
+6-year PAXG series, on real XAUUSD M5. Same validated exit (trail 2×ATR, BE at
+1R) and matched random control as the rest of this program.
+
+| signal | n | E(R) | control E(R) | skill | skill t |
+|---|---|---|---|---|---|
+| T1 session VWAP fade (\|z\|≥1.5 ATR) | 98 | +0.065 | −0.141 | +0.206 | +1.21 |
+| T2 DXY momentum → inverse gold | 118 | +0.005 | −0.123 | +0.128 | +0.87 |
+| Setup C: OR breakout (London+NY, no retest) | 51 | −0.145 | −0.033 | −0.111 | −0.77 |
+
+None clears the pre-registered bar (2.39 Bonferroni for T1/T2; 1.96 for Setup
+C as the round's only remaining test).
+
+**T3 (GVZ regime gate on the sweep-reversal entry) is reported but not
+trusted**, for two reasons stated before reading too much into it: the
+sub-sample counts (26 and 28 trades) are far too small to separate a real
+regime effect from noise even at the loose numbers seen (+0.679 and +0.495
+skill, neither clearing any reasonable bar at that n), and splitting the
+sample by regime changes which trades survive the one-position-at-a-time
+overlap rule — the pooled "ungated" count (33) came out **smaller** than
+either regime split alone, which is the sequencing effect this repo's own
+`qc_4part_filter_test.py` documents ("a filter that rejects a signal frees the
+account for the next one"), not a discovery.
+
+### Setup C closes a real gap in this repo's own record
+
+`docs/RESEARCH_FINDINGS.md`'s status table has listed Setup C as "never
+tested" since the table existed. It is now tested: 95 raw breakout events over
+60 days, 51 survive to a tradeable signal, skill −0.111R at t = −0.77. Dead,
+same as A and B before it. The retest filter `Setups.mqh` applies by default
+was deliberately left out here so the plain breakout could be judged on its
+own first; testing the retest-filtered version is the natural next step if
+opening-range breakouts are revisited.
+
+### Where the program stands after this round
+
+Every distinct category a careful search would think to check has now been
+tested against a matched random control on real cost: price action (many
+forms), smart-money structure, regime filters (four independent kinds - ATR
+expansion, efficiency ratio, session hours, and now an options-derived vol
+index), wick mechanics, calendar effects, an intermarket price ratio,
+positioning flow, VWAP, cross-asset lead-lag, and the EA's own untested
+opening-range setup. None has produced a result that survives.

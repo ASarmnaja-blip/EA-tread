@@ -28,6 +28,8 @@ QuantConnect project and run through the backtest engine.
 | `wick_tip_finetune.py` | script | A finer grid around the wick-tip winner - same tune/holdout split, explicit about being a refinement so the multiple-comparison bar is not silently reused. |
 | `breakeven_isolated.py` | script | Does moving the stop to break-even, by itself, on random information-free entries, create profit? |
 | `deep_research_signals.py` | script | Three signal families sourced from published research rather than gold's own chart - calendar seasonality, gold/silver ratio reversion, COT positioning extremes: does anything outside price action carry information? |
+| `intermarket_signals_60d.py` | script | VWAP reversion, dollar-index lead-lag, and a GVZ volatility-regime gate, scoped to the 60 real days Yahoo serves. |
+| `opening_range_setup_c.py` | script | The EA's own Setup C (opening-range expansion) has shipped since the start and was never tested - closes that gap. |
 | `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
 
 **Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
