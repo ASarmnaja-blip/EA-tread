@@ -1055,3 +1055,88 @@ result large enough to look like a discovery (after the random-direction control
 and the inverted stops in `backtest_dobby_indicator.py`). The rule that caught
 all three is the same one: **calibrate on data whose answer you already know
 before reading any number you like.**
+
+---
+
+## What I would actually trade, and what it does on gold (2026-09-10)
+
+`research/principles_backtest_gold.py`. Asked what principles I would trade on,
+rather than which indicator, the answer follows from what this repo has already
+measured — and the first principle contradicts the entire preceding search.
+
+**P1 — do not forecast direction.** 16 rounds, ~47 configurations, 9 smart-money
+entries, a 631-cell grid over 11 families and 4 timeframes. Not one entry rule
+has cleared a multiple-comparison bar against a matched control. The response to
+that much evidence is to stop paying for forecasts, not to buy a better one.
+
+**P2 — the measured asymmetry is in the exit.** A 2-ATR trailing stop with
+break-even, on *random* entries at zero cost, returns +0.0336R at t = +4.45
+across eight markets. Only thing here that replicates without an entry rule.
+
+**P3 — trade the horizon where the effect is.** Daily trend across 27 futures:
++0.2232R, 20/27 markets, p = 0.0096. Hourly, same rules, same markets: −0.2670R
+at t = −6.23.
+
+**P4 — size for the drawdown, not the target.** The only lever that ever moved
+drawdown in fifteen years of testing.
+
+**P5 — believe nothing that has not beaten a matched random control.** Three
+bugs in this program manufactured discovery-sized numbers; all three died here.
+
+### Gold D1, 20 years. Buy and hold: +10.6%/yr, max drawdown 44.4%
+
+Sized so every rule takes the **same drawdown budget buy and hold took** — the
+only basis on which two return numbers can be compared:
+
+| trigger | exit | /yr | E | skill | skill t | CAGR @ 44.4% DD |
+|---|---|---|---|---|---|---|
+| **Donchian 55 both** | trail 2ATR + BE | 8.6 | +0.441 | +0.137 | +1.17 | **+41.4%** |
+| **Donchian 55 long** | trail 2ATR + BE | 5.6 | +0.594 | +0.254 | +1.64 | **+41.3%** |
+| Donchian 55 long | trail 3ATR + BE | 4.4 | +0.762 | +0.283 | +1.25 | +32.2% |
+| trend zone (EA D) | trail 2ATR + BE | 5.8 | +0.473 | +0.181 | +1.18 | +26.6% |
+| **no view (long every 20th bar)** | trail 2ATR + BE | 10.8 | +0.395 | +0.041 | +0.38 | **+28.9%** |
+| above SMA200 | trail 2ATR + BE | 2.8 | +0.314 | +0.013 | +0.07 | +6.5% |
+
+On H1 over 2.4 years (gold +29.2%/yr, DD 29.0%) the ordering is the same and
+larger: Donchian 55 long + trail 2ATR reaches +117.6%, and **no view at all
+reaches +102.9%**.
+
+### Read the "no view" row before anything else
+
+A rule with **no opinion whatsoever** — long every twentieth bar — delivers
++28.9% against buy and hold's +10.6% on the same drawdown budget, at skill
+t = +0.38. That row is the control for this entire table. It says most of what
+the good rows earn comes from the **exit and the sizing**, not from the trigger:
+truncate the loss, let the winner run, then use the drawdown you saved as
+leverage headroom.
+
+Donchian 55 does beat it — 41.3% against 28.9% — and beats it in **both halves**
+of the twenty years (+37.0% / +29.6% against +13.1% / +20.8%), with the required
+risk fraction stable to within 1.7× between halves. That is the most robust
+thing found anywhere in this program.
+
+### And it is still not skill
+
+Best skill t in the table is **+1.77**, against an expected-max line of 2.45 for
+20 cells. Nothing here demonstrates that any trigger knows where gold is going.
+What the table shows is **beta harvested well**: gold rose, a channel breakout
+keeps you in the large up-moves and out of the deep retracements, a trailing
+stop truncates the rest, and sizing converts the saved drawdown into return. It
+spends exactly like alpha and it is not alpha — it stops working the moment gold
+stops trending, and nothing in this table would warn you.
+
+Two limits that are not optional reading:
+
+- **The risk fractions are not offers.** Reaching those returns needs 8–14% of
+  equity risked per trade on D1. `ACCOUNT_SCALING.md` shows a small account is
+  already floored near 2% by the minimum lot at current gold volatility. The
+  column is arithmetic, and the account is the binding constraint.
+- **CAGR@BH-DD is built on maximum drawdown**, which is one observation — the
+  worst one — and the least reproducible statistic in any backtest. The split
+  sample is in the script output precisely because sizing to a historical max
+  drawdown is how accounts are destroyed.
+
+**Consequence:** no change to the EA's defaults on this evidence. `trail 2ATR +
+BE` outperformed `8R target + time` on risk-adjusted return in almost every row
+of both tables, which makes the exit — not another entry rule — the one part of
+`Config.mqh` worth revisiting next.
