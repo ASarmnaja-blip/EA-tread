@@ -26,6 +26,7 @@ QuantConnect project and run through the backtest engine.
 | `short_range_winrate_rr.py` | script | At a $3-$10 stop and target on gold, what win rate and R:R do you actually get, and what would you need? |
 | `wick_tip_tuner.py` | script | A resting limit at the tip of a wick, 306 configs tuned on 40 days with 20 held back: does it survive the holdout, and does it survive six years? |
 | `wick_tip_finetune.py` | script | A finer grid around the wick-tip winner - same tune/holdout split, explicit about being a refinement so the multiple-comparison bar is not silently reused. |
+| `breakeven_isolated.py` | script | Does moving the stop to break-even, by itself, on random information-free entries, create profit? |
 | `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
 
 **Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
