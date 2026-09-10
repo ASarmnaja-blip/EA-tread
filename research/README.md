@@ -15,6 +15,61 @@ QuantConnect project and run through the backtest engine.
 | `qc_dobby_3leg_algo.py` | algorithm | Does the EMA 9/21 cross + 3-leg ladder have an edge on 2025-onward data, priced at the real spread? |
 | `qc_dobby_tuning_cell.py` | cell | Which parameters survive out-of-sample once the multiple-testing bar is applied? |
 | `qc_signal_census_cell.py` | cell | What do ALL signals do, including the ones the filters were throwing away? |
+| `qc_4part_filter_test.py` | cell | Does a volume-profile filter, a CHoCH+OB filter, or the pair of them rescue the system? |
+
+## qc_4part_filter_test.py
+
+A 2x2 factorial, measured only on trades that could actually have been taken.
+
+```
+PART 1   no volume profile, no CHoCH+OB      baseline
+PART 2   volume profile,    no CHoCH+OB
+PART 3   no volume profile, CHoCH+OB
+PART 4   volume profile,    CHoCH+OB
+```
+
+Running only "baseline" against "everything on" would say whether the pair
+works, not which half did the work or whether one is cancelling the other. The
+factorial separates the volume effect, the structure effect and the
+interaction, and prints all three.
+
+### The sequencing trap
+
+The non-overlapping selection is **recomputed inside each part**. A filter that
+rejects a signal frees the account to take the next one, and that next trade
+would be invisible to a filter applied after sequencing. Sequencing the census
+once and filtering the survivors understates every filter tested.
+
+### Filter definitions
+
+**Volume profile** (`VP_MODE="breakout"`): long only above the value area high,
+short only below the value area low - price has left value in the signal's
+direction, which is the trend-following reading and the one that matches an
+EMA cross. `VP_MODE="reversion"` is the opposite hypothesis and counts as a
+separate test if you look at it.
+
+**CHoCH** follows the EA's `Structure.mqh`: a close beyond the last confirmed
+opposing swing by at least `MIN_BREAK_ATR` x ATR, counted only when it flips
+the prevailing structure. A same-direction break is a BOS and re-arms nothing.
+
+**Order block** is the last opposite-close candle before that impulse, and the
+signal must arrive with price back inside it within `OB_TOL` x ATR.
+**No order block exists anywhere in the EA** - this definition was written for
+this test and has never been validated against anything.
+
+### Reading it
+
+Watch the pass counts printed before the table. These filters are restrictive
+and Part 4 is the intersection of both, so it can end up with too few trades to
+say anything - a handful of trades will show a wide expectancy for reasons that
+have nothing to do with skill. `OB_TOL` and `CHOCH_MAX_AGE` are the knobs if
+Part 4 comes back empty.
+
+A part counts only if E > 0 with t over the Bonferroni bar (t > 2.73 at eight
+hypotheses), on the same part, in both samples. A filter that only makes a
+losing system lose more slowly has not found an edge - it has found fewer
+trades.
+
 
 ## qc_signal_census_cell.py
 
