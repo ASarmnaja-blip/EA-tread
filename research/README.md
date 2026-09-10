@@ -70,6 +70,19 @@ hypotheses), on the same part, in both samples. A filter that only makes a
 losing system lose more slowly has not found an edge - it has found fewer
 trades.
 
+### Signal timeframe
+
+`SIGNAL_TF` sets the timeframe the EMA cross is computed on. Exits always
+resolve on 1-minute bars whatever it is, and the profile window and hold are
+derived from it so 24 hours stays 24 hours across settings.
+
+Raising it is the one lead the cost diagnostic keeps pointing at. A fixed
+spread against a wider ATR-based stop is a smaller share of R: moving from
+`"5min"` to `"15min"` roughly halves spread/R, from about 0.21 to 0.11 per leg.
+`OB_LOOKBACK` and `CHOCH_MAX_AGE` are counted in signal bars, so they cover
+proportionally more clock time as the timeframe rises - adjust them if you want
+the same span.
+
 ### Cost diagnostic
 
 Expectancy climbing toward zero as the filters tighten looks the same whether

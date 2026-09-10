@@ -61,7 +61,17 @@ USE_GC_VOLUME = True      # also build a real-volume profile from COMEX futures
 # above them is still the test.
 RECENT_MONTHS = 3         # the short period, measured back from END
 
-VP_LOOKBACK   = 288       # 5-min bars in the profile window (288 = 24h)
+# SIGNAL TIMEFRAME. Exits always resolve on 1-minute bars whatever this is.
+# Raising it is the one lead the cost diagnostic keeps pointing at: a fixed
+# spread against a wider ATR-based stop is a smaller share of R, so "15min",
+# "30min" or "1h" is the experiment worth running if GROSS comes back positive
+# while NET does not.
+SIGNAL_TF   = "5min"
+TF_MIN      = int(pd.Timedelta(SIGNAL_TF).total_seconds() // 60)
+HOLD_BARS   = 120                        # signal bars a trade may stay open
+VP_HOURS    = 24                         # profile window, in hours
+
+VP_LOOKBACK   = max(20, int(VP_HOURS * 60 / TF_MIN))
 VP_BINS       = 48
 VALUE_AREA    = 0.70
 
@@ -104,9 +114,9 @@ print(f"XAUUSD CFD volume usable: {has_vol}"
       f"{'' if has_vol else '   -> time (TPO) profile will be used'}")
 
 OHLC = {"open": "first", "high": "max", "low": "min", "close": "last"}
-m5  = minute.resample("5min").agg(OHLC).dropna()
-m15 = minute.resample("15min").agg(OHLC).dropna()
-print(f"5-minute bars {len(m5):,}   15-minute bars {len(m15):,}")
+tf = minute.resample(SIGNAL_TF).agg(OHLC).dropna()
+print(f"{SIGNAL_TF} signal bars {len(tf):,}   profile window {VP_LOOKBACK} bars"
+      f" ({VP_HOURS}h)   max hold {HOLD_BARS} bars ({HOLD_BARS * TF_MIN / 60:.0f}h)")
 
 mi   = minute.index.values
 mlow = minute["low"].to_numpy(np.float64)
@@ -114,12 +124,14 @@ mhig = minute["high"].to_numpy(np.float64)
 mclo = minute["close"].to_numpy(np.float64)
 N_MIN = len(mi)
 
-J0 = np.searchsorted(mi, (m5.index + pd.Timedelta("5min")).values, side="left")
-c5 = m5["close"].to_numpy(np.float64)
-h5 = m5["high"].to_numpy(np.float64)
-l5 = m5["low"].to_numpy(np.float64)
-idx5 = m5.index
-N5 = len(m5)
+# First minute of the NEXT signal bar. Exits may only be scanned from there;
+# anything earlier is inside the bar that produced the signal.
+J0 = np.searchsorted(mi, (tf.index + pd.Timedelta(SIGNAL_TF)).values, side="left")
+tfc = tf["close"].to_numpy(np.float64)
+tfh = tf["high"].to_numpy(np.float64)
+tfl = tf["low"].to_numpy(np.float64)
+tfidx = tf.index
+N_TF = len(tf)
 
 # ---------------------------------------------------------------------------
 # OPTIONAL: real traded volume as a per-bar WEIGHT (no basis adjustment
@@ -146,7 +158,7 @@ if USE_GC_VOLUME:
                 del vmin
                 continue
             agg = dict(OHLC); agg["volume"] = "sum"
-            gc5 = vmin.resample("5min").agg(agg).reindex(idx5)
+            gc5 = vmin.resample("5min").agg(agg).reindex(tfidx)
             gc5["volume"] = gc5["volume"].fillna(0.0)
             vol_source = name
             covered = float((gc5["volume"] > 0).mean()) * 100
@@ -180,17 +192,17 @@ def pivot_available(series, left, right, is_low):
     raw = pd.Series(np.where(ok.fillna(False), s, np.nan))
     return raw.shift(right).ffill().to_numpy()
 
-fast = pd.Series(c5).ewm(span=9,  adjust=False).mean().to_numpy()
-slow = pd.Series(c5).ewm(span=21, adjust=False).mean().to_numpy()
-atr5 = wilder_atr(m5, 14).to_numpy()
+fast = pd.Series(tfc).ewm(span=9,  adjust=False).mean().to_numpy()
+slow = pd.Series(tfc).ewm(span=21, adjust=False).mean().to_numpy()
+tfatr = wilder_atr(tf, 14).to_numpy()
 
-piv_lo = pivot_available(m5["low"],  5, 5, True)
-piv_hi = pivot_available(m5["high"], 5, 5, False)
-fb_lo = m5["low"].rolling(10).min().to_numpy()
-fb_hi = m5["high"].rolling(10).max().to_numpy()
+piv_lo = pivot_available(tf["low"],  5, 5, True)
+piv_hi = pivot_available(tf["high"], 5, 5, False)
+fb_lo = tf["low"].rolling(10).min().to_numpy()
+fb_hi = tf["high"].rolling(10).max().to_numpy()
 
-# This cell deliberately has NO 15-minute trend filter. Part 1 is the raw
-# cross, so the factorial measures the two filters under test against a
+# This cell deliberately has NO higher-timeframe trend filter. Part 1 is the
+# raw cross, so the factorial measures the two filters under test against a
 # clean baseline rather than against another filter's leftovers.
 
 # ---------------------------------------------------------------------------
@@ -203,12 +215,12 @@ def profile_at(i, weights=None):
     a = max(0, i - VP_LOOKBACK)
     if i - a < 20:
         return np.nan, np.nan, np.nan
-    lo, hi = l5[a:i].min(), h5[a:i].max()
+    lo, hi = tfl[a:i].min(), tfh[a:i].max()
     if not (hi > lo):
         return np.nan, np.nan, np.nan
     binsz = (hi - lo) / VP_BINS
-    ilo = np.floor((l5[a:i] - lo) / binsz).astype(np.int64).clip(0, VP_BINS - 1)
-    ihi = np.floor((h5[a:i] - lo) / binsz).astype(np.int64).clip(0, VP_BINS - 1)
+    ilo = np.floor((tfl[a:i] - lo) / binsz).astype(np.int64).clip(0, VP_BINS - 1)
+    ihi = np.floor((tfh[a:i] - lo) / binsz).astype(np.int64).clip(0, VP_BINS - 1)
     span = (ihi - ilo + 1).astype(np.float64)
     w = np.ones(i - a) if weights is None else weights[a:i].astype(np.float64)
     w = np.divide(w, span, out=np.zeros_like(w), where=span > 0)
@@ -238,28 +250,28 @@ gc_vol = gc5["volume"].to_numpy(np.float64) if gc5 is not None else None
 # STRUCTURE:  CHoCH  and the ORDER BLOCK it leaves behind
 # ---------------------------------------------------------------------------
 MIN_BREAK_ATR = 0.10     # a close must clear the swing by this much to count
-OB_LOOKBACK   = 30       # bars searched back for the last opposite candle
+OB_LOOKBACK   = 30       # SIGNAL BARS back for the last opposite candle
 OB_TOL        = 0.50     # entry may sit this far outside the block, in ATR
-CHOCH_MAX_AGE = 60       # a CHoCH older than this no longer arms the setup
+CHOCH_MAX_AGE = 60       # SIGNAL BARS; a CHoCH older than this stops arming
 
-o5 = m5["open"].to_numpy(np.float64)
+tfo = tf["open"].to_numpy(np.float64)
 
-choch_dir = np.zeros(N5, np.int8)
-choch_bar = np.full(N5, -1, np.int64)
-ob_lo     = np.full(N5, np.nan)
-ob_hi     = np.full(N5, np.nan)
+choch_dir = np.zeros(N_TF, np.int8)
+choch_bar = np.full(N_TF, -1, np.int64)
+ob_lo     = np.full(N_TF, np.nan)
+ob_hi     = np.full(N_TF, np.nan)
 
 _state = 0
 _cd, _cb, _olo, _ohi = 0, -1, np.nan, np.nan
-for i in range(N5):
-    a = atr5[i]
+for i in range(N_TF):
+    a = tfatr[i]
     if np.isfinite(a) and a > 0:
         brk = MIN_BREAK_ATR * a
         sh, sl = piv_hi[i], piv_lo[i]
         ev = 0
-        if np.isfinite(sh) and c5[i] > sh + brk:
+        if np.isfinite(sh) and tfc[i] > sh + brk:
             ev = 1
-        elif np.isfinite(sl) and c5[i] < sl - brk:
+        elif np.isfinite(sl) and tfc[i] < sl - brk:
             ev = -1
         # Only a break that FLIPS the prevailing structure is a CHoCH. A break
         # the same way as the current state is a BOS: continuation, not change.
@@ -267,8 +279,8 @@ for i in range(N5):
             _state, _cd, _cb = ev, ev, i
             _olo = _ohi = np.nan
             for k in range(i, max(-1, i - OB_LOOKBACK), -1):
-                if (ev > 0 and c5[k] < o5[k]) or (ev < 0 and c5[k] > o5[k]):
-                    _olo, _ohi = l5[k], h5[k]
+                if (ev > 0 and tfc[k] < tfo[k]) or (ev < 0 and tfc[k] > tfo[k]):
+                    _olo, _ohi = tfl[k], tfh[k]
                     break
     choch_dir[i], choch_bar[i] = _cd, _cb
     ob_lo[i], ob_hi[i] = _olo, _ohi
@@ -283,7 +295,7 @@ def structure_ok(i, d, a):
     lo, hi = ob_lo[i], ob_hi[i]
     if not (np.isfinite(lo) and np.isfinite(hi)):
         return False
-    px = c5[i]
+    px = tfc[i]
     if lo - OB_TOL * a <= px <= hi + OB_TOL * a:
         return True
     return False
@@ -293,7 +305,7 @@ VP_MODE = "breakout"
 def volume_ok(i, d, a, poc, val, vah):
     if not (np.isfinite(val) and np.isfinite(vah) and vah > val):
         return False
-    px = c5[i]
+    px = tfc[i]
     if VP_MODE == "breakout":
         return (px > vah) if d > 0 else (px < val)
     return val <= px <= vah
@@ -309,7 +321,7 @@ def simulate(i, d, entry, risk, spread=None):
     j0 = J0[i]
     if j0 >= N_MIN:
         return None
-    j1 = min(j0 + 120 * 5, N_MIN)
+    j1 = min(j0 + HOLD_BARS * TF_MIN, N_MIN)
     alive, tp1, r, k = [True] * 3, False, 0.0, j0
     while k < j1:
         cur = be if tp1 else stop0
@@ -341,14 +353,14 @@ bear = np.concatenate([[False], (fast[1:] < slow[1:]) & (fast[:-1] >= slow[:-1])
 
 rows = []
 warm = max(VP_LOOKBACK, 250) + 10
-for i in range(warm, N5):
+for i in range(warm, N_TF):
     d = 1 if bull[i] else (-1 if bear[i] else 0)
     if d == 0:
         continue
-    a = atr5[i]
+    a = tfatr[i]
     if not np.isfinite(a) or a <= 0:
         continue
-    entry = c5[i]
+    entry = tfc[i]
     raw = piv_lo[i] if d > 0 else piv_hi[i]
     if not np.isfinite(raw):
         raw = fb_lo[i] if d > 0 else fb_hi[i]
@@ -368,7 +380,7 @@ for i in range(warm, N5):
     r0, _ = simulate(i, d, entry, risk, spread=0.0)
 
     poc, val, vah = profile_at(i, weights=gc_vol)
-    rows.append(dict(bar=i, time=idx5[i], dir=d, r=r, r0=r0, dur=dur,
+    rows.append(dict(bar=i, time=tfidx[i], dir=d, r=r, r0=r0, dur=dur,
                      risk_atr=risk / a, spread_r=SPREAD / risk,
                      vp_ok=bool(volume_ok(i, d, a, poc, val, vah)),
                      st_ok=bool(structure_ok(i, d, a))))
@@ -390,7 +402,7 @@ def sequence(df):
     for bar, dur in zip(df.bar.to_numpy(), df.dur.to_numpy()):
         if bar > busy:
             take.append(True)
-            busy = bar + int(np.ceil(dur / 5.0))
+            busy = bar + int(np.ceil(dur / TF_MIN))
         else:
             take.append(False)
     return df[np.array(take)]
@@ -447,7 +459,7 @@ for name, _f in PARTS:
         continue
     _, e0, t0, _, _ = stat(d["r0"])
     print(f"{name:<26}{d.spread_r.mean():>10.4f}{d.risk_atr.mean():>10.2f}"
-          f"{d.r.mean():>+10.4f}{e0:>+10.4f}{t0:>+9.2f}{d.dur.mean() / 5.0:>11.1f}")
+          f"{d.r.mean():>+10.4f}{e0:>+10.4f}{t0:>+9.2f}{d.dur.mean() / TF_MIN:>11.1f}")
 
 # ---------------------------------------------------------------------------
 # ATTRIBUTION  -  what each half actually contributed
@@ -482,7 +494,7 @@ for lab, a_, b_ in (
 # better NET expectancy for a purely mechanical reason, with no change in the
 # signal's ability to predict anything. GROSS is what separates the two.
 # ---------------------------------------------------------------------------
-mon = pd.DataFrame({"atr": atr5, "px": c5}, index=idx5).resample("MS").mean()
+mon = pd.DataFrame({"atr": tfatr, "px": tfc}, index=tfidx).resample("MS").mean()
 mon["atr_pct"] = 100.0 * mon["atr"] / mon["px"]
 _g = S.set_index("time").resample("MS")
 mon["signals"] = _g.size()
