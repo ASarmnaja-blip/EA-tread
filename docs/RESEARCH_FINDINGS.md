@@ -1140,3 +1140,89 @@ Two limits that are not optional reading:
 BE` outperformed `8R target + time` on risk-adjusted return in almost every row
 of both tables, which makes the exit — not another entry rule — the one part of
 `Config.mqh` worth revisiting next.
+
+---
+
+## M15 gold, six years: a signal that turned out to belong to the data source (2026-09-10)
+
+`research/fetch_m15_gold.py`, `research/m15_regime_search.py`. Every M15 result
+in this repo rested on one 60-day window, because Yahoo caps 15-minute data at
+60 days and returns HTTP 422 for any older request. That is why the M15 rows
+everywhere above came back with samples too small to conclude from.
+
+**Fixed by changing source.** PAX Gold (PAXG/USDT on Binance) is a token
+redeemable for allocated London gold, and the exchange serves six years of
+15-minute bars: **149,777 bars after removing the hours the metal is shut**,
+about 40× the previous sample. Validated before use — resampled to H1 against
+GC=F over Yahoo's two-year overlap: level correlation 0.9997, **return
+correlation 0.9041**, mean premium −0.50%.
+
+### The hypothesis came from reading charts, and it failed
+
+Five consecutive M15 charts showed the obvious thing: some two-day windows
+trend cleanly and some are pure range, and the range ones stop out every
+breakout. So the tested claim was that a **regime filter** — Kaufman efficiency
+ratio, ATR expansion, session hours — decides which window you are in. Never
+tested anywhere in this program.
+
+Discovery half 2020-08 → 2023-09, holdout 2023-09 → 2026-09, **split fixed
+before any result was seen.** 151 cells.
+
+| entry + exit | regime | disc skill | disc t | hold skill | hold t |
+|---|---|---|---|---|---|
+| sweep 20 + 3leg | **any** | +0.070 | +2.75 | +0.006 | +0.24 |
+| | ER32 ≥ 0.40 | +0.127 | +1.27 | −0.067 | −1.06 |
+| | ER96 ≤ 0.20 | +0.069 | +2.67 | +0.027 | +1.06 |
+| | ATR exp ≥ 1.2 | +0.098 | +2.20 | −0.029 | −0.69 |
+| | London+NY | +0.053 | +1.80 | −0.025 | −0.88 |
+
+**No regime filter beats "any"**, in either half. The trend-regime filters —
+the ones the charts suggested — are the *worst* rows in the holdout. The
+hypothesis is dead.
+
+Across the whole grid: mean skill t **−1.330**, best +2.753 against an
+expected-max line of +3.168. **Nothing cleared it.** The top three, carried to
+the holdout anyway and labelled as failed, decayed +2.75 → +0.24, +2.67 → +1.06,
++2.54 → **−1.88**.
+
+### M15 breakouts are not neutral, they are adverse
+
+| Donchian 48, trail 2ATR | n | E | skill | t |
+|---|---|---|---|---|
+| breakout, discovery | 3,198 | −0.280 | −0.176 | **−9.07** |
+| breakout, holdout | 3,197 | −0.071 | −0.055 | −2.09 |
+| **fade**, discovery | 3,290 | +0.043 | **+0.185** | **+9.86** |
+| **fade**, holdout | 3,386 | −0.032 | +0.047 | +2.37 |
+
+The inversion is **antisymmetric** — −0.176 against +0.185. That is the
+signature of real directional information, and it is exactly what the Setup A
+inversion test failed to show (there both sides lost, by the spread). M15 gold
+mean-reverts, and buying a 12-hour channel break is the wrong side of it.
+
+### And then the test that ended it
+
+PAXG is a token traded on a crypto exchange. The metal is shut Friday 21:00 to
+Sunday 22:00 UTC; the token is not. An effect belonging to **gold** should be
+weaker in those hours. An effect belonging to a thin crypto book with no metal
+to arbitrage against should be stronger:
+
+| | n | win% | RR | E | skill | t |
+|---|---|---|---|---|---|---|
+| metal **open** | 6,681 | 41.4% | 1.44 | +0.005 | +0.103 | +7.55 |
+| metal **shut** (weekend) | 2,028 | 49.6% | 2.24 | +0.339 | **+0.328** | +4.84 |
+
+**Three times stronger when gold is not trading.** The mean reversion is
+substantially the token's microstructure, not gold's price discovery — which is
+also why the fade does not confirm on real XAUUSD H1, where two of three
+lookbacks flip sign.
+
+**Consequence:** no setup. The one M15 signal that survived a pre-registered
+holdout turned out to be a property of the data source, caught by a one-minute
+test. What does replicate is the negative: **M15 breakouts on gold are
+measurably worse than random** (−9.07 discovery, −2.09 holdout, and −6.23 on 26
+markets hourly in `universe_trend_test.py`). That is worth knowing and it is
+worth not trading.
+
+Settling the fade on real gold needs real XAUUSD M15 history. Yahoo will not
+serve it, and Stooq, Dukascopy and Binance direct are all unreachable from this
+environment — that is the specific blocker, not the analysis.

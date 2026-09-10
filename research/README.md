@@ -20,6 +20,8 @@ QuantConnect project and run through the backtest engine.
 | `dobby_setup01_sweep_chain.py` | script | Sweep → CHoCH → displacement → FVG, as one setup: does it fire often enough to trade, and does each stage earn its place? |
 | `cost_vs_exit_decomposition.py` | script | Is the spread really the barrier, or is it the exit design — or the entry? Splits expectancy into the three terms and measures each. |
 | `principles_backtest_gold.py` | script | If you stop forecasting and trade the exit and the sizing instead, what does that do on gold against buy and hold on the same drawdown budget? |
+| `fetch_m15_gold.py` | script | Where does six years of M15 gold come from when Yahoo caps it at 60 days, and does that source actually track gold? |
+| `m15_regime_search.py` | script | On six years of M15: does a trend/range regime filter carry information, and does anything survive a holdout fixed in advance? |
 | `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
 
 **Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
