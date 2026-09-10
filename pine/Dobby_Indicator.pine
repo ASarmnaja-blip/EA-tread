@@ -1,0 +1,510 @@
+//@version=6
+// ============================================================================
+// DOBBY 3-LEG  -  INDICATOR
+//
+// Draws the signal, the stop, the three targets and the break-even level, and
+// keeps an HONEST running tally beside them.
+//
+// READ THIS BEFORE TRUSTING THE PANEL
+//   This system was measured on QuantConnect over 5,326 signals of 2025-2026
+//   XAUUSD minute data. Expectancy was -0.2152 R at t = -4.68, and gross
+//   expectancy at ZERO spread was -0.03 R at t = -0.38 - meaning the EMA cross
+//   carries no directional information even before costs. Thirteen other
+//   signal families on the same data cleared nothing either.
+//
+//   The panel below is therefore an OBSERVATION TOOL, not a validation. Use it
+//   to watch signals form and to collect your own forward record. A month of
+//   green numbers here is not evidence: at this expectancy the monthly noise
+//   is roughly sixteen times the monthly mean.
+//
+// WHAT THIS FIXES FROM THE ORIGINAL DOBBY INDICATOR
+//   1. THE SPREAD IS CHARGED. Each of the three legs is its own round trip, so
+//      one signal pays three spreads. The original charged none, which on gold
+//      at a 0.26 spread was 0.098 R per signal of invisible cost.
+//   2. BREAK-EVEN INCLUDES THE SPREAD. A long fills at the ask and exits at the
+//      bid, so a stop left at the signal price returns minus one spread, not
+//      zero. BE is entry + spread for longs, entry - spread for shorts.
+//   3. THE BE TRIGGER TESTS THE STOP, NOT THE ENTRY. The original compared
+//      price against entryPrice even after moving the stop, so raising BE
+//      changed nothing at all.
+//   4. THE STOP DISTANCE IS BOUNDED. An old swing can sit far enough away that
+//      one signal risks double digits of the account across three legs. Setups
+//      outside [MinRiskATR, MaxRiskATR] are marked as skipped rather than
+//      silently taken at any size.
+//
+// KNOWN LIMIT
+//   An indicator resolves exits on CHART bars. When one bar could have hit both
+//   the stop and a target, the stop is taken - the pessimistic reading, and the
+//   safe direction to be wrong in. Resolving on the signal bar rather than
+//   minute bars was worth about +0.20 R at a 3R target in testing, so treat
+//   even these numbers as an upper bound.
+// ============================================================================
+
+indicator("Dobby 3-Leg Indicator", overlay = true,
+     max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
+
+// ============================================================================
+// 1. MOVING AVERAGE ENGINE
+// ============================================================================
+grpMA    = "1. Moving Average Engine"
+maType   = input.string("EMA", "MA Type", options = ["SMA","EMA","WMA","RMA","VWMA"], group = grpMA)
+shortLen = input.int(9,  "Short MA Length", minval = 1, group = grpMA)
+longLen  = input.int(21, "Long MA Length",  minval = 1, group = grpMA)
+
+f_ma(src, len, string t) =>
+    switch t
+        "SMA"  => ta.sma(src, len)
+        "EMA"  => ta.ema(src, len)
+        "WMA"  => ta.wma(src, len)
+        "RMA"  => ta.rma(src, len)
+        "VWMA" => ta.vwma(src, len)
+        => ta.ema(src, len)
+
+shortMAChart = f_ma(close, shortLen, maType)
+longMAChart  = f_ma(close, longLen,  maType)
+
+// ============================================================================
+// 2. OPTIONAL MA TIMEFRAME
+// ============================================================================
+grpMTF       = "2. Optional MA Timeframe"
+maTF         = input.timeframe("", "MA Timeframe (blank = chart TF)", group = grpMTF)
+waitForClose = input.bool(true, "Wait for Timeframe Close", group = grpMTF,
+     tooltip = "Keep this ON. With it off the higher-timeframe MA repaints " +
+               "while its bar is forming, so the historical signals you see " +
+               "are not the signals you would have had live.")
+useMTF = maTF != ""
+
+shortExpr() => waitForClose ? f_ma(close, shortLen, maType)[1] : f_ma(close, shortLen, maType)
+longExpr()  => waitForClose ? f_ma(close, longLen,  maType)[1] : f_ma(close, longLen,  maType)
+
+[shortMTF, longMTF] = request.security(syminfo.tickerid, useMTF ? maTF : timeframe.period,
+     [shortExpr(), longExpr()], lookahead = barmerge.lookahead_off)
+
+shortMA = useMTF ? shortMTF : shortMAChart
+longMA  = useMTF ? longMTF  : longMAChart
+
+plot(shortMA, "Short MA", color = color.aqua)
+plot(longMA,  "Long MA",  color = color.orange)
+
+// ============================================================================
+// 3. HIGHER-TIMEFRAME TREND FILTER
+// ============================================================================
+grpTrend    = "3. Higher-Timeframe Trend Filter"
+useTrend    = input.bool(true, "Enable Trend Filter", group = grpTrend)
+trendTF     = input.timeframe("15", "Trend Timeframe", group = grpTrend)
+trendLen    = input.int(50, "Trend EMA Length", minval = 1, group = grpTrend)
+showTrend   = input.bool(true, "Show Trend EMA", group = grpTrend)
+
+trendEMA = request.security(syminfo.tickerid, trendTF, ta.ema(close, trendLen)[1],
+     lookahead = barmerge.lookahead_off)
+plot(showTrend ? trendEMA : na, "Trend EMA", color = color.purple, linewidth = 2)
+
+// ============================================================================
+// 4. TREND CHANNEL
+// ============================================================================
+grpChan   = "4. Trend Channel"
+showChan  = input.bool(true, "Show Trend Channel", group = grpChan)
+chanLen   = input.int(14, "Channel ATR Length", minval = 1, group = grpChan)
+chanMult  = input.float(2.0, "Channel ATR Multiplier", minval = 0, group = grpChan)
+
+trendATR = request.security(syminfo.tickerid, trendTF, ta.atr(chanLen)[1],
+     lookahead = barmerge.lookahead_off)
+pUp = plot(showChan ? trendEMA + trendATR * chanMult : na, "Channel Upper",
+     color = color.new(color.purple, 60))
+pDn = plot(showChan ? trendEMA - trendATR * chanMult : na, "Channel Lower",
+     color = color.new(color.purple, 60))
+fill(pUp, pDn, color = color.new(color.purple, 92))
+
+// ============================================================================
+// 5. STOP STRUCTURE AND THE RISK BAND
+// ============================================================================
+grpSL      = "5. Stop Structure"
+pivotL     = input.int(5,  "Swing Left Bars",  minval = 1, group = grpSL)
+pivotR     = input.int(5,  "Swing Right Bars", minval = 1, group = grpSL)
+fallback   = input.int(10, "Fallback Lookback", minval = 1, group = grpSL)
+atrLen     = input.int(14, "ATR Length", minval = 1, group = grpSL)
+atrBuffer  = input.float(0.0, "ATR Stop Buffer", minval = 0, group = grpSL)
+minRiskATR = input.float(0.30, "Min Risk (x ATR)", minval = 0.0, group = grpSL,
+     tooltip = "A stop only a few ticks away is noise, and the spread eats the " +
+               "whole R. Setups tighter than this are marked skipped.")
+maxRiskATR = input.float(3.00, "Max Risk (x ATR)", minval = 0.1, group = grpSL,
+     tooltip = "An old swing can sit far enough away that one signal risks " +
+               "double-digit percent across three legs. Wider than this is " +
+               "marked skipped, not resized.")
+
+// ============================================================================
+// 6. MONEY AND SPREAD
+// ============================================================================
+grpMoney   = "6. Money and Spread"
+lotSize    = input.float(0.01, "Lot Size Per Leg", minval = 0.001, step = 0.01, group = grpMoney)
+centPer1   = input.float(1.0, "Cent per 1.00 Move at 0.01 Lot", minval = 0.0001, group = grpMoney)
+startCent  = input.float(1000.0, "Starting Balance (Cent)", minval = 0, group = grpMoney)
+spreadPx   = input.float(0.26, "Spread (price units)", minval = 0.0, step = 0.01, group = grpMoney,
+     tooltip = "Your broker's real average, in price. Measure it rather than " +
+               "guess: on gold the difference between 0.26 and 0.75 is worth " +
+               "0.19 R per signal, which is larger than any edge measured here.")
+
+moneyPer1  = centPer1 * (lotSize / 0.01)
+spreadLeg  = spreadPx * moneyPer1
+spreadSig  = spreadLeg * 3.0
+
+// ============================================================================
+// 7. VISUALS
+// ============================================================================
+grpVis    = "7. Visuals"
+showZone  = input.bool(true, "Show Trade Zone", group = grpVis)
+rightOff  = input.int(10, "Line Right Offset", minval = 0, group = grpVis)
+showTags  = input.bool(true, "Show Price Tags", group = grpVis)
+showSkip  = input.bool(true, "Mark Skipped Setups", group = grpVis)
+showPanel = input.bool(true, "Show Panel", group = grpVis)
+
+// ============================================================================
+// SWING STRUCTURE
+// ============================================================================
+swingLowRaw  = ta.pivotlow(low,   pivotL, pivotR)
+swingHighRaw = ta.pivothigh(high, pivotL, pivotR)
+
+var float lastLow  = na
+var float lastHigh = na
+if not na(swingLowRaw)
+    lastLow := swingLowRaw
+if not na(swingHighRaw)
+    lastHigh := swingHighRaw
+
+fbLow  = ta.lowest(low,   fallback)
+fbHigh = ta.highest(high, fallback)
+atr    = ta.atr(atrLen)
+
+slBuy  = (na(lastLow)  ? fbLow  : lastLow)  - atr * atrBuffer
+slSell = (na(lastHigh) ? fbHigh : lastHigh) + atr * atrBuffer
+
+bullCross = ta.crossover(shortMA,  longMA)
+bearCross = ta.crossunder(shortMA, longMA)
+
+// ============================================================================
+// TRADE STATE
+// ============================================================================
+var bool  active   = false
+var bool  isLong   = false
+var float entryPx  = na
+var float slPx     = na
+var float bePx     = na
+var float tp1Px    = na
+var float tp2Px    = na
+var float tp3Px    = na
+var float riskPx   = na
+var bool  tp1Done  = false
+var bool  leg2Open = false
+var bool  leg3Open = false
+var int   openBar  = na
+var float sigR     = 0.0
+var float sigCent  = 0.0
+
+var line  lnEntry = na
+var line  lnSL    = na
+var line  lnTP1   = na
+var line  lnTP2   = na
+var line  lnTP3   = na
+var label lbEntry = na
+var label lbSL    = na
+var label lbTP1   = na
+var label lbTP2   = na
+var label lbTP3   = na
+var box   bxWin   = na
+var box   bxLose  = na
+
+// ============================================================================
+// STATISTICS  -  monthly, reset on rollover
+// ============================================================================
+var int   nSignal = 0
+var int   nSkip   = 0
+var int   nTP1    = 0
+var int   nTP2    = 0
+var int   nTP3    = 0
+var int   nFull   = 0
+var int   nBE     = 0
+var float sumR    = 0.0
+var float sumCent = 0.0
+var float worst   = 0.0
+var float peak    = 0.0
+var float trough  = 0.0
+
+mNow = month(time, "Asia/Bangkok")
+yNow = year(time,  "Asia/Bangkok")
+var int mCur = na
+var int yCur = na
+var int dStart = na
+
+if na(mCur)
+    mCur := mNow
+    yCur := yNow
+    dStart := dayofmonth(time, "Asia/Bangkok")
+else if yNow * 100 + mNow != yCur * 100 + mCur
+    mCur := mNow
+    yCur := yNow
+    dStart := 1
+    nSignal := 0
+    nSkip   := 0
+    nTP1    := 0
+    nTP2    := 0
+    nTP3    := 0
+    nFull   := 0
+    nBE     := 0
+    sumR    := 0.0
+    sumCent := 0.0
+    worst   := 0.0
+    peak    := 0.0
+    trough  := 0.0
+
+f_clear() =>
+    line.delete(lnEntry)
+    line.delete(lnSL)
+    line.delete(lnTP1)
+    line.delete(lnTP2)
+    line.delete(lnTP3)
+    label.delete(lbEntry)
+    label.delete(lbSL)
+    label.delete(lbTP1)
+    label.delete(lbTP2)
+    label.delete(lbTP3)
+    box.delete(bxWin)
+    box.delete(bxLose)
+
+f_tag(int x, float y, string txt, color bg) =>
+    label.new(x, y, txt + "   " + str.tostring(y, format.mintick),
+         style = label.style_label_left, color = bg,
+         textcolor = color.white, size = size.small)
+
+// ============================================================================
+// SIGNAL
+// ============================================================================
+flat     = not active
+trendOK  = not useTrend
+buySig   = flat and bullCross and (trendOK or close > trendEMA)
+sellSig  = flat and bearCross and (trendOK or close < trendEMA)
+
+candSL   = buySig ? slBuy : sellSig ? slSell : na
+candRisk = na(candSL) ? na : math.abs(close - candSL)
+riskOK   = not na(candRisk) and candRisk >= minRiskATR * atr and candRisk <= maxRiskATR * atr
+
+if (buySig or sellSig) and not riskOK
+    nSkip += 1
+    if showSkip
+        label.new(bar_index, na, "skip",
+             yloc = buySig ? yloc.belowbar : yloc.abovebar,
+             style = label.style_xcross, color = color.new(color.gray, 30),
+             textcolor = color.gray, size = size.tiny,
+             tooltip = "Stop distance outside [" + str.tostring(minRiskATR) +
+                       ", " + str.tostring(maxRiskATR) + "] x ATR")
+
+// A Pine function cannot assign to globals, so the open block is inline.
+if (buySig or sellSig) and riskOK
+    bool up = buySig
+    active  := true
+    isLong  := up
+    entryPx := close
+    slPx    := candSL
+    riskPx  := candRisk
+    // BE sits one spread INSIDE profit: a long fills at the ask and exits at
+    // the bid, so a stop at the signal price returns minus one spread.
+    bePx    := up ? close + spreadPx : close - spreadPx
+    tp1Px   := up ? close + candRisk       : close - candRisk
+    tp2Px   := up ? close + candRisk * 2.0 : close - candRisk * 2.0
+    tp3Px   := up ? close + candRisk * 3.0 : close - candRisk * 3.0
+    tp1Done := false
+    leg2Open := true
+    leg3Open := true
+    openBar := bar_index
+    sigR    := 0.0
+    sigCent := 0.0
+    nSignal += 1
+
+    f_clear()
+    lnEntry := line.new(bar_index, entryPx, bar_index + rightOff, entryPx, color = color.blue)
+    lnSL    := line.new(bar_index, slPx,    bar_index + rightOff, slPx,    color = color.red)
+    lnTP1   := line.new(bar_index, tp1Px,   bar_index + rightOff, tp1Px,   color = color.green)
+    lnTP2   := line.new(bar_index, tp2Px,   bar_index + rightOff, tp2Px,   color = color.green)
+    lnTP3   := line.new(bar_index, tp3Px,   bar_index + rightOff, tp3Px,   color = color.green)
+    if showZone
+        bxWin  := box.new(bar_index, up ? tp3Px : entryPx, bar_index + rightOff,
+             up ? entryPx : tp3Px, border_color = na, bgcolor = color.new(color.green, 88))
+        bxLose := box.new(bar_index, up ? entryPx : slPx, bar_index + rightOff,
+             up ? slPx : entryPx, border_color = na, bgcolor = color.new(color.red, 88))
+    label.new(bar_index, na, up ? "BUY" : "SELL",
+         yloc  = up ? yloc.belowbar : yloc.abovebar,
+         style = up ? label.style_label_up : label.style_label_down,
+         color = up ? color.blue : color.red, textcolor = color.white, size = size.small)
+    if showTags
+        lbEntry := f_tag(bar_index + rightOff, entryPx, "ENTRY", color.blue)
+        lbSL    := f_tag(bar_index + rightOff, slPx,    "SL",    color.red)
+        lbTP1   := f_tag(bar_index + rightOff, tp1Px,   "TP1 1R", color.green)
+        lbTP2   := f_tag(bar_index + rightOff, tp2Px,   "TP2 2R", color.green)
+        lbTP3   := f_tag(bar_index + rightOff, tp3Px,   "TP3 3R", color.green)
+
+// ============================================================================
+// MANAGEMENT AND THE HONEST TALLY
+//
+// Every leg pays one spread on its round trip. The stop is tested BEFORE the
+// targets, so a bar that could have hit both resolves as the stop.
+// ============================================================================
+f_close(float px, int legs) =>
+    dir = isLong ? 1.0 : -1.0
+    gross = (px - entryPx) * dir
+    rEach = (gross - spreadPx) / riskPx
+    rEach * legs
+
+if active and bar_index > openBar
+    liveSL = tp1Done ? bePx : slPx
+    hitSL  = isLong ? low <= liveSL : high >= liveSL
+
+    if hitSL
+        legs = (tp1Done ? 0 : 1) + (leg2Open ? 1 : 0) + (leg3Open ? 1 : 0)
+        add  = f_close(liveSL, legs)
+        sigR += add
+        if tp1Done
+            nBE += legs
+        else
+            nFull += 1
+        leg2Open := false
+        leg3Open := false
+        active   := false
+    else
+        if not tp1Done and (isLong ? high >= tp1Px : low <= tp1Px)
+            tp1Done := true
+            sigR += f_close(tp1Px, 1)
+            nTP1 += 1
+            if not na(lnSL)
+                line.set_y1(lnSL, bePx)
+                line.set_y2(lnSL, bePx)
+            if showTags and not na(lbSL)
+                label.set_y(lbSL, bePx)
+        if leg2Open and (isLong ? high >= tp2Px : low <= tp2Px)
+            leg2Open := false
+            sigR += f_close(tp2Px, 1)
+            nTP2 += 1
+        if leg3Open and (isLong ? high >= tp3Px : low <= tp3Px)
+            leg3Open := false
+            sigR += f_close(tp3Px, 1)
+            nTP3 += 1
+        if tp1Done and not leg2Open and not leg3Open
+            active := false
+
+    if not na(lnEntry)
+        line.set_x2(lnEntry, bar_index + rightOff)
+    if not na(lnSL)
+        line.set_x2(lnSL, bar_index + rightOff)
+    if not na(lnTP1)
+        line.set_x2(lnTP1, bar_index + rightOff)
+    if not na(lnTP2)
+        line.set_x2(lnTP2, bar_index + rightOff)
+    if not na(lnTP3)
+        line.set_x2(lnTP3, bar_index + rightOff)
+    if not na(bxWin)
+        box.set_right(bxWin, bar_index + rightOff)
+    if not na(bxLose)
+        box.set_right(bxLose, bar_index + rightOff)
+    if showTags
+        if not na(lbEntry)
+            label.set_x(lbEntry, bar_index + rightOff)
+        if not na(lbSL)
+            label.set_x(lbSL, bar_index + rightOff)
+        if not na(lbTP1)
+            label.set_x(lbTP1, bar_index + rightOff)
+        if not na(lbTP2)
+            label.set_x(lbTP2, bar_index + rightOff)
+        if not na(lbTP3)
+            label.set_x(lbTP3, bar_index + rightOff)
+
+    // book the signal once every leg is closed
+    if not active
+        sumR    += sigR
+        cash     = sigR * riskPx * moneyPer1
+        sumCent += cash
+        if cash < worst
+            worst := cash
+        if sumCent > peak
+            peak := sumCent
+        dd = sumCent - peak
+        if dd < trough
+            trough := dd
+
+// ============================================================================
+// PANEL
+// ============================================================================
+done    = nSignal - (active ? 1 : 0)
+avgR    = done > 0 ? sumR / done : 0.0
+tp1Rate = done > 0 ? 100.0 * nTP1 / done : 0.0
+tp2Rate = done > 0 ? 100.0 * nTP2 / done : 0.0
+tp3Rate = done > 0 ? 100.0 * nTP3 / done : 0.0
+fullRate= done > 0 ? 100.0 * nFull / done : 0.0
+dCur    = dayofmonth(time, "Asia/Bangkok")
+dElap   = math.max(1, dCur - dStart + 1)
+balance = startCent + sumCent
+ddPct   = startCent > 0 ? -trough / startCent * 100 : 0.0
+
+var table pnl = table.new(position.top_right, 2, 20, border_width = 1)
+months = array.from("JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC")
+
+f_row(int r, string k, string v, color vc, color bg) =>
+    table.cell(pnl, 0, r, k, text_color = color.silver, bgcolor = bg,
+         text_size = size.small, text_halign = text.align_left)
+    table.cell(pnl, 1, r, v, text_color = vc, bgcolor = bg, text_size = size.small)
+
+if showPanel and barstate.islast
+    bg  = color.new(color.black, 18)
+    sec = color.new(color.black, 4)
+    gr  = color.green
+    rd  = color.red
+    wh  = color.white
+
+    table.cell(pnl, 0, 0,
+         str.tostring(dStart) + "-" + str.tostring(dCur) + " " +
+         array.get(months, mCur - 1) + " " + str.tostring(yCur),
+         text_color = wh, bgcolor = bg, text_size = size.small,
+         text_halign = text.align_left)
+    table.cell(pnl, 1, 0, "LOT " + str.tostring(lotSize, "#.###"),
+         text_color = wh, bgcolor = bg, text_size = size.small)
+
+    f_row(1, "Signals taken",    str.tostring(nSignal), wh, bg)
+    f_row(2, "Skipped (risk band)", str.tostring(nSkip),
+         nSkip > nSignal ? color.orange : color.silver, bg)
+    f_row(3, "Completed",        str.tostring(done), wh, bg)
+
+    table.cell(pnl, 0, 4, "EXPECTANCY", text_color = wh, bgcolor = sec,
+         text_size = size.small, text_halign = text.align_left)
+    table.cell(pnl, 1, 4, "", bgcolor = sec)
+    f_row(5, "R per signal", str.tostring(avgR, "#.####") + " R",
+         avgR >= 0 ? gr : rd, bg)
+    f_row(6, "Total R",      str.tostring(sumR, "#.##") + " R",
+         sumR >= 0 ? gr : rd, bg)
+    f_row(7, "Measured on 5,326", "-0.2152 R  t -4.68", color.orange, bg)
+
+    table.cell(pnl, 0, 8, "OUTCOMES", text_color = wh, bgcolor = sec,
+         text_size = size.small, text_halign = text.align_left)
+    table.cell(pnl, 1, 8, "", bgcolor = sec)
+    f_row(9,  "TP1 reached", str.tostring(tp1Rate, "#.#") + "%  (" + str.tostring(nTP1) + ")",
+         wh, bg)
+    f_row(10, "TP2 reached", str.tostring(tp2Rate, "#.#") + "%  (" + str.tostring(nTP2) + ")",
+         wh, bg)
+    f_row(11, "TP3 reached", str.tostring(tp3Rate, "#.#") + "%  (" + str.tostring(nTP3) + ")",
+         wh, bg)
+    f_row(12, "Stopped, all 3 legs", str.tostring(fullRate, "#.#") + "%  (" +
+         str.tostring(nFull) + ")", fullRate > 45 ? rd : color.silver, bg)
+    f_row(13, "Legs closed at BE", str.tostring(nBE), color.orange, bg)
+
+    table.cell(pnl, 0, 14, "COST AND MONEY", text_color = wh, bgcolor = sec,
+         text_size = size.small, text_halign = text.align_left)
+    table.cell(pnl, 1, 14, "", bgcolor = sec)
+    f_row(15, "Spread per signal", str.tostring(spreadSig, "#.###") + " cent  (3 legs)",
+         color.orange, bg)
+    f_row(16, "P/L this period", str.tostring(sumCent, "#.##") + " cent",
+         sumCent >= 0 ? gr : rd, bg)
+    f_row(17, "Average per day", str.tostring(sumCent / dElap, "#.##") + " cent",
+         sumCent >= 0 ? gr : rd, bg)
+    f_row(18, "Worst single signal", str.tostring(worst, "#.##") + " cent", rd, bg)
+    f_row(19, "Balance / peak DD",
+         str.tostring(balance, "#.##") + "  /  " + str.tostring(ddPct, "#.#") + "%",
+         balance >= startCent ? gr : rd, bg)
+
+alertcondition(buySig  and riskOK, "Dobby BUY",  "Dobby long setup")
+alertcondition(sellSig and riskOK, "Dobby SELL", "Dobby short setup")
