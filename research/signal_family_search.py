@@ -28,9 +28,9 @@ RESULT ON COMEX GOLD H1, 575 TRADING DAYS
   costs 0.278R per signal against a best-ever gross of +0.32R. Slower signals
   mean too few trades. Both corners are closed, and the middle is empty.
 
-    python research/signal_family_search.py     # needs gc_1h.json alongside
+    python research/signal_family_search.py     # fetches its own data
 """
-import json, math
+import json, math, os, urllib.request
 import numpy as np, pandas as pd
 from statistics import NormalDist
 
@@ -38,6 +38,16 @@ SPREAD, RISK_ATR, HOLD = 0.26, 1.5, 30
 
 
 def load(path="gc_1h.json"):
+    """Fetches its own data if the cache is absent. The hourly window is about
+    875 days and stable, unlike the 1-minute one, which Yahoo serves only for
+    the last four weeks - so this stays reproducible while gc_1m.csv does not."""
+    if not os.path.exists(path):
+        url = ("https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF"
+               "?range=730d&interval=1h")
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            open(path, "wb").write(r.read())
+        print(f"fetched {path}")
     d = json.load(open(path))["chart"]["result"][0]
     q = d["indicators"]["quote"][0]
     x = pd.DataFrame({k: q[k] for k in ("open", "high", "low", "close", "volume")},
