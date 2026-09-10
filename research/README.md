@@ -1,12 +1,79 @@
-# Research cells
+# Research
 
-Paste-and-run cells for a QuantConnect **Research** notebook (not an
-algorithm). Each is self-contained — it does not depend on helpers defined
-in earlier cells — so it can be dropped into a fresh notebook.
+Two kinds of file live here.
 
-| File | Question it answers |
+**Research cells** are paste-and-run cells for a QuantConnect *Research*
+notebook. Each is self-contained — it does not depend on helpers defined in
+earlier cells — so it can be dropped into a fresh notebook.
+
+**Algorithms** are full LEAN algorithms, pasted into `main.py` of a
+QuantConnect project and run through the backtest engine.
+
+| File | Kind | Question it answers |
+|---|---|---|
+| `qc_crossasset_test.py` | cell | Does the trend zone exist off gold, or was it fitted to it? |
+| `qc_dobby_3leg_algo.py` | algorithm | Does the EMA 9/21 cross + 3-leg ladder have an edge on 2025-onward data, priced at the real spread? |
+
+## qc_dobby_3leg_algo.py
+
+The TradingView build of this system reported +18% on a 1000-cent account in
+September 2026. Decomposing its own dashboard shows why that number cannot be
+taken at face value: **+5R across 24 signals, expectancy +0.21R, t = 0.28.**
+At that effect size roughly 1,240 signals are needed to reach t = 2.0.
+
+Four things this run fixes, all of which flattered the Pine result:
+
+| Pine build | Here |
 |---|---|
-| `qc_crossasset_test.py` | Does the trend zone exist off gold, or was it fitted to it? |
+| Exits resolve on the 5-minute signal bar | Real LEAN orders against **minute** data |
+| Fixed lot, stop ranging over 10x → money risk varied 10x | Quantity derived from stop distance, so **1R is constant money** |
+| TP1 judged on the bar's high | TP1 is **leg 1's limit order actually filling** |
+| Spread assumed 0.26 | **0.7525**, OANDA's measured 2023-2026 gold mean |
+
+The sizing fix matters more than it sounds. Because the Pine build sized every
+leg identically while its stop distance varied, its winners happened to carry
+about 25% more money-risk than its losers — which is the entire reason +5R
+printed as +182 cent. Constant-R sizing removes that, so the R column and the
+money column can no longer disagree.
+
+Risk is also cut from the ~3.8% per signal the Pine build was running (1.2%
+per leg x 3) to 1.0% per signal. At a 50% signal loss rate, six full stop-outs
+in a row is an ordinary event, and at 3.8% that run costs 22%.
+
+### Running it
+
+1. New QuantConnect project, Python, paste the file into `main.py`.
+2. The window is locked in the class body: `START = (2025, 1, 1)`.
+3. Free-tier CFD minute data over ~20 months is a slow backtest. Expect it to
+   take a while, and check the **Logs** tab, not the summary panel, for the
+   verdict block.
+
+### Reading the output
+
+Ignore the equity curve first. Go to the log block:
+
+```
+ALL    n=...  E=+0.____R  sd=...R  t=+_.__  win=__._%  n for t=2.0: ____
+LONG   ...
+SHORT  ...
+buy and hold over the same window: +__._%
+```
+
+`PASS = t > 2.0 on the side you intend to trade.` Anything else is noise,
+however good the equity curve looks. The buy-and-hold line is printed beside
+it because gold rose hard across 2025-2026, and a long-only rule inherits that
+drift — inheriting drift is not timing skill. If LONG looks strong and SHORT
+does not, suspect drift before suspecting edge.
+
+Watch three diagnostics as well:
+
+- `skipped: risk-band N` — how many crossovers the [0.30, 3.00] x ATR band
+  threw away. The Pine build was rejecting a third of them.
+- `WARNING stop and limit both filled` — a stop and its target both filled
+  inside one minute before the cancel landed. A handful is tolerable; many
+  means the R figures are contaminated.
+- `L1 TP/SL` — leg 1 is the base 1R hit rate with nothing else layered on it.
+  The whole ladder rests on it.
 
 ## qc_crossasset_test.py
 
