@@ -16,6 +16,24 @@ QuantConnect project and run through the backtest engine.
 | `qc_dobby_tuning_cell.py` | cell | Which parameters survive out-of-sample once the multiple-testing bar is applied? |
 | `qc_signal_census_cell.py` | cell | What do ALL signals do, including the ones the filters were throwing away? |
 | `qc_4part_filter_test.py` | cell | Does a volume-profile filter, a CHoCH+OB filter, or the pair of them rescue the system? |
+| `choch_fvg_three_setups.py` | script | Does CHoCH+FVG survive a better fill, a slower horizon, or a trend gate — and is the control it was first measured against sound? |
+
+**Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
+`gold_only_search.py`, `backtest_dobby_indicator.py`,
+`choch_fvg_three_setups.py`) fetch their own data and run under plain
+`python3`. They need only `numpy` and `pandas`.
+
+## choch_fvg_three_setups.py
+
+Three variations on the CHoCH + fair-value-gap entry, each aimed at one of the
+reasons this repo has recorded for intraday results dying: the fill (a resting
+limit at the far gap edge instead of the close), the horizon (daily bars
+instead of H1) and the bias (a daily Donchian-55 gate instead of a 4h EMA).
+
+It leads with a **calibration row** that re-measures the exact configuration
+`smc_entry_test.py` already reported, because a new number is worth nothing
+until the harness reproduces an old one. That row is where the run's most
+useful finding came from — see `docs/RESEARCH_FINDINGS.md`.
 
 ## qc_4part_filter_test.py
 

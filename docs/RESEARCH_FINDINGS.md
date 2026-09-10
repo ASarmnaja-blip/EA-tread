@@ -581,6 +581,14 @@ leveraged index fund and no code. The signal is the part that loses money.
 
 ## Smart-money entries, tested as entries
 
+> **The `skill` column in this table is measured against a flattering control
+> and should not be used.** Its random control drew direction at random rather
+> than matching each rule's own per-market long/short mix, so each market's
+> drift was credited to the signal. Re-measured with a matched control, the
+> CHoCH+FVG row moves from +0.0293 to **−0.0748**. See *Three CHoCH + FVG
+> setups, and a control bug in the table above* at the end of this file. The
+> other eight rows have not yet been re-measured.
+
 CHoCH and order blocks had only ever been tested as a *filter* on an EMA cross.
 BOS, fair value gaps, liquidity sweeps and every multi-timeframe combination had
 not been tested at all. `research/smc_entry_test.py` tests nine of them
@@ -746,3 +754,89 @@ Both M5 and M15 agree in sign and rough size with the QuantConnect
 measurement (-0.2152 R on 5,326 minute-resolved signals), which is the useful
 part: the chart-bar approximation did not rescue the rule, it just measured it
 with a hundredth of the sample.
+
+---
+
+## Three CHoCH + FVG setups, and a control bug in the table above (2026-09-10)
+
+`research/choch_fvg_three_setups.py`. The CHoCH+FVG row in the smart-money
+table was measured once, one way: entry at the close of the bar that re-enters
+the gap, on H1, with no higher-timeframe context. Three things were never
+varied, and each is something this repo had separately named as a reason
+intraday results die — the fill, the horizon, and the direction filter.
+
+Predictions were written before the run and are in the script's docstring.
+
+### The calibration row found the real result
+
+Nothing was read until the harness reproduced a number the repo already had.
+Re-measuring the exact configuration `smc_entry_test.py` reported:
+
+| | E | skill |
+|---|---|---|
+| recorded in `smc_entry_test.py` | −0.0943 | **+0.0293** |
+| reproduced here | −0.1189 | — |
+| …against a **random-direction** control (the old method) | | **+0.0312** |
+| …against a **direction-matched** control (the correction) | | **−0.0748** |
+
+The expectancy reproduces. The skill does not, and the entire difference is the
+control. `smc_entry_test.py` drew its control's direction at random; matching
+each market's own long/short mix — the correction `gold_only_search.py` had to
+make for exactly this reason — moves CHoCH+FVG from a small positive skill to a
+**negative** one.
+
+The aggregate signal mix is 50.9% long, so the bias is not in the pooled
+direction count. It is **per market**: a market whose signals were 70% long was
+being compared against a 50/50 control, and that market's own drift arrived as
+skill. Pooling hides it; the matched control removes it.
+
+**This invalidates the skill column of the nine-rule table above, not just this
+row.** All nine used the random-direction control. That includes the liquidity
+sweep at +0.0786 — the strongest candidate this program ever produced, and the
+source of the only skill reading above 2 anywhere in it. Re-measuring those
+nine against a matched control is now the highest-value open task in the repo,
+and the prior should be that they move the same way this one did.
+
+### The three setups
+
+27 CME futures. S1 and S3 hourly over 730 days, S2 daily over 20 years. Cost
+2bp of price per leg round turn charged on every leg, 1R = 2.0×ATR(14), three
+legs at 1R/2R/3R with break-even after leg one. Controls are matched on count,
+direction mix and — for S1 — entry mechanics, pooled over ten draws.
+
+| setup | n | E | t | skill | skill t | mkts+ |
+|---|---|---|---|---|---|---|
+| S0 close entry (calibration) | 7,534 | −0.1189 | −3.04 | −0.0748 | −1.84 | 11/27 |
+| S1 gap-edge limit entry, H1 | 6,570 | −0.1158 | −2.74 | −0.0848 | −1.93 | 10/27 |
+| S2 CHoCH+FVG, daily, 20y | 3,555 | +0.0822 | +1.42 | **−0.1650** | **−2.74** | 8/27 |
+| S3 daily Donchian gate + H1 | 4,021 | −0.1018 | −1.90 | −0.1013 | −1.83 | 10/27 |
+
+Against the pre-registered readings:
+
+**S1 — the fill was never the problem.** A limit at the far gap edge fills on
+67.2% of signals and improves the entry price on every one of them, and skill
+gets *worse*, not better. The 32.8% that expire unfilled are not a random
+subset: they are the signals price walked away from, which is the half a
+directional edge would want to keep.
+
+**S2 — the family is retired.** Daily is the horizon where this repo's only
+survivor lives, and cost per R falls about fivefold. E goes positive (+0.0822)
+and skill goes to −0.1650 at t = −2.74 — past the three-test Bonferroni bar of
+2.39, in the wrong direction. That positive E is the twenty-year drift of a
+futures book, and the entry rule **subtracts** from it. This is the same shape
+`universe_trend_test.py` found on 199 equities, where a Donchian rule reached
+t = +4.33 while being measurably worse than darts.
+
+**S3 — the gate contributes nothing the gate did not already have.** Direction
+from daily Donchian-55, timing from CHoCH+FVG: skill −0.1013. The gate raises E
+relative to ungated H1 (−0.1018 against −0.1189) and skill falls, which is
+precisely the pattern the direction-matched control exists to expose. The trend
+filter works; letting CHoCH+FVG choose the moment inside it costs money.
+
+All three are negative, and all three are negative on the market count as well
+as the pooled t — 8 to 11 markets of 27 beat their own control, where chance is
+13.5.
+
+**Consequence:** no new setup is enabled. The CHoCH + FVG family is closed on
+this evidence, and the smart-money table above is now known to be measured
+against a flattering control.
