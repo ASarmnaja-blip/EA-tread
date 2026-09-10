@@ -14,6 +14,63 @@ QuantConnect project and run through the backtest engine.
 | `qc_crossasset_test.py` | cell | Does the trend zone exist off gold, or was it fitted to it? |
 | `qc_dobby_3leg_algo.py` | algorithm | Does the EMA 9/21 cross + 3-leg ladder have an edge on 2025-onward data, priced at the real spread? |
 | `qc_dobby_tuning_cell.py` | cell | Which parameters survive out-of-sample once the multiple-testing bar is applied? |
+| `qc_signal_census_cell.py` | cell | What do ALL signals do, including the ones the filters were throwing away? |
+
+## qc_signal_census_cell.py
+
+Supersedes the tuning cell. That cell applied the [0.30, 3.00] x ATR risk band
+**before** measuring anything and discarded 1,033 of 2,184 signals, so it could
+never say whether the band was removing losers or removing winners.
+
+This cell filters nothing. Every EMA cross is simulated and recorded with its
+features attached, and the filters are judged afterwards on measured evidence.
+Eleven features per signal: `risk_atr`, `trend_ok`, `zone`, `poc_dist`,
+`va_pos`, `vpoc_dist`, `liq_up`, `liq_dn`, `swept`, `atr_pct`, `hour`,
+`spread_r`. Results are written to `signal_census.csv` so further slicing does
+not need a re-run.
+
+### Volume, honestly
+
+XAU/USD spot is OTC, and QuantConnect's OANDA CFD feed carries no volume at
+all - the EA's own `VolumeProfile.mqh` makes the same disclosure about MT5,
+where the default source is one broker's tick count rather than gold's volume.
+
+So the default profile here is a **time (TPO) profile**: how long price spent
+in each bin, not how much traded there. With `USE_GC_VOLUME=True` the cell
+additionally builds a real **volume** profile from COMEX gold futures, which
+do carry genuine volume on QuantConnect, and reports it as `vpoc_dist`
+alongside. Where the two disagree, the volume one is the better evidence.
+
+### The dredging problem, and the three guards
+
+Slicing eleven features into buckets is ~56 hypotheses. Fifty-six tests
+against a signal with no edge **will** produce something that looks tradable.
+So the cell prints, for every bucket:
+
+1. in-sample **and** out-of-sample side by side - a bucket that works in one
+   only is noise;
+2. the Bonferroni family-wise 5% bar recomputed for the real test count -
+   **t > 3.32** at 56 tests, not 2.00;
+3. a **monotonicity** flag - a real effect gradients across buckets, while a
+   single spiky bucket beside flat neighbours is almost always luck.
+
+### Two correctness details worth knowing
+
+Sweep detection reads bars *after* the sweep bar to confirm the reclaim, so a
+sweep is not knowable until `SWEEP_RECLAIM` bars later; the lookup window is
+shifted by that much or the feature would be reading the future. Sweeps here
+use the prior 20-bar extreme rather than `Sweep.mqh`'s named levels (PDH/PDL,
+Asian high/low), which is a deliberate simplification for vectorisation.
+
+Untested-level lookup uses suffix max/min over the window, making the test O(1)
+per pivot. The naive slice scan made the cell take about an hour.
+
+### Negative control
+
+Run against a synthetic random walk with the same spread charged, every bucket
+comes back negative and none turns spuriously positive - which is what a
+harness free of look-ahead should do on data with no edge.
+
 
 ## qc_dobby_tuning_cell.py
 
