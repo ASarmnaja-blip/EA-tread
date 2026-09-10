@@ -1574,3 +1574,34 @@ expansion, efficiency ratio, session hours, and now an options-derived vol
 index), wick mechanics, calendar effects, an intermarket price ratio,
 positioning flow, VWAP, cross-asset lead-lag, and the EA's own untested
 opening-range setup. None has produced a result that survives.
+
+---
+
+## Multi-factor: does confirming VWAP with DXY help, or just cut the sample? (2026-09-10)
+
+`research/vwap_dxy_confluence.py`. Built on round 2's two mildly-positive
+leads (VWAP fade skill +0.206R t +1.21; DXY lead-lag skill +0.128R t +0.87,
+neither significant) — asking whether requiring them to **agree** removes
+noise. Stated up front: this is nested selection on the same 60-day window
+that produced the leads, so a positive result here is a lead, not a
+confirmation — the same caveat `wick_tip_finetune.py` had to carry.
+
+| combination | n | skill | skill t | parent signal |
+|---|---|---|---|---|
+| M1 VWAP trigger, DXY confirms | 80 | +0.208 | +1.10 | T1 alone: +0.206 (t +1.21) |
+| M2 DXY trigger, VWAP confirms | 104 | +0.152 | +1.12 | T2 alone: +0.128 (t +0.87) |
+| M3 strict confluence (both fire) | 59 | +0.250 | +1.14 | — |
+
+**None clears the plain 95% bar (t > 1.96).** More tellingly, confirmation
+does not do what confirmation is supposed to do: M1's skill sits almost
+exactly where VWAP alone was (+0.208 vs +0.206) while its t actually **fell**
+(1.21 → 1.10) despite cutting the sample by a fifth — the signature of
+cutting the sample without removing noise, not of finding a cleaner
+subpopulation. M2 improved marginally; M3, the strictest form, is still not
+significant at n = 59.
+
+**Consequence:** the multi-factor combination does not rescue either parent
+signal. Combined with round 1 and round 2, this closes the last reasonably
+scoped idea this program had queued. Every category tried — including now
+combining the two best leads this whole deep-research pass produced — has
+died the same way.

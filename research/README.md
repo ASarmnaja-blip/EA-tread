@@ -30,6 +30,7 @@ QuantConnect project and run through the backtest engine.
 | `deep_research_signals.py` | script | Three signal families sourced from published research rather than gold's own chart - calendar seasonality, gold/silver ratio reversion, COT positioning extremes: does anything outside price action carry information? |
 | `intermarket_signals_60d.py` | script | VWAP reversion, dollar-index lead-lag, and a GVZ volatility-regime gate, scoped to the 60 real days Yahoo serves. |
 | `opening_range_setup_c.py` | script | The EA's own Setup C (opening-range expansion) has shipped since the start and was never tested - closes that gap. |
+| `vwap_dxy_confluence.py` | script | Round 2's two mildly-positive leads (VWAP fade, DXY lead-lag), combined: does requiring agreement remove noise, or just cut the sample? |
 | `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
 
 **Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
