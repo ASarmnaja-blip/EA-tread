@@ -35,11 +35,12 @@
 #   how long price spent in each bin, not how much traded there. That is a real
 #   and standard construction, and it is honest about what the data supports.
 #
-#   USE_GC_VOLUME=True additionally builds a true VOLUME profile from COMEX
-#   gold futures, which do have real volume on QuantConnect, and basis-adjusts
-#   it onto spot. If the two profiles disagree materially, the volume one is
-#   the better evidence. If the futures data is unavailable the cell says so
-#   and continues with the time profile alone.
+#   USE_GC_VOLUME=True additionally weights the profile by REAL traded volume
+#   from a correlated instrument (COMEX gold futures, else the GLD ETF). No
+#   basis adjustment is needed or done: the bins are built from XAUUSD's own
+#   highs and lows, and the other instrument contributes only a per-bar volume
+#   WEIGHT. Its price scale is therefore irrelevant, only its time alignment
+#   matters. If neither source loads, the cell says so and uses time alone.
 # ---------------------------------------------------------------------------
 #
 # DATA DREDGING - THE THING THAT WILL RUIN THIS IF UNMANAGED
@@ -134,23 +135,43 @@ N5 = len(m5)
 # OPTIONAL: real volume from COMEX gold futures, basis-adjusted onto spot
 # ---------------------------------------------------------------------------
 gc5 = None
+vol_source = "time (TPO) only"
 if USE_GC_VOLUME:
+    tried = []
+    cand = None
+    # COMEX gold futures first: real, 23h, the same underlying.
     try:
-        gc = qb.add_future(Futures.Metals.GOLD, Resolution.MINUTE,
-                           data_normalization_mode=DataNormalizationMode.BACKWARDS_RATIO,
-                           data_mapping_mode=DataMappingMode.OPEN_INTEREST)
-        gmin = load_minute(gc.symbol, START, END)
-        if "volume" in gmin.columns and float(gmin["volume"].abs().sum()) > 0:
-            agg = dict(OHLC); agg["volume"] = "sum"
-            gc5 = gmin.resample("5min").agg(agg).dropna()
-            gc5 = gc5.reindex(idx5).ffill()
-            print(f"COMEX gold futures volume loaded: {len(gc5):,} bars"
-                  f"   total volume {gc5['volume'].sum():,.0f}")
-        else:
-            print("COMEX futures returned no usable volume - time profile only")
-        del gmin
+        cand = ("COMEX GC futures", qb.add_future(Futures.Metals.GOLD,
+                                                  Resolution.MINUTE).symbol)
     except Exception as e:
-        print(f"COMEX futures unavailable ({type(e).__name__}) - time profile only")
+        tried.append(f"GC futures {type(e).__name__}")
+    # GLD is the fallback: real exchange volume, but US cash hours only, so it
+    # weights the US session and leaves Asia and early London at zero.
+    if cand is None:
+        try:
+            cand = ("GLD ETF (US hours only)",
+                    qb.add_equity("GLD", Resolution.MINUTE).symbol)
+        except Exception as e:
+            tried.append(f"GLD {type(e).__name__}")
+    if cand is None:
+        print(f"no real-volume source loaded ({'; '.join(tried)}) - time profile only")
+    else:
+        name, vsym = cand
+        try:
+            vmin = load_minute(vsym, START, END)
+            if "volume" in vmin.columns and float(vmin["volume"].abs().sum()) > 0:
+                agg = dict(OHLC); agg["volume"] = "sum"
+                gc5 = vmin.resample("5min").agg(agg).reindex(idx5)
+                gc5["volume"] = gc5["volume"].fillna(0.0)
+                vol_source = name
+                covered = float((gc5["volume"] > 0).mean()) * 100
+                print(f"real volume from {name}: total {gc5['volume'].sum():,.0f}"
+                      f"   covers {covered:.0f}% of 5-minute bars")
+            else:
+                print(f"{name} returned no usable volume - time profile only")
+            del vmin
+        except Exception as e:
+            print(f"{name} history failed ({type(e).__name__}) - time profile only")
 
 # ---------------------------------------------------------------------------
 # INDICATORS
@@ -454,6 +475,17 @@ i_, o_ = S[S.time < IS_END], S[S.time >= IS_END]
 print(f"  in-sample  n={len(i_):,}  E={i_.r.mean():+.4f}  total {i_.r.sum():+.1f}R")
 print(f"  out-sample n={len(o_):,}  E={o_.r.mean():+.4f}  total {o_.r.sum():+.1f}R")
 print("=" * 86)
+
+# 5,326 includes signals that fired while an earlier one was still open. Only
+# the sequential subset could actually have been traded, so it gets its own row.
+seq = S[S.sequential == 1]
+si, so = seq[seq.time < IS_END], seq[seq.time >= IS_END]
+ns, es, ts = stat(seq["r"])
+print(f"TRADEABLE SUBSET (one position at a time): n={ns:,}  E={es:+.4f}R  t={ts:+.2f}")
+print(f"  in-sample  n={len(si):,}  E={si.r.mean():+.4f}  total {si.r.sum():+.1f}R")
+print(f"  out-sample n={len(so):,}  E={so.r.mean():+.4f}  total {so.r.sum():+.1f}R")
+print("=" * 86)
+TESTS[0] += 1
 
 print("\n### THE RISK BAND AUTOPSY - what the old cell threw away")
 kept = S[(S.risk_atr >= 0.30) & (S.risk_atr <= 3.00)]
