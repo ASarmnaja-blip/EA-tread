@@ -55,6 +55,12 @@ END     = datetime(2026, 9, 10)
 SPREAD  = 0.7525          # OANDA measured 2023-2026 gold mean
 
 USE_GC_VOLUME = True      # also build a real-volume profile from COMEX futures
+# Recent-window analysis. Each is reported WHOLE - a window this short cannot
+# carry an in-sample / out-of-sample split that means anything, so these
+# describe a period rather than test a hypothesis. The 2025-onward IS/OOS table
+# above them is still the test.
+WINDOW_MONTHS = [3, 6, 12, None]      # None = the full sample
+
 VP_LOOKBACK   = 288       # 5-min bars in the profile window (288 = 24h)
 VP_BINS       = 48
 VALUE_AREA    = 0.70
@@ -466,6 +472,49 @@ for lab, a_, b_ in (
     else:
         vi, vo = E(a_, False) - E(b_, False), E(a_, True) - E(b_, True)
     print(f"{lab:<40}{vi:>+14.4f}{vo:>+16.4f}")
+
+# ---------------------------------------------------------------------------
+# RECENT WINDOWS
+#
+# MDE is the minimum detectable effect: the expectancy this many trades could
+# actually resolve, at 5% significance and 80% power. It is the honest ceiling
+# on what a window can tell you. When MDE is far larger than any expectancy a
+# real system produces, the window cannot answer the question however the
+# numbers happen to land - a result inside +/- MDE is consistent with no edge
+# at all, and one outside it on a handful of trades is usually an outlier
+# rather than a discovery.
+# ---------------------------------------------------------------------------
+Z = NormalDist().inv_cdf(0.975) + NormalDist().inv_cdf(0.80)   # 1.96 + 0.84
+
+print("\n" + "=" * 92)
+print("RECENT WINDOWS - reported whole, no in/out split (too short to carry one)")
+print("=" * 92)
+print(f"{'window':<16}{'part':<24}{'n':>6}{'E':>10}{'t':>8}"
+      f"{'total R':>10}{'MDE':>9}{'verdict':>16}")
+for months in WINDOW_MONTHS:
+    w_start = START if months is None else (END - pd.DateOffset(months=months))
+    label = "full sample" if months is None else f"last {months} months"
+    for name, f in PARTS:
+        d = res[name]
+        d = d[d.time >= w_start]
+        n, e, t, R, _ = stat(d["r"])
+        if n < 2:
+            print(f"{label:<16}{name:<24}{n:>6}{'-':>10}{'-':>8}{'-':>10}"
+                  f"{'-':>9}{'too few trades':>16}")
+            label = ""
+            continue
+        sd = d.r.std(ddof=1)
+        mde = Z * sd / math.sqrt(n)
+        if abs(e) < mde:
+            verdict = "inside noise"
+        elif e > 0:
+            verdict = "positive, check n"
+        else:
+            verdict = "negative"
+        print(f"{label:<16}{name:<24}{n:>6}{e:>+10.4f}{t:>+8.2f}"
+              f"{R:>+10.1f}{mde:>9.3f}{verdict:>16}")
+        label = ""
+    print()
 
 K = len(PARTS) * 2
 BAR = NormalDist().inv_cdf(1 - 0.025 / K)

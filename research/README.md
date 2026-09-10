@@ -70,6 +70,37 @@ hypotheses), on the same part, in both samples. A filter that only makes a
 losing system lose more slowly has not found an edge - it has found fewer
 trades.
 
+### Cost diagnostic
+
+Expectancy climbing toward zero as the filters tighten looks the same whether
+the filter predicts direction or merely avoids trades where the fixed spread is
+a large share of a small R. To separate them, every setup is replayed at zero
+spread and reported as GROSS beside NET. That is a second simulation, not the
+cost added back: at zero spread the break-even stop sits at the entry instead
+of one spread inside profit, so adding the cost back would credit a
+break-even leg with a spread it never earned.
+
+If GROSS is near zero in every part while NET improves with filtering, the
+filters are selecting wide-stop trades, not forecasting. The fix for that is a
+larger stop, not a better filter.
+
+### Recent windows and what they can resolve
+
+`WINDOW_MONTHS` reports the last 3, 6 and 12 months whole - a window that short
+cannot carry an in-sample split that means anything, so these describe a period
+rather than test anything. The 2025-onward table above them remains the test.
+
+Each row carries **MDE**, the minimum detectable effect: the expectancy that
+many trades could actually resolve at 5% significance and 80% power. It is the
+ceiling on what the window can say. Three months leaves roughly 240 baseline
+trades, where MDE is about 0.6R - larger than any expectancy this system has
+ever produced in either direction, so the window is guaranteed to return
+"inside noise" whichever way the number lands. Part 4 over three months is
+about six trades, where MDE is above 4R.
+
+Shortening the window does not make a marginal result clearer. It makes every
+result unfalsifiable.
+
 
 ## qc_signal_census_cell.py
 
