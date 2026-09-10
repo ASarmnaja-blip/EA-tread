@@ -935,3 +935,123 @@ asked at all. Two things would change that, in order of value:
    displacement close instead of waiting for an FVG retrace takes n from 217 to
    883 at the same stop. Neither is significant, so this is a way to *reach* a
    testable sample, not a result.
+
+---
+
+## Why "gold only has to move $1 to cover the spread" does not rescue it (2026-09-10)
+
+`research/cost_vs_exit_decomposition.py`. The objection is correct on its own
+terms and it deserved a measurement rather than a restatement of the earlier
+conclusion. A trade's expectancy decomposes into three independent parts —
+information in the entry, the structural return of the exit design, and the
+cost — and every earlier file here measured only the sum.
+
+### The spread really is small now
+
+| M15 ATR | 1R at 1.8×ATR | $0.26 as R | $0.7525 as R |
+|---|---|---|---|
+| $1.14 (2018) | $2.05 | 0.127 | 0.367 |
+| $2.58 (15y mean) | $4.64 | 0.056 | 0.162 |
+| $5.44 (2025) | $9.79 | 0.027 | 0.077 |
+| $11.35 (2026) | $20.43 | **0.013** | **0.037** |
+
+At 2026 volatility the spread is 1–4% of R. **The "cost kills intraday" finding
+in this file was formed when gold's ATR was a quarter of what it is now**, and
+that conclusion has quietly expired. The premise in the question is right.
+
+### The exit ladder is not a hidden tax either
+
+The hypothesis was that the 3-leg ladder charges its own toll. Measured on
+random entries at zero cost — a random entry has no information, so whatever
+comes back is the design's own return:
+
+| exit design | 8 markets, H1, n | E per leg | t |
+|---|---|---|---|
+| 1 leg 1R | 19,857 | −0.0101 | −1.43 |
+| 1 leg 2R, BE at 1R | 17,996 | −0.0133 | −1.32 |
+| 1 leg 3R | 17,020 | +0.0188 | +1.56 |
+| **3 legs 1/2/3, BE at 1R** | 17,902 | **+0.0012** | **+0.15** |
+| trail 2 ATR, BE at 1R | 19,893 | **+0.0336** | **+4.45** |
+| stop + time only | 16,299 | +0.0244 | +1.72 |
+
+The ladder is fair. The hypothesis was wrong.
+
+### So the decomposition resolves to something harsher
+
+```
+entry contributes   ~0.00    no rule in this repo has beaten this
+exit  contributes   ~0.00    measured above
+cost  contributes   -0.015 to -0.045 per leg
+```
+
+and that sum is exactly the loss every test here reports. **The whole loss is
+the spread — not because the spread is large, but because the other two terms
+are zero.** Covering a $0.26 spread does not require a big edge; it requires
+the entry to call direction better than a coin. The bar is low and nothing has
+cleared it. That is the answer to the question, and it is worse news than "the
+spread is too big", because a shrinking spread does not fix it.
+
+### The one replicated positive is in the exit, not the entry
+
+Trail 2 ATR with break-even, on **random** entries, eight markets: +0.0336 at
+t = +4.45. A stop caps the loss while a trend lets the winner run, so the
+asymmetry needs no forecast at all. It is also about the size of the spread it
+must pay, which makes it a lead rather than a system — but it is the only thing
+in this program that replicates across markets without an entry rule attached.
+
+---
+
+## A wide tuned grid across M5–H1, and what its best cell is worth (2026-09-10)
+
+`research/multi_tf_setup_grid.py`. 11 entry families × parameter variants ×
+4 exit designs × 2 stop multiples × 4 timeframes (M5, M15, M30, H1) on gold —
+631 cells that cleared a 30-trade floor. Every cell has its own matched control
+using **the same exit**, so the skill column measures what the entry knows with
+the exit's own return divided out.
+
+Reporting the winner of a 631-cell search is how overfit systems get built, so
+the run reports the distribution instead:
+
+| | observed | pure noise |
+|---|---|---|
+| mean skill t | +0.224 | 0.00 |
+| sd of skill t | 0.907 | 1.00 |
+| cells with \|t\| > 2 | 21 | 28.7 |
+| best t | **+2.813** | — |
+| expected max of 631 draws | — | **+3.591** |
+
+**No cell clears the line.** The best configuration in the entire grid — EMA
+9/21 on M30 with a stop-and-time exit, n = 44 — is smaller than what the maximum
+of 631 noise draws looks like. Nothing was re-tested cross-asset because there
+was nothing to re-test. The top of the table is dominated by M30 cells with
+n between 33 and 144, which is what a search returns when it is ranking
+sampling error.
+
+### The bug this grid produced first, and how it was caught
+
+The first run reported Bollinger fade + trailing stop at t = +3.89 on gold,
+clearing the line, and confirming cross-asset at **9 of 9 markets, skill +0.152,
+Stouffer Z = +15.0** — per-market t from +2.8 to +6.8. That is not a discovery,
+it is the size of number this repo has learned to distrust on sight.
+
+Run on a driftless random walk built from 24 sub-steps per bar, the same cell
+returned +0.009. The harness was fair; the interaction was not. **The trailing
+stop was seeded from the entry bar's own high or low.** A fade entry closes near
+the bar's extreme by construction, so the seeded stop sat much closer than
+`entry ∓ risk` while R stayed denominated on the nominal ATR multiple — capping
+the loss below −1R with no offsetting reduction in the win. Free asymmetry,
+worth +0.15R, and it selected exactly the mean-reversion families to the top of
+the table.
+
+Denominating R on the *actual* seeded stop instead only moved the problem: that
+stop can land at or beyond the entry, the divisor goes to zero, and expectancy
+blows up to **+5.9R a trade**. The design is not well posed until the trail
+starts one bar after entry. Fixed there. The same cell then reads +0.033 at
+Stouffer Z = +2.13, and the grid's best t falls from +3.89 to +2.81 — under the
+line.
+
+This is the third control-or-harness bug in this program that manufactured a
+result large enough to look like a discovery (after the random-direction control
+and the inverted stops in `backtest_dobby_indicator.py`). The rule that caught
+all three is the same one: **calibrate on data whose answer you already know
+before reading any number you like.**

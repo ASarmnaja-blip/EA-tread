@@ -18,6 +18,8 @@ QuantConnect project and run through the backtest engine.
 | `qc_4part_filter_test.py` | cell | Does a volume-profile filter, a CHoCH+OB filter, or the pair of them rescue the system? |
 | `choch_fvg_three_setups.py` | script | Does CHoCH+FVG survive a better fill, a slower horizon, or a trend gate — and is the control it was first measured against sound? |
 | `dobby_setup01_sweep_chain.py` | script | Sweep → CHoCH → displacement → FVG, as one setup: does it fire often enough to trade, and does each stage earn its place? |
+| `cost_vs_exit_decomposition.py` | script | Is the spread really the barrier, or is it the exit design — or the entry? Splits expectancy into the three terms and measures each. |
+| `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
 
 **Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
 `gold_only_search.py`, `backtest_dobby_indicator.py`,
