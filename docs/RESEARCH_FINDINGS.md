@@ -1312,3 +1312,70 @@ rather than at the moment of the breakout — not a system.
 random timing at the same direction. What survives the control is the book
 itself: breadth, a trailing exit, and sizing. That is the third time in this
 program the answer has landed there.
+
+---
+
+## Wick-tip entries: tuned, held out, and killed by the durability check (2026-09-10)
+
+`research/wick_tip_tuner.py`. "Trading the tip of the wick" done properly: a
+resting limit at the prior N-bar extreme ± k×ATR, filled when a spike wicks
+through it, stop beyond the fill, target a multiple of it. 306 configurations
+tuned on the first 40 of Yahoo's 60 M5/M15 days, with the last 20 held back —
+the split fixed by date before the first run.
+
+### Three harness bugs, in order, each one worth a fake result
+
+| bug | what it did | win rate it produced |
+|---|---|---|
+| fill bar skipped entirely | the spike that reached the limit could keep going and take the stop out in the same candle; those were booked as live trades | **0.743** |
+| whole fill bar tested | the bar's HIGH may print *before* the wick down that fills you, so it booked wins on prices that happened while still flat | **0.778** |
+| trades allowed to overlap | positions sharing a price path are not independent observations, and every t-statistic is inflated | t = 13.655 |
+
+With OHLC alone the path inside a bar is unknowable, so the fill bar is now
+tested for the **stop only** — the pessimistic reading — and `busy` is set to
+the exit bar.
+
+### After the fixes, the held-out window looked genuinely good
+
+| config (held out, 20 days) | n | win | RR | PF | E(R) | E($) | t |
+|---|---|---|---|---|---|---|---|
+| M5 look=24 off=1.0 sl=1.0, spread 0.26 | 49 | **0.633** | 1.374 | **2.366** | +0.528 | +$2.792 | 3.037 |
+| …same at spread 0.7525 | 49 | 0.633 | 1.166 | 2.008 | +0.427 | +$2.299 | 2.455 |
+| …its random control | 376 | 0.335 | 1.361 | 0.686 | −0.220 | −$1.083 | −3.621 |
+
+**All six held-out configs positive, all six controls negative.** That is not
+one lucky cell, and at this point it was the most promising thing in the repo.
+
+### The durability check ended it
+
+Same rules on six years of M15 (PAX Gold, metal-open hours), split into three
+eras, spread $0.7525:
+
+| config | era | n | E(R) | control E(R) | skill |
+|---|---|---|---|---|---|
+| look=24 off=1.0 sl=1.0 tp=1.5 | 2020-08→2022-08 | 1,050 | −0.041 | −0.333 | **+0.292** |
+| | 2022-09→2024-08 | 1,301 | −0.273 | −0.329 | +0.056 |
+| | **2024-09→2026-09** | 1,575 | −0.231 | −0.146 | **−0.085** |
+| look=24 off=0.5 sl=1.5 tp=1.0 | 2020-08→2022-08 | 1,981 | +0.087 | −0.153 | +0.240 |
+| | 2022-09→2024-08 | 2,247 | −0.096 | −0.174 | +0.078 |
+| | **2024-09→2026-09** | 2,619 | −0.161 | −0.117 | **−0.044** |
+
+Two things settle it. **Expectancy is negative in eleven of twelve era-cells** —
+the rule never made money over six years, even where it beat its control. And
+the skill **decays monotonically and flips negative in the most recent era**,
+which is the era the flattering 60-day holdout sits inside. A 49-trade window
+inside a two-year stretch where the rule is worse than random is a lucky slice,
+not a discovery.
+
+The sign flip between horizons and eras is the same signature that has now
+disqualified every candidate in this program.
+
+**Caveat kept deliberately:** the six-year series is PAX Gold, not XAUUSD, and
+this repo has already recorded that its M15 mean reversion is partly the
+token's own microstructure. That weakens the durability test — but it weakens
+it toward *more* apparent edge, not less, and the recent era still comes out
+negative. Settling it properly needs real XAUUSD M15 history, which remains the
+one blocker this analysis cannot route around.
+
+**Consequence:** not implemented. The tuned parameters are in the script for
+anyone who wants to re-run them against real broker data.
