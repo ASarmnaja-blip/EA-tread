@@ -13,6 +13,40 @@ QuantConnect project and run through the backtest engine.
 |---|---|---|
 | `qc_crossasset_test.py` | cell | Does the trend zone exist off gold, or was it fitted to it? |
 | `qc_dobby_3leg_algo.py` | algorithm | Does the EMA 9/21 cross + 3-leg ladder have an edge on 2025-onward data, priced at the real spread? |
+| `qc_dobby_tuning_cell.py` | cell | Which parameters survive out-of-sample once the multiple-testing bar is applied? |
+
+## qc_dobby_tuning_cell.py
+
+The tuning bench. Loads 2025-onward minute gold once, then replays every
+configuration over it in seconds rather than one LEAN backtest at a time.
+
+The sample is split before anything is measured, and the split is not
+negotiable after the fact:
+
+```
+IN SAMPLE   2025-01-01 .. 2025-12-31   tune here, look freely
+OUT SAMPLE  2026-01-01 .. 2026-09-10   verify ONCE, never tune
+```
+
+Both columns print side by side for all 17 configurations, plus a
+drift-adjusted out-of-sample t, because gold rose hard across this window and
+a long-only rule inherits that.
+
+**The bar rises with the number of configurations tested.** The best of 17
+draws is not a single test, so the cell prints the Bonferroni family-wise 5%
+threshold — **t > 2.97** at 17 tests, not 2.0. Reading the out-of-sample
+column before committing to a configuration turns it into a test too, and the
+bar rises again.
+
+R is scale-free here: quantity is not modelled at all, every leg risks exactly
+1R by definition. No account size, lot size or cent conversion can distort the
+numbers, which is the point of tuning here rather than on the Pine dashboard.
+
+Runtime is a few minutes for the full sweep. Watch the spread-sensitivity
+block at the end — at a 1.8xATR stop the spread assumption alone moved gold's
+expectancy from +0.2312R to +0.1253R in earlier work, and the Pine build was
+running 0.26 against a measured 0.7525.
+
 
 ## qc_dobby_3leg_algo.py
 
