@@ -59,7 +59,7 @@ USE_GC_VOLUME = True      # also build a real-volume profile from COMEX futures
 # carry an in-sample / out-of-sample split that means anything, so these
 # describe a period rather than test a hypothesis. The 2025-onward IS/OOS table
 # above them is still the test.
-WINDOW_MONTHS = [3, 6, 12, None]      # None = the full sample
+RECENT_MONTHS = 3         # the short period, measured back from END
 
 VP_LOOKBACK   = 288       # 5-min bars in the profile window (288 = 24h)
 VP_BINS       = 48
@@ -474,46 +474,69 @@ for lab, a_, b_ in (
     print(f"{lab:<40}{vi:>+14.4f}{vo:>+16.4f}")
 
 # ---------------------------------------------------------------------------
-# RECENT WINDOWS
+# MONTHLY REGIME  -  does the volatility break exist, and when?
 #
-# MDE is the minimum detectable effect: the expectancy this many trades could
-# actually resolve, at 5% significance and 80% power. It is the honest ceiling
-# on what a window can tell you. When MDE is far larger than any expectancy a
-# real system produces, the window cannot answer the question however the
-# numbers happen to land - a result inside +/- MDE is consistent with no edge
-# at all, and one outside it on a handful of trades is usually an outlier
-# rather than a discovery.
+# Checked rather than assumed. ATR/price is the volatility level; spread/R is
+# what that volatility does to cost, since a fixed spread is a smaller share of
+# a wider stop. If volatility rose and spread/R fell, a later period can show a
+# better NET expectancy for a purely mechanical reason, with no change in the
+# signal's ability to predict anything. GROSS is what separates the two.
 # ---------------------------------------------------------------------------
-Z = NormalDist().inv_cdf(0.975) + NormalDist().inv_cdf(0.80)   # 1.96 + 0.84
+mon = pd.DataFrame({"atr": atr5, "px": c5}, index=idx5).resample("MS").mean()
+mon["atr_pct"] = 100.0 * mon["atr"] / mon["px"]
+_g = S.set_index("time").resample("MS")
+mon["signals"] = _g.size()
+mon["spread_r"] = _g["spread_r"].mean()
+mon["E_net"] = _g["r"].mean()
+mon["E_gross"] = _g["r0"].mean()
+mon = mon[mon["signals"].fillna(0) > 0]
 
 print("\n" + "=" * 92)
-print("RECENT WINDOWS - reported whole, no in/out split (too short to carry one)")
+print("MONTHLY REGIME  (all crosses, before sequencing or filtering)")
 print("=" * 92)
-print(f"{'window':<16}{'part':<24}{'n':>6}{'E':>10}{'t':>8}"
-      f"{'total R':>10}{'MDE':>9}{'verdict':>16}")
-for months in WINDOW_MONTHS:
-    w_start = START if months is None else (END - pd.DateOffset(months=months))
-    label = "full sample" if months is None else f"last {months} months"
+print(f"{'month':<10}{'ATR(5m)':>10}{'ATR/px %':>10}{'signals':>9}"
+      f"{'spread/R':>10}{'NET E':>10}{'GROSS E':>10}")
+for ts, r in mon.iterrows():
+    print(f"{ts:%Y-%m}   {r['atr']:>10.2f}{r['atr_pct']:>10.3f}"
+          f"{int(r['signals']):>9}{r['spread_r']:>10.4f}"
+          f"{r['E_net']:>+10.4f}{r['E_gross']:>+10.4f}")
+
+# ---------------------------------------------------------------------------
+# TWO PERIODS  -  the full sample against the recent one
+#
+# MDE is the minimum detectable effect: the expectancy this many trades could
+# resolve at 5% significance and 80% power. It is the ceiling on what a period
+# can say. A result inside +/- MDE is consistent with no edge whatever its
+# sign, and one outside it on a handful of trades is an outlier, not a finding.
+# ---------------------------------------------------------------------------
+Z = NormalDist().inv_cdf(0.975) + NormalDist().inv_cdf(0.80)   # 1.96 + 0.84
+CUT = END - pd.DateOffset(months=RECENT_MONTHS)
+
+print("\n" + "=" * 92)
+print(f"TWO PERIODS   full = {START:%Y-%m-%d}..{END:%Y-%m-%d}   "
+      f"recent = {CUT:%Y-%m-%d}..{END:%Y-%m-%d}")
+print("=" * 92)
+print(f"{'period':<12}{'part':<24}{'n':>6}{'NET E':>10}{'t':>7}"
+      f"{'GROSS E':>10}{'G t':>7}{'spread/R':>10}{'MDE':>8}{'verdict':>15}")
+for plabel, lo in (("full", START), (f"last {RECENT_MONTHS}m", CUT)):
+    lab = plabel
     for name, f in PARTS:
         d = res[name]
-        d = d[d.time >= w_start]
+        d = d[d.time >= lo]
         n, e, t, R, _ = stat(d["r"])
         if n < 2:
-            print(f"{label:<16}{name:<24}{n:>6}{'-':>10}{'-':>8}{'-':>10}"
-                  f"{'-':>9}{'too few trades':>16}")
-            label = ""
+            print(f"{lab:<12}{name:<24}{n:>6}{'-':>10}{'-':>7}{'-':>10}"
+                  f"{'-':>7}{'-':>10}{'-':>8}{'too few':>15}")
+            lab = ""
             continue
-        sd = d.r.std(ddof=1)
-        mde = Z * sd / math.sqrt(n)
-        if abs(e) < mde:
-            verdict = "inside noise"
-        elif e > 0:
-            verdict = "positive, check n"
-        else:
-            verdict = "negative"
-        print(f"{label:<16}{name:<24}{n:>6}{e:>+10.4f}{t:>+8.2f}"
-              f"{R:>+10.1f}{mde:>9.3f}{verdict:>16}")
-        label = ""
+        _, e0, t0, _, _ = stat(d["r0"])
+        mde = Z * d["r"].std(ddof=1) / math.sqrt(n)
+        verdict = ("inside noise" if abs(e) < mde
+                   else ("positive" if e > 0 else "negative"))
+        print(f"{lab:<12}{name:<24}{n:>6}{e:>+10.4f}{t:>+7.2f}"
+              f"{e0:>+10.4f}{t0:>+7.2f}{d['spread_r'].mean():>10.4f}"
+              f"{mde:>8.3f}{verdict:>15}")
+        lab = ""
     print()
 
 K = len(PARTS) * 2

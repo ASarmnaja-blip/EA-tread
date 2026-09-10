@@ -84,22 +84,35 @@ If GROSS is near zero in every part while NET improves with filtering, the
 filters are selecting wide-stop trades, not forecasting. The fix for that is a
 larger stop, not a better filter.
 
-### Recent windows and what they can resolve
+### Monthly regime, and the two periods
 
-`WINDOW_MONTHS` reports the last 3, 6 and 12 months whole - a window that short
-cannot carry an in-sample split that means anything, so these describe a period
-rather than test anything. The 2025-onward table above them remains the test.
+A volatility break is checked, not assumed. The monthly table reports ATR and
+ATR/price beside the signal count, mean spread/R, and both NET and GROSS
+expectancy, so the month a regime actually changed is visible rather than
+argued about.
 
+Watch what rising volatility does to cost. A wider stop makes a fixed spread a
+smaller share of R, so a more volatile period can post a better NET expectancy
+with no change whatsoever in the signal's ability to predict direction. That is
+why GROSS sits next to NET in every table here:
+
+| NET | GROSS | reading |
+|---|---|---|
+| improves | flat | cheaper trades, not better ones - the stop got wider |
+| improves | improves | something in the signal genuinely changed |
+| flat | flat | nothing changed |
+
+`RECENT_MONTHS` then splits the run into the full sample and the recent period.
 Each row carries **MDE**, the minimum detectable effect: the expectancy that
-many trades could actually resolve at 5% significance and 80% power. It is the
-ceiling on what the window can say. Three months leaves roughly 240 baseline
-trades, where MDE is about 0.6R - larger than any expectancy this system has
-ever produced in either direction, so the window is guaranteed to return
-"inside noise" whichever way the number lands. Part 4 over three months is
-about six trades, where MDE is above 4R.
+many trades could resolve at 5% significance and 80% power. Three months leaves
+roughly 240 baseline trades, where MDE is about 0.6R - larger than any
+expectancy this system has produced in either direction, so that period returns
+"inside noise" whichever way the number lands. Part 4 over three months is about
+six trades, MDE above 4R.
 
-Shortening the window does not make a marginal result clearer. It makes every
-result unfalsifiable.
+A short window does not make a marginal result clearer. It makes it
+unfalsifiable. Its legitimate use is describing the current regime - which is
+what the monthly table is for.
 
 
 ## qc_signal_census_cell.py
