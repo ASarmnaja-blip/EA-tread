@@ -330,3 +330,108 @@ The EA's own reporting reflects the last point: `docs/BACKTEST.md` requires
 Setups A, B and C remain in the codebase because turning a hypothesis off is
 different from deleting the ability to re-test it. Each has its own enable
 flag and its own statistics bucket.
+
+---
+
+## The EMA 9/21 cross on M5: a gross edge the spread eats
+
+Separate from the trend-zone work above, the TradingView "Dobby" build was
+re-measured on QuantConnect, 2025-01-01 to 2026-09-09, XAUUSD OANDA minute
+data. Signals on 5-minute bars, exits resolved on 1-minute bars, spread 0.7525
+charged per leg round trip, R scale-free (every leg risks exactly 1R).
+
+### The dashboard was reading 1 signal in 5
+
+The TradingView dashboard reported 24 signals in a month and an apparently
+healthy +18%. Decomposed, that month was **+5R over 24 signals, expectancy
++0.21R, t = 0.28** — indistinguishable from zero, and needing roughly 1,240
+signals to become measurable.
+
+Worse, the filters were discarding the evidence before it was measured:
+
+| | signals |
+|---|---|
+| every EMA cross | **5,326** |
+| kept by the [0.30, 3.00] x ATR risk band | 2,968 |
+| reachable one position at a time | 1,588 |
+| what the earlier cell reported | 1,151 |
+
+The risk band turned out to have **no discriminating power at all**. Trades it
+kept averaged −0.2849R in-sample against −0.3036R for the ones it cut, a
+difference of t = +0.16. It removed 2,358 signals and bought nothing.
+
+### Baseline has no edge even at zero cost
+
+Across all 5,326 crosses, expectancy was **−0.2152R at t = −4.68** — not
+"unproven" but reliably negative, −1,146R in total.
+
+Replaying the same setups at zero spread settles why. Baseline gross is
+**−0.03R at t = −0.38**: the raw cross carries no directional information, and
+the loss is what the spread does to a coin flip.
+
+### The volume-profile filter selects a subset that does have one
+
+A 2x2 factorial over a volume-profile filter (long only above the value area
+high, short only below the value area low) and a CHoCH + order-block filter,
+each part resequenced so a rejected signal frees the account for the next:
+
+| part | NET | GROSS | gross t | spread/R | risk/ATR |
+|---|---|---|---|---|---|
+| 1 baseline | −0.2596 | −0.0312 | −0.38 | 0.0795 | 3.36 |
+| 2 + volume profile | **+0.0298** | **+0.3048** | **+2.81** | 0.0948 | 3.13 |
+| 3 + CHoCH and OB | −0.2036 | +0.1096 | +0.56 | 0.1145 | 2.60 |
+| 4 + both | −0.2369 | +0.0284 | +0.06 | 0.1067 | 2.74 |
+
+**The obvious deflationary explanation does not hold.** A filter can raise net
+expectancy simply by selecting wider stops, on which a fixed spread is a
+smaller share of R. Part 2 does the opposite: its cost per R is *higher* than
+baseline (0.0948 against 0.0795) and its stops are *tighter* (3.13 ATR against
+3.36). The gain is gross, not cost.
+
+Splitting gross by sample — derived from the reported per-sample net, the cost,
+and the break-even correction, and verified by recombining to the reported
+gross to four decimals:
+
+| part | gross in-sample | t | gross out-of-sample | t |
+|---|---|---|---|---|
+| 1 baseline | −0.1020 | −0.97 | +0.0778 | +0.61 |
+| 2 + volume profile | **+0.1967** | +1.38 | **+0.4670** | +2.75 |
+| 3 + CHoCH and OB | +0.1388 | +0.56 | +0.0518 | +0.16 |
+| 4 + both | +0.1886 | +0.32 | −0.2082 | −0.26 |
+
+Part 2's gross edge **keeps its sign in both halves** and is larger out of
+sample than in it. Every other result in this program that looked promising
+flipped sign between samples; this one does not.
+
+### Why this is a lead and not yet a result
+
+- **Net is what you trade, and net is +0.03R.** The gross edge exists; the
+  spread consumes essentially all of it.
+- In-sample gross t is 1.38. Only the out-of-sample half is strong, and a
+  result that is weaker on the data it was selected against is unusual enough
+  to be worth distrusting rather than celebrating.
+- The volume weights come from **GLD, which covers 27% of signal bars** — US
+  cash hours only. The value area is therefore built from US-session price
+  action and applied to signals firing in Asia. Switching the weighting from a
+  time (TPO) profile to GLD moved part 2's in-sample expectancy from −0.2348 to
+  −0.0783, so the result is sensitive to a choice made for data-availability
+  reasons, not analytical ones.
+- Many hypotheses were tested across this program. The Bonferroni bar printed
+  in the cell (t > 2.73 for eight) understates the true burden.
+
+### The pre-registered next test
+
+Raising the signal timeframe widens the ATR-based stop, which shrinks a fixed
+spread as a share of R. ATR scales roughly with the square root of time, so
+M5 to M15 should take part 2's cost from 0.284R to about 0.164R per signal.
+
+Stated before the run:
+
+| if gross | net becomes | reading |
+|---|---|---|
+| holds at +0.30 | **+0.14R** | the edge is real and cost was the barrier |
+| falls by a third | +0.04R | marginal, not worth trading |
+| halves | −0.01R | the edge was timeframe-specific noise |
+
+`SIGNAL_TF = "15min"` in `research/qc_4part_filter_test.py`. One test, one
+prediction, not a sweep.
