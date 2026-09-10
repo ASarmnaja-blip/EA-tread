@@ -435,3 +435,42 @@ Stated before the run:
 
 `SIGNAL_TF = "15min"` in `research/qc_4part_filter_test.py`. One test, one
 prediction, not a sweep.
+
+### Cross-asset: the volume filter is gold-overfit
+
+The volume-profile result above came from one instrument. The repo's own
+criterion for the trend zone applies to it unchanged: *if it does not show up
+off gold, it is gold overfit.*
+
+Tested on seven CME futures with real exchange volume, hourly, 2024-04 to
+2026-09, cost fixed at 2% of ATR so the markets compare:
+
+| market | baseline | filtered | filter adds |
+|---|---|---|---|
+| gold | +0.2888 | +0.5253 | **+0.2365** |
+| silver | +0.2868 | +0.3610 | +0.0742 |
+| euro FX | +0.0221 | +0.2077 | +0.1856 |
+| S&P 500 | −0.1702 | −0.1538 | +0.0164 |
+| crude | +0.0374 | −0.0034 | −0.0408 |
+| 10y note | +0.1345 | −0.0773 | −0.2118 |
+| Nasdaq | +0.1348 | −0.1793 | −0.3141 |
+
+**Mean effect −0.0077R at t = −0.10, helping four markets of seven.** That is a
+coin flip. Gold is the outlier, and gold is where the filter was found.
+
+The Bonferroni bar over seven markets is t > 2.69. Gold's filtered result
+reached +2.68 — level with the threshold, which is what the best of seven
+draws does when nothing is there.
+
+**This run also exposed a bias worth more than the finding itself.** Baseline
+expectancy came out positive on six of the seven markets. An EMA 9/21 cross
+with a 3-leg ladder is not profitable on gold, silver, crude, Nasdaq, the euro
+and 10-year notes simultaneously. The identical system measured on
+QuantConnect with **minute-resolved** exits returned −0.2152R. Resolving exits
+on the H1 signal bar is worth roughly **+0.5R of pure fiction** — far more than
+the +0.06R at 1.5R and +0.20R at 3R recorded earlier for the M15 case, and a
+reminder that exit granularity is the single most dangerous shortcut in this
+whole program.
+
+Reading the *difference* between filtered and baseline is what makes the table
+usable at all: both columns carry the same inflation, so it cancels.
