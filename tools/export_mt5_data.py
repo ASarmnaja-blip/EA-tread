@@ -31,6 +31,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--symbol", default="XAUUSD")
+    ap.add_argument("--timeframe", default="M15",
+                    choices=["M1", "M5", "M15", "M30", "H1"],
+                    help="M1 is what the research cells want: exits are resolved "
+                         "on minute bars and every higher timeframe is resampled "
+                         "from them (default M15)")
     ap.add_argument("--years", type=float, default=6.0,
                     help="how far back to pull (default 6)")
     ap.add_argument("--outdir", default="data")
@@ -73,28 +78,63 @@ def main() -> None:
         end = datetime.now(timezone.utc)
         start = end - timedelta(days=int(args.years * 365.25))
 
-        rates = mt5.copy_rates_range(args.symbol, mt5.TIMEFRAME_M15, start, end)
+        tf = getattr(mt5, f"TIMEFRAME_{args.timeframe}")
+        rates = mt5.copy_rates_range(args.symbol, tf, start, end)
         if rates is None or len(rates) == 0:
-            die(f"no M15 bars returned: {mt5.last_error()}. In the terminal open a "
-                f"{args.symbol} M15 chart and scroll back to force a history download.")
+            die(f"no {args.timeframe} bars returned: {mt5.last_error()}. In the terminal "
+                f"open a {args.symbol} {args.timeframe} chart and scroll back to force a "
+                "history download.")
 
         outdir = Path(args.outdir)
         outdir.mkdir(parents=True, exist_ok=True)
 
         df = pd.DataFrame(rates)
         df["time"] = pd.to_datetime(df["time"], unit="s")
-        bars_csv = outdir / f"{args.symbol}_M15.csv"
+        bars_csv = outdir / f"{args.symbol}_{args.timeframe}.csv"
         df.to_csv(bars_csv, index=False)
 
+        # The point size is needed to turn the spread column from points into
+        # price, and it is not recoverable from the bars alone. Written beside
+        # them so the research notebooks do not have to guess it.
+        import json
+        meta = dict(symbol=info.name, timeframe=args.timeframe, digits=info.digits,
+                    point=info.point, contract_size=info.trade_contract_size,
+                    volume_min=info.volume_min, volume_step=info.volume_step,
+                    exported_utc=datetime.now(timezone.utc).isoformat())
+        (outdir / f"{args.symbol}_{args.timeframe}.meta.json").write_text(
+            json.dumps(meta, indent=2))
+
         span_days = (df["time"].iloc[-1] - df["time"].iloc[0]).days
-        print(f"\nwrote {len(df):,} M15 bars -> {bars_csv}")
+        print(f"\nwrote {len(df):,} {args.timeframe} bars -> {bars_csv}")
         print(f"range {df['time'].iloc[0]} .. {df['time'].iloc[-1]}  ({span_days} days)")
 
         # A gap report matters: the tester silently interpolates missing history,
         # which flatters any session-based strategy.
+        tf_min = int(args.timeframe[1:]) if args.timeframe[0] == "M" else 60
         gaps = df["time"].diff().dt.total_seconds().div(60)
-        big = (gaps > 15 * 4) & (gaps < 60 * 24 * 2)   # ignore weekends
+        big = (gaps > tf_min * 4) & (gaps < 60 * 24 * 2)   # ignore weekends
         print(f"intraday gaps > 1h (excluding weekends): {int(big.sum())}")
+
+        # THE SPREAD COLUMN IS THE POINT OF THIS EXPORT.
+        # Every backtest so far has assumed one flat number for the spread. MT5
+        # records what this broker actually charged on each bar, so the cost
+        # side stops being an assumption. Hours matter enormously: the research
+        # cells charge a single average, which overcharges liquid hours and
+        # undercharges the rollover.
+        if "spread" in df.columns:
+            sp = df["spread"] * info.point
+            print(f"\nSPREAD, as your broker actually charged it ({info.name}):")
+            print(f"  mean {sp.mean():.4f}   median {sp.median():.4f}   "
+                  f"p90 {sp.quantile(0.90):.4f}   max {sp.max():.4f}")
+            by_hour = sp.groupby(df["time"].dt.hour).agg(["median", "mean", "count"])
+            print(f"  {'hour':>5}{'median':>10}{'mean':>10}{'bars':>9}")
+            for hh, row in by_hour.iterrows():
+                print(f"  {hh:>5}{row['median']:>10.4f}{row['mean']:>10.4f}"
+                      f"{int(row['count']):>9}")
+            cheap = by_hour["median"].nsmallest(6).index.tolist()
+            print(f"  cheapest 6 hours (broker time): {sorted(cheap)}")
+            print("  Feed this file to research/colab_backtest.py, which charges")
+            print("  the real per-bar spread instead of one flat guess.")
 
         if args.ticks:
             ticks = mt5.copy_ticks_range(args.symbol, start, end, mt5.COPY_TICKS_ALL)
