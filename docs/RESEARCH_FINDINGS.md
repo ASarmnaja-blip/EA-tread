@@ -576,3 +576,65 @@ has to be sized by survivable loss, not by the target:
 34% a year and risks 30% of it.** That is the honest translation, and it is
 levered long equity beta over the best decade on record — obtainable with a
 leveraged index fund and no code. The signal is the part that loses money.
+
+---
+
+## Smart-money entries, tested as entries
+
+CHoCH and order blocks had only ever been tested as a *filter* on an EMA cross.
+BOS, fair value gaps, liquidity sweeps and every multi-timeframe combination had
+not been tested at all. `research/smc_entry_test.py` tests nine of them
+standalone on 26 CME futures, H1, 730 days, each against a random control with
+matched count and identical exits.
+
+| entry rule | n | E | t | skill vs random | skill t |
+|---|---|---|---|---|---|
+| **Liquidity sweep reclaim** | 9,682 | −0.0645 | −1.85 | **+0.0786** | **+1.60** |
+| Sweep then CHoCH | 1,010 | −0.2182 | −2.05 | +0.1045 | +0.70 |
+| CHoCH then OB retrace | 4,032 | −0.0916 | −1.71 | +0.0637 | +1.00 |
+| MTF 4h bias + CHoCH | 3,225 | −0.0776 | −1.27 | +0.0531 | +0.60 |
+| MTF 4h bias + sweep | 4,321 | −0.1680 | −3.24 | +0.0483 | +0.69 |
+| CHoCH then FVG retrace | 7,204 | −0.0943 | −2.36 | +0.0293 | +0.54 |
+| CHoCH alone | 4,916 | −0.1079 | −2.21 | +0.0351 | +0.50 |
+| MTF 4h bias + OB retrace | 1,972 | −0.0870 | −1.13 | −0.0024 | −0.03 |
+| BOS continuation | 9,763 | −0.1152 | −3.34 | −0.0206 | −0.44 |
+
+**Random entry itself returns −0.143R.** The exit ladder and the cost lose that
+much before any signal is involved, so every rule above starts in a hole. Cost
+accounts for about 0.09 of it and the ladder's own skew for the rest.
+
+Seven of nine show a small positive skill. None is significant. Pushing the
+best one — the liquidity sweep — through ten exit designs found its ceiling:
+
+| exit | n | E per leg | skill | skill t |
+|---|---|---|---|---|
+| **1 leg 2R, break-even at 1R** | 11,455 | **−0.0308** | **+0.0367** | **+2.26** |
+| 1 leg trail 2 ATR, BE at 1R | 10,954 | −0.0015 | +0.0051 | +0.29 |
+| 3 legs 1/2/3, BE at 1R | 9,682 | −0.0215 | +0.0160 | +0.98 |
+
+That **+2.26 is the only skill reading above 2 anywhere in this program.** Its
+expectancy is still negative, because the drag to beat is 0.068R per leg and the
+skill is 0.037R. The information is real-looking and roughly half the size of
+the toll.
+
+So the obvious move was to cut the toll: the same entry on **daily** bars, where
+cost per R is a fifth as large. The skill **flipped to −0.05 on five of six exit
+designs**. A sign change between horizons is the signature that has now
+disqualified every candidate in this program, and it disqualifies this one.
+
+### Inventory, so the next person does not repeat it
+
+Roughly 47 configurations, all with random controls where drift could contaminate:
+
+- **13 signal families** on gold H1 — EMA crosses, Donchian, RSI, Bollinger both
+  ways, momentum, volatility breakout, trend zone, volume spike, VWAP, gap fade
+- **5 strategies × 2 horizons** on 27 CME futures — daily works, hourly is −6.23
+- **4 strategies + random control** on 199 US equities — random wins
+- **9 smart-money entries** on 26 futures H1 — this section
+- **10 exit designs** on the best of them, plus **6 more** on daily bars
+- **2×2 factorial** of volume profile against CHoCH+OB on gold M5
+- multi-horizon and multi-timeframe splits, M1 through H4
+
+The single positive finding in all of it is that trend on a diversified futures
+book earns +0.2232R at t = +2.48 on **daily** bars, positive on 20 of 27 markets
+at binomial p = 0.0096 — and that it is worth **+0.130 R/day**, not 3.
