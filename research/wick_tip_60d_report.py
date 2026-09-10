@@ -20,10 +20,13 @@ import numpy as np, pandas as pd
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from wick_tip_tuner import fetch, prep, trades_limit, score, control, TUNE_FRAC
 
-# The wick filter is not optional decoration - it IS the setup. Every one of
-# the twelve best configurations carries wick_min=0.35, and dropping it turns
-# this same rule from +0.528R to -0.182R over the same 60 days.
-CFG = dict(look=24, off_atr=1.0, sl_atr=1.0, tp_mult=1.5, wick_min=0.35)
+# CORRECTED: wick_min was a look-ahead bug (see RESEARCH_FINDINGS.md and the
+# docstring on trades_limit() in wick_tip_tuner.py) - it gated a fill priced
+# off the bar's LOW on that same bar's CLOSE, which is only known after the
+# fact. It is now disabled (raises if non-zero). The "+0.528R vs -0.182R"
+# comparison this comment used to cite was the bug, not a filter earning its
+# keep.
+CFG = dict(look=24, off_atr=1.0, sl_atr=1.0, tp_mult=1.5, wick_min=0.0)
 TF, IV = "M5", "5m"
 SPREADS = (0.26, 0.7525)
 
@@ -79,7 +82,6 @@ def main():
     print(f"data        {len(df):,} bars   {df.index[0].date()} -> {df.index[-1].date()}")
     print(f"rule        limit at {CFG['look']}-bar extreme -/+ {CFG['off_atr']} x ATR")
     print(f"            stop {CFG['sl_atr']} x ATR, target {CFG['tp_mult']} x stop")
-    print(f"            tail beyond the fill must be >= {CFG['wick_min']:.0%} of the bar range")
     print(f"            one position at a time, fill bar tested for the stop only")
     print(f"split       tune {df.index[0].date()} -> {cut.date()}  |  "
           f"held out {cut.date()} -> {df.index[-1].date()}")

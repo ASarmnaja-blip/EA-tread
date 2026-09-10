@@ -97,7 +97,31 @@ def resolve(P, fill_bar, entry, d, sl, tp, spread, hold=MAX_HOLD, intrabar=False
 def trades_limit(P, look, off_atr, sl_atr, tp_mult, spread, sess=None, wick_min=0.0):
     """Rest a limit `off_atr` x ATR beyond the prior `look`-bar extreme. A wick
     that pierces it fills you at that price. Stop goes beyond the wick's own
-    low, so the deeper the spike the wider the stop - the trade sizes itself."""
+    low, so the deeper the spike the wider the stop - the trade sizes itself.
+
+    `wick_min` IS DISABLED AND MUST STAY DISABLED. It used to require the fill
+    bar's own tail-to-range ratio - computed from that bar's CLOSE - to clear a
+    threshold before the trade counted. That is a look-ahead bug, not a filter:
+    the fill happens mid-bar at the touched low, but the bar's close is only
+    known once the bar finishes, so gating on it means every accepted trade had
+    already enjoyed that bar's own recovery from low to close for free, before
+    the "entry" is even evaluated going forward. Calibrated on a driftless
+    random walk at zero cost, wick_min=0 returns E close to zero (as it must);
+    wick_min=0.35 alone was worth +0.4R to +0.6R of pure fiction, and it grew
+    with the threshold. The same bug, on real XAUUSD 60-day data, is what
+    turned a genuinely flat -0.182R into the +0.308R to +0.772R numbers this
+    file reported earlier in this session. See RESEARCH_FINDINGS.md.
+
+    There is no honest fix that keeps the idea: deciding whether a fill
+    "counts" from the shape of the very bar you filled on cannot be done
+    without the bar's close, and a live system does not have that at fill
+    time. wick_min stays in the signature only so old call sites do not crash;
+    passing anything but 0.0 raises."""
+    if wick_min:
+        raise ValueError(
+            "wick_min>0 is a look-ahead bug (uses the fill bar's own close to "
+            "gate a fill priced off that bar's low) - see the docstring above. "
+            "It is disabled, not tunable.")
     h, l, c, A, N = P["h"], P["l"], P["c"], P["A"], P["N"]
     ph = pd.Series(h).rolling(look).max().shift(1).to_numpy()
     pl = pd.Series(l).rolling(look).min().shift(1).to_numpy()
@@ -114,9 +138,6 @@ def trades_limit(P, look, off_atr, sl_atr, tp_mult, spread, sess=None, wick_min=
             if not np.isfinite(lvl): continue
             hit = (l[i] <= lvl) if d > 0 else (h[i] >= lvl)
             if not hit: continue
-            # the wick must actually be a wick: tail beyond the fill, not a body
-            tail = (min(c[i], P["o"][i]) - l[i]) if d > 0 else (h[i] - max(c[i], P["o"][i]))
-            if tail/rng < wick_min: continue
             sl = sl_atr*a
             r, kx = resolve(P, i, lvl, d, sl, tp_mult*sl, spread, intrabar=True)
             out.append((P["idx"][i], d, r, sl))
@@ -207,14 +228,14 @@ def main():
     print()
 
     grids = []
-    # A - resting limit at the wick tip
+    # A - resting limit at the wick tip. wick_min is fixed at 0.0 - see the
+    # docstring on trades_limit(): any positive value is a look-ahead bug.
     for look in (12, 24, 48):
         for off in (0.25, 0.50, 1.00):
             for sl in (1.0, 1.5):
                 for tp in (0.7, 1.0, 1.5):
-                    for wm in (0.0, 0.35):
-                        grids.append(("A limit", dict(look=look, off_atr=off,
-                                      sl_atr=sl, tp_mult=tp, wick_min=wm)))
+                    grids.append(("A limit", dict(look=look, off_atr=off,
+                                  sl_atr=sl, tp_mult=tp, wick_min=0.0)))
     # B - rejection close
     for wm in (0.45, 0.60):
         for bm in (0.35, 0.50):

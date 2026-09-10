@@ -1,18 +1,30 @@
 #!/usr/bin/env python3
 """A finer grid around the wick-tip winner, same discipline as before.
 
+CORRECTION (see RESEARCH_FINDINGS.md)
+  This file's grid originally included `wick_min`, a filter requiring the fill
+  bar's own tail-to-range ratio to clear a threshold. That is a look-ahead bug:
+  the ratio needs the bar's CLOSE, which is only known after the bar the limit
+  was filled on has finished, so every accepted trade had already enjoyed that
+  bar's own recovery from low to close before the "entry" was even evaluated
+  going forward. Calibrated on a driftless random walk at zero cost, wick_min=0
+  returns E near zero as it must; wick_min>0 alone was worth +0.4R to +1.1R of
+  pure fiction, growing with the threshold - which is exactly the shape this
+  file's first run showed, and which was reported, uncaught, as a real result.
+  `wick_min` is now fixed at 0.0 (disabled) and the finer grid runs on the
+  parameters that ARE legitimate: look, offset, stop and target.
+
 WHY THIS IS A SEPARATE FILE AND NOT JUST A BIGGER GRID
   wick_tip_tuner.py already searched 306 configurations and reported the
-  honest result: expected max of noise for that many draws is 3.383, and the
-  winner's held-out t was 3.037 - close to what chance alone produces at that
-  search size. Widening the same search to more parameters makes the multiple-
-  comparison problem WORSE, not better, unless the bar widens with it.
+  honest result: expected max of noise for that many draws is 3.383. Widening
+  the same search to more parameters makes the multiple-comparison problem
+  WORSE, not better, unless the bar widens with it.
 
   So this file is explicit about what it is: a local refinement around one
-  already-identified region (look~24, off~1.0, sl~1.0, tp~1.5, wick_min~0.35),
-  not a fresh global search. The expected-max bar is recomputed for the actual
-  grid size searched, and the tuning/holdout split and random control are
-  unchanged from wick_tip_tuner.py.
+  already-identified region (look~24, off~1.0, sl~1.0, tp~1.5), not a fresh
+  global search. The expected-max bar is recomputed for the actual grid size
+  searched, and the tuning/holdout split and random control are unchanged from
+  wick_tip_tuner.py.
 """
 import math, sys, pathlib
 import numpy as np, pandas as pd
@@ -32,14 +44,14 @@ def main():
           f"held out {cut.date()} -> {df.index[-1].date()}\n")
 
     grid = []
-    for look in (16, 20, 24, 28, 32, 40):
-        for off in (0.75, 1.0, 1.25, 1.5):
-            for sl in (0.8, 1.0, 1.2):
-                for tp in (1.2, 1.5, 1.8, 2.0):
-                    for wm in (0.30, 0.35, 0.40, 0.45):
-                        grid.append(dict(look=look, off_atr=off, sl_atr=sl,
-                                         tp_mult=tp, wick_min=wm))
-    print(f"grid size: {len(grid)} configurations\n")
+    for look in (12, 16, 20, 24, 28, 32, 40, 48, 64):
+        for off in (0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0):
+            for sl in (0.8, 1.0, 1.2, 1.5):
+                for tp in (0.7, 1.0, 1.2, 1.5, 1.8, 2.0):
+                    grid.append(dict(look=look, off_atr=off, sl_atr=sl,
+                                     tp_mult=tp, wick_min=0.0))
+    print(f"grid size: {len(grid)} configurations (wick_min fixed at 0.0 - "
+          f"disabled, see the correction note above)\n")
 
     rows = []
     for kw in grid:

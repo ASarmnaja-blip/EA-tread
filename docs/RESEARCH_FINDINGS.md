@@ -1379,3 +1379,90 @@ one blocker this analysis cannot route around.
 
 **Consequence:** not implemented. The tuned parameters are in the script for
 anyone who wants to re-run them against real broker data.
+
+---
+
+## CORRECTION: the wick-tip setup's positive results were a look-ahead bug (2026-09-10)
+
+Every positive number reported for the wick-tip setup in this session — the
+tuned-and-held-out result, the 60-day full statistics, the finer-tuned winner,
+and the "skill survives an exit swap across six years" finding — **is void.**
+They shared one filter, `wick_min`, and that filter is a look-ahead bug.
+
+### The bug
+
+`trades_limit()`'s `wick_min` required the fill bar's own tail-to-range ratio
+— `(body bottom − low) / (high − low)` for a long — to clear a threshold before
+the trade counted. The fill price is the bar's **low** (or near it), touched
+**mid-bar**. The tail ratio needs the bar's **close**, known only once the bar
+finishes. Gating a mid-bar fill on that same bar's end-of-bar shape means every
+accepted trade had already enjoyed that bar's own recovery from low to close —
+for free, before the position's forward-looking outcome is even evaluated. A
+live system cannot know a bar will close near its high before it closes; this
+harness quietly did.
+
+### How it was caught
+
+This repo's standing practice — calibrate on a driftless random walk at zero
+cost before trusting any number — was applied to the fresh code in
+`wick_tip_entry_skill.py` and failed loudly (E +0.35 to +1.4R on data with
+no information in it). Tracing it back, the SAME bug was in `trades_limit()`
+and `resolve()` themselves, the functions the 60-day report and the finer-tuned
+grid had been using the whole time. **That check had never been run on those
+functions before.** Every other file in this program was calibrated this way
+before its numbers were trusted; this pair was not, because it grew out of an
+already-passing 20-day holdout and no one asked "would this still say
+something on data with nothing in it."
+
+Direct confirmation, driftless walk, zero cost, three trials:
+
+| wick_min | n | E(R) |
+|---|---|---|
+| 0.00 | ~1,040 | −0.09 |
+| 0.20 | ~320 | **+0.29** |
+| 0.35 | ~177 | **+0.45** |
+| 0.45 | ~122 | **+0.55** |
+| 0.60 | ~65 | **+0.55** |
+
+Monotonic in the threshold, on data engineered to have zero edge. Confirmed
+again on the real 60-day XAUUSD data the setup was built on:
+
+| config | wick_min | n | E(R) |
+|---|---|---|---|
+| 60-day report config | 0.00 | 376 | **−0.182** |
+| | 0.35 (as reported) | 138 | +0.308 |
+| | 0.45 | 100 | +0.502 |
+| finetune winner | 0.00 | 247 | **−0.070** |
+| | 0.35 | 89 | +0.492 |
+| | 0.45 (as reported) | 62 | +0.772 |
+
+At `wick_min=0` — the only honest setting — **both configurations are
+negative**, matching every other intraday result in this program. Both
+positive numbers reported earlier this session (+0.424R for the 60-day
+report, +0.731R for the fine-tuned winner) were entirely this artefact.
+
+### What this also retracts
+
+The "durability check on the matching M5 timeframe, skill survives an exit
+swap" finding from earlier this session used `wick_min=0.35` and `0.45`
+throughout. It is also void, in full — not partially discounted, void. There
+was no informational content in the wick-tip fill; there was a filter that
+could see the future.
+
+### Fix
+
+`trades_limit()`'s `wick_min` parameter now raises if passed anything other
+than `0.0`. There is no honest version of this filter to keep: deciding
+whether a fill counts from the shape of the bar it filled on cannot be done
+without that bar's close, and nothing later in the bar's life changes that.
+`wick_tip_finetune.py`'s grid no longer searches it, and `wick_tip_60d_report.py`
+now reports the corrected, negative number.
+
+### Where this leaves the wick-tip line of work
+
+Nowhere new. With the bug removed, wick-tip entries on 60 days of real XAUUSD
+M5 return **−0.182R** (main config) and **−0.070R** (finer-tuned config) —
+negative, like every other entry rule this program has tested. This is not a
+disappointing update to a working system; it is the fifth harness bug this
+program has caught with the same random-walk test, and the result it was
+hiding was the same result as everything else.
