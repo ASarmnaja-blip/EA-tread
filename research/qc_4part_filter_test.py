@@ -450,16 +450,22 @@ for name, f in PARTS:
 # fix for that is a larger stop, not a better filter.
 # ---------------------------------------------------------------------------
 print("\n" + "-" * 92)
-print("COST DIAGNOSTIC")
-print(f"{'part':<26}{'spread/R':>10}{'risk/ATR':>10}{'NET E':>10}"
-      f"{'GROSS E':>10}{'GROSS t':>9}{'bars held':>11}")
+print("COST DIAGNOSTIC   (GROSS = the same setups replayed at zero spread)")
+print(f"{'part':<26}{'spread/R':>10}{'risk/ATR':>10}{'NET':>9}{'GROSS':>9}"
+      f"{'G t':>7}{'G IS':>9}{'G t IS':>8}{'G OOS':>9}{'G t OOS':>9}")
 for name, _f in PARTS:
     d = res[name]
     if len(d) < 2:
         continue
     _, e0, t0, _, _ = stat(d["r0"])
+    _, ei, ti, _, _ = stat(d[d.time < IS_END]["r0"])
+    _, eo, to, _, _ = stat(d[d.time >= IS_END]["r0"])
     print(f"{name:<26}{d.spread_r.mean():>10.4f}{d.risk_atr.mean():>10.2f}"
-          f"{d.r.mean():>+10.4f}{e0:>+10.4f}{t0:>+9.2f}{d.dur.mean() / TF_MIN:>11.1f}")
+          f"{d.r.mean():>+9.4f}{e0:>+9.4f}{t0:>+7.2f}"
+          f"{ei:>+9.4f}{ti:>+8.2f}{eo:>+9.4f}{to:>+9.2f}")
+print("A gross edge that holds its sign and size in BOTH G IS and G OOS is the")
+print("only version of this worth acting on. GROSS over the whole sample mixes")
+print("the period the filters were chosen against with the one they were not.")
 
 # ---------------------------------------------------------------------------
 # ATTRIBUTION  -  what each half actually contributed
