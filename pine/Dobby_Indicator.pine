@@ -31,6 +31,29 @@
 //      one signal risks double digits of the account across three legs. Setups
 //      outside [MinRiskATR, MaxRiskATR] are marked as skipped rather than
 //      silently taken at any size.
+//   5. THE STOP MUST BE ON THE RIGHT SIDE OF THE ENTRY. Because the risk was
+//      taken as math.abs(close - SL), a long whose last swing sat ABOVE the
+//      entry produced a stop beyond the market and a TP1 on the stop price
+//      itself - a guaranteed +3R the broker would never fill. Found by
+//      backtesting this indicator: on random entries 23% of setups were in
+//      that state, worth a fake +0.70 R each. They are now marked skipped.
+//
+// WHAT THE BACKTEST OF THIS INDICATOR SAID
+//   research/backtest_dobby_indicator.py replicates every line below - the
+//   five-bar pivot confirmation lag, the one-signal-at-a-time gate, the risk
+//   band, the three legs, the BE ladder, chart-bar exits - and runs it on
+//   COMEX gold against random entries matched for count and long/short mix:
+//
+//     M15, 71 days,  50 signals   -0.48 R/signal   t -1.00   -0.34 R/day
+//     M5,  71 days, 133 signals   -0.14 R/signal   t -0.47   -0.26 R/day
+//     H1, 875 days, 138 signals   +0.32 R/signal   t +1.10   +0.05 R/day
+//
+//   Not one clears significance, and the H1 number is entirely in the second
+//   half of the sample (-0.11 R first half, +0.76 R second) - it is the gold
+//   melt-up, not the crossover. Beating random entries reached z +1.83 at
+//   best, under the +2 bar and far under the +3.4 a family of ~50 tested
+//   configurations demands. At H1 frequency, 3 R/day would need 59x the
+//   signals this rule produces.
 //
 // KNOWN LIMIT
 //   An indicator resolves exits on CHART bars. When one bar could have hit both
@@ -285,7 +308,16 @@ sellSig  = flat and bearCross and (trendOK or close < trendEMA)
 
 candSL   = buySig ? slBuy : sellSig ? slSell : na
 candRisk = na(candSL) ? na : math.abs(close - candSL)
-riskOK   = not na(candRisk) and candRisk >= minRiskATR * atr and candRisk <= maxRiskATR * atr
+
+// A long needs its stop BELOW the entry and a short ABOVE it. When the last
+// confirmed swing sits on the wrong side this test used only math.abs, so
+// riskPx came out positive, tp1Px = entry + riskPx landed on the STOP PRICE
+// itself, and the panel booked a guaranteed +3R that no broker would fill - a
+// buy order with the stop above the market is rejected. A driftless-walk
+// control put 23% of setups in that state, worth a fake +0.70 R per signal.
+sideOK   = na(candSL) ? false : buySig ? candSL < close : candSL > close
+bandOK   = not na(candRisk) and candRisk >= minRiskATR * atr and candRisk <= maxRiskATR * atr
+riskOK   = sideOK and bandOK
 
 if (buySig or sellSig) and not riskOK
     nSkip += 1
@@ -294,7 +326,10 @@ if (buySig or sellSig) and not riskOK
              yloc = buySig ? yloc.belowbar : yloc.abovebar,
              style = label.style_xcross, color = color.new(color.gray, 30),
              textcolor = color.gray, size = size.tiny,
-             tooltip = "Stop distance outside [" + str.tostring(minRiskATR) +
+             tooltip = not sideOK ? "Swing is on the wrong side of the entry: " +
+                       "the stop would sit beyond the market and the target " +
+                       "would land on the stop. Unfillable." :
+                       "Stop distance outside [" + str.tostring(minRiskATR) +
                        ", " + str.tostring(maxRiskATR) + "] x ATR")
 
 // A Pine function cannot assign to globals, so the open block is inline.

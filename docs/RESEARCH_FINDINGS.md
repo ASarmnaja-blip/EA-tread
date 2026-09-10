@@ -688,3 +688,61 @@ families on gold H1 produced a gross expectancy of −0.03R.
 Both ends are measured. Slow enough to have an edge means too few trades; fast
 enough for the trade count means the edge is gone. That is the whole answer for
 a single-market gold program.
+
+## Backtesting the indicator itself (2026-09-10)
+
+Every earlier measurement resolved exits on minute bars. The indicator cannot
+do that - it sees only chart bars - so the indicator's own numbers had never
+been measured. `research/backtest_dobby_indicator.py` replicates the Pine line
+for line: the five-bar pivot confirmation lag, the `flat = not active` gate,
+the trend EMA lagged one closed bar, the risk band, three legs at 1R/2R/3R,
+the BE ladder, spread charged per leg round trip, and exits resolved on chart
+bars with the stop tested before the targets.
+
+### The harness had to be calibrated first
+
+A driftless random walk built from 24 sub-bar steps per bar - so no printed
+high or low is unreachable by the path - returned **+0.77 R per signal at
+t +12** on random entries. Money out of a martingale means a bug, and there
+were two:
+
+1. **Inverted stops.** When the last confirmed swing sits on the wrong side of
+   the entry, `risk = abs(close - SL)` is still positive, so `tp1 = entry +
+   risk` lands on the stop price itself. Testing the stop first then books
+   +1R per leg, +3R per signal, guaranteed - on an order no broker fills
+   (a buy with the stop above the market is rejected). 23% of random entries
+   were in that state, worth the observed +0.70 R. **This is a bug in the Pine
+   as well, now fixed:** such setups are marked skipped, with a tooltip saying
+   why.
+2. **A free option after TP1.** Once TP1 fills, the stop moves to BE, but the
+   new BE stop was not re-tested against the same bar, so legs 2 and 3 stayed
+   alive on a bar that had already collapsed back through BE. Worth about
+   +0.14 R.
+
+With inverted setups rejected, the two intrabar readings bracket zero on the
+walk - Pine's own reading +0.07 R, the strict reading -0.10 R across four
+trials - so the harness bias is bounded at about 0.15 R and both columns are
+reported.
+
+### Result, COMEX gold, strict reading, spread 0.26
+
+| chart | span | signals | /day | NET R/sig | t | R/day | vs random | z |
+|-------|------|---------|------|-----------|---|-------|-----------|---|
+| M15 (defaults) | 71 d | 50 | 0.70 | -0.4809 | -1.00 | -0.34 | -0.19 | -0.41 |
+| M5 | 71 d | 133 | 1.87 | -0.1376 | -0.47 | -0.26 | +0.24 | +0.94 |
+| H1 | 875 d | 138 | 0.16 | +0.3249 | +1.10 | +0.05 | +0.51 | +1.83 |
+
+Nothing clears significance. MDE at these sample sizes is 0.82 to 1.35 R per
+signal, so the samples cannot see anything smaller than that anyway.
+
+The one positive number, H1, is entirely in the second half of its sample:
+-0.11 R first half, +0.76 R second half. The second half is the gold melt-up
+(the contract rose 86% across the sample), and the direction-matched control
+reaches z +1.83 - under the +2 bar and far under the +3.4 that a family of
+about 50 tested configurations demands. At H1 frequency 3 R/day would require
+9.2 signals a day, 59x what the rule produces.
+
+Both M5 and M15 agree in sign and rough size with the QuantConnect
+measurement (-0.2152 R on 5,326 minute-resolved signals), which is the useful
+part: the chart-bar approximation did not rescue the rule, it just measured it
+with a hundredth of the sample.
