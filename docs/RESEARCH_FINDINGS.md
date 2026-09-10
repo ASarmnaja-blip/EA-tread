@@ -1605,3 +1605,50 @@ signal. Combined with round 1 and round 2, this closes the last reasonably
 scoped idea this program had queued. Every category tried — including now
 combining the two best leads this whole deep-research pass produced — has
 died the same way.
+
+---
+
+## Golden Area / Fibonacci OTE, Version 1 of the 13-clip Backtest Matrix (2026-09-10)
+
+`research/golden_area_ote.py`, rulebook in `docs/GOLDEN_AREA_RULEBOOK.md`. The
+user manually read 13 NIFTY 50 5-minute chart-replay clips and identified a
+recurring Premium/Discount structure with a Fibonacci "Golden Area" (62–79%
+retracement of the last impulse leg) as the precise entry zone, rated
+High-Probability (75–80% confidence from the clips). This is the first
+result from that rulebook's Backtest Matrix, testing the zone alone — no
+Sweep, CHoCH-confirm, FVG, or confirmation-candle filter, since those are
+lower-confidence tiers that belong layered on top of whichever level
+survives here, not baked in from the start.
+
+**Market-transfer caveat, stated before the result:** the clips are NIFTY
+50; this repo has no NIFTY intraday feed, only gold. This tests whether the
+structural idea transfers to a different market, not whether the NIFTY
+reading itself is correct.
+
+Swing pivots: 5-bar fractal, confirmed 5 bars after the fact (no
+look-ahead). A leg starts on a BOS/CHoCH close beyond the last confirmed
+opposite pivot; its extreme is tracked bar-by-bar as the running high/low
+since the break. Exit is this repo's already-validated trail-2×ATR +
+BE-at-1R design, not the clips' literal dynamic-liquidity target — entry
+skill has to be measured against a fixed exit, the same reason
+`cost_vs_exit_decomposition.py` exists.
+
+Calibrated first on a driftless random walk (zero cost, zero drift): all
+three levels stayed under the pre-registered 2.39 bar (t −2.13, −1.97,
+−1.04 on n = 40–47 — negative, the opposite sign of a look-ahead bug, and
+consistent with single-seed sampling noise at that n). Clean enough to
+proceed.
+
+| level | n | skill | skill t |
+|---|---|---|---|
+| A 62% | 79 | +0.043 | +0.33 |
+| B 70.5% | 71 | −0.039 | −0.32 |
+| C 79% | 64 | −0.131 | −1.08 |
+
+**None clears the 2.39 Bonferroni bar (3 pre-registered levels).** The
+Golden Area hypothesis, tested as a standalone entry filter with no other
+condition, does not show measurable skill on gold M5 over the same 60-day
+window this round has used throughout. Version 2 (layering Sweep/CHoCH/FVG/
+confirmation-candle filters from the rulebook's speculative tier) has no
+surviving level from V1 to be layered on — the same funnel-collapse this
+program has hit on every prior multi-stage chain.
