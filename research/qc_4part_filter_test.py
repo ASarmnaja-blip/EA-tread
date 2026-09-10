@@ -58,11 +58,6 @@ USE_GC_VOLUME = True      # also build a real-volume profile from COMEX futures
 VP_LOOKBACK   = 288       # 5-min bars in the profile window (288 = 24h)
 VP_BINS       = 48
 VALUE_AREA    = 0.70
-LIQ_LOOKBACK  = 200       # bars scanned for untested swing levels
-SWEEP_BARS    = 12        # a sweep counts if it happened this recently
-SWEEP_MIN_ATR = 0.05      # wick must clear the level by at least this
-SWEEP_MAX_ATR = 1.00      # but not by more than this, or it is a breakout
-SWEEP_RECLAIM = 3         # bars allowed for the close to come back
 
 qb  = QuantBook()
 SYM = qb.add_cfd("XAUUSD", Resolution.MINUTE, Market.OANDA).symbol
@@ -121,7 +116,8 @@ idx5 = m5.index
 N5 = len(m5)
 
 # ---------------------------------------------------------------------------
-# OPTIONAL: real volume from COMEX gold futures, basis-adjusted onto spot
+# OPTIONAL: real traded volume as a per-bar WEIGHT (no basis adjustment
+# needed - the bins come from XAUUSD's own highs and lows)
 # ---------------------------------------------------------------------------
 gc5 = None
 vol_source = "time (TPO) only"
@@ -181,32 +177,20 @@ def pivot_available(series, left, right, is_low):
     else:
         ok = (s > s.rolling(left).max().shift(1)) & (s > s.rolling(right).max().shift(-right))
     raw = pd.Series(np.where(ok.fillna(False), s, np.nan))
-    return raw.shift(right).to_numpy(), raw.shift(right).ffill().to_numpy()
+    return raw.shift(right).ffill().to_numpy()
 
 fast = pd.Series(c5).ewm(span=9,  adjust=False).mean().to_numpy()
 slow = pd.Series(c5).ewm(span=21, adjust=False).mean().to_numpy()
 atr5 = wilder_atr(m5, 14).to_numpy()
 
-piv_lo_pt, piv_lo = pivot_available(m5["low"],  5, 5, True)
-piv_hi_pt, piv_hi = pivot_available(m5["high"], 5, 5, False)
+piv_lo = pivot_available(m5["low"],  5, 5, True)
+piv_hi = pivot_available(m5["high"], 5, 5, False)
 fb_lo = m5["low"].rolling(10).min().to_numpy()
 fb_hi = m5["high"].rolling(10).max().to_numpy()
 
-# 15-minute trend EMA, available only after its bar closed
-_t = m15["close"].astype("float64").ewm(span=50, adjust=False).mean().shift(1)
-_t.index = _t.index + pd.Timedelta("15min")
-trend15 = _t.reindex(idx5, method="ffill").to_numpy()
-
-# Trend zone on the EA's own M15 basis: (close - SMA200) / ATR
-_s = m15["close"].astype("float64").rolling(200).mean().shift(1)
-_a = wilder_atr(m15, 14).shift(1)
-_s.index = _s.index + pd.Timedelta("15min")
-_a.index = _a.index + pd.Timedelta("15min")
-sma200_15 = _s.reindex(idx5, method="ffill").to_numpy()
-atr15     = _a.reindex(idx5, method="ffill").to_numpy()
-
-atr_pct = pd.Series(atr5).rolling(2000, min_periods=200).rank(pct=True).to_numpy()
-hour5   = idx5.hour.to_numpy()
+# This cell deliberately has NO 15-minute trend filter. Part 1 is the raw
+# cross, so the factorial measures the two filters under test against a
+# clean baseline rather than against another filter's leftovers.
 
 # ---------------------------------------------------------------------------
 # PROFILE  (time, and optionally real volume) over a trailing window
@@ -248,73 +232,6 @@ def profile_at(i, weights=None):
     return c(poc), c(lo_i), c(hi_i)
 
 gc_vol = gc5["volume"].to_numpy(np.float64) if gc5 is not None else None
-
-# ---------------------------------------------------------------------------
-# LIQUIDITY: nearest UNTESTED swing level, and recent sweeps
-# ---------------------------------------------------------------------------
-def liquidity_at(i, price):
-    """Nearest swing high above / swing low below that price has NOT traded
-    through since it formed. Those are the resting-order pools.
-
-    Suffix max/min over the window make the 'untested' test O(1) per pivot
-    instead of a fresh slice scan, which is the difference between this cell
-    finishing in seconds and finishing in an hour."""
-    a = max(0, i - LIQ_LOOKBACK)
-    if i - a < 2:
-        return np.nan, np.nan
-    hh, ll = h5[a:i], l5[a:i]
-    sufmax = np.maximum.accumulate(hh[::-1])[::-1]
-    sufmin = np.minimum.accumulate(ll[::-1])[::-1]
-    n = i - a
-    up = dn = np.nan
-    hs = piv_hi_pt[a:i]
-    for p_ in np.where(np.isfinite(hs))[0][::-1]:
-        lvl = hs[p_]
-        if lvl > price and (p_ + 1 >= n or sufmax[p_ + 1] < lvl):
-            up = lvl; break
-    ls = piv_lo_pt[a:i]
-    for p_ in np.where(np.isfinite(ls))[0][::-1]:
-        lvl = ls[p_]
-        if lvl < price and (p_ + 1 >= n or sufmin[p_ + 1] > lvl):
-            dn = lvl; break
-    return up, dn
-
-# Sweeps, precomputed once over the whole series instead of per signal.
-#
-# This DIFFERS from the EA's Sweep.mqh, which sweeps named levels (PDH/PDL,
-# Asian high/low). Here the level is the prior 20-bar extreme, which is
-# vectorisable and captures the same event: an extreme is taken out and price
-# closes back through it.
-#
-# The reclaim test reads bars AFTER the sweep bar, so a sweep is not confirmed
-# until SWEEP_RECLAIM bars later. The lookup window below is shifted by that
-# much, or the feature would be reading the future.
-_W = 20
-prior_hi = pd.Series(h5).rolling(_W).max().shift(1).to_numpy()
-prior_lo = pd.Series(l5).rolling(_W).min().shift(1).to_numpy()
-with np.errstate(invalid="ignore"):
-    pen_hi = h5 - prior_hi
-    pen_lo = prior_lo - l5
-    took_hi = (pen_hi >= SWEEP_MIN_ATR * atr5) & (pen_hi <= SWEEP_MAX_ATR * atr5)
-    took_lo = (pen_lo >= SWEEP_MIN_ATR * atr5) & (pen_lo <= SWEEP_MAX_ATR * atr5)
-recl_hi = np.zeros(N5, bool)
-recl_lo = np.zeros(N5, bool)
-for _s in range(SWEEP_RECLAIM + 1):
-    cs = np.concatenate([c5[_s:], np.full(_s, np.nan)])
-    with np.errstate(invalid="ignore"):
-        recl_hi |= cs < prior_hi
-        recl_lo |= cs > prior_lo
-sweep_hi = np.nan_to_num(took_hi, nan=0).astype(bool) & recl_hi
-sweep_lo = np.nan_to_num(took_lo, nan=0).astype(bool) & recl_lo
-
-_lag = SWEEP_RECLAIM + 1
-_any_hi = pd.Series(sweep_hi.astype(float)).rolling(SWEEP_BARS).max().shift(_lag).to_numpy()
-_any_lo = pd.Series(sweep_lo.astype(float)).rolling(SWEEP_BARS).max().shift(_lag).to_numpy()
-
-def swept_at(i):
-    hi = _any_hi[i] == 1.0
-    lo = _any_lo[i] == 1.0
-    return 1 if (hi and not lo) else (-1 if (lo and not hi) else 0)
 
 # ---------------------------------------------------------------------------
 # STRUCTURE:  CHoCH  and the ORDER BLOCK it leaves behind
@@ -421,7 +338,7 @@ bull = np.concatenate([[False], (fast[1:] > slow[1:]) & (fast[:-1] <= slow[:-1])
 bear = np.concatenate([[False], (fast[1:] < slow[1:]) & (fast[:-1] >= slow[:-1])])
 
 rows = []
-warm = max(VP_LOOKBACK, LIQ_LOOKBACK, 250) + 10
+warm = max(VP_LOOKBACK, 250) + 10
 for i in range(warm, N5):
     d = 1 if bull[i] else (-1 if bear[i] else 0)
     if d == 0:
