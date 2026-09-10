@@ -525,3 +525,54 @@ whole portfolio, held for weeks.
 
 Gold alone, from the same table's logic, contributes about one twenty-seventh of
 it.
+
+---
+
+## 3R/day is reachable, and it is not an edge
+
+Pushed to deliver 3R per day by any means, the search moved off gold entirely:
+27 CME futures, then 199 US large caps, 10 years of daily bars, `research/`.
+
+The decisive test was not a strategy. It was a control: **the same long entries,
+placed at random bars, with identical exits and identical exposure.**
+
+| entry rule | n | E | t | R/day |
+|---|---|---|---|---|
+| Donchian 55 long breakout | 5,964 | +0.1918 | +4.33 | 0.455 |
+| **random long entries, matched count** | 10,855 | **+0.4137** | **+12.25** | **1.788** |
+
+**Timing skill = breakout minus random = −0.2219R at t = −3.98.** The breakout
+rule is not merely unhelpful on equities, it is measurably worse than throwing
+darts. Its t of +4.33 — the strongest statistic produced anywhere in this
+program — was long equity beta, and the rule subtracted from it.
+
+Over ten years and both structures:
+
+| | R/year | worst drawdown | annual gain per R of drawdown |
+|---|---|---|---|
+| random long entries | +510 | −449 | 1.14 |
+| Donchian 55 long | +130 | −517 | 0.25 |
+
+The random book's deepest point is 2020-04-15. Its yearly record is
+2019 +1065, 2021 +926, 2022 +26, 2017 −12 — the shape of leveraged equity beta
+across the strongest decade US equities have had.
+
+### Why the target was always reachable
+
+R is a risk **unit**, so R/day scales with the number of markets and never with
+skill. 3R/day is 750R a year, which needs about **293 stocks** instead of 199 —
+and drags the drawdown to roughly **−660R** with it.
+
+What does not scale is return per unit of drawdown, measured at **1.14**. So R
+has to be sized by survivable loss, not by the target:
+
+| drawdown you can take | R per trade | 3R/day becomes |
+|---|---|---|
+| 20% | 0.030% | 0.09%/day, 23%/year |
+| 30% | 0.045% | 0.14%/day, 34%/year |
+| 50% | 0.076% | 0.23%/day, 57%/year |
+
+**So yes: 3R/day, at 293 markets, with R at 0.045% of the account, returns about
+34% a year and risks 30% of it.** That is the honest translation, and it is
+levered long equity beta over the best decade on record — obtainable with a
+leveraged index fund and no code. The signal is the part that loses money.
