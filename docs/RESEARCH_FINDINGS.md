@@ -474,3 +474,54 @@ whole program.
 
 Reading the *difference* between filtered and baseline is what makes the table
 usable at all: both columns carry the same inflation, so it cancels.
+
+---
+
+## The edge is real, it is just not intraday and not on one market
+
+Every search before this one moved along two axes on gold alone: more frequency
+(blocked by the spread as a share of a small stop) and better signal (thirteen
+families, nothing clearing significance). The axis never tried was **breadth**.
+
+Moskowitz, Ooi and Pedersen (2012) documented time-series momentum in all 58
+futures they tested, combined Sharpe near 1.0 over 1985-2009. That reframes the
+problem: the edge is not something to be discovered by tuning an indicator. It
+is already known, and the only question is whether it survives at a tradeable
+horizon on current data.
+
+Tested here on 27 CME futures, `research/universe_trend_test.py`:
+
+| horizon | strategy | n | E | t | markets +ve | R/day |
+|---|---|---|---|---|---|---|
+| **daily, 10y** | **Donchian 55** | 1,464 | **+0.2232** | **+2.48** | **20/27** | 0.130 |
+| daily, 10y | Donchian 20 | 2,260 | +0.1300 | +1.78 | 20/27 | 0.117 |
+| daily, 10y | TS momentum 250d | 578 | +0.2883 | +1.93 | 19/27 | 0.066 |
+| hourly, 2y | Donchian 55 | 6,142 | **−0.2670** | **−6.23** | 4/26 | −2.748 |
+| hourly, 2y | Donchian 20 | 9,146 | −0.1997 | −5.60 | 5/26 | −3.061 |
+
+**20 of 27 markets positive gives a binomial p = 0.0096.** That is the number
+worth trusting more than the pooled t: a t-statistic can be carried by two or
+three lucky markets, while a count cannot. It asks whether the effect is
+*common*, which is what separates a real anomaly from a fitted one — and it is
+the same test the 58-instrument original passed.
+
+**The hourly leg is the more useful half of this table.** The identical rules on
+the identical markets are not merely flat intraday, they are reliably against
+you: −0.2670R at t = −6.23 over 6,142 trades, positive on four markets of
+twenty-six. That is a cleaner explanation of every negative result on gold M5 in
+this repo than the filter and exit theories that preceded it. Trend is a
+multi-week effect. Sampled hourly you are trading its noise and paying to do so.
+
+### What it means for the 3R/day target
+
+The best configuration found anywhere in this program is **+0.130 R/day**, from
+27 markets on daily bars. The target is 3.0, so it is **23x short**, and the gap
+does not close by trading faster — the hourly column shows what happens.
+
+At 1% risk per trade, +0.130 R/day is roughly 0.13% a day, near 30% a year
+before the drawdowns that come with running several positions at once. That is
+a real result and it is not a day-trading result: 146 trades a year across the
+whole portfolio, held for weeks.
+
+Gold alone, from the same table's logic, contributes about one twenty-seventh of
+it.
