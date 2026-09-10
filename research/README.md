@@ -17,6 +17,7 @@ QuantConnect project and run through the backtest engine.
 | `qc_signal_census_cell.py` | cell | What do ALL signals do, including the ones the filters were throwing away? |
 | `qc_4part_filter_test.py` | cell | Does a volume-profile filter, a CHoCH+OB filter, or the pair of them rescue the system? |
 | `choch_fvg_three_setups.py` | script | Does CHoCH+FVG survive a better fill, a slower horizon, or a trend gate — and is the control it was first measured against sound? |
+| `dobby_setup01_sweep_chain.py` | script | Sweep → CHoCH → displacement → FVG, as one setup: does it fire often enough to trade, and does each stage earn its place? |
 
 **Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
 `gold_only_search.py`, `backtest_dobby_indicator.py`,
@@ -34,6 +35,21 @@ It leads with a **calibration row** that re-measures the exact configuration
 `smc_entry_test.py` already reported, because a new number is worth nothing
 until the harness reproduces an old one. That row is where the run's most
 useful finding came from — see `docs/RESEARCH_FINDINGS.md`.
+
+## dobby_setup01_sweep_chain.py
+
+The four-stage chain — liquidity sweep, then CHoCH/MSS, then displacement, then
+a limit at the fair value gap — written out as one closed setup with the EA's
+own stage parameters, and measured on gold at M15/H1/D1 plus 27 futures.
+
+Two things it prints that a plain expectancy table would not:
+
+- a **funnel**, counting how many candidates survive each stage, so "no edge"
+  can be told apart from "no data". End to end the chain keeps 0.8% of sweeps.
+- an **ablation** at each stage depth with identical stops, exits and controls,
+  which asks whether each added condition contributes anything beyond cutting
+  the sample. Alongside each row is its **MDE** — the smallest true effect that
+  sample could detect. At full depth the measured skill is smaller than the MDE.
 
 ## qc_4part_filter_test.py
 

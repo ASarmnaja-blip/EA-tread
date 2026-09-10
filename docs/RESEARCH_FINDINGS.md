@@ -840,3 +840,98 @@ as the pooled t — 8 to 11 markets of 27 beat their own control, where chance i
 **Consequence:** no new setup is enabled. The CHoCH + FVG family is closed on
 this evidence, and the smart-money table above is now known to be measured
 against a flattering control.
+
+---
+
+## Short-Term Setup 01: sweep → CHoCH → displacement → FVG (2026-09-10)
+
+`research/dobby_setup01_sweep_chain.py`. The full four-stage smart-money chain,
+specified completely before any Pine was written, with every stage parameter
+taken from the EA's own defaults where one exists (`InpSweepMinPenATR`,
+`InpMinBreakATR`, `InpMinBodyATR`, `InpMinCloseLocation`, `InpDisplacementLookback`).
+Stop beyond the sweep extreme + 0.10 ATR, three legs at 1R/2R/3R, break-even
+after leg one, entry on a resting limit at the proximal edge of the gap.
+
+**The setup is fully mechanisable.** That part of the design instinct is right:
+every stage is a closed rule with no discretion in it, and it went from
+description to running code without a single judgement call. The problem is
+somewhere else.
+
+### It does not fire often enough to be a short-term system
+
+| | bars | trades | trades/year | MDE |
+|---|---|---|---|---|
+| gold M15 (60d, Yahoo's limit) | 4,541 | 5 | 25.7 | 5.02 R |
+| gold H1 (730d) | 13,729 | 10 | **4.2** | 2.55 R |
+| gold D1 (20y) | 5,030 | 3 | 0.2 | 3.73 R |
+
+Four trades a year on H1. The smallest true edge those samples could detect at
+80% power is 2.5 to 5.0 R per trade — an effect that large has never existed in
+any market. **These rows cannot fail to be inconclusive**, and reporting their
+expectancy would be reporting noise.
+
+### The funnel says exactly where the sample goes
+
+Consistent across all three gold timeframes and across 27 futures:
+
+| stage | kept |
+|---|---|
+| 1 sweep | — |
+| 2 + CHoCH within 12 bars | **8–13%** |
+| 3 + displacement within 5 bars | 79–85% |
+| 4 + displacement leaves an FVG | **28–40%** |
+| 5 + stop inside 4 ATR | 86–93% |
+| 6 + limit actually filled | **34–50%** |
+
+Three stages each cut by roughly two thirds to nine tenths. End to end, **0.8%
+of sweeps become trades** — 26,185 sweeps across 27 markets and two years leave
+217 positions. The sweep→CHoCH step is the dominant filter, and the FVG
+requirement and the unfilled-limit rate are the other two.
+
+### The ablation: no stage can be shown to earn its place
+
+27 futures, H1, 730 days, **zero cost**, run only because gold alone cannot
+reach a usable sample. Identical stop, identical ladder, identical matched
+control at every depth — the rows differ only in how late they commit.
+
+| depth | n | E | skill | skill t | MDE |
+|---|---|---|---|---|---|
+| 1 sweep only | 18,187 | −0.091 | +0.051 | +1.89 | 0.07 |
+| 2 + CHoCH | 1,160 | +0.001 | +0.019 | +0.20 | 0.25 |
+| 3 + displacement | 883 | +0.039 | +0.035 | +0.33 | 0.29 |
+| 4 + FVG limit (full setup) | 217 | +0.296 | **+0.296** | +1.25 | **0.64** |
+
+The skill point estimate does rise with depth, from +0.05 to +0.30. **The MDE
+rises faster**, from 0.07 to 0.64. At the full depth the measured skill is
+*smaller than the smallest effect the sample could detect* — so the honest
+reading of +0.296 is not "promising", it is "unmeasurable". No row clears the
+four-test Bonferroni bar of 2.50, and none clears a plain 2.
+
+The one row with real statistical resolution is stage 1 alone: 18,187 trades,
+MDE 0.07, skill **+0.051 at t = +1.89**. Under the corrected matched control
+the liquidity sweep is the only smart-money primitive in this repo that has
+*not* collapsed — CHoCH+FVG went from +0.029 to −0.075 under the same
+correction. It is still under the bar, and this is a different stop and cost
+configuration than the +0.0786 recorded earlier, so it is not a like-for-like
+replacement of that number. But it did not flip sign, and nothing else has
+managed that.
+
+### Spread
+
+Gold H1, the same 10 trades: E −0.327 at $0.26, −0.471 at $0.7525. The spread
+question is worth about **0.14 R per trade** here. That is the right order of
+magnitude to care about — and it is not what is wrong with this setup.
+
+### Consequence
+
+Not implemented as a Dobby setup, and no Pine written. The blocker is frequency,
+not a measured absence of edge: at 4 trades a year on H1 the question cannot be
+asked at all. Two things would change that, in order of value:
+
+1. **Minute data.** Yahoo caps M15 at 60 days. The QuantConnect path already in
+   `research/qc_*.py` reaches XAUUSD minute bars, which is the only way to get
+   an M15/M5 sample large enough to test this chain on gold specifically.
+2. **Drop stage 4.** The ablation already measures it: entering at the
+   displacement close instead of waiting for an FVG retrace takes n from 217 to
+   883 at the same stop. Neither is significant, so this is a way to *reach* a
+   testable sample, not a result.
