@@ -122,41 +122,36 @@ N5 = len(m5)
 gc5 = None
 vol_source = "time (TPO) only"
 if USE_GC_VOLUME:
+    # Each candidate is tried END TO END - subscribe AND fetch - before moving
+    # on. Subscribing to a future succeeds even when its history call does not,
+    # so testing only the subscription silently skips the fallback.
+    def _gc():
+        return qb.add_future(Futures.Metals.GOLD, Resolution.MINUTE).symbol
+    def _gld():
+        return qb.add_equity("GLD", Resolution.MINUTE).symbol
+
     tried = []
-    cand = None
-    # COMEX gold futures first: real, 23h, the same underlying.
-    try:
-        cand = ("COMEX GC futures", qb.add_future(Futures.Metals.GOLD,
-                                                  Resolution.MINUTE).symbol)
-    except Exception as e:
-        tried.append(f"GC futures {type(e).__name__}")
-    # GLD is the fallback: real exchange volume, but US cash hours only, so it
-    # weights the US session and leaves Asia and early London at zero.
-    if cand is None:
+    for name, make in (("COMEX GC futures", _gc),
+                       ("GLD ETF (US hours only)", _gld)):
         try:
-            cand = ("GLD ETF (US hours only)",
-                    qb.add_equity("GLD", Resolution.MINUTE).symbol)
-        except Exception as e:
-            tried.append(f"GLD {type(e).__name__}")
-    if cand is None:
-        print(f"no real-volume source loaded ({'; '.join(tried)}) - time profile only")
-    else:
-        name, vsym = cand
-        try:
-            vmin = load_minute(vsym, START, END)
-            if "volume" in vmin.columns and float(vmin["volume"].abs().sum()) > 0:
-                agg = dict(OHLC); agg["volume"] = "sum"
-                gc5 = vmin.resample("5min").agg(agg).reindex(idx5)
-                gc5["volume"] = gc5["volume"].fillna(0.0)
-                vol_source = name
-                covered = float((gc5["volume"] > 0).mean()) * 100
-                print(f"real volume from {name}: total {gc5['volume'].sum():,.0f}"
-                      f"   covers {covered:.0f}% of 5-minute bars")
-            else:
-                print(f"{name} returned no usable volume - time profile only")
+            vmin = load_minute(make(), START, END)
+            if "volume" not in vmin.columns or float(vmin["volume"].abs().sum()) <= 0:
+                tried.append(f"{name}: no volume column")
+                del vmin
+                continue
+            agg = dict(OHLC); agg["volume"] = "sum"
+            gc5 = vmin.resample("5min").agg(agg).reindex(idx5)
+            gc5["volume"] = gc5["volume"].fillna(0.0)
+            vol_source = name
+            covered = float((gc5["volume"] > 0).mean()) * 100
+            print(f"real volume from {name}: total {gc5['volume'].sum():,.0f}"
+                  f"   covers {covered:.0f}% of 5-minute bars")
             del vmin
+            break
         except Exception as e:
-            print(f"{name} history failed ({type(e).__name__}) - time profile only")
+            tried.append(f"{name}: {type(e).__name__}")
+    if gc5 is None:
+        print(f"no real-volume source ({'; '.join(tried)}) - time profile only")
 
 # ---------------------------------------------------------------------------
 # INDICATORS
@@ -300,9 +295,10 @@ def volume_ok(i, d, a, poc, val, vah):
 # ---------------------------------------------------------------------------
 # ONE PASS: every cross, simulated, with both filter verdicts attached
 # ---------------------------------------------------------------------------
-def simulate(i, d, entry, risk):
+def simulate(i, d, entry, risk, spread=None):
+    sp = SPREAD if spread is None else spread
     stop0 = entry - d * risk
-    be    = entry + d * SPREAD
+    be    = entry + d * sp
     tgt   = [entry + d * risk * m for m in (1.0, 2.0, 3.0)]
     j0 = J0[i]
     if j0 >= N_MIN:
@@ -314,12 +310,12 @@ def simulate(i, d, entry, risk):
         if (d > 0 and mlow[k] <= cur) or (d < 0 and mhig[k] >= cur):
             for x in range(3):
                 if alive[x]:
-                    r += ((cur - entry) * d - SPREAD) / risk
+                    r += ((cur - entry) * d - sp) / risk
                     alive[x] = False
             break
         for x in range(3):
             if alive[x] and ((d > 0 and mhig[k] >= tgt[x]) or (d < 0 and mlow[k] <= tgt[x])):
-                r += ((tgt[x] - entry) * d - SPREAD) / risk
+                r += ((tgt[x] - entry) * d - sp) / risk
                 alive[x] = False
                 if x == 0:
                     tp1 = True
@@ -331,7 +327,7 @@ def simulate(i, d, entry, risk):
         px = mclo[kx]
         for x in range(3):
             if alive[x]:
-                r += ((px - entry) * d - SPREAD) / risk
+                r += ((px - entry) * d - sp) / risk
     return r, kx - j0 + 1
 
 bull = np.concatenate([[False], (fast[1:] > slow[1:]) & (fast[:-1] <= slow[:-1])])
@@ -359,9 +355,15 @@ for i in range(warm, N5):
     if sim is None:
         break
     r, dur = sim
+    # The same setup replayed at zero spread. Not the same as adding the cost
+    # back: at zero spread the break-even stop sits at the entry rather than
+    # one spread inside profit, so a BE-stopped leg returns 0 either way and
+    # adding the cost back would credit it with a spread it never earned.
+    r0, _ = simulate(i, d, entry, risk, spread=0.0)
 
     poc, val, vah = profile_at(i, weights=gc_vol)
-    rows.append(dict(bar=i, time=idx5[i], dir=d, r=r, dur=dur,
+    rows.append(dict(bar=i, time=idx5[i], dir=d, r=r, r0=r0, dur=dur,
+                     risk_atr=risk / a, spread_r=SPREAD / risk,
                      vp_ok=bool(volume_ok(i, d, a, poc, val, vah)),
                      st_ok=bool(structure_ok(i, d, a))))
 
@@ -417,6 +419,29 @@ for name, f in PARTS:
     res[name] = seq
     print(f"{name:<26}{ni:>6}{ei:>+9.4f}{ti:>+7.2f}{Ri:>+9.1f}"
           f"{no:>7}{eo:>+9.4f}{to:>+7.2f}{Ro:>+9.1f}{wo:>7.1f}")
+
+# ---------------------------------------------------------------------------
+# COST DIAGNOSTIC  -  is the filter predicting direction, or dodging cost?
+#
+# GROSS is the same setups replayed at zero spread - a second simulation, not
+# the cost added back, because at zero spread the break-even stop sits at the
+# entry instead of one spread inside profit. If GROSS sits near zero in every
+# part while NET improves as the filters tighten, then
+# the filters are not forecasting anything - they are selecting trades with
+# wider stops, on which the same fixed spread is a smaller fraction of R. The
+# fix for that is a larger stop, not a better filter.
+# ---------------------------------------------------------------------------
+print("\n" + "-" * 92)
+print("COST DIAGNOSTIC")
+print(f"{'part':<26}{'spread/R':>10}{'risk/ATR':>10}{'NET E':>10}"
+      f"{'GROSS E':>10}{'GROSS t':>9}{'bars held':>11}")
+for name, _f in PARTS:
+    d = res[name]
+    if len(d) < 2:
+        continue
+    _, e0, t0, _, _ = stat(d["r0"])
+    print(f"{name:<26}{d.spread_r.mean():>10.4f}{d.risk_atr.mean():>10.2f}"
+          f"{d.r.mean():>+10.4f}{e0:>+10.4f}{t0:>+9.2f}{d.dur.mean() / 5.0:>11.1f}")
 
 # ---------------------------------------------------------------------------
 # ATTRIBUTION  -  what each half actually contributed
