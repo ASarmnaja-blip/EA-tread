@@ -23,6 +23,7 @@ QuantConnect project and run through the backtest engine.
 | `fetch_m15_gold.py` | script | Where does six years of M15 gold come from when Yahoo caps it at 60 days, and does that source actually track gold? |
 | `m15_regime_search.py` | script | On six years of M15: does a trend/range regime filter carry information, and does anything survive a holdout fixed in advance? |
 | `portfolio_frequency_study.py` | script | At 1-5 trades a week across 27 futures, what do return, drawdown, Sharpe and MAR actually come to - and does the trend rule beat its own random control? |
+| `short_range_winrate_rr.py` | script | At a $3-$10 stop and target on gold, what win rate and R:R do you actually get, and what would you need? |
 | `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
 
 **Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
