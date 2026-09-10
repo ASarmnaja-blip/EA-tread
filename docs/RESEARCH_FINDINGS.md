@@ -1226,3 +1226,89 @@ worth not trading.
 Settling the fade on real gold needs real XAUUSD M15 history. Yahoo will not
 serve it, and Stooq, Dukascopy and Binance direct are all unreachable from this
 environment — that is the specific blocker, not the analysis.
+
+---
+
+## At 1–5 trades a week: what is achievable, and the control this repo never ran (2026-09-10)
+
+`research/portfolio_frequency_study.py`. One instrument cannot supply that
+frequency at the horizon that works — Donchian 55 on gold daily fires 3.8 times
+a *year*. 1–5 trades a week is 52–260 a year, reachable at the daily horizon
+only through breadth. So this is a real book: 27 CME futures, 20 years, daily
+bars, trail 2 ATR with break-even, fixed fractional risk, positions held
+concurrently, and **equity marked to market every day** — compounding on exits
+alone understates drawdown badly when positions overlap.
+
+### The frequency dial is the lookback (risk 0.500% per trade)
+
+| rule | /week | E(R) | win | RR | PF | R/year | CAGR | maxDD | Sharpe | MAR | lose streak |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Donchian 200 | 2.297 | +0.123 | 0.402 | 2.005 | 1.347 | 14.678 | 0.071 | 0.167 | 0.871 | 0.425 | 20 |
+| Donchian 120 | 2.909 | +0.121 | 0.404 | 1.979 | 1.339 | 18.262 | 0.089 | 0.151 | 0.924 | 0.586 | 22 |
+| Donchian 80 | 3.449 | +0.103 | 0.398 | 1.944 | 1.288 | 18.402 | 0.088 | 0.177 | 0.850 | 0.495 | 18 |
+| **Donchian 55** | **3.921** | +0.104 | 0.405 | 1.896 | 1.293 | 21.215 | **0.102** | **0.165** | 0.928 | 0.620 | 21 |
+| Donchian 34 | 4.459 | +0.092 | 0.400 | 1.882 | 1.253 | 21.276 | 0.102 | 0.220 | 0.878 | 0.463 | 17 |
+| Donchian 20 | 4.884 | +0.071 | 0.391 | 1.855 | 1.189 | 18.051 | 0.084 | 0.247 | 0.731 | 0.340 | 19 |
+
+Risk is the only lever on drawdown, exactly as recorded fifteen years ago:
+
+| Donchian 55 at | CAGR | maxDD |
+|---|---|---|
+| 0.250% | 0.052 | 0.087 |
+| 0.500% | 0.102 | 0.165 |
+| 1.000% | 0.197 | 0.302 |
+| 2.000% | 0.360 | 0.510 |
+
+Breadth buys frequency and costs smoothness:
+
+| markets | /week | CAGR | maxDD | Sharpe | MAR |
+|---|---|---|---|---|---|
+| 1 | 0.165 | 0.019 | 0.023 | 2.008 | 0.854 |
+| 3 | 0.519 | 0.042 | 0.056 | 1.446 | 0.747 |
+| 6 | 0.995 | 0.066 | 0.086 | 1.303 | 0.769 |
+| 12 | 1.920 | 0.090 | 0.111 | 1.130 | 0.815 |
+| 27 | 3.921 | 0.102 | 0.165 | 0.928 | 0.620 |
+
+### The control this repo never ran on its own headline
+
+`universe_trend_test.py` reported Donchian 55 daily at +0.2232R, 20 of 27
+markets, binomial p = 0.0096, and that result has stood as the one survivor of
+the whole program. **It was never measured against a random control.** The
+random control in that file was run on the 199-equity leg, where it beat the
+rule; the futures leg was never asked "compared to what?"
+
+Asked now, with matched count and matched direction mix per market:
+
+| | E(R) | CAGR | maxDD | Sharpe | MAR |
+|---|---|---|---|---|---|
+| Donchian 55 | +0.105 | 0.117 | 0.171 | 0.937 | 0.682 |
+| **matched direction, random timing** | **+0.133** | **0.181** | **0.139** | **1.678** | **1.296** |
+| random direction, random timing | +0.054 | 0.069 | 0.283 | 0.755 | 0.244 |
+
+**The rule loses to its own control on every measure** — lower expectancy,
+lower return, deeper drawdown, half the MAR. And it is not the concurrency cap:
+removing it entirely widens the gap (rule MAR 0.682 against 1.296).
+
+The harness reproduces the number it is contradicting, which is why this is
+reported rather than debugged: run with `universe_trend_test.py`'s own settings
+(3 legs 1/2/3, 60-bar hold, zero cost) it returns **+0.1852R at t = +2.86, 21 of
+27 markets** against the recorded +0.2232R at t = +2.48, 20 of 27 — the same
+result on a 20-year span instead of 10.
+
+### Which half of the rule is wrong
+
+The three-way split above separates them. Row B keeps Donchian's direction mix
+and randomises only *when*; row C randomises both. B beats C by a wide margin
+(+0.133 against +0.054, MAR 1.296 against 0.244), so **the direction call
+carries real information**. B also beats A, so **waiting for the channel break
+before acting destroys more than the break is worth.**
+
+**Caveat that matters:** row B is a benchmark, not a strategy. Its direction
+sequence is the realised one, known only afterwards, so it is not tradeable as
+written. What it licenses is a testable claim — enter on the trend *state*
+rather than at the moment of the breakout — not a system.
+
+**Consequence:** the repo's last standing edge is now a rule that underperforms
+random timing at the same direction. What survives the control is the book
+itself: breadth, a trailing exit, and sizing. That is the third time in this
+program the answer has landed there.

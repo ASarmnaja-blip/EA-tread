@@ -22,6 +22,7 @@ QuantConnect project and run through the backtest engine.
 | `principles_backtest_gold.py` | script | If you stop forecasting and trade the exit and the sizing instead, what does that do on gold against buy and hold on the same drawdown budget? |
 | `fetch_m15_gold.py` | script | Where does six years of M15 gold come from when Yahoo caps it at 60 days, and does that source actually track gold? |
 | `m15_regime_search.py` | script | On six years of M15: does a trend/range regime filter carry information, and does anything survive a holdout fixed in advance? |
+| `portfolio_frequency_study.py` | script | At 1-5 trades a week across 27 futures, what do return, drawdown, Sharpe and MAR actually come to - and does the trend rule beat its own random control? |
 | `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
 
 **Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
