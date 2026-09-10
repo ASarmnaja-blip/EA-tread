@@ -27,6 +27,7 @@ QuantConnect project and run through the backtest engine.
 | `wick_tip_tuner.py` | script | A resting limit at the tip of a wick, 306 configs tuned on 40 days with 20 held back: does it survive the holdout, and does it survive six years? |
 | `wick_tip_finetune.py` | script | A finer grid around the wick-tip winner - same tune/holdout split, explicit about being a refinement so the multiple-comparison bar is not silently reused. |
 | `breakeven_isolated.py` | script | Does moving the stop to break-even, by itself, on random information-free entries, create profit? |
+| `deep_research_signals.py` | script | Three signal families sourced from published research rather than gold's own chart - calendar seasonality, gold/silver ratio reversion, COT positioning extremes: does anything outside price action carry information? |
 | `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
 
 **Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,

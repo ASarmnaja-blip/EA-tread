@@ -1466,3 +1466,62 @@ negative, like every other entry rule this program has tested. This is not a
 disappointing update to a working system; it is the fifth harness bug this
 program has caught with the same random-walk test, and the result it was
 hiding was the same result as everything else.
+
+---
+
+## Deep research: three signal families from outside the chart (2026-09-10)
+
+`research/deep_research_signals.py`. Everything tested in this program before
+now was price-derived — candles, swings, breakouts, ranges — all reading the
+same information (the chart) and all dying. This searched published research
+for signals different in **kind**, not just parameters, sourced from outside
+gold's own price path:
+
+- **calendar seasonality** — Lucey & Tully (2006): Monday-weak/Friday-strong,
+  attributed to week-end institutional hedging; Seasonax and arXiv:2003.11027
+  document a turn-of-month effect. A calendar fact cannot be curve-fit to
+  gold's own chart.
+- **gold/silver ratio mean reversion** — standard desk practice, published
+  backtests (QuantifiedStrategies, SSRN 5710242): fade the ratio from
+  statistical extremes. An intermarket signal, needs silver.
+- **COT positioning extremes** — CFTC's weekly Commitment of Traders report,
+  managed-money net position z-scored against its own trailing history. A
+  flow signal from a dataset this repo had never touched.
+
+Four tests, pre-registered before any result was read, at the exit design this
+repo already validated as its best risk-adjusted one (trail 2×ATR, BE at 1R),
+against a matched random control (same count, direction, exit). Bonferroni bar
+for four tests: |t| > 2.39.
+
+| signal | n | E(R) | control E(R) | skill | skill t |
+|---|---|---|---|---|---|
+| S1 Monday short / Friday long | 990 | +0.011 | −0.010 | +0.021 | +1.45 |
+| S2 turn-of-month long | 228 | +0.165 | +0.110 | +0.055 | +0.86 |
+| S3 gold/silver ratio fade | 170 | −0.004 | +0.087 | −0.091 | −1.08 |
+| S4 COT managed-money fade | 30 | +0.008 | +0.119 | −0.110 | −0.52 |
+
+**None clears the bar. None clears a plain 2.** Same outcome as every
+price-derived signal tested before it — the day-of-week folklore and the
+gold/silver ratio folklore are both real, published patterns, and neither
+survives a matched control on this data at this cost.
+
+Two notes worth keeping regardless of the null result:
+
+- **COT's publication lag matters and is easy to get backwards.** The report
+  is dated Tuesday but not released until the following **Friday** — a
+  3-calendar-day gap. An early draft of this file reindexed on the report date
+  directly, which would have let the signal "know" positioning up to three
+  trading days before it was public. Shifted the index forward to the real
+  release day before use; flagged here because it is the kind of silent
+  look-ahead this session has already been burned by twice.
+- **S4's sample is thin by construction** (n=30 over 20 years) because COT is
+  weekly and the z-score rarely clears 1.5 standard deviations — a structural
+  property of the signal, not a bug, but it means S4's null is weaker evidence
+  than the other three and would need a longer history or a looser threshold
+  to say much either way.
+
+**Consequence:** no new signal. The pattern holds across every distinct
+category of idea tried in this program — price action, smart-money structure,
+regime filters, wick mechanics, calendar effects, intermarket ratios, and now
+positioning flow. Gold's daily bar, at this cost, does not contain
+directional information that these methods can find.
