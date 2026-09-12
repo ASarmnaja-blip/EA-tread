@@ -36,7 +36,8 @@ HOW IT IS FAST
   Each candidate trade is resolved ONCE, up front, into an R outcome. A filter
   is then a boolean column over those same trades, and a combination is a
   bitwise AND - microseconds, not milliseconds. The expensive part of a
-  backtest is run 3,570 times in total rather than 3,570 times per combination.
+  backtest is run once per candidate trade in total, rather than once per
+  candidate per combination.
 
 TWO STAGES, BECAUSE A CHEAP SCREEN IS NOT A RESULT
   Stage 1 screens every surviving subset on expectancy and its t, allowing
@@ -46,7 +47,7 @@ TWO STAGES, BECAUSE A CHEAP SCREEN IS NOT A RESULT
   the rest of this repo is held to. A leader that cannot survive stage 2 was
   an artefact of overlap.
 """
-import itertools, math, sys, pathlib, time
+import argparse, itertools, math, sys, pathlib, time
 import numpy as np, pandas as pd
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
@@ -110,14 +111,39 @@ def build_filters(m, P, sig_idx, sig_dir):
     }
     return {k: np.nan_to_num(v, nan=0).astype(bool) for k, v in F.items()}
 
-def main():
+M1_CACHE = pathlib.Path(__file__).parent / ".cache_duka"
+
+def load_tf(tf):
+    """H1 comes from the 22-year hourly cache. Everything below it has to be
+    built from M1, because Dukascopy serves only minute, hour and day - there
+    is no M15 endpoint to fetch. The M1 cache is whatever years have been
+    downloaded; the label printed alongside every result says which span the
+    numbers actually cover, since a sweep on two months and a sweep on seven
+    years are not comparable evidence even when they print the same way."""
+    if tf == "1h":
+        return D.clean(D.mid(D.load_h1(2003, 2026)))
+    parts = sorted(M1_CACHE.glob("XAUUSD_M1_*.parquet"))
+    if not parts:
+        raise SystemExit("no M1 cache - run fetch_dukascopy.py first")
+    frames = []
+    for f in parts:
+        df = pd.read_parquet(f)
+        if "bid_close" in df.columns: df = D.mid(df)
+        frames.append(df)
+    m1 = pd.concat(frames).sort_index()
+    m1 = m1[~m1.index.duplicated(keep="first")]
+    m1 = m1[(m1.volume > 0) & (m1.spread > 0)]
+    return m1 if tf == "1min" else D.resample(m1, tf)
+
+def main(tf="1h"):
     t0 = time.time()
-    m = D.clean(D.mid(D.load_h1(2003, 2026)))
+    m = load_tf(tf)
     P = prep(m)
     cost = m.spread.to_numpy(float) + COMMISSION
     sig = signals(P)
-    print(f"Real XAUUSD H1 {len(m):,} bars  {m.index[0].date()} -> "
-          f"{m.index[-1].date()}\n")
+    span = (m.index[-1] - m.index[0]).days / 365.25
+    print(f"Real XAUUSD {tf}  {len(m):,} bars  {m.index[0].date()} -> "
+          f"{m.index[-1].date()}  ({span:.1f} years)\n")
 
     # --- resolve every candidate ONCE -------------------------------------
     rows = []
@@ -223,4 +249,7 @@ def main():
         print("  bar faster than it raises the best cell.")
 
 if __name__ == "__main__":
-    main()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--tf", default="1h",
+                    choices=["1min", "5min", "15min", "30min", "1h"])
+    main(ap.parse_args().tf)
