@@ -140,6 +140,7 @@ def main(tf="1h"):
     m = load_tf(tf)
     P = prep(m)
     cost = m.spread.to_numpy(float) + COMMISSION
+    P["cost_ref"] = cost   # risk-to-cost eligibility floor, see plan()
     sig = signals(P)
     span = (m.index[-1] - m.index[0]).days / 365.25
     print(f"Real XAUUSD {tf}  {len(m):,} bars  {m.index[0].date()} -> "

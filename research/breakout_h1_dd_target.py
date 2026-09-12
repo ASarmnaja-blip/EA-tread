@@ -58,6 +58,7 @@ from concurrent.futures import ThreadPoolExecutor
 RANGE_BARS, ATR_N = 20, 14
 BUF_ATR, TP_R, MAX_HOLD = 0.1, 2.0, 24
 MIN_STOP_ATR, MAX_STOP_ATR = 0.25, 8.0
+MIN_RISK_TO_COST = 3.0     # risk must be >= 3x round-trip cost to be eligible
 COST_BASE, COST_HIGH = 0.36, 0.8525      # round-trip, price units, gold
 SEED, CTRL_REPS = 17, 10
 
@@ -120,6 +121,21 @@ def plan(P, i, d):
     risk = (c - stop) * d
     if risk <= 0: return None
     if not (MIN_STOP_ATR * a <= risk <= MAX_STOP_ATR * a): return None
+    cost = P.get("cost_ref")
+    if cost is not None:
+        c_i = cost[i] if hasattr(cost, "__len__") else cost
+        # A fixed-dollar cost against an ATR-scaled risk denominator is fine
+        # on H1, where risk runs $20-200. On M1 the same ATR-based bounds let
+        # risk shrink to a few cents, and a $0.44+ round-trip cost then
+        # dominates R entirely - not a losing trade, an unmeasurable one, and
+        # its huge negative R is an artifact of dividing by a near-zero risk,
+        # not information. Found via calibration: a filter combination that
+        # happened to exclude these bars showed skill t > +5 on a PURE
+        # RANDOM WALK. Requiring risk to be a multiple of cost before a trade
+        # is even eligible removes the artifact at its source, identically
+        # for the signal and its control, rather than incidentally through
+        # whichever hand-picked filter dodges it.
+        if risk < MIN_RISK_TO_COST * c_i: return None
     return stop, c + d * TP_R * risk, risk
 
 def resolve(P, i, d, cost, exit_mode="target"):

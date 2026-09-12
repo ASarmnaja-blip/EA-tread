@@ -2008,3 +2008,65 @@ beats buy-and-hold on return **and** on drawdown at the same time.
   overestimated edge turns it into ruin.
 - Not yet tested on another instrument, which is the strongest remaining check
   that the mechanism is structural rather than gold's.
+
+---
+
+## CORRECTION: the M1/M5 sweep results were another look-ahead-shaped artifact (2026-09-12)
+
+The combinatorial sweep was re-run on M30/M15/M5/M1 (2019-2026 M1 cache, ~7.7
+years, built via `--tf` in `combinatorial_filter_search.py`). The first pass
+produced results that should have been distrusted on sight and initially were
+reported before the check that killed them:
+
+| timeframe | best skill t (before fix) |
+|---|---|
+| M30 | +3.06 (did not clear) |
+| M15 | +3.25 (did not clear) |
+| **M5** | **+4.84 (CLEARED, barely)** |
+| **M1** | **up to +14.99 (CLEARED repeatedly)**, on combos whose own E(R) was NEGATIVE |
+
+Skill of +0.52 to +0.56 at t up to +14.99 while E(R) is −0.05 to −0.08 is the
+tell: skill = E − ctrlE, so the control was catastrophically worse than the
+already-losing signal. That is not a directional edge appearing - it is the
+control breaking.
+
+**Root cause.** `plan()`'s risk-eligibility check (0.25-8× ATR) scales with
+ATR, but the round-trip cost is a fixed dollar amount. On H1, ATR-scaled risk
+runs $20-200 against a ~$0.5-0.9 cost, so this never mattered. On M1, ATR
+itself is a few cents, so risk can be a few cents too, and cost then dominates
+R entirely — not a losing trade, an unmeasurable one, exploding the variance
+of whichever random bars the control happened to draw. Filters that require
+`range_wide` and `spread_tight` incidentally dodge exactly the bars where this
+blows up; the "skill" they showed was measuring which combinations avoid a
+division-by-near-zero artifact, not which combinations predict direction.
+
+**Confirmed on a pure driftless random walk before touching the real numbers
+again**, per this repo's standing rule: replaying the exact winning M1
+filter combination on synthetic M1-scale noise (same spread, same cost, zero
+information) produced skill +0.40 at **t +5.31** — a "significant" result on
+data with nothing in it. That is the same shape as the `wick_min` retraction.
+
+**Fix**: `plan()` now takes an optional `P["cost_ref"]` and requires
+`risk >= 3x round-trip cost` before a trade is eligible at all - applied
+identically to the signal and to its control, removing the artifact at its
+source instead of leaving it to be incidentally dodged by whichever filter
+combination happens to select for larger ATR.
+
+**Re-run after the fix:**
+
+| timeframe | best skill t (after fix) | verdict |
+|---|---|---|
+| M5 | +3.06 | does not clear (was +4.84) |
+| M1 | +3.93 | does not clear (was +14.99) |
+
+Nothing on any sub-H1 timeframe survives the corrected eligibility check. The
+frequency question from `frequency_scan_2m.py` / `target_feasibility_2m.py`
+is answered again, more carefully this time: lower timeframes do not rescue
+the target, and the earlier two-month frequency scan's negative results stand
+un-retracted (that file used a fixed-fraction risk model without this
+artifact, since it never searched combinations that could dodge it).
+
+The H1 combinatorial result (`atr_contracting + long_side` etc., skill +0.16,
+t +6.18) is UNCHANGED by this fix - H1's dollar-scale risk was never close to
+the cost floor, confirmed by re-adding `cost_ref` there and reproducing the
+same numbers.
