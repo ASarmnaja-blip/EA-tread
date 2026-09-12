@@ -1754,3 +1754,90 @@ Unresolved and required before any live use, per the source audit's own gate:
 real XAUUSD broker data with bid/ask, commission, swap and contract terms —
 PAXG is a crypto-venue proxy, and the drawdowns above are measured on
 trade-exit equity marks, so true intrabar drawdown is worse.
+
+---
+
+## Real XAUUSD, real spread, 22 years: the breakout has real skill and still misses the target (2026-09-12)
+
+`research/fetch_dukascopy.py`, `research/breakout_real_xauusd.py`.
+
+**The data ceiling is gone.** Dukascopy publishes free, keyless XAUUSD candles
+with BID and ASK as separate series, back to 2003. That replaces three
+compromises at once: the instrument is spot XAUUSD rather than GC=F futures or
+the PAXG token; the history is 22.7 years rather than 60 days; and the cost is
+the **measured spread of the entry bar** rather than a constant.
+
+The decoder was verified against an independent endpoint before use (the tick
+file for 2026-07-15 10:00 UTC opens at bid 4030.155; minute 600 of that day's
+BID candle file reads 4030.155). Daily-return correlation against GC=F is
+0.877 over 2,398 shared days. 2003 is dropped — it carries placeholder rows
+(gold quoted at 1.25) and 33% zero-spread bars; every year from 2004 has a
+zero-spread share of 0.000. Bars with zero volume are dropped as market-closed,
+verified: 100% of Saturdays, 91.6% of Sundays, 12.6% of Fridays, and the
+weekday remainder clusters at 21:00–23:00 UTC.
+
+### The spread everyone was guessing at
+
+| era | median spread | in basis points |
+|---|---|---|
+| 2004 | — | 10.35 bp |
+| 2017–2018 | ~0.27 | 1.9 bp |
+| 2026 | 0.660 | 1.46 bp |
+
+The repo assumed 0.26 and the supplied workbook 0.36 as "base cost". That was
+roughly era-correct for 2017–2019 and **2.7× too cheap for 2025–2026**.
+
+### Cost dominates every parameter
+
+3,570 trades, 2004–2026:
+
+| cost basis | E(R) | t | net R | skill | skill t |
+|---|---|---|---|---|---|
+| assumed 0.36 (old base) | +0.0374 | +2.60 | +133.36 | +0.0930 | +6.04 |
+| assumed 0.8525 (old high) | −0.0034 | −0.23 | **−12.00** | +0.1620 | +10.50 |
+| **measured spread** | +0.0342 | +2.38 | +121.96 | +0.0998 | +6.49 |
+| **measured + 0.07 commission** | +0.0284 | +1.97 | +101.30 | +0.1096 | +7.12 |
+
+At a flat 0.8525 all-in the rule **loses money**. It is profitable only because
+real spreads are tighter than that in most eras. Broker choice is existential
+here, not a detail. (Skill rising with cost is partly mechanical: the control's
+random-timing trades have narrower planned risk, so a fixed cost is a larger
+share of their R. Read E and net R for money, skill for information.)
+
+### The pre-registered regime test — and it passes
+
+Gold's 2011–2015 bear and 2015–2018 range are both inside this window. Skill
+was measured separately in years where gold moved more than 10% and years where
+it did not, each against its own matched control:
+
+| | n | E(R) | net R | skill | skill t |
+|---|---|---|---|---|---|
+| trending years | 2,274 | +0.0308 | +70.02 | +0.0935 | +5.01 |
+| range years | 1,298 | +0.0223 | +28.94 | +0.0987 | +3.80 |
+
+**Both positive, both clear the bar.** This overturns the earlier six-year PAXG
+read, where the edge looked confined to 2025–2026. On 22 years of the real
+instrument the breakout's entry carries information in every regime —
+skill +0.1096 at **t +7.12**, the strongest statistical result this program has
+produced.
+
+### But skill is not the target
+
+| basis | best risk inside 35% DD | CAGR | max DD |
+|---|---|---|---|
+| GC=F H1, 2.4 years (the flattering window) | 4.0% | +77.15% | 29.84% |
+| **real XAUUSD H1, 22.7 years** | **1.5%** | **+5.56%** | **33.51%** |
+| buy & hold XAUUSD 2004–2026 | — | +11.04% | 45.25% |
+
+The rule returns **+0.0122 R per calendar day — the 1R/day target needs 82×
+more**. And +5.56% a year at 33.5% drawdown is below the 10% floor of the
+return target, while buy-and-hold beats it on return per unit of drawdown
+(0.244 vs 0.166).
+
+**The diagnosis is arithmetic, not statistics.** The edge is real and stable at
++0.11R of skill per trade, but the rule fires only ~157 times a year, so it
+harvests ~4.5R annually. Hitting 10–50% needs roughly an order of magnitude
+more R per year. The 35% drawdown ceiling blocks getting there by leverage, so
+the only remaining lever is **trade frequency** — the same rule on a lower
+timeframe, where real M1 data now makes an honest test possible for the first
+time.

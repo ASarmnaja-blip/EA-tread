@@ -144,6 +144,107 @@ def load(start="2020-01-01", end=None, refresh=False, verbose=True):
     if not parts: return None
     return pd.concat(parts).sort_index()
 
+# ------------------------------------------------------------------- H1 ----
+# The same binary layout is served at coarser granularities with far fewer
+# files: hourly is ONE FILE PER MONTH and daily ONE FILE PER YEAR, against M1's
+# one file per day per side. Twenty-four years of H1 is ~576 requests instead
+# of ~12,000, which is minutes instead of hours - and H1 is the timeframe the
+# only setup with measured skill actually trades. The time field is seconds
+# from the start of the containing period (month for hourly, year for daily).
+
+def _period_side(path, origin, side):
+    raw = _get(f"{BASE}/XAUUSD/{path}/{side}_candles_{origin}.bi5")
+    if not raw: return None
+    try:
+        dec = lzma.LZMADecompressor(format=lzma.FORMAT_ALONE).decompress(raw)
+    except Exception:
+        return None
+    n = len(dec) // REC.size
+    if n == 0: return None
+    a = np.frombuffer(dec[:n * REC.size], dtype=">u4,>i4,>i4,>i4,>i4,>f4")
+    o, c, l, h = (a[f"f{i}"].astype(np.float64) / POINT for i in (1, 2, 3, 4))
+    keep = (o > 0) & (h > 0) & (l > 0) & (c > 0)
+    if not keep.any(): return None
+    return (a["f0"].astype(np.int64)[keep], o[keep], h[keep], l[keep],
+            c[keep], a["f5"].astype(np.float64)[keep])
+
+def fetch_h1_month(ym):
+    year, month = ym
+    path = f"{year}/{month - 1:02d}"
+    b = _period_side(path, "hour_1", "BID")
+    if b is None: return None
+    a = _period_side(path, "hour_1", "ASK")
+    if a is None: return None
+    bi = pd.DataFrame({"bid_open": b[1], "bid_high": b[2], "bid_low": b[3],
+                       "bid_close": b[4], "volume": b[5]}, index=b[0])
+    ai = pd.DataFrame({"ask_open": a[1], "ask_high": a[2], "ask_low": a[3],
+                       "ask_close": a[4]}, index=a[0])
+    j = bi.join(ai, how="inner")
+    if j.empty: return None
+    j.index = pd.Timestamp(f"{year}-{month:02d}-01") + pd.to_timedelta(j.index, unit="s")
+    return j.tz_localize("UTC")
+
+def load_h1(start_year=2003, end_year=None, refresh=False, verbose=True):
+    """Cached H1 for whole years. One parquet for the lot - it is small."""
+    end_year = end_year or dt.date.today().year
+    CACHE.mkdir(exist_ok=True)
+    p = CACHE / f"XAUUSD_H1_{start_year}_{end_year}.parquet"
+    if p.exists() and not refresh:
+        return pd.read_parquet(p)
+    months = [(y, m) for y in range(start_year, end_year + 1)
+              for m in range(1, 13)
+              if not (y == dt.date.today().year and m > dt.date.today().month)]
+    if verbose: print(f"  downloading {len(months)} months of H1 ...", flush=True)
+    out = []
+    with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        for i, df in enumerate(ex.map(fetch_h1_month, months), 1):
+            if df is not None: out.append(df)
+            if verbose and i % 60 == 0:
+                print(f"    {i}/{len(months)} months", flush=True)
+    if not out: return None
+    df = pd.concat(out).sort_index()
+    df = df[~df.index.duplicated(keep="first")]
+    df.to_parquet(p)
+    return df
+
+def clean(m, start_year=2004):
+    """Drop what a quality pass says cannot be traded or cannot be trusted.
+
+    2003 IS UNUSABLE: it carries placeholder rows (gold quoted at 1.25) and
+    33% of its bars have a zero spread. Every year from 2004 on has a zero
+    spread share of 0.000 and a price range that matches gold's real history
+    (2011 peak 1918, 2015 trough 1050, 2020 peak 2070).
+
+    ZERO VOLUME MEANS THE MARKET IS SHUT, and that was verified rather than
+    assumed: zero-volume bars are 100% of Saturdays, 91.6% of Sundays, 12.6%
+    of Fridays and 2.5-3.7% of Mon-Thu, and the weekday remainder clusters at
+    21:00-23:00 UTC - the daily close. Dropping on volume rather than on a
+    hardcoded weekend rule also removes holidays, which a calendar rule would
+    keep as flat synthetic bars and a breakout rule would then trade."""
+    out = m[(m.index.year >= start_year) & (m.volume > 0) & (m.spread > 0)]
+    return out[(out.high >= out.low) & (out.low > 0)]
+
+def validate(m, verbose=True):
+    """Correlate daily returns against Yahoo's GC=F, the way `fetch_m15_gold.py`
+    validates the PAXG proxy. Spot XAUUSD and the front future are different
+    instruments, so this is a sanity check on the decode and the timestamps,
+    not a claim they are the same thing."""
+    import json, urllib.parse
+    u = ("https://query1.finance.yahoo.com/v8/finance/chart/"
+         + urllib.parse.quote("GC=F") + "?range=10y&interval=1d")
+    r = urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"})
+    d = json.load(urllib.request.urlopen(r, timeout=45))["chart"]["result"][0]
+    gc = pd.Series(d["indicators"]["quote"][0]["close"],
+                   index=pd.to_datetime(d["timestamp"], unit="s", utc=True)).dropna()
+    gc = gc.resample("1D").last().dropna()
+    mine = m.close.resample("1D").last().dropna()
+    j = pd.concat([mine.rename("duka"), gc.rename("gc")], axis=1, join="inner").dropna()
+    c = j.pct_change().dropna().corr().iloc[0, 1]
+    if verbose:
+        print(f"  daily-return correlation vs GC=F over {len(j)} shared days: {c:.4f}")
+        print(f"  level gap (mean duka - gc): {(j.duka - j.gc).mean():+.2f}")
+    return c
+
 def mid(df):
     """Mid-price OHLC plus the measured spread, which is the column this repo
     has never had. Spread is quoted in price units, per minute."""

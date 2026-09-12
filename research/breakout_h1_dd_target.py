@@ -128,6 +128,10 @@ def resolve(P, i, d, cost, exit_mode="target"):
     e = i + 1
     if e >= N: return None
     entry = o[e]
+    # cost may be a scalar assumption or a per-bar array of MEASURED round-trip
+    # cost. The array form is what `fetch_dukascopy.py` makes possible and is
+    # the only form that can price a 2004 spread differently from a 2026 one.
+    if hasattr(cost, "__len__"): cost = float(cost[e])
     use_target = exit_mode == "target"
     cur, moved, best = stop, False, entry
     for k in range(e, min(e + MAX_HOLD, N)):
