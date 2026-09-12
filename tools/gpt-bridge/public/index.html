@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPT Bridge — EA-tread</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #0f1115; --panel: #171a21; --line: #262b35; --text: #e6e8ec;
+    --muted: #9aa3b2; --claude: #d08a4f; --gpt: #4f9d7e; --user: #5b87d0; --err: #d0555b;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f6f7f9; --panel: #fff; --line: #e2e5ea; --text: #16181d; --muted: #5c6472; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+         height: 100vh; display: flex; flex-direction: column; }
+  header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+           padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { font-size: 15px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+  header .spacer { flex: 1; }
+  .pill { font-size: 12px; color: var(--muted); border: 1px solid var(--line);
+          border-radius: 999px; padding: 3px 10px; }
+  .pill.live { color: var(--gpt); border-color: color-mix(in srgb, var(--gpt) 45%, transparent); }
+  select, button, textarea, input { font: inherit; color: inherit; background: var(--bg);
+          border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+  button { cursor: pointer; background: var(--panel); }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--user); border-color: var(--user); color: #fff; font-weight: 600; }
+  button:disabled { opacity: .5; cursor: default; }
+  main { flex: 1; overflow-y: auto; padding: 20px 16px; }
+  .wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  .msg { border: 1px solid var(--line); border-left-width: 3px; border-radius: 10px;
+         background: var(--panel); padding: 12px 14px; }
+  .msg.claude { border-left-color: var(--claude); }
+  .msg.gpt    { border-left-color: var(--gpt); }
+  .msg.user   { border-left-color: var(--user); }
+  .msg.error  { border-left-color: var(--err); }
+  .meta { display: flex; gap: 10px; align-items: baseline; font-size: 12px;
+          color: var(--muted); margin-bottom: 6px; }
+  .who { font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 11px; }
+  .claude .who { color: var(--claude); } .gpt .who { color: var(--gpt); }
+  .user .who { color: var(--user); } .error .who { color: var(--err); }
+  .body { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .body code { background: color-mix(in srgb, var(--muted) 18%, transparent);
+               padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .body pre { background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+              padding: 10px 12px; overflow-x: auto; font-size: 13px; }
+  .files { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .empty { color: var(--muted); text-align: center; padding: 48px 0; }
+  footer { border-top: 1px solid var(--line); background: var(--panel); padding: 12px 16px; }
+  .composer { max-width: 860px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; }
+  textarea { flex: 1; resize: vertical; min-height: 46px; max-height: 220px; }
+  .hint { max-width: 860px; margin: 6px auto 0; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>GPT Bridge</h1>
+  <span class="pill" id="model">…</span>
+  <span class="pill" id="status">connecting</span>
+  <span class="spacer"></span>
+  <select id="session" title="conversation"></select>
+  <button id="reset">Clear</button>
+</header>
+
+<main><div class="wrap" id="log"><div class="empty">ยังไม่มีข้อความ — พิมพ์ด้านล่าง หรือให้ Claude ยิงคำถามผ่าน <code>ask.mjs</code></div></div></main>
+
+<footer>
+  <div class="composer">
+    <textarea id="input" placeholder="ถาม GPT เรื่อง EA / สัญญาณ / backtest…  (Enter = ส่ง, Shift+Enter = ขึ้นบรรทัด)"></textarea>
+    <button class="primary" id="send">ส่ง</button>
+  </div>
+  <div class="hint">ทุกข้อความในหน้านี้อยู่ในบทสนทนาเดียวกับที่ Claude คุยผ่าน CLI — เห็นกันทั้งสองฝั่ง</div>
+</footer>
+
+<script type="module">
+const log = document.getElementById('log');
+const input = document.getElementById('input');
+const send = document.getElementById('send');
+const statusEl = document.getElementById('status');
+const modelEl = document.getElementById('model');
+const sessionSel = document.getElementById('session');
+let session = new URLSearchParams(location.search).get('session') || 'main';
+let stream;
+
+init();
+
+async function init() {
+  const health = await fetch('/api/health').then(r => r.json()).catch(() => null);
+  modelEl.textContent = health ? health.model : 'server offline';
+  if (health && !health.keyPresent) {
+    modelEl.textContent += ' · no API key';
+    modelEl.style.color = 'var(--err)';
+  }
+  await refreshSessions();
+  await load();
+  connect();
+}
+
+async function refreshSessions() {
+  const { sessions } = await fetch('/api/sessions').then(r => r.json()).catch(() => ({ sessions: [] }));
+  const names = Array.from(new Set([...(sessions || []), session]));
+  sessionSel.innerHTML = '';
+  for (const name of names) {
+    const opt = document.createElement('option');
+    opt.value = opt.textContent = name;
+    opt.selected = name === session;
+    sessionSel.append(opt);
+  }
+}
+
+sessionSel.onchange = async () => {
+  session = sessionSel.value;
+  history.replaceState(null, '', `?session=${encodeURIComponent(session)}`);
+  await load();
+  connect();
+};
+
+document.getElementById('reset').onclick = async () => {
+  if (!confirm(`ล้างบทสนทนา "${session}" ?`)) return;
+  await fetch('/api/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session }) });
+  await load();
+};
+
+function connect() {
+  if (stream) stream.close();
+  stream = new EventSource(`/api/stream?session=${encodeURIComponent(session)}`);
+  stream.onopen = () => { statusEl.textContent = 'live'; statusEl.classList.add('live'); };
+  stream.onerror = () => { statusEl.textContent = 'reconnecting'; statusEl.classList.remove('live'); };
+  stream.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    if (data.type === 'reset') return void load();
+    if (data.type === 'message') append(data.message);
+  };
+}
+
+async function load() {
+  const { messages } = await fetch(`/api/history?session=${encodeURIComponent(session)}`).then(r => r.json());
+  log.innerHTML = '';
+  if (!messages.length) {
+    log.innerHTML = '<div class="empty">ยังไม่มีข้อความในบทสนทนานี้</div>';
+    return;
+  }
+  for (const m of messages) append(m);
+}
+
+function append(m) {
+  const empty = log.querySelector('.empty');
+  if (empty) empty.remove();
+  const who = m.role === 'error' ? 'error' : (m.from || (m.role === 'assistant' ? 'gpt' : 'user'));
+  const el = document.createElement('div');
+  el.className = `msg ${who}`;
+  const time = new Date(m.at).toLocaleTimeString();
+  el.innerHTML = `<div class="meta"><span class="who">${who}</span><span>${time}</span>` +
+    (m.model ? `<span>${escapeHtml(m.model)}</span>` : '') +
+    (m.role === 'note' ? '<span>note</span>' : '') + '</div>' +
+    `<div class="body">${render(m.text || '')}</div>` +
+    (m.files && m.files.length ? `<div class="files">📎 ${m.files.map(escapeHtml).join(', ')}</div>` : '');
+  log.append(el);
+  el.scrollIntoView({ block: 'end' });
+}
+
+function render(text) {
+  return escapeHtml(text)
+    .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => `<pre><code>${code}</code></pre>`)
+    .replace(/`([^`\n]+)`/g, '<code>$1</code>');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+}
+
+send.onclick = submit;
+input.onkeydown = (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+};
+
+async function submit() {
+  const message = input.value.trim();
+  if (!message) return;
+  input.value = '';
+  send.disabled = true;
+  send.textContent = '…';
+  try {
+    const res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, session, from: 'user' }),
+    });
+    const data = await res.json();
+    if (!res.ok) alert(data.error || `HTTP ${res.status}`);
+  } catch (err) {
+    alert(String(err));
+  } finally {
+    send.disabled = false;
+    send.textContent = 'ส่ง';
+    input.focus();
+  }
+}
+</script>
+</body>
+</html>

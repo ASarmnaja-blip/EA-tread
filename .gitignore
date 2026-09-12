@@ -4,3 +4,5 @@ sets/
 *.ex5
 *.log
 __pycache__/
+tools/gpt-bridge/.env
+tools/gpt-bridge/data/
