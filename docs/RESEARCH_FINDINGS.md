@@ -1652,3 +1652,105 @@ window this round has used throughout. Version 2 (layering Sweep/CHoCH/FVG/
 confirmation-candle filters from the rulebook's speculative tier) has no
 surviving level from V1 to be layered on — the same funnel-collapse this
 program has hit on every prior multi-stage chain.
+
+---
+
+## The 20-bar H1 breakout: the first thing to clear the bar — and why it still misses the target (2026-09-12)
+
+`research/breakout_h1_dd_target.py`, `research/breakout_h1_long_history.py`.
+
+**Where the rule came from.** The user supplied an externally-produced audit
+(`Nonnor_Audit_Report_V2.md`, `Nonnor_Backtest_V3_GC_H1.xlsx`,
+`Breakout_DD30_Upgrade.xlsx`) that tested seven setups on GC=F H1 and found
+exactly one with an expectancy CI clear of zero: a 20-bar range breakout with
+the stop at the opposite range edge and a 2R target. Its rules were
+transcribed verbatim — nothing was tuned here.
+
+**The target being tested.** The user asked for a setup delivering ≥1R per
+day, or 10–50%+ a year inside a 35% drawdown ceiling.
+
+### Replication, and the control the workbook did not run
+
+| window | n | E(R) | t | net R | ctrl E | skill | skill t |
+|---|---|---|---|---|---|---|---|
+| GC=F H1, 2.4y, base cost | 377 | +0.1037 | +2.50 | +39.10 | +0.0330 | +0.0707 | +1.59 |
+| GC=F H1, 2.4y, high cost | 377 | +0.0928 | +2.24 | +35.00 | +0.0043 | +0.0885 | +1.99 |
+| PAXG H1, 6.0y, base cost | 910 | +0.0562 | +2.08 | +51.13 | −0.0379 | **+0.0941** | **+3.25** |
+| PAXG H1, 6.0y, high cost | 910 | +0.0381 | +1.41 | +34.63 | −0.0859 | **+0.1240** | **+4.28** |
+
+The replication is faithful (workbook: n=383, E +0.1191, t +2.85). But a third
+of the 2.4-year expectancy is gold's own drift — the matched random control
+earned +0.0330 knowing nothing. **On six years the skill clears the repo's
+2.39 bar (t +3.25, +4.28).** That is the first signal in this entire program
+to do so against a matched control.
+
+### But the money is one regime
+
+| year | n | E(R) | net R |
+|---|---|---|---|
+| 2020 | 44 | −0.0017 | −0.07 |
+| 2021 | 128 | −0.0389 | −4.98 |
+| 2022 | 154 | −0.0218 | −3.36 |
+| 2023 | 147 | +0.0460 | +6.76 |
+| 2024 | 137 | +0.0343 | +4.69 |
+| 2025 | 179 | +0.1445 | +25.87 |
+| 2026 | 121 | +0.1836 | +22.22 |
+
+Three losing years, then +48R of the +51R total arrives in 2025–2026. The
+2.4-year GC=F window is entirely inside that good stretch, which is why it
+looked twice as strong.
+
+### The two targets, measured
+
+**≥1R/day: not reachable.** +0.0447 R/calendar-day on GC=F 2.4y, +0.0232 on
+PAXG 6y — short by 22× and 43×. The rule fires 0.43×/day at ~0.06–0.10R.
+
+**10–50% a year at ≤35% DD: depends entirely on which history you believe.**
+
+| basis | best risk inside 35% | CAGR | max DD | buy & hold, same window |
+|---|---|---|---|---|
+| GC=F H1, 2.4y | 4.0% | **+77.15%** | 29.84% | +28.94% at 29.00% DD |
+| PAXG H1, 6.0y | 1.5% | **+12.28%** | 28.34% | +13.99% at 29.23% DD |
+
+On the recent window the rule beats levered buy-and-hold 2.7×. On six years
+it **does not beat simply owning gold** at the same drawdown. The sizing
+decision differs by 2.7× depending on which window is trusted — that spread
+is itself the risk.
+
+### Cross-market: not a general effect
+
+The same frozen rule on 26 futures, H1, 730d: mean skill **−0.0329, t −2.87,
+positive in only 6 of 26**. Gold is the best market of the set. Nasdaq, AUD,
+soybeans, sugar, cotton and platinum are all significantly negative. A 20-bar
+breakout with a range-width stop is adverse on average — consistent with
+`m15_regime_search.py`'s finding that M15 Donchian breakout is adverse
+(skill −0.176, t −9.07).
+
+### Does the exit waste the entry? No
+
+Same signal, same planned risk, same 24-bar cap, six-year data:
+
+| exit | n | E(R) | net R | skill | skill t | CAGR @35% |
+|---|---|---|---|---|---|---|
+| (a) fixed 2R target — the frozen rule | 910 | +0.0562 | +51.13 | +0.0941 | +3.25 | +12.28% |
+| (b) trail 1R + BE at 1R | 944 | +0.0163 | +15.37 | +0.1038 | +3.99 | +2.11% |
+| (c) no target, hold 24 | 898 | +0.0372 | +33.38 | +0.1266 | +4.09 | +7.41% |
+
+Note the trap in this table: skill rises as money falls. Skill is measured
+against a control using the *same* exit, so a higher skill number here means
+the control got worse, not that the rule got better. The frozen 2R target is
+the best of the three on money, which is the column that pays.
+
+### Standing conclusion
+
+The breakout entry carries real information — six years, matched control,
+t +3.25, the only such result in this program. But it converts to money only
+in trending regimes, it is adverse across other markets, and over a full six
+years it does not beat owning gold at the same drawdown. The 1R/day target is
+out of reach by more than an order of magnitude. The 10–50% target is
+reachable only on the assumption that 2025–2026-style trending persists.
+
+Unresolved and required before any live use, per the source audit's own gate:
+real XAUUSD broker data with bid/ask, commission, swap and contract terms —
+PAXG is a crypto-venue proxy, and the drawdowns above are measured on
+trade-exit equity marks, so true intrabar drawdown is worse.

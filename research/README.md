@@ -32,7 +32,9 @@ QuantConnect project and run through the backtest engine.
 | `opening_range_setup_c.py` | script | The EA's own Setup C (opening-range expansion) has shipped since the start and was never tested - closes that gap. |
 | `vwap_dxy_confluence.py` | script | Round 2's two mildly-positive leads (VWAP fade, DXY lead-lag), combined: does requiring agreement remove noise, or just cut the sample? |
 | `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
-| `golden_area_ote.py` | script | From 13 manually-read NIFTY 50 clips: does a Fibonacci 62/70.5/79% "Golden Area" retracement zone entry (Premium/Discount, no extra filters) carry skill on gold? |
+| `golden_area_ote.py` | script | From 13 manually-read NIFTY 50 clips: does a Fibonacci 62/70.5/79% "Golden Area" retracement zone entry (Premium/Discount, no extra filters) carry skill on gold — tested in both the fade and the continuation direction, since two readings of the clips disagree on which it is? |
+| `breakout_h1_dd_target.py` | script | Replicates the one setup an external workbook found promising (20-bar H1 breakout, range-width stop, 2R target), adds the matched control it never ran, tests it on 25 other markets, and sizes it against a 35% drawdown budget. |
+| `breakout_h1_long_history.py` | script | The same frozen breakout on six years of gold instead of two and a half: does the edge survive, which years paid for it, and does it beat simply owning gold at the same drawdown? |
 
 **Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
 `gold_only_search.py`, `backtest_dobby_indicator.py`,

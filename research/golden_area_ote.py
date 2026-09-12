@@ -56,6 +56,20 @@ CALIBRATION FIRST
 PRE-REGISTERED
   skill > +0.10R at t > 2.39 (Bonferroni bar for 3 pre-registered levels,
   two-sided) is a result for any of A/B/C. Stated before the run.
+
+ADDENDUM (2026-09-12) - a second, independent read of the same 13 clips
+disagreed on DIRECTION, not just parameters
+  An independently-produced rulebook (`docs/GOLDEN_AREA_RULEBOOK.md`'s
+  companion audit, "Nonnor Setup Separation V3") labels the Golden Area
+  entry as a CONTINUATION: bullish impulse -> retrace into the zone -> LONG,
+  continuing the original direction - the standard ICT-OTE reading. This
+  file's original V1 tested the opposite: bullish impulse -> retrace into
+  the zone -> SHORT, fading it, which is what "Premium -> Short 95%" in the
+  rulebook's own confidence table implies. Since these are literally
+  opposite trade directions at the identical touch price, both are now
+  tested (`mode="fade"` and `mode="continuation"`) rather than picking one
+  by argument - this is exactly the kind of ambiguity a backtest resolves
+  cheaper than a debate does.
 """
 import math, sys, pathlib
 import numpy as np, pandas as pd
@@ -79,10 +93,22 @@ def find_pivots(h, l, side=5):
     sl = pd.Series(np.where(pl.fillna(False), l, np.nan)).shift(side).ffill().to_numpy()
     return sh, sl
 
-def golden_area_signals(df, levels=LEVELS, buf_atr=BUF_ATR):
+def golden_area_signals(df, levels=LEVELS, buf_atr=BUF_ATR, mode="fade"):
     """One signal array per level: +1 long / -1 short / 0 nothing, at most
     one fire per leg per level, on the first bar the price range touches
-    that level's retracement price."""
+    that level's retracement price.
+
+    mode="fade": the original 13-clip reading ("Premium -> Short 95%") -
+      a bullish leg's retracement into the zone is SHORT (betting on
+      reversal away from the impulse).
+    mode="continuation": the independent Nonnor S5/S6 reading (standard
+      ICT OTE) - a bullish leg's retracement into the zone is LONG
+      (betting on resumption of the impulse). Same touch prices, opposite
+      direction at every fire - a pure sign flip, isolated here as its own
+      argument rather than a second copy of the loop, so both readings are
+      guaranteed to fire on the exact same bars."""
+    if mode not in ("fade", "continuation"):
+        raise ValueError(f"mode must be 'fade' or 'continuation', got {mode!r}")
     h = df.high.to_numpy(float); l = df.low.to_numpy(float)
     c = df.close.to_numpy(float)
     N = len(df)
@@ -107,6 +133,8 @@ def golden_area_signals(df, levels=LEVELS, buf_atr=BUF_ATR):
             fired = {name: False for name in levels}
         if state == 0 or not np.isfinite(origin) or not np.isfinite(extreme):
             continue
+        # fade: bullish leg -> short (-state); continuation: bullish leg -> long (+state)
+        d = -state if mode == "fade" else state
         if state == 1:
             extreme = max(extreme, h[i])
             rng = extreme - origin
@@ -115,7 +143,7 @@ def golden_area_signals(df, levels=LEVELS, buf_atr=BUF_ATR):
                 if fired[name]: continue
                 price = extreme - f * rng
                 if l[i] <= price <= h[i]:
-                    sig[name][i] = -1
+                    sig[name][i] = d
                     fired[name] = True
         else:
             extreme = min(extreme, l[i])
@@ -125,7 +153,7 @@ def golden_area_signals(df, levels=LEVELS, buf_atr=BUF_ATR):
                 if fired[name]: continue
                 price = extreme + f * rng
                 if l[i] <= price <= h[i]:
-                    sig[name][i] = 1
+                    sig[name][i] = d
                     fired[name] = True
     return sig
 
@@ -146,33 +174,44 @@ def synth_walk(n_bars, seed, sub_steps=6, sigma=0.0009):
     idx = pd.date_range("2020-01-01", periods=n_bars, freq="5min", tz="UTC")
     return pd.DataFrame({"open": o, "high": h, "low": lo, "close": c}, index=idx)
 
+MODES = ("fade", "continuation")
+BAR = 2.39   # Bonferroni bar for 3 levels x 2 modes tested together, two-sided
+
 def run_calibration():
     print("CALIBRATION: driftless random walk, zero cost - skill should be")
-    print("~0 for all three levels before any real number is trusted.\n")
+    print("~0 for all levels, both modes, before any real number is trusted.\n")
     walk = synth_walk(9000, seed=99)
-    sig = golden_area_signals(walk)
     print(HDR); print("  " + "-"*(len(HDR)-2))
     ok = True
-    for name in LEVELS:
-        n_fired = int((sig[name] != 0).sum())
-        r = evaluate(walk, sig[name], hold=HOLD)
-        if r is None:
-            print(f"  {name:<40}  {n_fired} raw events - too few to calibrate")
-            continue
-        line(name, r)
-        if abs(r["t"]) > 2.39:
-            ok = False
+    for mode in MODES:
+        sig = golden_area_signals(walk, mode=mode)
+        for name in LEVELS:
+            n_fired = int((sig[name] != 0).sum())
+            r = evaluate(walk, sig[name], hold=HOLD)
+            label = f"{name} ({mode})"
+            if r is None:
+                print(f"  {label:<40}  {n_fired} raw events - too few to calibrate")
+                continue
+            line(label, r)
+            if abs(r["t"]) > BAR:
+                ok = False
     print()
     if ok:
-        print("  calibration clean - no level shows fake skill on pure noise.\n")
+        print("  calibration clean - no level/mode shows fake skill on pure noise.\n")
     else:
         print("  *** a level cleared the bar on RANDOM DATA - stop, this is a")
         print("  *** bug, not a finding. Do not run on real data until fixed.\n")
     return ok
 
 def main():
-    print("Golden Area / Fibonacci OTE, Version 1 - three entries, no filters.")
-    print("Rulebook: docs/GOLDEN_AREA_RULEBOOK.md\n")
+    print("Golden Area / Fibonacci OTE, Version 1 - three levels, two directions,")
+    print("no other filters. Rulebook: docs/GOLDEN_AREA_RULEBOOK.md\n")
+    print("Testing BOTH directions because two independent readings of the same")
+    print("13 clips disagree on which one the Golden Area actually is:")
+    print("  fade         - bullish leg retrace -> SHORT (this repo's original")
+    print("                 reading: 'Premium -> Short 95%' in the rulebook)")
+    print("  continuation - bullish leg retrace -> LONG (the Nonnor Setup")
+    print("                 Separation V3 reading: standard ICT OTE)\n")
 
     if not run_calibration():
         sys.exit(1)
@@ -180,30 +219,31 @@ def main():
     gold = fetch("GC=F")
     print(f"gold M5 {len(gold):,} bars  {gold.index[0].date()} -> "
           f"{gold.index[-1].date()}\n")
-    sig = golden_area_signals(gold)
 
     print(HDR); print("  " + "-"*(len(HDR)-2))
     results = {}
-    for name in LEVELS:
-        n_fired = int((sig[name] != 0).sum())
-        r = evaluate(gold, sig[name], hold=HOLD)
-        results[name] = r
-        if r is None:
-            print(f"  {name:<40}  {n_fired} raw events - too few trades")
-        else:
-            line(name, r)
+    for mode in MODES:
+        sig = golden_area_signals(gold, mode=mode)
+        for name in LEVELS:
+            n_fired = int((sig[name] != 0).sum())
+            r = evaluate(gold, sig[name], hold=HOLD)
+            label = f"{name} ({mode})"
+            results[label] = r
+            if r is None:
+                print(f"  {label:<40}  {n_fired} raw events - too few trades")
+            else:
+                line(label, r)
 
-    bar = 2.39
-    print(f"\n  Bonferroni bar for 3 pre-registered levels, two-sided: |t| > {bar}")
+    print(f"\n  Bonferroni bar for 3 levels x 2 modes, two-sided: |t| > {BAR}")
     any_clear = False
-    for name, r in results.items():
+    for label, r in results.items():
         if r is None: continue
-        v = "CLEARS the bar" if abs(r["t"]) > bar else "does not clear"
-        any_clear = any_clear or abs(r["t"]) > bar
-        print(f"  {name}: skill t = {r['t']:+.2f}  -  {v}")
+        v = "CLEARS the bar" if abs(r["t"]) > BAR else "does not clear"
+        any_clear = any_clear or abs(r["t"]) > BAR
+        print(f"  {label}: skill t = {r['t']:+.2f}  -  {v}")
     if not any_clear:
-        print("\n  None of A/B/C cleared the bar - Version 2 (Sweep/CHoCH/FVG/")
-        print("  confirmation filters) has no surviving level to be layered on.")
+        print("\n  Neither direction, at any level, cleared the bar - the Golden")
+        print("  Area disagreement is moot on gold M5: both readings are dead.")
 
     print("\nHOW TO READ THIS")
     print("  skill = the level's entry minus a matched random entry (same n,")
