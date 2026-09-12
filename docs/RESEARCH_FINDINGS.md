@@ -1918,3 +1918,93 @@ year, regime-independent, at t +7.12 over 22.7 years. It supports at most
 to the target. The only structural lever left untested is **breadth** — running
 the same edge across many instruments at once, which multiplies R per year
 rather than R per trade, and which Dukascopy can now supply at real spreads.
+
+---
+
+## The combinatorial sweep found what single-factor testing missed (2026-09-12)
+
+`research/combinatorial_filter_search.py`, `research/atr_contraction_long_validation.py`.
+
+**This section exists because a prior judgement was wrong.** Every component in
+this repo had been tested alone, or in a handful of hand-picked pairings. The
+full sweep — all singles, all pairs, all subsets up to ten conditions — was
+never run, on the reasoning that components which die alone will not help in
+company. That was a guess, not a measurement, and it was wrong.
+
+### How the sweep was made meaningful rather than a noise generator
+
+Each candidate trade is resolved **once** into an R outcome; a filter is then a
+boolean column over those trades and a combination is a bitwise AND, so the
+expensive part runs 3,570 times in total instead of per combination. Any subset
+falling under 120 trades is pruned along with every superset of it, since
+adding conditions can only shrink the sample. 18 filters, 67,338 subsets
+actually tested, on 22.7 years of real XAUUSD H1 at the measured spread.
+
+The bar is derived from the search itself: the best of k noise draws lands near
+sqrt(2 ln k), so **|t| > 4.72** for k = 67,338. Leaders were then re-run with
+sequential non-overlapping trades and a matched random control.
+
+### What it found
+
+Stripped of decoration, one rule: **take the 20-bar breakout LONG, only when
+ATR(14) is below its own 50-period average** — a breakout out of quiet, not out
+of noise.
+
+| variant | n | E(R) | skill | skill t |
+|---|---|---|---|---|
+| all breakouts, no filter | 3570 | +0.0284 | +0.1096 | +7.12 |
+| quiet ATR, both sides | 2052 | +0.0559 | +0.1012 | +4.73 |
+| **quiet ATR, long only** | 1272 | +0.0919 | +0.1482 | +5.52 |
+| **quiet ATR, long + RSI agrees** | 1216 | +0.1002 | +0.1636 | **+6.18** |
+| quiet ATR, short only | 985 | −0.0125 | +0.1148 | +3.70 |
+| noisy ATR, long only (the mirror) | 1466 | −0.0023 | +0.0460 | +2.19 |
+
+The filter **more than tripled the edge per trade**, from +0.0284R to +0.1002R.
+
+### Why it is probably not just gold's bull market
+
+Three checks, each of which could have killed it:
+
+1. **The short side has positive skill too** (+0.1148, t +3.70) even though its
+   raw expectancy is negative. Shorting a market that rose 11× loses money
+   regardless; against its own direction-matched control the quiet-ATR short
+   still carries information. The mechanism is not long-side beta.
+2. **The mirror is weak.** Noisy-ATR longs score skill +0.0460 against
+   quiet-ATR longs' +0.1482. The filter separates two populations rather than
+   shrinking one.
+3. **Both halves of the 22 years work**: first half skill +0.1586 (t +4.15),
+   second half +0.1207 (t +3.32). Split at 2015-02-25.
+
+**Profitable in 19 of 23 years.** The four losing years are all small (worst
+−6.53R in 2021). Under a 50/50 null, 19/23 has p ≈ 0.0008.
+
+### And it reaches the return target
+
+1,216 trades, 0.15/day, +121.83R over 22.7 years:
+
+| risk/trade | CAGR | max DD |
+|---|---|---|
+| 2% | +10.44% | 18.5% |
+| 3% | +15.35% | 26.7% |
+| **5%** | **+24.36%** | **41.2%** |
+| 8% | +35.19% | 59.1% |
+| **10%** | **+40.23%** | **69.5%** |
+| buy & hold | +11.04% | 45.2% |
+
+Inside a 50% ceiling it returns **+24.36% at 41.2% DD**; inside 75%, **+40.23%
+at 69.5% DD**. Both land in the 10–50% band that was asked for, and unlike the
+unfiltered rule — which peaked at +9.21% and then *fell* as risk rose — this one
+beats buy-and-hold on return **and** on drawdown at the same time.
+
+### What is still not true
+
+- **1R/day remains out of reach.** +0.0147 R/day at 0.15 trades/day is 68×
+  short. Frequency, not edge, is the binding constraint on that target.
+- The rule was **selected on this data**. The era split and the 19/23 year
+  consistency are supporting evidence that was not selected for, but no
+  untouched holdout exists — 22.7 years is the whole record.
+- Drawdowns are measured on trade-exit equity marks, so true intrabar figures
+  are worse, and 10% risk sits close enough to the optimal-f peak that an
+  overestimated edge turns it into ruin.
+- Not yet tested on another instrument, which is the strongest remaining check
+  that the mechanism is structural rather than gold's.

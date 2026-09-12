@@ -34,6 +34,8 @@ QuantConnect project and run through the backtest engine.
 | `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
 | `golden_area_ote.py` | script | From 13 manually-read NIFTY 50 clips: does a Fibonacci 62/70.5/79% "Golden Area" retracement zone entry (Premium/Discount, no extra filters) carry skill on gold — tested in both the fade and the continuation direction, since two readings of the clips disagree on which it is? |
 | `fetch_dukascopy.py` | script | Real XAUUSD M1 with separate BID and ASK straight from Dukascopy, back to 2003 - the real instrument, twenty years of minutes, and a MEASURED spread instead of the constant this repo has been assuming. |
+| `combinatorial_filter_search.py` | script | All singles, all pairs, all subsets up to ten filters - 67,338 combinations on 22.7 years - against the noise bar the search itself creates. Found what single-factor testing missed. |
+| `atr_contraction_long_validation.py` | script | Stress-tests the one combination that cleared: is it beta, is it one era, is it a lucky slice - and what does it pay? |
 | `breakout_h1_dd_target.py` | script | Replicates the one setup an external workbook found promising (20-bar H1 breakout, range-width stop, 2R target), adds the matched control it never ran, tests it on 25 other markets, and sizes it against a 35% drawdown budget. |
 | `breakout_h1_long_history.py` | script | The same frozen breakout on six years of gold instead of two and a half: does the edge survive, which years paid for it, and does it beat simply owning gold at the same drawdown? |
 
