@@ -1841,3 +1841,80 @@ more R per year. The 35% drawdown ceiling blocks getting there by leverage, so
 the only remaining lever is **trade frequency** — the same rule on a lower
 timeframe, where real M1 data now makes an honest test possible for the first
 time.
+
+---
+
+## Two months, DD raised to 50-75%: where the wall actually is (2026-09-12)
+
+`research/frequency_scan_2m.py`, `research/target_feasibility_2m.py`.
+
+Asked to work from the last two months of price only and to raise the drawdown
+ceiling to 50-75%. Both levers were measured rather than assumed.
+
+### Lever 1 — raising the drawdown ceiling. There is a hard ceiling at +9.2%.
+
+22.7 years of real XAUUSD, honest cost, 3,570 trades:
+
+| risk/trade | CAGR | max DD |
+|---|---|---|
+| 1% | +3.97% | 23.1% |
+| 2% | +6.87% | 43.1% |
+| 3% | +8.63% | 59.7% |
+| **4%** | **+9.21%** | **72.8%** |
+| 5% | +8.60% | 82.5% |
+| 8% | +0.14% | 98.4% |
+| 10% | **−10.02%** | 99.9% |
+
+Best inside 50%: +6.87%. Best inside 75%: +9.21%. **Both below the 10% floor
+of the target.** Past 4% risk the CAGR *falls* — volatility drag overwhelms a
++0.028R edge, and by 10% risk the account loses money despite the edge being
+positive. Leverage cannot reach the target; it has a maximum, and the maximum
+is under it. Buy-and-hold over the same 22 years returns +11.04% at 45.2% DD,
+which still beats every row.
+
+### Lever 2 — frequency. The edge does not survive down the timeframes.
+
+Same frozen rule, last two months of real M1, priced at the measured spread:
+
+| TF | n | trades/day | E(R) | R/day | skill t |
+|---|---|---|---|---|---|
+| M5 | 369 | 6.15 | −0.0470 | −0.289 | +0.28 |
+| M15 | 125 | 2.08 | −0.0710 | −0.148 | −0.66 |
+| M30 | 60 | 1.00 | −0.0407 | −0.041 | −0.07 |
+| H1 | 28 | 0.47 | −0.0034 | −0.002 | −1.08 |
+
+Cost is not the reason — it runs 3.3% of planned risk at M5 and 0.8% at H1,
+moving the breakeven win rate only from 33.3% to 34.4%.
+
+### Why two months cannot settle this
+
+At a per-trade SD near 1.2R, seeing an edge of +0.0284R at t=2 needs **~7,141
+trades** — 3.2 years at M5's rate, 41.6 years at H1's. Two months at M5 gives
+369 trades, **5% of what is required**. A window this size cannot confirm or
+refute the rule. It can only be fitted to.
+
+### The search, honestly accounted
+
+32 cells (4 timeframes × 4 lookbacks × breakout/fade), noise bar
+sqrt(2 ln 32) = 2.63 stated before the run. Best cell by skill: M5 10-bar
+breakout, t **+1.94 — does not clear**. Best by money: H1 10-bar breakout,
++4.55R on 38 trades; sized to 12% risk it returns +34.70% on the window
+(+513% annualised) at 35.4% DD — **and its skill t is +0.48**. That is exactly
+what the best of 32 noise draws looks like.
+
+### One real finding: the fade is dead, and the old PAXG result was the proxy
+
+Fading the breakout is catastrophically negative on real XAUUSD at every
+timeframe — E from −0.16 to −0.75, skill t down to −2.82. `m15_regime_search.py`
+once recorded M15 Donchian breakout as adverse with its inverse looking strong
+(+0.185, t +9.86) and suspected PAXG's crypto microstructure. **Confirmed: on
+the real instrument the fade loses badly.** That suspicion is now settled.
+
+### Standing position
+
+The one real edge this program has found is +0.0284R per trade, ~157 trades a
+year, regime-independent, at t +7.12 over 22.7 years. It supports at most
++9.2% a year at a 75% drawdown. Neither leverage nor timeframe closes the gap
+to the target. The only structural lever left untested is **breadth** — running
+the same edge across many instruments at once, which multiplies R per year
+rather than R per trade, and which Dukascopy can now supply at real spreads.

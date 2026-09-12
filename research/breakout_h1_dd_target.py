@@ -102,10 +102,20 @@ def signals(P):
 
 def plan(P, i, d):
     """The frozen plan at the signal bar's close: stop at the opposite range
-    edge, target at 2x the PLANNED risk. Returns None if ineligible."""
+    edge, target at 2x the PLANNED risk. Returns None if ineligible.
+
+    P["fade_stop"] switches the stop to just beyond the signal bar's OWN
+    extreme instead. A fade trades against the break, so price is already
+    past the range edge and the frozen stop would sit on the wrong side of
+    the entry, producing a negative risk and silently dropping every fade
+    trade. The signal bar's high/low is known at its close, so acting on it
+    at the next bar's open carries no look-ahead."""
     a, c = P["A"][i], P["c"][i]
     if not np.isfinite(a) or a <= 0: return None
-    stop = (P["pl"][i] - BUF_ATR * a) if d > 0 else (P["ph"][i] + BUF_ATR * a)
+    if P.get("fade_stop"):
+        stop = (P["l"][i] - BUF_ATR * a) if d > 0 else (P["h"][i] + BUF_ATR * a)
+    else:
+        stop = (P["pl"][i] - BUF_ATR * a) if d > 0 else (P["ph"][i] + BUF_ATR * a)
     if not np.isfinite(stop): return None
     risk = (c - stop) * d
     if risk <= 0: return None
