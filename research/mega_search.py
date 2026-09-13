@@ -55,7 +55,7 @@ CALIBRATION FIRST, AS ALWAYS
   This repo has caught 8 bugs that way, the most recent of which faked a
   t +14.99 on M1. A search this large would manufacture far worse.
 """
-import argparse, math, sys, pathlib, time, itertools
+import argparse, heapq, math, sys, pathlib, time, itertools
 import numpy as np, pandas as pd
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
@@ -76,13 +76,18 @@ HOLDS     = (12, 24, 48, 96, 240, 1000)          # 1000 at H1 ~ six weeks
 DISCOVERY_END = "2019-01-01"    # everything before this is searchable
 MIN_N_BASE    = 200             # base rule needs this many trades
 MIN_N_FILTER  = 150             # filtered subset floor
-MAX_DEPTH     = 8
+MAX_DEPTH     = 6
 TOP_BASE      = 12              # base rules promoted to the filter sweep
 MAX_SUBSETS   = 400_000         # per base rule; 31 filters at depth 8 can
                                 # otherwise reach millions of subsets, and a
                                 # cap that binds is reported rather than
                                 # silently shrinking the search
 TOP_LEADERS   = 15              # leaders promoted to stage 3
+LEADER_POOL   = 300             # bounded heap; appending every tested subset
+                                # is what exhausted memory - 400k subsets x 12
+                                # base rules is ~5M records kept alive for no
+                                # reason, since only the best handful are ever
+                                # promoted
 SEED          = 17
 
 # ------------------------------------------------------------------ prep --
@@ -516,7 +521,8 @@ def run(m, tf, label, calib=False):
 
     # ---- stage 2: filter sweep on the leading base rules -------------------
     print(f"\nSTAGE 2  full filter sweep on the top {TOP_BASE} base rules")
-    leaders = []
+    leaders = []          # bounded min-heap of (t, tiebreak, payload)
+    seq = 0
     for t, e, n, cfg in base[:TOP_BASE]:
         look, buf, sm, tp_j, hk = cfg
         W, Wd = walks[(look, buf, sm)]
@@ -539,7 +545,12 @@ def run(m, tf, label, calib=False):
                 k_total += 1; tested_here += 1
                 r = R[mask_of(combo)]
                 if len(r) < MIN_N_FILTER: continue
-                leaders.append((naive_t(r), r.mean(), len(r), cfg, combo, names))
+                tt = naive_t(r)
+                if not np.isfinite(tt): continue
+                seq += 1
+                rec = (tt, seq, (r.mean(), len(r), cfg, combo, names))
+                if len(leaders) < LEADER_POOL: heapq.heappush(leaders, rec)
+                elif tt > leaders[0][0]: heapq.heapreplace(leaders, rec)
             nxt = []
             for combo in level:
                 msk = mask_of(combo)
@@ -548,8 +559,8 @@ def run(m, tf, label, calib=False):
             level = nxt
         if tested_here >= MAX_SUBSETS:
             print(f"    (subset cap hit on one base rule at {tested_here:,})")
-    leaders = [x for x in leaders if np.isfinite(x[0])]
-    leaders.sort(key=lambda x: -x[0])
+    leaders = sorted(leaders, key=lambda x: -x[0])
+    leaders = [(t, *payload) for t, _, payload in leaders]
     bar = math.sqrt(2 * math.log(max(k_total, 2)))
     print(f"  total cells tested across both stages: {k_total:,}")
     print(f"  noise bar from the search itself: |t| > {bar:.2f}")
