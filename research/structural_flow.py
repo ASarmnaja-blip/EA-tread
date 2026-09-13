@@ -93,8 +93,11 @@ DISCOVERY_END_M15 = "2023-01-01"
 # Horizons are declared per timeframe so the WALL-CLOCK windows match: 1 and 4
 # hours on H1; 15 minutes, 1 hour and 4 hours on M15. Adding the third horizon
 # raises k for the M15 run and the floor moves with it.
+# Wall-clock matched across timeframes so the same three windows are tested:
+# 1h and 4h on H1; 15min, 1h and 4h on M15 and M5.
 HORIZONS_H1 = (1, 4)
 HORIZONS_M15 = (1, 4, 16)
+HORIZONS_M5 = (3, 12, 48)
 HORIZONS = HORIZONS_H1
 COST_ATR_LIVE = 0.0871      # 260 points / median H1 ATR
 COST_ATR_HIST = 0.1263      # 377 points (the real historical median) / same
@@ -175,7 +178,9 @@ def main():
     P = M.prep(m)
     sub_hourly = (m.index[1] - m.index[0]) < pd.Timedelta(minutes=60)
     disc_end = DISCOVERY_END_M15 if sub_hourly else DISCOVERY_END
-    horizons = HORIZONS_M15 if sub_hourly else HORIZONS_H1
+    bar_min = (m.index[1] - m.index[0]).total_seconds() / 60.0
+    horizons = (HORIZONS_H1 if not sub_hourly
+                else HORIZONS_M5 if bar_min <= 5 else HORIZONS_M15)
     n_disc = int((m.index < pd.Timestamp(disc_end, tz="UTC")).sum())
     idx = m.index[:n_disc]
     print(f"DISCOVERY: {n_disc:,} bars  {idx[0].date()} -> {idx[-1].date()}"
