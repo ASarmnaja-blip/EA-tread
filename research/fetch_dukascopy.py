@@ -58,6 +58,10 @@ WORKERS = 10
 # Verified against known levels: silver 16.040 and yen 108.846 in Jan 2019,
 # euro 1.14482, pound 1.31081.
 POINTS = {"XAUUSD": 1000.0, "XAGUSD": 1000.0, "USDJPY": 1000.0,
+          # USDSEK completes the DXY basket (EUR 57.6%, JPY 13.6%, GBP 11.9%,
+          # CAD 9.1%, SEK 4.2%, CHF 3.6%); verified against a 2024 sample,
+          # whose median of 10.51 is a sane USDSEK level
+          "USDSEK": 100000.0,
           "EURUSD": 100000.0, "GBPUSD": 100000.0, "AUDUSD": 100000.0,
           "USDCHF": 100000.0, "USDCAD": 100000.0, "NZDUSD": 100000.0}
 POINT = POINTS["XAUUSD"]      # kept so existing XAUUSD callers are unchanged
