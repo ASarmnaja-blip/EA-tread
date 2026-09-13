@@ -423,7 +423,8 @@ def run(m, tf, label, calib=False):
                 k_total += 1
                 if len(R) < MIN_N_BASE: continue
                 base.append((naive_t(R), R.mean(), len(R), (look, buf, sm, tp_j, hk)))
-    base.sort(reverse=True)
+    base = [b for b in base if np.isfinite(b[0])]
+    base.sort(key=lambda x: -x[0])
     print(f"  {k_total:,} rule x exit cells tested, {len(base):,} with enough trades")
     for t, e, n, cfg in base[:6]:
         look, buf, sm, tp_j, hk = cfg
@@ -455,7 +456,8 @@ def run(m, tf, label, calib=False):
                     m2 = msk & cols[j]
                     if m2.sum() >= MIN_N_FILTER: nxt.append((combo + (j,), m2))
             level = nxt
-    leaders.sort(reverse=True)
+    leaders = [x for x in leaders if np.isfinite(x[0])]
+    leaders.sort(key=lambda x: -x[0])
     bar = math.sqrt(2 * math.log(max(k_total, 2)))
     print(f"  total cells tested across both stages: {k_total:,}")
     print(f"  noise bar from the search itself: |t| > {bar:.2f}")
