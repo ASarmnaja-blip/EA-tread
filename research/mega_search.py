@@ -639,22 +639,26 @@ def resolve(W, tp_j, hold_k, split, side):
     rep["gap_skipped"] = n_gap
     return R, held, keep, rep
 
-def run(m, tf, label, calib=False):
+def run(m, tf, label, calib=False, boundary=None, quiet=False, seed=SEED):
+    """calib=True runs stages 1-3 in full and returns the result WITHOUT ever
+    opening the holdout - a calibration run that spent the holdout would be
+    the very thing the split exists to prevent."""
     t0 = time.time()
+    say = (lambda *a, **k: None) if quiet else print
     P = prep(m)
     cost = P["spread"] + COMMISSION
-    split = Split(P["idx"], DISCOVERY_END)
+    split = Split(P["idx"], boundary or DISCOVERY_END)
     n_disc = split.n_disc
     # Fitted ONCE, on discovery bars only, and frozen. Every "below median
     # spread" decision the search makes - in discovery and in the holdout
     # alike - uses these numbers and no others.
     th = fit_thresholds(P, split)
-    print(f"{label}: {len(m):,} bars  {m.index[0].date()} -> {m.index[-1].date()}")
-    print(f"  discovery {n_disc:,} bars (< {DISCOVERY_END}), "
+    say(f"{label}: {len(m):,} bars  {m.index[0].date()} -> {m.index[-1].date()}")
+    say(f"  discovery {n_disc:,} bars (< {DISCOVERY_END}), "
           f"holdout {len(m)-n_disc:,} bars - holdout is opened once, at the end")
-    print(f"  thresholds fitted on DISCOVERY ONLY and frozen: "
+    say(f"  thresholds fitted on DISCOVERY ONLY and frozen: "
           + ", ".join(f"{k}={v:.4g}" for k, v in th.values.items()))
-    print(f"  trades straddling the boundary are purged from both sides\n")
+    say(f"  trades straddling the boundary are purged from both sides\n")
 
     k_total = 0
     hold_max = max(HOLDS)
@@ -663,7 +667,7 @@ def run(m, tf, label, calib=False):
     purge_tot = dict(straddling=0, gap_skipped=0, cells=0)
 
     # ---- stage 1: rule x exit, no filters, DISCOVERY ONLY -----------------
-    print("STAGE 1  rule x exit grid, no filters")
+    say("STAGE 1  rule x exit grid, no filters")
     walks = {}
     base = []
     for look, buf, sm in itertools.product(LOOKBACKS, BUFFERS, STOPS):
@@ -696,17 +700,17 @@ def run(m, tf, label, calib=False):
                              (look, buf, sm, tp_j, hk)))
     base = [b for b in base if np.isfinite(b[0])]
     base.sort(key=lambda x: -x[0])
-    print(f"  {k_total:,} rule x exit cells tested, {len(base):,} with enough trades")
-    print(f"  purged across those cells: {purge_tot['straddling']:,} straddling "
+    say(f"  {k_total:,} rule x exit cells tested, {len(base):,} with enough trades")
+    say(f"  purged across those cells: {purge_tot['straddling']:,} straddling "
           f"trades, {purge_tot['gap_skipped']:,} entry-gap skips")
     for t, e, n, cfg in base[:6]:
         look, buf, sm, tp_j, hk = cfg
         tpname = "none" if tp_j is None else f"{tps_real[tp_j]}R"
-        print(f"    t {t:+.2f}  E {e:+.4f}  n {n:>6}  look {look:>3} buf {buf} "
+        say(f"    t {t:+.2f}  E {e:+.4f}  n {n:>6}  look {look:>3} buf {buf} "
               f"{sm} tp {tpname} hold {HOLDS[hk]}")
 
     # ---- stage 2: filter sweep on the leading base rules -------------------
-    print(f"\nSTAGE 2  full filter sweep on the top {TOP_BASE} base rules")
+    say(f"\nSTAGE 2  full filter sweep on the top {TOP_BASE} base rules")
     leaders = []          # bounded min-heap of (t, tiebreak, payload)
     seq = 0
     for t, e, n, cfg in base[:TOP_BASE]:
@@ -747,38 +751,29 @@ def run(m, tf, label, calib=False):
                     if (msk & cols[j]).sum() >= MIN_N_FILTER: nxt.append(combo + (j,))
             level = nxt
         if tested_here >= MAX_SUBSETS:
-            print(f"    (subset cap hit on one base rule at {tested_here:,})")
+            say(f"    (subset cap hit on one base rule at {tested_here:,})")
     leaders = sorted(leaders, key=lambda x: -x[0])
     leaders = [(t, *payload) for t, _, payload in leaders]
     bar = math.sqrt(2 * math.log(max(k_total, 2)))
-    print(f"  total cells tested across both stages: {k_total:,}")
+    say(f"  total cells tested across both stages: {k_total:,}")
     # sqrt(2 ln k) is the EXPECTED MAXIMUM of k standard normal draws. It is
     # NOT a 5% family-wise threshold: measured directly in bug_reproductions.py,
     # at least one of k noise draws exceeds it 16.5% of the time at k=1000 and
     # 18.8% at k=10000. It is reported as a rough floor, and the gate that
     # actually decides is the percentile block bootstrap.
-    print(f"  heuristic noise floor from the search size: |t| > {bar:.2f} "
+    say(f"  heuristic noise floor from the search size: |t| > {bar:.2f} "
           f"(expected max of k noise draws; NOT a 5% family-wise bar)")
-    print(f"\n  top {min(8,len(leaders))} by naive t (overlap NOT yet corrected):")
+    say(f"\n  top {min(8,len(leaders))} by naive t (overlap NOT yet corrected):")
     for t, e, n, cfg, combo, names in leaders[:8]:
         look, buf, sm, tp_j, hk = cfg
         tpname = "none" if tp_j is None else f"{tps_real[tp_j]}R"
-        print(f"    t {t:+.2f}  E {e:+.4f}  n {n:>5}  [look{look} {sm} tp{tpname} "
+        say(f"    t {t:+.2f}  E {e:+.4f}  n {n:>5}  [look{look} {sm} tp{tpname} "
               f"hold{HOLDS[hk]}] {'+'.join(names[x] for x in combo)}")
 
-    if calib:
-        best = leaders[0][0] if leaders else float("nan")
-        print(f"\n  STAGE 1-2 CALIBRATION: best naive t on pure noise = {best:+.2f} "
-              f"vs heuristic floor {bar:.2f}")
-        print("  (the binding calibration is the FULL pipeline through stage 3;")
-        print("   see calibrate_pipeline.py, which is the one that gates.)")
-        return dict(best_naive_t=best, bar=bar, leaders=leaders, walks=walks,
-                    P=P, split=split, th=th, k_total=k_total)
-
     # ---- stage 3: control, bootstrap, then the holdout once ---------------
-    print(f"\nSTAGE 3  leaders re-scored with a matched control and an "
+    say(f"\nSTAGE 3  leaders re-scored with a matched control and an "
           f"overlap-aware block bootstrap")
-    print(f"  {'n':>6}{'E(R)':>9}{'naive t':>9}{'boot t':>8}{'skill':>9}"
+    say(f"  {'n':>6}{'E(R)':>9}{'naive t':>9}{'boot t':>8}{'skill':>9}"
           f"{'ctrl t':>8}{'ctrl n':>8}{'ctrl L%':>8}{'hold s/c':>11}  configuration")
     final = []
     seen = set()
@@ -796,7 +791,8 @@ def run(m, tf, label, calib=False):
         if len(r) < MIN_N_FILTER: continue
         bt = block_bootstrap_t(r, W["i"][msk], held[msk], 1)
         ci = block_bootstrap_ci(r, W["i"][msk], held[msk])
-        ctrl, cst = matched_control(P, subset(W, msk), tp_j, hk, split, "discovery")
+        ctrl, cst = matched_control(P, subset(W, msk), tp_j, hk, split,
+                                    "discovery", seed=seed)
         if len(ctrl) < 30: continue
         sk = r.mean() - ctrl.mean()
         se = math.sqrt(r.var(ddof=1)/len(r) + ctrl.var(ddof=1)/len(ctrl))
@@ -805,12 +801,12 @@ def run(m, tf, label, calib=False):
         cfgs = f"look{look} buf{buf} {sm} tp{tpname} hold{HOLDS[hk]}"
         s_long = float((W["d"][msk] > 0).mean())
         s_hold = float(held[msk].mean())
-        print(f"  {len(r):>6}{r.mean():>+9.4f}{t:>+9.2f}{bt:>+8.2f}"
+        say(f"  {len(r):>6}{r.mean():>+9.4f}{t:>+9.2f}{bt:>+8.2f}"
               f"{sk:>+9.4f}{ct:>+8.2f}{cst['n']:>8}"
               f"{cst['long_frac']*100:>7.0f}%"
               f"{s_hold:>6.0f}/{cst['mean_held']:<4.0f}  {cfgs} | "
               f"{'+'.join(nm[x] for x in combo)}")
-        print(f"         strategy long {s_long*100:.0f}%, control long "
+        say(f"         strategy long {s_long*100:.0f}%, control long "
               f"{cst['long_frac']*100:.0f}% | control drew from {cst['pool']:,} "
               f"discovery bars over {cst['reps']} reps, {cst['skipped']:,} "
               f"draws skipped (entry gap / no ATR)")
@@ -825,19 +821,33 @@ def run(m, tf, label, calib=False):
     survivors = [f for f in final
                  if np.isfinite(f[0]) and abs(f[0]) > bar
                  and np.isfinite(f[1]) and f[1] > 0 and f[7]]
-    print(f"\n  clearing all three gates (bootstrap CI above zero, positive "
+    say(f"\n  clearing all three gates (bootstrap CI above zero, positive "
           f"control-adjusted skill, |t| > {bar:.2f}): {len(survivors)}")
+
+    if calib:
+        # The calibration verdict is the SURVIVOR COUNT AT THE FINAL GATE, not
+        # the best naive t after stage 2. Stage 1-2 is a ranking pass and is
+        # supposed to surface high t values on noise - that is what a search
+        # over hundreds of thousands of cells does. The only question that
+        # matters is whether anything gets all the way through.
+        return dict(survivors=len(survivors), tested=k_total, bar=bar,
+                    n_final=len(final),
+                    best_boot_t=max((f[0] for f in final if np.isfinite(f[0])),
+                                    default=float("nan")),
+                    best_naive_t=(leaders[0][0] if leaders else float("nan")),
+                    elapsed=time.time() - t0)
+
     if not survivors:
-        print("  Nothing survives. The holdout stays closed - opening it for a")
-        print("  configuration that already failed in discovery would only")
-        print("  spend the one clean test this record still has.")
-        print(f"\n  elapsed {time.time()-t0:.0f}s")
+        say("  Nothing survives. The holdout stays closed - opening it for a")
+        say("  configuration that already failed in discovery would only")
+        say("  spend the one clean test this record still has.")
+        say(f"\n  elapsed {time.time()-t0:.0f}s")
         return None
 
     # ---- the holdout, opened exactly once ---------------------------------
     bt, ct, e, n, cfg, combo, nm, _, ci = survivors[0]
     look, buf, sm, tp_j, hk = cfg
-    print(f"\n  HOLDOUT - opened once, on the single best survivor only")
+    say(f"\n  HOLDOUT - opened once, on the single best survivor only")
     W = walks[(look, buf, sm)]
     Rh, heldh, keeph, reph = resolve(W, tp_j, hk, split, "holdout")
     # the SAME frozen thresholds - not refitted on the holdout, which would
@@ -847,21 +857,21 @@ def run(m, tf, label, calib=False):
     for j in combo: mh &= Fh[nm[j]]
     rh = Rh[mh]
     tpname = "none" if tp_j is None else f"{tps_real[tp_j]}R"
-    print(f"  config: look{look} buf{buf} {sm} tp{tpname} hold{HOLDS[hk]} | "
+    say(f"  config: look{look} buf{buf} {sm} tp{tpname} hold{HOLDS[hk]} | "
           f"{'+'.join(nm[x] for x in combo)}")
-    print(f"  discovery : n={n:>5}  E={e:+.4f}  boot t={bt:+.2f}  ctrl t={ct:+.2f}"
+    say(f"  discovery : n={n:>5}  E={e:+.4f}  boot t={bt:+.2f}  ctrl t={ct:+.2f}"
           f"  bootstrap 95% CI [{ci[0]:+.4f}, {ci[1]:+.4f}]")
     if len(rh) < 30:
-        print(f"  holdout   : n={len(rh)} - too few to judge")
+        say(f"  holdout   : n={len(rh)} - too few to judge")
     else:
         bth = block_bootstrap_t(rh, W["i"][mh], heldh[mh], 1)
         cth, csh = matched_control(P, subset(W, mh), tp_j, hk, split, "holdout")
         skh = rh.mean() - cth.mean() if len(cth) >= 30 else float("nan")
-        print(f"  holdout   : n={len(rh):>5}  E={rh.mean():+.4f}  boot t={bth:+.2f}"
+        say(f"  holdout   : n={len(rh):>5}  E={rh.mean():+.4f}  boot t={bth:+.2f}"
               f"  net={rh.sum():+.1f}R  ctrl skill={skh:+.4f} (ctrl n={len(cth)})")
         agree = (rh.mean() > 0) == (e > 0) and rh.mean() > 0
-        print(f"  -> {'HOLDS UP' if agree else 'DOES NOT HOLD UP'} out of sample")
-    print(f"\n  elapsed {time.time()-t0:.0f}s")
+        say(f"  -> {'HOLDS UP' if agree else 'DOES NOT HOLD UP'} out of sample")
+    say(f"\n  elapsed {time.time()-t0:.0f}s")
     return None
 
 def main():
