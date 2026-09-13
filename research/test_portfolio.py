@@ -268,6 +268,46 @@ if len(df):
        abs(recomputed - row.pl) < 1e-9,
        f"logged {row.pl:.6f}, recomputed from fills {recomputed:.6f}")
 
+print("\nGROUP 9  a trade that opens and closes on the SAME bar")
+# The intraday session deadline produces these constantly: a signal on the
+# last closable bar of the day gets a one-bar trade, so entry_bar == exit_bar.
+# With an equality test in the close step these were opened AFTER the close
+# check had already run and were never closed at all - they held margin for
+# the rest of the backtest. Thirteen years of them fired a false margin call
+# whose liquidation booked +4,737 USC of stale profit in one bar.
+mid_sb = np.concatenate([np.full(3, 2000.0), np.full(9, 2010.0)])
+tr_sb = [dict(entry_bar=1, exit_bar=1, d=1, entry_px=2000.0, exit_px=2005.0,
+              stop_px=1990.0)]
+r_sb = simulate(tr_sb, mid_sb, idx(12), broker=FREE, risk_frac=0.01,
+                start_equity=10_000.0)
+ck("a same-bar trade is closed, not left open forever",
+   r_sb["n_taken"] == 1 and not r_sb["blown"],
+   f"taken={r_sb['n_taken']} (want 1), blown={r_sb['blown']} (want False), "
+   f"max_concurrent={r_sb['max_concurrent']}")
+# 0.10 lots, 5 points of profit = $50
+ck("its P&L is priced from its own exit, not carried to the end of the data",
+   abs(r_sb["net_pl"] - 50.0) < 1e-9,
+   f"net {r_sb['net_pl']:.4f} (want 5 points on 0.10 lots = 50.00)")
+# peak margin use is legitimately 0 here: the position is opened and closed
+# inside the same bar, so it never survives to a mark-to-market point. What
+# matters is that nothing is left tied up afterwards.
+ck("no margin is left tied up after it closes",
+   r_sb["equity"][-1] == r_sb["final_equity"] and r_sb["rejected"]["margin"] == 0,
+   f"final equity {r_sb['final_equity']:.2f} = last equity point "
+   f"{r_sb['equity'][-1]:.2f}, margin rejections {r_sb['rejected']['margin']}; "
+   f"peak margin use is {r_sb['max_margin_use']*100:.2f}% because the trade "
+   f"never lives to a mark-to-market bar, which is correct")
+
+# many of them in a row must not accumulate
+many = [dict(entry_bar=b, exit_bar=b, d=1, entry_px=2000.0, exit_px=2000.0,
+             stop_px=1990.0) for b in range(1, 200)]
+r_many = simulate(many, np.full(400, 2000.0), idx(400), broker=FREE,
+                  risk_frac=0.01, start_equity=10_000.0)
+ck("199 same-bar trades never stack up into a false margin call",
+   not r_many["blown"] and r_many["max_concurrent"] <= 1,
+   f"blown={r_many['blown']}, max_concurrent={r_many['max_concurrent']} "
+   f"(want <= 1 - each closes on the bar it opened)")
+
 print("\n" + "=" * 70)
 print(summarise(r, "sample account (3 overlapping longs, all stopped):"))
 print("=" * 70)
@@ -277,3 +317,5 @@ if fails:
     sys.exit(1)
 print("all portfolio tests passed")
 sys.exit(0)
+
+# --------------------------------------------------------------------------
