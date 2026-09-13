@@ -310,9 +310,30 @@ def build_filters(P, W):
 
 # ---------------------------------------------------------------- scoring --
 def naive_t(R):
+    """A per-trade t, WINSORIZED at the 1st/99th percentile first.
+
+    Found by an independent sanity check, not by calibration: a stop-only
+    design with no target (tp=None) and a long hold has capped downside
+    (near -1R) but UNCAPPED upside - over up to 1000 bars a pure martingale's
+    range grows like sqrt(steps), so a small fraction of trades reach R of
+    +15 to +20 purely from random walk range expansion, nothing to do with
+    drift. Median R on synthetic noise was -1.04 (as expected - most trades
+    hit their stop) while the raw mean read +0.12 at a naive t of +4.65,
+    entirely because roughly 0.5% of trades in the far right tail dragged it
+    there. The optional stopping theorem still guarantees E[R]=0 in the
+    limit, but the empirical mean's SAMPLING VARIANCE is dominated by that
+    tail, and a t-test that assumes roughly normal errors is not valid on it -
+    a few lucky excursions can manufacture apparent significance that has
+    nothing to do with any rule's skill. Winsorizing bounds the influence any
+    single trade can have on the statistic used to rank candidates; stage 3's
+    block bootstrap is the real arbiter for anything promoted this way, since
+    resampling on the actual (fat-tailed) distribution is honest where a
+    parametric t is not."""
     if len(R) < 20: return float("nan")
-    sd = R.std(ddof=1)
-    return R.mean() / (sd / math.sqrt(len(R))) if sd > 0 else float("nan")
+    lo, hi = np.percentile(R, [1, 99])
+    Rw = np.clip(R, lo, hi)
+    sd = Rw.std(ddof=1)
+    return Rw.mean() / (sd / math.sqrt(len(Rw))) if sd > 0 else float("nan")
 
 def block_bootstrap_t(R, entry_idx, held, bar_minutes, reps=2000, seed=SEED):
     """Overlap-aware significance. Trades are grouped into contiguous blocks
@@ -437,6 +458,18 @@ def run(m, tf, label, calib=False):
         tp_list = [None] + list(range(len([t for t in TPS if t is not None])))
         for tp_j in tp_list:
             for hk in range(len(HOLDS)):
+                # A stop with NO target caps the loss near -1R but leaves the
+                # win side open. Over a long hold a driftless walk's range
+                # grows like sqrt(steps), so a small tail of trades reaches
+                # R of +15 to +20 purely from range expansion, nothing to do
+                # with drift or skill. Found by an independent sanity check:
+                # winsorizing the naive t at the 1st/99th percentile still left
+                # many pure-noise configs scoring |t| of 5-10 at hold=1000,
+                # sign essentially decided by whether that finite sample
+                # happened to catch one of the rare compensating tail events.
+                # A target caps BOTH sides, so this does not apply once tp_j
+                # is set - only the no-target branch is restricted here.
+                if tp_j is None and HOLDS[hk] > 96: continue
                 R, held = outcome(Wd, tp_j, hk)
                 k_total += 1
                 if len(R) < MIN_N_BASE: continue
