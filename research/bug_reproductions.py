@@ -1,131 +1,183 @@
 #!/usr/bin/env python3
 """Reproductions for the execution-engine defects raised in review.
 
-Each case below is a MINIMAL, hand-built price path where the correct answer
-is known before any code runs. A case that reproduces prints the wrong number
-the engine currently returns alongside the right one. Nothing here is fixed by
-this file - it exists so the fixes can be verified against a failing test
-rather than against an argument.
+WHAT THIS FILE IS FOR, IN TWO PARTS
+
+  PART 1 - ENGINE DEFECTS. Three defects were raised, reproduced here on
+  hand-built paths whose correct answer is known before any code runs, and
+  then fixed. This part now asserts they are GONE. If any of them comes back -
+  a refactor that re-widens the entry-gap hole, a control that stops calling
+  execute(), a filter that reads across the split - this file fails and the
+  sweep's numbers are not to be trusted until it passes again.
+
+    1. ENTRY GAP. A long whose entry bar opened at 90 with the stop at 98 was
+       booked at +0.667R, an exit filled at a price that never traded after
+       entry. The short mirror returned the same fabricated number.
+    2. CONTROL EXPIRY. The strategy's hold-H exit was the close of bar e+H-1;
+       the control's was c[e+H]. One free bar of information on every control
+       trade, in whichever direction that bar happened to move.
+    3. HOLDOUT LEAK. Discovery results moved when holdout data changed, three
+       ways: trades straddling the boundary, filter medians fitted on the
+       whole series, and a control that sampled the whole history.
+
+  PART 2 - STANDING FACTS. Two of the seven items were never engine bugs that
+  could be "fixed" - they are measurements about the statistics themselves,
+  and they stay true. They are re-measured on every run so the numbers in the
+  write-ups can be checked rather than believed, and they do NOT gate the exit
+  code.
 
 Run:  python3 research/bug_reproductions.py
-Exit code is non-zero while any defect still reproduces.
+Exit code is non-zero if any ENGINE DEFECT has returned.
 """
 import sys, pathlib
 import numpy as np, pandas as pd
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import mega_search as M
+from exec_engine import execute, GAP_SKIP
+from split_guard import Split
 
-found = []
+regressions = []
 
 def frame(rows, spread=0.0):
     o, h, l, c = map(np.array, zip(*rows))
     idx = pd.date_range("2020-01-01", periods=len(rows), freq="1h", tz="UTC")
     return pd.DataFrame({"open": o, "high": h, "low": l, "close": c,
-                         "spread": np.full(len(rows), spread),
+                         "spread": np.full(len(rows), spread, float),
                          "volume": np.ones(len(rows))}, index=idx)
 
-def report(tag, reproduced, detail):
-    found.append((tag, reproduced))
-    mark = "REPRODUCED" if reproduced else "not reproduced"
-    print(f"  [{mark}] {tag}")
+def check(tag, fixed, detail):
+    if not fixed: regressions.append(tag)
+    print(f"  [{'FIXED' if fixed else '*** REGRESSED'}] {tag}")
     for line in detail.splitlines():
         print(f"        {line}")
 
+def note(tag, detail):
+    print(f"  [MEASURED] {tag}")
+    for line in detail.splitlines():
+        print(f"        {line}")
+
+# =========================================================== PART 1 ========
 # ---------------------------------------------------------------- BUG 1 ---
 def bug1_entry_gap_long():
     """A long signal whose ENTRY BAR opens far below the stop.
 
     Signal closes at 110 with the stop at 98 (the 20-bar low). The next bar -
     the entry bar - opens at 90, already 8 points BELOW the stop, and never
-    trades above 92 afterwards. The only honest outcomes are to fill the exit
-    at the opening price of 90 (a loss beyond 1R) or to skip the trade. The
-    engine must not book an exit at 98, because 98 never occurs after entry."""
+    trades above 92 afterwards. The only honest outcomes are to fill at the
+    opening price of 90 (a loss beyond 1R) or to skip the trade. Booking an
+    exit at 98 is fiction: 98 never occurs after entry."""
     print("\nBUG 1  entry bar gaps through the stop (long)")
     rows = [(100, 102, 98, 100)] * 30
     rows += [(100, 110, 98, 110)]        # bar 30: signal, close 110, 20-bar low 98
     rows += [(90, 92, 88, 89)]           # bar 31: ENTRY opens at 90, below stop 98
     rows += [(89, 91, 87, 88)] * 20
-    m = frame(rows)
-    P = M.prep(m)
+    P = M.prep(frame(rows))
     W = M.walk_rule(P, 20, 0.0, "range", np.zeros(P["N"]), 96)
-    if W is None or len(W["i"]) == 0:
-        report("bug1 long gap", False, "engine generated no trade (acceptable)"); return
-    entry = float(W["entry"][0]); risk = float(W["risk"][0])
-    R, _ = M.outcome(W, 2, 3)
-    got = float(R[0])
-    # correct: fill at the open, 90. R = (90 - 110_signal_ref...) - the engine
-    # measures from the ENTRY, so (90 - 90)/12 = 0 at best, and any exit price
-    # above the entry is impossible because the bar's high is 92.
-    worst_possible_gain = (92.0 - entry) / risk
-    bad = got > worst_possible_gain + 1e-9
-    report("bug1 long gap", bad,
-           f"entry={entry}  stop=98  risk={risk}\n"
-           f"engine returned R={got:+.4f}\n"
-           f"the entry bar's HIGH is 92, so the largest attainable R is "
-           f"{worst_possible_gain:+.4f}\n"
-           f"a larger number means the engine booked a price that never traded "
-           f"after entry")
+    if W is None or 30 not in set(W["i"].tolist()):
+        check("bug1 long gap", True, "no trade generated at bar 30 at all")
+        return
+    q = int(np.where(W["i"] == 30)[0][0])
+    R, held, ok = M.outcome(W, 2, 3)
+    entry, risk = float(W["entry"][q]), float(W["risk"][q])
+    best = (92.0 - entry) / risk        # the entry bar's HIGH is 92
+    skipped = bool(W["g_stop"][q]) and not ok[q]
+    honest = skipped or (np.isfinite(R[q]) and R[q] <= best + 1e-9)
+    check("bug1 long gap", honest,
+          f"entry={entry}  stop={float(W['stop'][q])}  risk={risk}\n"
+          f"the entry bar's HIGH is 92, so the largest attainable R is {best:+.4f}\n"
+          f"engine now: g_stop={bool(W['g_stop'][q])}, trade kept={bool(ok[q])}, "
+          f"R={R[q]}\n"
+          f"(the old engine returned R=+0.6667 here by filling the exit at 98)")
 
 def bug1_entry_gap_short():
     """The mirror: a short whose entry bar opens far ABOVE its stop."""
     print("\nBUG 1b  entry bar gaps through the stop (short)")
     rows = [(100, 102, 98, 100)] * 30
-    rows += [(100, 102, 90, 90)]         # bar 30: signal short, close 90 < low 98
+    rows += [(100, 102, 90, 90)]         # bar 30: signal short, close 90 below low
     rows += [(110, 112, 108, 111)]       # bar 31: ENTRY opens 110, above stop 102
     rows += [(111, 113, 109, 112)] * 20
-    m = frame(rows)
-    P = M.prep(m)
+    P = M.prep(frame(rows))
     W = M.walk_rule(P, 20, 0.0, "range", np.zeros(P["N"]), 96)
-    if W is None or len(W["i"]) == 0:
-        report("bug1 short gap", False, "engine generated no trade (acceptable)"); return
-    entry = float(W["entry"][0]); risk = float(W["risk"][0])
-    R, _ = M.outcome(W, 2, 3)
-    got = float(R[0])
-    worst_possible_gain = (entry - 108.0) / risk    # short profits as price falls
-    bad = got > worst_possible_gain + 1e-9
-    report("bug1 short gap", bad,
-           f"entry={entry}  stop=102  risk={risk}\n"
-           f"engine returned R={got:+.4f}\n"
-           f"the entry bar's LOW is 108, so the largest attainable R is "
-           f"{worst_possible_gain:+.4f}")
+    if W is None or 30 not in set(W["i"].tolist()):
+        check("bug1 short gap", True, "no trade generated at bar 30 at all")
+        return
+    q = int(np.where(W["i"] == 30)[0][0])
+    R, held, ok = M.outcome(W, 2, 3)
+    entry, risk = float(W["entry"][q]), float(W["risk"][q])
+    best = (entry - 108.0) / risk       # a short profits as price falls; low is 108
+    skipped = bool(W["g_stop"][q]) and not ok[q]
+    honest = skipped or (np.isfinite(R[q]) and R[q] <= best + 1e-9)
+    check("bug1 short gap", honest,
+          f"entry={entry}  stop={float(W['stop'][q])}  risk={risk}\n"
+          f"the entry bar's LOW is 108, so the largest attainable R is {best:+.4f}\n"
+          f"engine now: g_stop={bool(W['g_stop'][q])}, trade kept={bool(ok[q])}, "
+          f"R={R[q]}\n"
+          f"(the old engine returned R=+0.6667 here by filling the exit at 102)")
 
 # ---------------------------------------------------------------- BUG 2 ---
 def bug2_control_expiry():
     """Strategy and control must expire on the SAME bar.
 
-    The strategy records its hold-H exit as the close of bar e+H-1 (its `step`
-    counter starts at 1 on the entry bar). The control prices its time exit at
-    c[e+H]. That is one bar of free information, in whichever direction the
-    extra bar happens to move."""
+    Checked two ways: the old divergent code paths must be gone from the
+    source, and - the check that actually matters - a control trade that
+    reaches its horizon must be held for exactly the horizon, never one bar
+    more, measured by running it."""
     print("\nBUG 2  matched control expires one bar later than the strategy")
-    src = pathlib.Path(__file__).parent / "mega_search.py"
-    txt = src.read_text()
-    strat = "if step == hh: c_at[hi] = c[k]"
-    ctrl = "px = c[min(e + hold, N - 1)]"
-    both = strat in txt and ctrl in txt
-    detail = (f"strategy horizon line : {strat!r}\n"
-              f"  step = k - e + 1, so step == H means k = e + H - 1\n"
-              f"control horizon line  : {ctrl!r}\n"
-              f"  prices the same horizon at bar e + H\n"
-              f"difference: exactly one bar, every control trade")
-    report("bug2 control off-by-one expiry", both, detail)
+    txt = (pathlib.Path(__file__).parent / "mega_search.py").read_text()
+    old_ctrl = "px = c[min(e + hold, N - 1)]"
+    gone = old_ctrl not in txt
+    shares = "execute(" in txt.split("def matched_control")[1].split("\ndef ")[0]
+
+    # a flat path: nothing ever reaches a stop or target, so every control
+    # trade must exit on the clock, and the clock must be the strategy's
+    rng = np.random.default_rng(5)
+    n = 900
+    px = 2000 + np.cumsum(rng.normal(0, 0.5, n))
+    m = frame(list(zip(px, px + 0.4, px - 0.4, px + rng.normal(0, 0.2, n))),
+              spread=0.3)
+    P = M.prep(m)
+    split = Split(P["idx"], P["idx"][600])
+    W = dict(i=np.arange(40, 240), d=np.where(np.arange(200) % 2 == 0, 1, -1).astype(float),
+             risk=np.full(200, 30.0))
+    HOLD_K = 1                                   # HOLDS[1] = 24
+    ctrl, st = M.matched_control(P, W, 2, HOLD_K, split, "discovery", reps=2)
+    hold = M.HOLDS[HOLD_K]
+    over = 0 if np.isnan(st["mean_held"]) else int(st["mean_held"] > hold)
+    ok = gone and shares and not over
+    check("bug2 control off-by-one expiry", ok,
+          f"old divergent control line {old_ctrl!r} present in source: {not gone}\n"
+          f"matched_control calls exec_engine.execute(): {shares}\n"
+          f"measured: horizon {hold} bars, control mean held "
+          f"{st['mean_held']:.2f} bars over {st['n']} trades - a control that "
+          f"expired at e+H would average {hold + 1:.0f}\n"
+          f"control long fraction {st['long_frac']:.2f} against a 0.50 strategy mix")
 
 # ---------------------------------------------------------------- BUG 3 ---
 def bug3_holdout_leak():
-    """Changing data AFTER the discovery/holdout boundary must not change any
-    discovery-period result. It currently does, three separate ways."""
+    """Changing data AFTER the boundary must not change any discovery result.
+
+    Run through mega_search's own resolve(), so this tests the sweep as it
+    actually runs rather than a stand-in for it."""
     print("\nBUG 3  holdout leaks into discovery scoring")
-    n = 4000
+    n, cut = 4000, 3000
     m = M.synth(n, 5, 0.0012)
-    cut = 3000
-    P = M.prep(m)
-    cost = P["spread"] + M.COMMISSION
-    W = M.walk_rule(P, 20, 0.1, "atr2", cost, 1000)
-    keep = W["i"] < cut
-    Wd = {k: (v[..., keep] if k in ("t_tp", "p_tp", "c_at") else v[keep])
-          for k, v in W.items()}
-    R1, _ = M.outcome(Wd, 2, 5)          # hold=1000 straddles the boundary
+
+    def disc_scores(frame_in):
+        P = M.prep(frame_in)
+        split = Split(P["idx"], P["idx"][cut])
+        th = M.fit_thresholds(P, split)
+        cost = P["spread"] + M.COMMISSION
+        W = M.walk_rule(P, 20, 0.1, "atr2", cost, max(M.HOLDS))
+        # tp=None at hold=1000 ON PURPOSE. With a 2R target every trade on this
+        # path resolves inside 68 bars, nothing straddles the boundary, and the
+        # check passes while testing nothing - the same vacuity trap the
+        # split-guard suite guards against with its unguarded control. Removing
+        # the target is what produces trades that are still open at the line.
+        R, held, keep, rep = M.resolve(W, None, 5, split, "discovery")
+        F = M.build_filters(P, W, th)
+        msk = keep & F["spread_tight"] & F["efficiency_high"]
+        return W["i"][msk], R[msk], rep
 
     m2 = m.copy()
     tail = m2.index[cut:]
@@ -135,37 +187,46 @@ def bug3_holdout_leak():
         m2.loc[tail, col] = m2.loc[tail, col].to_numpy() + bump
     m2.loc[tail, "high"] = m2.loc[tail, ["open", "high", "low", "close"]].max(axis=1)
     m2.loc[tail, "low"] = m2.loc[tail, ["open", "high", "low", "close"]].min(axis=1)
-    P2 = M.prep(m2); cost2 = P2["spread"] + M.COMMISSION
-    W2 = M.walk_rule(P2, 20, 0.1, "atr2", cost2, 1000)
-    keep2 = W2["i"] < cut
-    Wd2 = {k: (v[..., keep2] if k in ("t_tp", "p_tp", "c_at") else v[keep2])
-           for k, v in W2.items()}
-    R2, _ = M.outcome(Wd2, 2, 5)
-    nn = min(len(R1), len(R2))
-    changed = int((np.abs(R1[:nn] - R2[:nn]) > 1e-9).sum())
-    report("bug3a discovery trades change when the holdout changes", changed > 0,
-           f"{changed} of {nn} discovery trades changed R\n"
-           f"mean R before {R1[:nn].mean():+.4f} -> after {R2[:nn].mean():+.4f}\n"
-           f"cause: a trade signalled before the cut can hold past it")
 
-    txt = (pathlib.Path(__file__).parent / "mega_search.py").read_text()
+    i1, R1, rep1 = disc_scores(m)
+    i2, R2, rep2 = disc_scores(m2)
+    same = len(R1) == len(R2) and np.array_equal(i1, i2) and \
+           (len(R1) == 0 or np.abs(R1 - R2).max() == 0.0)
+    md = 0.0 if len(R1) == len(R2) == 0 else (
+        np.abs(R1 - R2).max() if len(R1) == len(R2) else float("inf"))
+    check("bug3a discovery trades change when the holdout changes", same,
+          f"hold=1000 no target, filters spread_tight+efficiency_high\n"
+          f"n {len(R1)} vs {len(R2)}, max |dR| = {md:.3e}\n"
+          f"purged: {rep1['straddling']} straddling, {rep1['gap_skipped']} "
+          f"entry-gap skips")
+    # the check above is worthless if nothing straddled: it would be asserting
+    # that unaffected trades are unaffected
+    check("bug3a is not vacuous - trades really did straddle the boundary",
+          rep1["straddling"] > 0,
+          f"{rep1['straddling']} trades were still open at the boundary and "
+          f"were dropped from both sides. Had they been kept on the signal "
+          f"index alone, as the old code did, each would have read up to 1000 "
+          f"holdout bars to decide its own outcome.")
+
     leaks = []
-    if "def med(x): return np.nanmedian(x[np.isfinite(x)])" in txt:
-        leaks.append("build_filters medians (spread, volume, efficiency) are "
-                     "computed over the WHOLE series, holdout included")
-    if "pool = np.arange(ATR_N + 200, N - max(HOLDS) - 2)" in txt:
-        leaks.append("matched_control draws its random bars from the WHOLE "
-                     "series, so a discovery control trade can land in the holdout")
-    report("bug3b thresholds and control sampling span the boundary",
-           len(leaks) > 0, "\n".join(leaks) if leaks else "none found")
+    if "def med(x): return np.nanmedian(x[np.isfinite(x)])" in \
+            (pathlib.Path(__file__).parent / "mega_search.py").read_text():
+        leaks.append("build_filters still takes whole-series medians")
+    if "pool = np.arange(ATR_N + 200, N - max(HOLDS) - 2)" in \
+            (pathlib.Path(__file__).parent / "mega_search.py").read_text():
+        leaks.append("matched_control still draws from the whole series")
+    check("bug3b thresholds and control sampling span the boundary",
+          not leaks,
+          "\n".join(leaks) if leaks else
+          "thresholds come from fit_thresholds(P, split) (discovery rows only)\n"
+          "control draws from window_pool(split, side, ...) (one side only)")
 
-# ---------------------------------------------------------------- BUG 4 ---
-def bug4_audit_centering():
+# =========================================================== PART 2 ========
+def fact_audit_centering():
     """metric_audit's fat-tail case subtracted each sample's OWN mean before
     measuring coverage, which removes exactly the tail-driven variation the
-    test was meant to measure. Measured here both ways, against the production
-    function."""
-    print("\nBUG 4  the 0.5% false-positive figure was produced by a centred sample")
+    test was meant to measure. The correct figure is the un-centred one."""
+    print("\nFACT 1  the 0.5% false-positive figure came from a centred sample")
     rng = np.random.default_rng(3)
     n, trials, overlap = 600, 400, 20
     def draw(center):
@@ -183,16 +244,15 @@ def bug4_audit_centering():
                                       np.full(n, float(overlap)), reps=300, seed=q)
             if ci is not None and (ci[0] > 0 or ci[1] < 0): hits += 1
         out[label] = hits / trials
-    diff = abs(out["not centred (correct)"] - out["centred (what the audit did)"])
-    report("bug4 centring hid the true false-positive rate", diff > 0.02,
-           "\n".join(f"{k:<32} {v:.2%}" for k, v in out.items()) +
-           f"\nnominal is 5% - the centred figure understates it")
+    note("centring hid the true false-positive rate",
+         "\n".join(f"{k:<32} {v:.2%}" for k, v in out.items()) +
+         "\nnominal is 5%; the centred figure understates it and is not usable")
 
-# ---------------------------------------------------------------- BUG 5 ---
-def bug5_fwer():
+def fact_fwer():
     """sqrt(2 ln k) is the EXPECTED maximum of k noise draws, not a 5%
-    family-wise threshold. Measured directly."""
-    print("\nBUG 5  sqrt(2 ln k) is a heuristic, not a 5% family-wise bar")
+    family-wise threshold. Measured directly, and reported as such by the
+    sweep, which calls it a heuristic floor rather than a bar."""
+    print("\nFACT 2  sqrt(2 ln k) is a heuristic, not a 5% family-wise bar")
     import math
     rng = np.random.default_rng(4)
     rows = []
@@ -200,26 +260,33 @@ def bug5_fwer():
         bar = math.sqrt(2 * math.log(k))
         exceed = np.mean([np.abs(rng.normal(0, 1, k)).max() > bar for _ in range(400)])
         rows.append((k, bar, exceed))
-    bad = any(e > 0.10 for _, _, e in rows)
-    report("bug5 family-wise error at the noise bar is far above 5%", bad,
-           "\n".join(f"k={k:>6}: bar {b:.2f}, at least one draw exceeds it "
-                     f"{e:.1%} of the time" for k, b, e in rows))
+    note("family-wise error at the noise floor is far above 5%",
+         "\n".join(f"k={k:>6}: floor {b:.2f}, at least one draw exceeds it "
+                   f"{e:.1%} of the time" for k, b, e in rows))
 
 def main():
-    print("EXECUTION ENGINE - DEFECT REPRODUCTIONS")
+    print("EXECUTION ENGINE - DEFECT REPRODUCTIONS AND REGRESSION CHECKS")
     print("Every case is hand-built so the right answer is known in advance.")
-    print("=" * 70)
+    print("=" * 74)
+    print("\nPART 1 - ENGINE DEFECTS (these must stay fixed)")
     for fn in (bug1_entry_gap_long, bug1_entry_gap_short, bug2_control_expiry,
-               bug3_holdout_leak, bug4_audit_centering, bug5_fwer):
+               bug3_holdout_leak):
         try:
             fn()
         except Exception as e:
-            report(fn.__name__, True, f"raised {type(e).__name__}: {e}")
-    print("\n" + "=" * 70)
-    live = [t for t, r in found if r]
-    print(f"{len(live)} of {len(found)} defects reproduce on the current engine")
-    for t in live: print(f"  - {t}")
-    sys.exit(1 if live else 0)
+            import traceback; traceback.print_exc()
+            check(fn.__name__, False, f"raised {type(e).__name__}: {e}")
+    print("\n" + "-" * 74)
+    print("PART 2 - STANDING FACTS (measured, not gating)")
+    for fn in (fact_audit_centering, fact_fwer):
+        fn()
+    print("\n" + "=" * 74)
+    if regressions:
+        print(f"{len(regressions)} ENGINE DEFECT(S) HAVE RETURNED:")
+        for t in regressions: print(f"  - {t}")
+        sys.exit(1)
+    print("all reproduced defects remain fixed")
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()

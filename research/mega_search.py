@@ -60,6 +60,8 @@ import numpy as np, pandas as pd
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import fetch_dukascopy as D
+from exec_engine import execute, plan_from_signal, REASON, GAP_SKIP
+from split_guard import Split, purge, Thresholds, window_pool
 
 # ----------------------------------------------------------------- config --
 COMMISSION   = 0.07
@@ -106,21 +108,52 @@ def rolling_edges(P, look):
     return h, l
 
 # ------------------------------------------------------- one walk per rule --
+# WHY THE RECORDED WALK EXISTS, AND WHY IT IS SAFE
+#
+#   The search prices 36 (target, hold) pairs per base rule. Calling
+#   exec_engine.execute() once per pair per signal is 36x the work and the
+#   sweep does not finish. So each signal is walked ONCE and every event that
+#   any (target, hold) pair could need is recorded; outcome() then resolves a
+#   pair by arithmetic.
+#
+#   That is only legitimate if the recorded walk is the SAME FUNCTION as
+#   exec_engine.execute(). It is not enough to believe that. test_walk_
+#   equivalence.py asserts it: on random paths, every signal, every target,
+#   every hold, outcome() must return exactly what execute() returns - the
+#   same R, the same exit price, the same exit bar, the same skip decision.
+#   The matched control calls execute() directly, so strategy and control are
+#   measured by one set of rules, which is what the review demanded.
+#
+#   EVENT ORDER. execute() checks, per bar: stop-at-open, target-at-open,
+#   stop-intrabar, target-intrabar, and returns on the first hit. The recorded
+#   walk reproduces that ordering by timestamping an at-open fill at
+#   step - 0.5 and an intrabar fill at step, with the stop winning ties. A bar
+#   that opens through the target therefore fills at that open even if the same
+#   bar later trades through the stop, which is what actually happens.
+#
+#   ENTRY GAP. If the entry bar's open is already beyond the stop, or already
+#   beyond a target, the plan was void before it could be placed and the trade
+#   is SKIPPED (exec_engine's declared default). The stop gap is one flag; the
+#   target gap depends on the multiple, so it is one flag PER target.
 def walk_rule(P, look, buf, stop_mode, cost, hold_max):
     """Resolve every signal of one base rule ONCE, recording enough to derive
     any (target, hold) pair afterwards.
 
     Returns arrays aligned per candidate trade:
-      idx, dirn, risk, entry
-      t_stop, p_stop          first bar the stop filled, and at what price
+      i, d, risk, entry, stop, cost
+      t_stop, p_stop          when the stop filled (half-step = at an open)
       t_tp[j], p_tp[j]        same for each target multiple in TPS
       c_at[k]                 close price at each horizon in HOLDS
+      g_stop                  entry bar opened beyond the stop -> skip
+      g_tp[j]                 entry bar opened beyond target j -> skip
     """
     o, h, l, c, A, N = P["o"], P["h"], P["l"], P["c"], P["A"], P["N"]
     ph, pl = rolling_edges(P, look)
     tps = [t for t in TPS if t is not None]
-    out = {k: [] for k in ("i", "d", "risk", "entry", "t_stop", "p_stop")}
+    out = {k: [] for k in ("i", "d", "risk", "entry", "stop", "t_stop",
+                           "p_stop", "g_stop")}
     out["t_tp"] = [[] for _ in tps]; out["p_tp"] = [[] for _ in tps]
+    out["g_tp"] = [[] for _ in tps]
     out["c_at"] = [[] for _ in HOLDS]
 
     start = max(look, ATR_N) + 5
@@ -131,21 +164,24 @@ def walk_rule(P, look, buf, stop_mode, cost, hold_max):
         dn = c[i] < pl[i] - buf * a
         if not (up or dn): continue
         d = 1 if up else -1
-        if stop_mode == "range":
-            stop = (pl[i] - buf * a) if d > 0 else (ph[i] + buf * a)
-        else:
-            k_atr = float(stop_mode[3:])
-            stop = c[i] - d * k_atr * a
-        if not np.isfinite(stop): continue
-        risk = (c[i] - stop) * d
-        if risk <= 0: continue
-        if not (MIN_STOP_ATR * a <= risk <= MAX_STOP_ATR * a): continue
-        cst = cost[i + 1] if i + 1 < N else cost[i]
-        if risk < MIN_RISK_COST * cst: continue
-
         e = i + 1
+        cst = float(cost[e]) if e < len(cost) else float(cost[-1])
+        # the plan is the SAME function the control and the unit tests use
+        plan = plan_from_signal(c[i], a, ph[i], pl[i], d, stop_mode, buf,
+                                None, MIN_STOP_ATR, MAX_STOP_ATR,
+                                MIN_RISK_COST, cst)
+        if plan is None: continue
+        stop, risk, _ = plan
         entry = o[e]
-        tp_px = [entry + d * t * risk for t in tps]
+        if not np.isfinite(entry): continue
+
+        # targets are frozen at the SIGNAL close, exactly as plan_from_signal
+        # computes them - not at the fill, which the strategy cannot know yet
+        tp_px = [c[i] + d * t * risk for t in tps]
+
+        g_stop = bool((entry <= stop) if d > 0 else (entry >= stop))
+        g_tp = [bool((entry >= px) if d > 0 else (entry <= px)) for px in tp_px]
+
         t_stop, p_stop = np.inf, np.nan
         t_tp = [np.inf] * len(tps); p_tp = [np.nan] * len(tps)
         c_at = [np.nan] * len(HOLDS)
@@ -153,12 +189,13 @@ def walk_rule(P, look, buf, stop_mode, cost, hold_max):
         for k in range(e, limit):
             step = k - e + 1
             if k > e:
-                if (o[k] <= stop) if d > 0 else (o[k] >= stop):
-                    if t_stop is np.inf or step < t_stop:
-                        t_stop, p_stop = step, o[k]
+                # an open already beyond a bracket fills AT THAT OPEN, and does
+                # so BEFORE anything the same bar reaches intrabar
+                if t_stop == np.inf and ((o[k] <= stop) if d > 0 else (o[k] >= stop)):
+                    t_stop, p_stop = step - 0.5, o[k]
                 for j, px in enumerate(tp_px):
                     if t_tp[j] == np.inf and ((o[k] >= px) if d > 0 else (o[k] <= px)):
-                        t_tp[j], p_tp[j] = step, o[k]
+                        t_tp[j], p_tp[j] = step - 0.5, o[k]
             if t_stop == np.inf and ((l[k] <= stop) if d > 0 else (h[k] >= stop)):
                 t_stop, p_stop = step, stop
             for j, px in enumerate(tp_px):
@@ -167,74 +204,120 @@ def walk_rule(P, look, buf, stop_mode, cost, hold_max):
             for hi, hh in enumerate(HOLDS):
                 if step == hh: c_at[hi] = c[k]
             if t_stop != np.inf and all(t != np.inf for t in t_tp):
-                # everything that can fill has filled; remaining horizons keep
-                # their close only if we already passed them
                 if step >= max(HOLDS): break
-        # horizons beyond the data end fall back to the last available close
+        # horizons beyond the data end fall back to the last available close,
+        # matching execute()'s last = min(e + hold, N)
         last_c = c[min(limit - 1, N - 1)]
         for hi in range(len(HOLDS)):
             if not np.isfinite(c_at[hi]): c_at[hi] = last_c
 
         out["i"].append(i); out["d"].append(d); out["risk"].append(risk)
-        out["entry"].append(entry)
+        out["entry"].append(entry); out["stop"].append(stop)
         out["t_stop"].append(t_stop); out["p_stop"].append(p_stop)
+        out["g_stop"].append(g_stop)
         for j in range(len(tps)):
             out["t_tp"][j].append(t_tp[j]); out["p_tp"][j].append(p_tp[j])
+            out["g_tp"][j].append(g_tp[j])
         for hi in range(len(HOLDS)):
             out["c_at"][hi].append(c_at[hi])
 
     if not out["i"]: return None
-    W = {k: np.asarray(v, float) for k, v in out.items() if k not in ("t_tp","p_tp","c_at")}
+    skip = ("t_tp", "p_tp", "c_at", "g_tp")
+    W = {k: np.asarray(v, float) for k, v in out.items() if k not in skip}
     W["i"] = W["i"].astype(int)
+    W["g_stop"] = W["g_stop"].astype(bool)
     W["t_tp"] = np.asarray(out["t_tp"], float)
     W["p_tp"] = np.asarray(out["p_tp"], float)
+    W["g_tp"] = np.asarray(out["g_tp"], bool)
     W["c_at"] = np.asarray(out["c_at"], float)
     W["cost"] = cost[np.minimum(W["i"] + 1, P["N"] - 1)]
+    # bars actually available after entry. A trade opened near the end of the
+    # data cannot hold for its full horizon: execute() stops at the last bar,
+    # so a time exit there is held for `room` bars, not `hold`. Recording this
+    # is what makes the two implementations agree at the right-hand edge -
+    # the equivalence test found the disagreement before this line existed.
+    W["room"] = (P["N"] - (W["i"] + 1)).astype(float)
     return W
 
+# arrays that are indexed [target_or_hold, trade] rather than [trade]
+STACKED = ("t_tp", "p_tp", "c_at", "g_tp")
+
+def subset(W, keep):
+    """Slice a recorded walk down to a subset of its trades."""
+    return {k: (v[..., keep] if k in STACKED else v[keep]) for k, v in W.items()}
+
 def outcome(W, tp_j, hold_k):
-    """Derive R for one (target, hold) pair from the recorded walk. Stop wins
-    ties, matching the frozen convention."""
+    """Derive one (target, hold) pair from the recorded walk.
+
+    Returns (R, held, ok). `ok` is False where the entry bar gapped through a
+    bracket and the trade is skipped; R and held are NaN there. Callers must
+    mask by `ok` - a skipped trade is not a zero, it is an absence."""
     hold = HOLDS[hold_k]
     t_stop = W["t_stop"]
-    stop_ok = t_stop <= hold
+    n = len(t_stop)
     if tp_j is None:
-        tp_ok = np.zeros(len(t_stop), bool); t_tp = np.full(len(t_stop), np.inf)
-        p_tp = np.full(len(t_stop), np.nan)
+        t_tp = np.full(n, np.inf); p_tp = np.full(n, np.nan)
+        ok = ~W["g_stop"]
     else:
         t_tp = W["t_tp"][tp_j]; p_tp = W["p_tp"][tp_j]
-        tp_ok = t_tp <= hold
-    exit_px = W["c_at"][hold_k].copy()
+        ok = ~W["g_stop"] & ~W["g_tp"][tp_j]
+    stop_ok = t_stop <= hold
+    tp_ok = t_tp <= hold
     use_tp = tp_ok & (~stop_ok | (t_tp < t_stop))
     use_st = stop_ok & ~use_tp
-    exit_px = np.where(use_tp, p_tp, exit_px)
-    exit_px = np.where(use_st, W["p_stop"], exit_px)
-    held = np.where(use_tp, t_tp, np.where(use_st, t_stop, float(hold)))
+    exit_px = np.where(use_tp, p_tp, np.where(use_st, W["p_stop"],
+                                              W["c_at"][hold_k]))
+    # a half-step fill happened on the bar it half-indexes: ceil it back
+    time_held = np.minimum(float(hold), W["room"])
+    held = np.where(use_tp, np.ceil(t_tp),
+                    np.where(use_st, np.ceil(t_stop), time_held))
     R = ((exit_px - W["entry"]) * W["d"] - W["cost"]) / W["risk"]
-    return R, held
+    R = np.where(ok, R, np.nan)
+    held = np.where(ok, held, np.nan)
+    return R, held, ok
+
+def exit_bars(W, held):
+    """Absolute bar index each trade exits on: entry bar + held - 1."""
+    return (W["i"] + held).astype(float)
 
 # --------------------------------------------------------------- filters --
-def build_filters(P, W):
-    """A much wider library than the 18 used before - adds a daily-timeframe
-    trend (never tested despite being asked about), ADX, MACD, stochastic,
-    Bollinger position, ROC, gap, session VWAP distance, volatility
-    percentile, streaks, and finer session buckets."""
+# THE SECOND LEAK, AND WHY IT WAS SUBTLE
+#
+#   The old build_filters took the median of spread, volume and efficiency over
+#   the WHOLE series. Nothing about that looks like cheating - a median is not
+#   an outcome - but "below median spread" in 2012 was then a statement about
+#   where 2019-2026's spreads would land. The discovery period was being
+#   filtered with a number that could not have existed at the time.
+#
+#   Recomputing the median separately per period does not fix it either: that
+#   makes discovery and holdout two different strategies and the holdout stops
+#   being a test of the thing that was found. The fix is the one a live system
+#   is forced into: FIT ONCE ON DISCOVERY, FREEZE, and carry the same number
+#   into the holdout however badly it fits there.
+#
+#   bar_features() is also cached on P. The old code rebuilt every indicator -
+#   ADX, MACD, stochastic, a daily resample - on every call, and stage 3 calls
+#   it once per leader.
+def bar_features(P):
+    """Every per-bar indicator, full length, computed once and cached."""
+    if "_feat" in P:
+        return P["_feat"]
     c, h, l, o, A, N = P["c"], P["h"], P["l"], P["o"], P["A"], P["N"]
     idx = P["idx"]
-    i = W["i"]; d = W["d"].astype(int)
     S = pd.Series(c)
 
-    ema = {n: S.ewm(span=n, adjust=False).mean().shift(1).to_numpy() for n in (20, 50, 200)}
-    atr_slow = pd.Series(A).rolling(50).mean().shift(1).to_numpy()
-    atr_pct = pd.Series(A).rolling(500).rank(pct=True).shift(1).to_numpy()
+    f = {}
+    for n in (20, 50, 200):
+        f[f"ema{n}"] = S.ewm(span=n, adjust=False).mean().shift(1).to_numpy()
+    f["atr_slow"] = pd.Series(A).rolling(50).mean().shift(1).to_numpy()
+    f["atr_pct"] = pd.Series(A).rolling(500).rank(pct=True).shift(1).to_numpy()
 
     # daily trend, forward-filled without look-ahead
     dly = pd.Series(c, index=idx).resample("1D").last().dropna()
     d_ema = dly.ewm(span=20, adjust=False).mean().shift(1)
     d_ema.index = d_ema.index + pd.Timedelta(days=1)
-    d_tr = d_ema.reindex(idx, method="ffill").to_numpy()
+    f["d_tr"] = d_ema.reindex(idx, method="ffill").to_numpy()
 
-    # ADX
     up_m = pd.Series(h).diff(); dn_m = -pd.Series(l).diff()
     plus = np.where((up_m > dn_m) & (up_m > 0), up_m, 0.0)
     minus = np.where((dn_m > up_m) & (dn_m > 0), dn_m, 0.0)
@@ -242,68 +325,87 @@ def build_filters(P, W):
     pdi = 100 * pd.Series(plus).ewm(alpha=1/14, adjust=False).mean() / atr_s
     mdi = 100 * pd.Series(minus).ewm(alpha=1/14, adjust=False).mean() / atr_s
     dx = 100 * (pdi - mdi).abs() / (pdi + mdi).replace(0, np.nan)
-    adx = dx.ewm(alpha=1/14, adjust=False).mean().shift(1).to_numpy()
+    f["adx"] = dx.ewm(alpha=1/14, adjust=False).mean().shift(1).to_numpy()
 
     macd = (S.ewm(span=12, adjust=False).mean() - S.ewm(span=26, adjust=False).mean())
-    macd_h = (macd - macd.ewm(span=9, adjust=False).mean()).shift(1).to_numpy()
+    f["macd_h"] = (macd - macd.ewm(span=9, adjust=False).mean()).shift(1).to_numpy()
 
     lo14 = pd.Series(l).rolling(14).min(); hi14 = pd.Series(h).rolling(14).max()
-    stoch = (100 * (S - lo14) / (hi14 - lo14).replace(0, np.nan)).shift(1).to_numpy()
+    f["stoch"] = (100 * (S - lo14) / (hi14 - lo14).replace(0, np.nan)).shift(1).to_numpy()
 
     sma20 = S.rolling(20).mean(); sd20 = S.rolling(20).std()
-    bb_pos = ((S - sma20) / (2 * sd20).replace(0, np.nan)).shift(1).to_numpy()
+    f["bb_pos"] = ((S - sma20) / (2 * sd20).replace(0, np.nan)).shift(1).to_numpy()
 
     dif = S.diff()
     up_e = dif.clip(lower=0).ewm(alpha=1/14, adjust=False).mean()
     dn_e = (-dif.clip(upper=0)).ewm(alpha=1/14, adjust=False).mean()
-    rsi = (100 - 100 / (1 + up_e / dn_e.replace(0, np.nan))).shift(1).to_numpy()
+    f["rsi"] = (100 - 100 / (1 + up_e / dn_e.replace(0, np.nan))).shift(1).to_numpy()
 
-    roc = S.pct_change(20).shift(1).to_numpy()
-    body = np.abs(c - o) / np.maximum(h - l, 1e-9)
-    gap = (o - pd.Series(c).shift(1).to_numpy()) / np.maximum(A, 1e-9)
+    f["roc"] = S.pct_change(20).shift(1).to_numpy()
+    f["body"] = np.abs(c - o) / np.maximum(h - l, 1e-9)
+    f["gap"] = (o - pd.Series(c).shift(1).to_numpy()) / np.maximum(A, 1e-9)
     move = np.abs(S.diff(20).to_numpy())
-    path = pd.Series(np.abs(dif.to_numpy())).rolling(20).sum().to_numpy()
-    eff = move / np.maximum(path, 1e-9)
-    streak = pd.Series(np.sign(dif.fillna(0))).groupby(
-        (np.sign(dif.fillna(0)) != np.sign(dif.fillna(0)).shift()).cumsum()
-    ).cumcount().shift(1).to_numpy()
+    pth = pd.Series(np.abs(dif.to_numpy())).rolling(20).sum().to_numpy()
+    f["eff"] = move / np.maximum(pth, 1e-9)
+    sgn = np.sign(dif.fillna(0))
+    f["streak"] = pd.Series(sgn).groupby(
+        (sgn != sgn.shift()).cumsum()).cumcount().shift(1).to_numpy()
 
     tp_px = (h + l + c) / 3.0
     day_id = pd.Series(idx.normalize())
     vwap = (pd.Series(tp_px * P["vol"]).groupby(day_id).cumsum() /
             pd.Series(P["vol"]).groupby(day_id).cumsum().replace(0, np.nan)).shift(1).to_numpy()
-    vw_d = (c - vwap) / np.maximum(A, 1e-9)
+    f["vw_d"] = (c - vwap) / np.maximum(A, 1e-9)
 
-    hour = idx.hour.to_numpy(); dow = idx.dayofweek.to_numpy()
+    f["hour"] = idx.hour.to_numpy(); f["dow"] = idx.dayofweek.to_numpy()
+    P["_feat"] = f
+    return f
+
+# the three filters whose cut-point is a fitted quantity rather than a constant
+FITTED = ("eff", "spread", "vol")
+
+def fit_thresholds(P, split):
+    """The only place a median is allowed to be computed, and it reads
+    discovery bars only."""
+    f = bar_features(P)
+    return Thresholds().fit({"eff": f["eff"], "spread": P["spread"],
+                             "vol": P["vol"]}, split)
+
+def build_filters(P, W, th):
+    """The filter library. `th` must be a Thresholds already fitted on
+    discovery; passing an unfitted one raises rather than leaking."""
+    c, A = P["c"], P["A"]
+    f = bar_features(P)
+    i = W["i"]; d = W["d"].astype(int)
     spread = P["spread"]; vol = P["vol"]
-    def med(x): return np.nanmedian(x[np.isfinite(x)])
+    hour, dow = f["hour"], f["dow"]
 
     F = {
-        "trend20_agrees":   d * (c[i] - ema[20][i]) > 0,
-        "trend50_agrees":   d * (c[i] - ema[50][i]) > 0,
-        "trend200_agrees":  d * (c[i] - ema[200][i]) > 0,
-        "daily_trend_agrees": d * (c[i] - d_tr[i]) > 0,
-        "atr_contracting":  A[i] <= atr_slow[i],
-        "atr_expanding":    A[i] > atr_slow[i],
-        "vol_pct_low":      atr_pct[i] <= 0.33,
-        "vol_pct_high":     atr_pct[i] >= 0.67,
-        "adx_strong":       adx[i] > 25,
-        "adx_weak":         adx[i] <= 25,
-        "macd_agrees":      d * macd_h[i] > 0,
-        "stoch_agrees":     ((stoch[i] > 50) & (d > 0)) | ((stoch[i] < 50) & (d < 0)),
-        "stoch_not_extreme": (stoch[i] > 20) & (stoch[i] < 80),
-        "bb_inside":        np.abs(bb_pos[i]) < 1.0,
-        "bb_beyond":        np.abs(bb_pos[i]) >= 1.0,
-        "rsi_agrees":       ((rsi[i] > 50) & (d > 0)) | ((rsi[i] < 50) & (d < 0)),
-        "rsi_not_extreme":  (rsi[i] > 25) & (rsi[i] < 75),
-        "roc_agrees":       d * roc[i] > 0,
-        "efficiency_high":  eff[i] > med(eff),
-        "body_strong":      body[i] > 0.5,
-        "no_gap":           np.abs(gap[i]) < 0.5,
-        "vwap_agrees":      d * vw_d[i] > 0,
-        "streak_short":     streak[i] <= 2,
-        "spread_tight":     spread[i] <= med(spread),
-        "volume_high":      vol[i] > med(vol),
+        "trend20_agrees":   d * (c[i] - f["ema20"][i]) > 0,
+        "trend50_agrees":   d * (c[i] - f["ema50"][i]) > 0,
+        "trend200_agrees":  d * (c[i] - f["ema200"][i]) > 0,
+        "daily_trend_agrees": d * (c[i] - f["d_tr"][i]) > 0,
+        "atr_contracting":  A[i] <= f["atr_slow"][i],
+        "atr_expanding":    A[i] > f["atr_slow"][i],
+        "vol_pct_low":      f["atr_pct"][i] <= 0.33,
+        "vol_pct_high":     f["atr_pct"][i] >= 0.67,
+        "adx_strong":       f["adx"][i] > 25,
+        "adx_weak":         f["adx"][i] <= 25,
+        "macd_agrees":      d * f["macd_h"][i] > 0,
+        "stoch_agrees":     ((f["stoch"][i] > 50) & (d > 0)) | ((f["stoch"][i] < 50) & (d < 0)),
+        "stoch_not_extreme": (f["stoch"][i] > 20) & (f["stoch"][i] < 80),
+        "bb_inside":        np.abs(f["bb_pos"][i]) < 1.0,
+        "bb_beyond":        np.abs(f["bb_pos"][i]) >= 1.0,
+        "rsi_agrees":       ((f["rsi"][i] > 50) & (d > 0)) | ((f["rsi"][i] < 50) & (d < 0)),
+        "rsi_not_extreme":  (f["rsi"][i] > 25) & (f["rsi"][i] < 75),
+        "roc_agrees":       d * f["roc"][i] > 0,
+        "efficiency_high":  f["eff"][i] > th["eff"],
+        "body_strong":      f["body"][i] > 0.5,
+        "no_gap":           np.abs(f["gap"][i]) < 0.5,
+        "vwap_agrees":      d * f["vw_d"][i] > 0,
+        "streak_short":     f["streak"][i] <= 2,
+        "spread_tight":     spread[i] <= th["spread"],
+        "volume_high":      vol[i] > th["vol"],
         "london":           (hour[i] >= 7) & (hour[i] < 12),
         "newyork":          (hour[i] >= 12) & (hour[i] < 18),
         "not_asia":         (hour[i] >= 7) & (hour[i] < 21),
@@ -390,38 +492,83 @@ def block_bootstrap_t(R, entry_idx, held, bar_minutes, reps=2000, seed=SEED):
     se = means.std(ddof=1)
     return R.mean() / se if se > 0 else float("nan")
 
-def matched_control(P, W, tp_j, hold_k, reps=6, seed=SEED):
-    """Same trade count, same direction mix, same exit machinery, random
-    timing - the repo's standard control, adapted to the recorded-walk form by
-    re-walking at random bars."""
+def matched_control(P, W, tp_j, hold_k, split, side, reps=6, seed=SEED):
+    """The strategy's timing, replaced by random timing. Everything else held
+    identical - and 'identical' now means the same function, not a second
+    implementation that agrees in spirit.
+
+    WHAT THE REVIEW FOUND WRONG WITH THE OLD ONE, AND WHAT CHANGED
+
+      same execution   the old control had its own inline loop, which expired
+                       at c[e + hold] while the strategy expired at the close
+                       of bar e + hold - 1. One free bar on every control
+                       trade. It now calls exec_engine.execute(), the same
+                       function the strategy is proven equivalent to, so the
+                       expiry bar, the gap handling and the stop-wins-ties
+                       rule cannot drift apart again.
+      its own cost     the old control charged the ORIGINAL SIGNAL's spread to
+                       a trade placed at a completely different time. A
+                       control drawn into a wide-spread hour must pay that
+                       hour's spread, or the comparison quietly favours
+                       whichever side was sampled in the cheaper regime.
+                       execute() takes the cost from its own entry bar.
+      its own side     the old pool was np.arange(ATR_N + 200, N - ...), the
+                       WHOLE history, so a discovery-period control could be
+                       priced on holdout bars. window_pool() confines it.
+      plan shape       the control's stop sits `risk` away from ITS OWN bar's
+                       close and its target `tp_mult * risk` beyond that -
+                       the same construction the strategy uses, so the two
+                       differ in when they trade and in nothing else.
+
+    Returns (R, stats). stats carries what the review asked to see: how many
+    control trades there actually are, the long/short mix, and the hold
+    duration, so a reader can check the match instead of taking it on faith."""
     rng = np.random.default_rng(seed)
-    N = P["N"]; out = []
-    dirs = W["d"].astype(int)
-    pool = np.arange(ATR_N + 200, N - max(HOLDS) - 2)
-    if len(pool) < 50: return np.array([])
+    o, h, l, c, A, N = P["o"], P["h"], P["l"], P["c"], P["A"], P["N"]
+    cost = P["spread"] + COMMISSION
     hold = HOLDS[hold_k]
     tp_mult = None if tp_j is None else [t for t in TPS if t is not None][tp_j]
-    o, h, l, c, A = P["o"], P["h"], P["l"], P["c"], P["A"]
+    n = len(W["i"])
+    if n == 0:
+        return np.array([]), dict(n=0, long_frac=float("nan"),
+                                  mean_held=float("nan"), skipped=0, pool=0)
+    # hi_pad keeps the WHOLE trade inside its own side: a control drawn at the
+    # last eligible bar still resolves without borrowing a bar from across
+    # the line, which is the entire point of the guard.
+    pool = window_pool(split, side, lo_pad=ATR_N + 200, hi_pad=hold + 2)
+    if len(pool) < 50:
+        return np.array([]), dict(n=0, long_frac=float("nan"),
+                                  mean_held=float("nan"), skipped=0,
+                                  pool=len(pool))
+    dirs = W["d"].astype(int); risks = W["risk"]
+    Rs, helds, longs, skipped = [], [], 0, 0
     for rep in range(reps):
-        pick = rng.choice(pool, size=min(len(W["i"]), len(pool)), replace=False)
+        take = min(n, len(pool))
+        pick = rng.choice(pool, size=take, replace=False)
+        # pair each drawn bar with a real trade's (direction, risk) without
+        # replacement, so the long/short mix is carried over exactly rather
+        # than re-derived from whatever the random bars happen to break
+        order = rng.permutation(n)[:take]
         for j, b in enumerate(pick):
-            d = dirs[j % len(dirs)]
+            q = int(order[j])
+            d = int(dirs[q]); risk = float(risks[q])
             a = A[b]
-            if not np.isfinite(a) or a <= 0: continue
-            risk = W["risk"][j % len(W["risk"])]      # same risk distribution
-            e = b + 1
-            if e + hold >= N: continue
-            entry = o[e]
-            stop = entry - d * risk
-            targ = None if tp_mult is None else entry + d * tp_mult * risk
-            px = c[min(e + hold, N - 1)]
-            for k in range(e, min(e + hold, N)):
-                if (l[k] <= stop) if d > 0 else (h[k] >= stop):
-                    px = stop; break
-                if targ is not None and ((h[k] >= targ) if d > 0 else (l[k] <= targ)):
-                    px = targ; break
-            out.append(((px - entry) * d - W["cost"][j % len(W["cost"])]) / risk)
-    return np.asarray(out, float)
+            if not np.isfinite(a) or a <= 0 or risk <= 0:
+                skipped += 1; continue
+            c_sig = c[b]
+            stop = c_sig - d * risk
+            targ = None if tp_mult is None else c_sig + d * tp_mult * risk
+            t = execute(o, h, l, c, N, int(b), d, stop, risk, targ, hold, cost,
+                        on_gap="skip")
+            if t is None or t["reason"] == GAP_SKIP:
+                skipped += 1; continue
+            Rs.append(t["R"]); helds.append(t["held"])
+            longs += 1 if d > 0 else 0
+    R = np.asarray(Rs, float)
+    stats = dict(n=len(R), long_frac=(longs / len(R)) if len(R) else float("nan"),
+                 mean_held=float(np.mean(helds)) if helds else float("nan"),
+                 skipped=skipped, pool=len(pool), reps=reps)
+    return R, stats
 
 # --------------------------------------------------------------- the run --
 def load_tf(tf):
@@ -466,18 +613,54 @@ def synth(n, seed, sigma):
     return pd.DataFrame({"open": o, "high": h, "low": lo, "close": c,
                          "spread": np.full(n, 0.40), "volume": np.ones(n)}, index=idx)
 
+def resolve(W, tp_j, hold_k, split, side):
+    """One (target, hold) pair, restricted to ONE SIDE of the split with
+    straddling trades purged.
+
+    THE FIRST LEAK. The old code selected discovery trades with
+    `W["i"] < n_disc` - the SIGNAL index alone. At hold=1000 a trade signalled
+    on the last discovery bar read a thousand holdout bars to decide its own
+    outcome and still counted as a discovery result. Whether a trade straddles
+    the line depends on its horizon, so the purge cannot be done once per base
+    rule: it has to be done per (target, hold) pair, which is why it lives
+    here rather than in stage 1's setup.
+
+    Returns (R, held, keep, report). `keep` already excludes entry-gap skips."""
+    R, held, ok = outcome(W, tp_j, hold_k)
+    idx_ok = np.where(ok)[0]
+    n_gap = int((~ok).sum())
+    if len(idx_ok) == 0:
+        return R, held, np.zeros(len(R), bool), dict(
+            total=0, kept=0, straddling=0, other_side=0, gap_skipped=n_gap)
+    eb = (W["i"][idx_ok] + held[idx_ok]).astype(int)
+    k, rep = purge(W["i"][idx_ok], eb, split, side)
+    keep = np.zeros(len(R), bool)
+    keep[idx_ok[k]] = True
+    rep["gap_skipped"] = n_gap
+    return R, held, keep, rep
+
 def run(m, tf, label, calib=False):
     t0 = time.time()
     P = prep(m)
     cost = P["spread"] + COMMISSION
-    disc = P["idx"] < pd.Timestamp(DISCOVERY_END, tz="UTC")
-    n_disc = int(disc.sum())
+    split = Split(P["idx"], DISCOVERY_END)
+    n_disc = split.n_disc
+    # Fitted ONCE, on discovery bars only, and frozen. Every "below median
+    # spread" decision the search makes - in discovery and in the holdout
+    # alike - uses these numbers and no others.
+    th = fit_thresholds(P, split)
     print(f"{label}: {len(m):,} bars  {m.index[0].date()} -> {m.index[-1].date()}")
     print(f"  discovery {n_disc:,} bars (< {DISCOVERY_END}), "
-          f"holdout {len(m)-n_disc:,} bars - holdout is opened once, at the end\n")
+          f"holdout {len(m)-n_disc:,} bars - holdout is opened once, at the end")
+    print(f"  thresholds fitted on DISCOVERY ONLY and frozen: "
+          + ", ".join(f"{k}={v:.4g}" for k, v in th.values.items()))
+    print(f"  trades straddling the boundary are purged from both sides\n")
 
     k_total = 0
     hold_max = max(HOLDS)
+    tps_real = [t for t in TPS if t is not None]
+    tp_list = [None] + list(range(len(tps_real)))
+    purge_tot = dict(straddling=0, gap_skipped=0, cells=0)
 
     # ---- stage 1: rule x exit, no filters, DISCOVERY ONLY -----------------
     print("STAGE 1  rule x exit grid, no filters")
@@ -486,12 +669,8 @@ def run(m, tf, label, calib=False):
     for look, buf, sm in itertools.product(LOOKBACKS, BUFFERS, STOPS):
         W = walk_rule(P, look, buf, sm, cost, hold_max)
         if W is None: continue
-        keep = W["i"] < n_disc
-        if keep.sum() < MIN_N_BASE: continue
-        Wd = {kk: (vv[..., keep] if kk in ("t_tp", "p_tp", "c_at") else vv[keep])
-              for kk, vv in W.items()}
-        walks[(look, buf, sm)] = (W, Wd)
-        tp_list = [None] + list(range(len([t for t in TPS if t is not None])))
+        if int((W["i"] < n_disc).sum()) < MIN_N_BASE: continue
+        walks[(look, buf, sm)] = W
         for tp_j in tp_list:
             for hk in range(len(HOLDS)):
                 # A stop with NO target caps the loss near -1R but leaves the
@@ -506,16 +685,23 @@ def run(m, tf, label, calib=False):
                 # A target caps BOTH sides, so this does not apply once tp_j
                 # is set - only the no-target branch is restricted here.
                 if tp_j is None and HOLDS[hk] > 96: continue
-                R, held = outcome(Wd, tp_j, hk)
+                R, held, keep, rep = resolve(W, tp_j, hk, split, "discovery")
                 k_total += 1
-                if len(R) < MIN_N_BASE: continue
-                base.append((naive_t(R), R.mean(), len(R), (look, buf, sm, tp_j, hk)))
+                purge_tot["straddling"] += rep["straddling"]
+                purge_tot["gap_skipped"] += rep["gap_skipped"]
+                purge_tot["cells"] += 1
+                if keep.sum() < MIN_N_BASE: continue
+                r = R[keep]
+                base.append((naive_t(r), r.mean(), int(keep.sum()),
+                             (look, buf, sm, tp_j, hk)))
     base = [b for b in base if np.isfinite(b[0])]
     base.sort(key=lambda x: -x[0])
     print(f"  {k_total:,} rule x exit cells tested, {len(base):,} with enough trades")
+    print(f"  purged across those cells: {purge_tot['straddling']:,} straddling "
+          f"trades, {purge_tot['gap_skipped']:,} entry-gap skips")
     for t, e, n, cfg in base[:6]:
         look, buf, sm, tp_j, hk = cfg
-        tpname = "none" if tp_j is None else f"{[x for x in TPS if x is not None][tp_j]}R"
+        tpname = "none" if tp_j is None else f"{tps_real[tp_j]}R"
         print(f"    t {t:+.2f}  E {e:+.4f}  n {n:>6}  look {look:>3} buf {buf} "
               f"{sm} tp {tpname} hold {HOLDS[hk]}")
 
@@ -525,10 +711,13 @@ def run(m, tf, label, calib=False):
     seq = 0
     for t, e, n, cfg in base[:TOP_BASE]:
         look, buf, sm, tp_j, hk = cfg
-        W, Wd = walks[(look, buf, sm)]
-        R, held = outcome(Wd, tp_j, hk)
-        F = build_filters(P, Wd)
-        names = list(F); cols = np.vstack([F[nm] for nm in names])
+        W = walks[(look, buf, sm)]
+        R, held, keep, rep = resolve(W, tp_j, hk, split, "discovery")
+        F = build_filters(P, W, th)
+        names = list(F)
+        # `keep` is folded into every column, so a filter subset can only ever
+        # select trades that begin and end inside discovery
+        cols = np.vstack([F[nm] & keep for nm in names])
         # Masks are RECOMPUTED from the index tuples rather than stored. Holding
         # one boolean array per surviving subset was what killed the first run:
         # 31 filters at depth 8 over ten thousand trades is gigabytes of masks
@@ -563,27 +752,34 @@ def run(m, tf, label, calib=False):
     leaders = [(t, *payload) for t, _, payload in leaders]
     bar = math.sqrt(2 * math.log(max(k_total, 2)))
     print(f"  total cells tested across both stages: {k_total:,}")
-    print(f"  noise bar from the search itself: |t| > {bar:.2f}")
+    # sqrt(2 ln k) is the EXPECTED MAXIMUM of k standard normal draws. It is
+    # NOT a 5% family-wise threshold: measured directly in bug_reproductions.py,
+    # at least one of k noise draws exceeds it 16.5% of the time at k=1000 and
+    # 18.8% at k=10000. It is reported as a rough floor, and the gate that
+    # actually decides is the percentile block bootstrap.
+    print(f"  heuristic noise floor from the search size: |t| > {bar:.2f} "
+          f"(expected max of k noise draws; NOT a 5% family-wise bar)")
     print(f"\n  top {min(8,len(leaders))} by naive t (overlap NOT yet corrected):")
     for t, e, n, cfg, combo, names in leaders[:8]:
         look, buf, sm, tp_j, hk = cfg
-        tpname = "none" if tp_j is None else f"{[x for x in TPS if x is not None][tp_j]}R"
+        tpname = "none" if tp_j is None else f"{tps_real[tp_j]}R"
         print(f"    t {t:+.2f}  E {e:+.4f}  n {n:>5}  [look{look} {sm} tp{tpname} "
               f"hold{HOLDS[hk]}] {'+'.join(names[x] for x in combo)}")
 
     if calib:
         best = leaders[0][0] if leaders else float("nan")
-        print(f"\n  CALIBRATION VERDICT: best naive t on pure noise = {best:+.2f} "
-              f"vs bar {bar:.2f}")
-        print("  " + ("PASS - the bar holds on noise.\n" if abs(best) <= bar else
-              "*** FAIL - the pipeline manufactures significance. Stop.\n"))
-        return
+        print(f"\n  STAGE 1-2 CALIBRATION: best naive t on pure noise = {best:+.2f} "
+              f"vs heuristic floor {bar:.2f}")
+        print("  (the binding calibration is the FULL pipeline through stage 3;")
+        print("   see calibrate_pipeline.py, which is the one that gates.)")
+        return dict(best_naive_t=best, bar=bar, leaders=leaders, walks=walks,
+                    P=P, split=split, th=th, k_total=k_total)
 
     # ---- stage 3: control, bootstrap, then the holdout once ---------------
     print(f"\nSTAGE 3  leaders re-scored with a matched control and an "
           f"overlap-aware block bootstrap")
     print(f"  {'n':>6}{'E(R)':>9}{'naive t':>9}{'boot t':>8}{'skill':>9}"
-          f"{'ctrl t':>8}  configuration")
+          f"{'ctrl t':>8}{'ctrl n':>8}{'ctrl L%':>8}{'hold s/c':>11}  configuration")
     final = []
     seen = set()
     for t, e, n, cfg, combo, names in leaders:
@@ -591,33 +787,40 @@ def run(m, tf, label, calib=False):
         if key in seen: continue
         seen.add(key)
         look, buf, sm, tp_j, hk = cfg
-        W, Wd = walks[(look, buf, sm)]
-        R, held = outcome(Wd, tp_j, hk)
-        F = build_filters(P, Wd)
-        nm = list(F); msk = np.ones(len(R), bool)
+        W = walks[(look, buf, sm)]
+        R, held, keep, rep = resolve(W, tp_j, hk, split, "discovery")
+        F = build_filters(P, W, th)
+        nm = list(F); msk = keep.copy()
         for j in combo: msk &= F[nm[j]]
         r = R[msk]
         if len(r) < MIN_N_FILTER: continue
-        bt = block_bootstrap_t(r, Wd["i"][msk], held[msk], 1)
-        ci = block_bootstrap_ci(r, Wd["i"][msk], held[msk])
-        Wf = {kk: (vv[..., msk] if kk in ("t_tp","p_tp","c_at") else vv[msk])
-              for kk, vv in Wd.items()}
-        ctrl = matched_control(P, Wf, tp_j, hk)
+        bt = block_bootstrap_t(r, W["i"][msk], held[msk], 1)
+        ci = block_bootstrap_ci(r, W["i"][msk], held[msk])
+        ctrl, cst = matched_control(P, subset(W, msk), tp_j, hk, split, "discovery")
         if len(ctrl) < 30: continue
         sk = r.mean() - ctrl.mean()
         se = math.sqrt(r.var(ddof=1)/len(r) + ctrl.var(ddof=1)/len(ctrl))
         ct = sk / se if se > 0 else float("nan")
-        tpname = "none" if tp_j is None else f"{[x for x in TPS if x is not None][tp_j]}R"
+        tpname = "none" if tp_j is None else f"{tps_real[tp_j]}R"
         cfgs = f"look{look} buf{buf} {sm} tp{tpname} hold{HOLDS[hk]}"
+        s_long = float((W["d"][msk] > 0).mean())
+        s_hold = float(held[msk].mean())
         print(f"  {len(r):>6}{r.mean():>+9.4f}{t:>+9.2f}{bt:>+8.2f}"
-              f"{sk:>+9.4f}{ct:>+8.2f}  {cfgs} | {'+'.join(nm[x] for x in combo)}")
+              f"{sk:>+9.4f}{ct:>+8.2f}{cst['n']:>8}"
+              f"{cst['long_frac']*100:>7.0f}%"
+              f"{s_hold:>6.0f}/{cst['mean_held']:<4.0f}  {cfgs} | "
+              f"{'+'.join(nm[x] for x in combo)}")
+        print(f"         strategy long {s_long*100:.0f}%, control long "
+              f"{cst['long_frac']*100:.0f}% | control drew from {cst['pool']:,} "
+              f"discovery bars over {cst['reps']} reps, {cst['skipped']:,} "
+              f"draws skipped (entry gap / no ATR)")
         ci_clear = ci is not None and ci[0] > 0
         final.append((bt, ct, r.mean(), len(r), cfg, combo, nm, ci_clear, ci))
         if len(final) >= TOP_LEADERS: break
 
     # THE GATE: the percentile block bootstrap's 95% interval must sit
     # entirely above zero, AND the control-adjusted skill must be positive,
-    # AND the overlap-corrected t must clear the search's own noise bar. All
+    # AND the overlap-corrected t must clear the search's own noise floor. All
     # three, because each catches something the others do not.
     survivors = [f for f in final
                  if np.isfinite(f[0]) and abs(f[0]) > bar
@@ -629,24 +832,21 @@ def run(m, tf, label, calib=False):
         print("  configuration that already failed in discovery would only")
         print("  spend the one clean test this record still has.")
         print(f"\n  elapsed {time.time()-t0:.0f}s")
-        return
+        return None
 
     # ---- the holdout, opened exactly once ---------------------------------
     bt, ct, e, n, cfg, combo, nm, _, ci = survivors[0]
     look, buf, sm, tp_j, hk = cfg
     print(f"\n  HOLDOUT - opened once, on the single best survivor only")
-    W, _ = walks[(look, buf, sm)]
-    keep = W["i"] >= n_disc
-    Wh = {kk: (vv[..., keep] if kk in ("t_tp","p_tp","c_at") else vv[keep])
-          for kk, vv in W.items()}
-    if len(Wh["i"]) < 30:
-        print("  too few holdout trades to judge"); return
-    Rh, heldh = outcome(Wh, tp_j, hk)
-    Fh = build_filters(P, Wh)
-    mh = np.ones(len(Rh), bool)
+    W = walks[(look, buf, sm)]
+    Rh, heldh, keeph, reph = resolve(W, tp_j, hk, split, "holdout")
+    # the SAME frozen thresholds - not refitted on the holdout, which would
+    # make this a test of a different strategy
+    Fh = build_filters(P, W, th)
+    mh = keeph.copy()
     for j in combo: mh &= Fh[nm[j]]
     rh = Rh[mh]
-    tpname = "none" if tp_j is None else f"{[x for x in TPS if x is not None][tp_j]}R"
+    tpname = "none" if tp_j is None else f"{tps_real[tp_j]}R"
     print(f"  config: look{look} buf{buf} {sm} tp{tpname} hold{HOLDS[hk]} | "
           f"{'+'.join(nm[x] for x in combo)}")
     print(f"  discovery : n={n:>5}  E={e:+.4f}  boot t={bt:+.2f}  ctrl t={ct:+.2f}"
@@ -654,12 +854,15 @@ def run(m, tf, label, calib=False):
     if len(rh) < 30:
         print(f"  holdout   : n={len(rh)} - too few to judge")
     else:
-        bth = block_bootstrap_t(rh, Wh["i"][mh], heldh[mh], 1)
+        bth = block_bootstrap_t(rh, W["i"][mh], heldh[mh], 1)
+        cth, csh = matched_control(P, subset(W, mh), tp_j, hk, split, "holdout")
+        skh = rh.mean() - cth.mean() if len(cth) >= 30 else float("nan")
         print(f"  holdout   : n={len(rh):>5}  E={rh.mean():+.4f}  boot t={bth:+.2f}"
-              f"  net={rh.sum():+.1f}R")
+              f"  net={rh.sum():+.1f}R  ctrl skill={skh:+.4f} (ctrl n={len(cth)})")
         agree = (rh.mean() > 0) == (e > 0) and rh.mean() > 0
         print(f"  -> {'HOLDS UP' if agree else 'DOES NOT HOLD UP'} out of sample")
     print(f"\n  elapsed {time.time()-t0:.0f}s")
+    return None
 
 def main():
     ap = argparse.ArgumentParser()

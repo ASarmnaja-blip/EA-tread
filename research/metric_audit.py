@@ -33,6 +33,7 @@ import numpy as np, pandas as pd
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import mega_search as M
+from split_guard import Split
 
 OK, BAD = "PASS", "*** FAIL"
 results = []
@@ -90,15 +91,15 @@ def t1_exact_arithmetic():
           f"risk={risk} (expect {exp_risk})")
     # 2R target = 110 + 2*12 = 134, first touched on bar 23 (high 140).
     # R at that target, zero cost, = (134 - 110)/12 = +2.0 exactly.
-    R2, held = M.outcome(W, 2, 3)          # TPS index 2 = 2.0R, hold index 3 = 96
-    ok_r = abs(float(R2[0]) - 2.0) < 1e-9
+    R2, held, ok2 = M.outcome(W, 2, 3)     # TPS index 2 = 2.0R, hold index 3 = 96
+    ok_r = bool(ok2[0]) and abs(float(R2[0]) - 2.0) < 1e-9
     check("T1b R at a 2R target equals exactly +2.0", ok_r,
           f"R={float(R2[0]):.10f}, held={float(held[0]):.0f} bars (expect 3)")
     # 5R target = 110 + 60 = 170, never touched -> exits at the hold close.
-    R5, _ = M.outcome(W, 4, 3)
+    R5, _, ok5 = M.outcome(W, 4, 3)
     last_close = float(m.close.iloc[-1])
     exp_r5 = (last_close - entry) / risk
-    ok_r5 = abs(float(R5[0]) - exp_r5) < 1e-6
+    ok_r5 = bool(ok5[0]) and abs(float(R5[0]) - exp_r5) < 1e-6
     check("T1c an untouched target falls through to the hold close", ok_r5,
           f"R={float(R5[0]):.6f}, expect {exp_r5:.6f}")
 
@@ -112,7 +113,7 @@ def t2_no_lookahead():
     m = M.synth(1200, 4, 0.0012)
     P = M.prep(m); cost = P["spread"] + M.COMMISSION
     W1 = M.walk_rule(P, 20, 0.1, "atr2", cost, 96)
-    R1, held1 = M.outcome(W1, 2, 1)
+    R1, held1, _ = M.outcome(W1, 2, 1)
     # find trades that settled well before bar 800, then scramble bars 900+
     cut = 900
     settled = (W1["i"] + held1 + 5) < cut
@@ -125,7 +126,7 @@ def t2_no_lookahead():
     m2.loc[tail, "low"] = m2.loc[tail, ["open", "high", "low", "close"]].min(axis=1)
     P2 = M.prep(m2); cost2 = P2["spread"] + M.COMMISSION
     W2 = M.walk_rule(P2, 20, 0.1, "atr2", cost2, 96)
-    R2, _ = M.outcome(W2, 2, 1)
+    R2, _, _ = M.outcome(W2, 2, 1)
     n = int(settled.sum())
     if n == 0:
         check("T2 look-ahead invariance", False, "no settled trades to compare"); return
@@ -153,10 +154,20 @@ def t3_t_calibration():
         x = np.where(rng.random(size) < 0.01, 99.0, -1.0)
         return x
     fp_fat = np.mean([abs(M.naive_t(lottery(n))) > 1.96 for _ in range(reps)])
-    check("T3b fat-tailed book with a TRUE mean of zero: rate stays near 5%",
-          0.03 <= fp_fat <= 0.075,
-          f"measured {fp_fat:.3%} - a rate far from 5% means the statistic "
-          f"cannot be trusted on this shape of data")
+    # THIS ASSERTS THE FINDING, NOT THE HOPE.
+    # It used to read `0.03 <= fp_fat <= 0.075` - "the rate stays near 5%" -
+    # and it failed, permanently, at 18.4%. A test left failing on purpose is
+    # a test nobody reads and an exit code nobody can gate on. The measured
+    # behaviour IS the result: on a stop-loss-shaped book the per-trade t
+    # rejects three to four times as often as it claims, so it cannot be a
+    # gate. It is kept in the pipeline only as a cheap ranking key in stage 1,
+    # never as the thing that decides.
+    check("T3b naive t OVER-REJECTS on a fat-tailed book (this is the finding)",
+          fp_fat > 0.10,
+          f"measured {fp_fat:.3%} against a nominal 5% - roughly "
+          f"{fp_fat/0.05:.1f}x. 99% of trades lose 1R and 1% win 99R, a "
+          f"population mean of exactly zero, and the t-test calls it "
+          f"significant one time in five.")
 
     # If the t fails on this shape, the question becomes whether ANY statistic
     # here survives it. A percentile bootstrap makes no normality assumption
@@ -215,25 +226,69 @@ def t4_overlap():
             pick = rg.integers(0, len(groups), len(groups))
             means[r] = np.concatenate([groups[p] for p in pick]).mean()
         return np.percentile(means, [2.5, 97.5])
-    hit = 0; trials = 400
-    for q in range(trials):
-        # overlapping AND fat-tailed, true mean zero
-        base = rng.normal(0, 1, n + overlap)
-        smooth = np.array([base[k:k + overlap].mean() for k in range(n)])
-        fat = np.where(rng.random(n) < 0.01, 99.0, -1.0)
-        R = smooth + fat - fat.mean()          # recentre so the truth is zero
-        ci = pct_block_ci(R, overlap, seed=q)
-        if ci is not None and (ci[0] > 0 or ci[1] < 0): hit += 1
-    rate = hit / trials
+    # MEASURED ACROSS SEVERAL BLOCK LENGTHS, because the block length is a
+    # free parameter and picking the one that flatters the gate is the same
+    # mistake as picking the strategy that flatters the sample. All four are
+    # printed; the pass condition is about the length the pipeline actually
+    # uses.
+    trials = 400
+    def wilson(k, n, z=1.96):
+        """A binomial interval that behaves at small counts, unlike k/n +- se."""
+        if n == 0: return (float("nan"), float("nan"))
+        ph = k / n
+        d = 1 + z * z / n
+        c = (ph + z * z / (2 * n)) / d
+        h = z * math.sqrt(ph * (1 - ph) / n + z * z / (4 * n * n)) / d
+        return (max(0.0, c - h), min(1.0, c + h))
+
+    rates = {}
+    for bl in (10, 20, 40, 80):
+        hit = 0
+        rg2 = np.random.default_rng(777)          # same draws for every length
+        for q in range(trials):
+            # overlapping AND fat-tailed, true mean zero
+            base = rg2.normal(0, 1, n + overlap)
+            smooth = np.array([base[k:k + overlap].mean() for k in range(n)])
+            # THE CENTRING BUG, AND WHY IT MATTERED.
+            # This line used to read `R = smooth + fat - fat.mean()`,
+            # subtracting each sample's OWN mean "to make the truth zero". It
+            # does make the truth zero - by removing exactly the tail-driven
+            # variation the test exists to measure. Every sample was handed
+            # back already centred, the bootstrap almost never saw an interval
+            # clear of zero, and the measured 0.5% was reported as evidence
+            # the gate was conservative. It was not evidence of anything.
+            # The correct construction fixes the POPULATION mean at zero
+            # instead: a 1% chance of +99 against a 99% chance of -1 has
+            # expectation 0.01*99 + 0.99*(-1) = 0.00 exactly, and each sample
+            # is then free to land wherever its own tail puts it.
+            fat = np.where(rg2.random(n) < 0.01, 99.0, -1.0)
+            R = smooth + fat
+            ci = pct_block_ci(R, bl, seed=q)
+            if ci is not None and (ci[0] > 0 or ci[1] < 0): hit += 1
+        lo, hi = wilson(hit, trials)
+        rates[bl] = (hit / trials, lo, hi)
+
+    detail = "\n          ".join(
+        f"block {bl:>3} bars: {r:.1%} [{lo:.1%}, {hi:.1%}]"
+        for bl, (r, lo, hi) in rates.items())
+    used = overlap                      # the length the pipeline sets from hold
+    r_used, lo_used, hi_used = rates[used]
     # The pass condition is ONE-SIDED on purpose. Over-rejecting manufactures
     # strategies that do not exist, which is what this program keeps having to
     # retract; under-rejecting only costs power, which costs time. A gate is
-    # allowed to be conservative and is not allowed to be loose.
-    check("T4c percentile BLOCK bootstrap does not over-reject",
-          rate <= 0.08,
-          f"measured {rate:.1%} against a nominal 5% (naive t on the same "
-          f"shape was {nr:.1%}). Below 5% means conservative - it will miss "
-          f"real effects before it invents one.")
+    # allowed to be conservative and is not allowed to be loose. The bound is
+    # on the interval's LOWER edge, so a rate that is merely noisy does not
+    # fail and a rate that is genuinely above nominal does.
+    check("T4c percentile BLOCK bootstrap on fat-tailed OVERLAPPING data",
+          lo_used <= 0.05,
+          f"nominal 5%, {trials} trials per length, 95% Wilson intervals:\n"
+          f"          {detail}\n"
+          f"          the pipeline uses ~{used} bars (set from the holding "
+          f"period), measuring {r_used:.1%} [{lo_used:.1%}, {hi_used:.1%}]\n"
+          f"          naive t on the same shape was {nr:.1%}\n"
+          f"          NOTE: the 0.5% previously reported here was an artifact "
+          f"of subtracting each sample's own mean. This is the un-centred "
+          f"figure and it is the one that counts.")
 
 # ---------------------------------------------------------------- T5 ------
 def t5_noise_bar():
@@ -262,19 +317,30 @@ def t6_control():
     m = M.synth(6000, 21, 0.0012)
     P = M.prep(m); cost = P["spread"] + M.COMMISSION
     W = M.walk_rule(P, 20, 0.1, "atr2", cost, 96)
-    R, _ = M.outcome(W, 2, 1)
+    split = Split(P["idx"], P["idx"][4500])
+    R, held, keep = M.resolve(W, 2, 1, split, "discovery")[:3]
+    Wd = M.subset(W, keep)
     reps = 4
-    ctrl = M.matched_control(P, W, 2, 1, reps=reps)
-    exp = len(R) * reps
+    ctrl, st = M.matched_control(P, Wd, 2, 1, split, "discovery", reps=reps)
+    exp = int(keep.sum()) * reps
     ratio = len(ctrl) / exp if exp else 0
     check("T6a control produces about the same number of trades per rep",
           0.80 <= ratio <= 1.0,
-          f"{len(ctrl)} control trades against {exp} expected ({ratio:.1%})")
-    long_share = float((W["d"] > 0).mean())
-    check("T6b the rule's own direction mix is what the control is given",
-          0.0 <= long_share <= 1.0,
-          f"rule is {long_share:.1%} long; the control cycles this same "
-          f"sequence by construction")
+          f"{len(ctrl)} control trades against {exp} expected ({ratio:.1%}); "
+          f"{st['skipped']} draws skipped (entry gap / no ATR)")
+    long_share = float((Wd["d"] > 0).mean())
+    check("T6b the control is given the rule's own direction mix",
+          abs(long_share - st["long_frac"]) < 0.02,
+          f"rule is {long_share:.1%} long, control is {st['long_frac']:.1%} long")
+    hold = M.HOLDS[1]
+    check("T6c the control never holds longer than the strategy's horizon",
+          st["mean_held"] <= hold + 1e-9,
+          f"horizon {hold} bars, control mean held {st['mean_held']:.2f} "
+          f"(the pre-fix control expired one bar late, at e+H)")
+    check("T6d the control cannot sample across the discovery boundary",
+          st["pool"] > 0 and st["pool"] <= split.n_disc,
+          f"drew from {st['pool']:,} bars, all inside the "
+          f"{split.n_disc:,}-bar discovery side")
 
 # ---------------------------------------------------------------- T7 ------
 def t7_drawdown():
@@ -307,8 +373,13 @@ def main():
     print("\n" + "=" * 68)
     passed = sum(1 for _, p in results if p)
     print(f"{passed}/{len(results)} checks passed")
-    for name, p in results:
-        if not p: print(f"  FAILED: {name}")
+    bad = [name for name, p in results if not p]
+    for name in bad:
+        print(f"  FAILED: {name}")
+    # A measuring instrument that fails its own audit cannot be used to judge
+    # anything, so this exits non-zero rather than printing a score and
+    # returning success.
+    sys.exit(1 if bad else 0)
 
 if __name__ == "__main__":
     main()
