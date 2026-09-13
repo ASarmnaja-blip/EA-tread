@@ -383,12 +383,26 @@ def load_tf(tf):
     return m1 if tf == "1min" else D.resample(m1, tf)
 
 def synth(n, seed, sigma):
+    """An ARITHMETIC martingale, not a geometric one.
+
+    The first version of this used price * exp(cumsum(zero-mean steps)), which
+    is driftless in LOG space and therefore has POSITIVE drift in price space,
+    since E[e^X] = e^(sigma^2/2) > 1. Calibration caught it immediately: the
+    breakout rule scored E +0.2893R at t +5.29 on supposedly information-free
+    data. The arithmetic matches exactly - drift of sigma^2/2 per bar over a
+    240-bar hold is about 0.28R at a 1xATR stop - and the mechanism is the one
+    that matters here: an upward-drifting series produces more upside breakouts
+    than downside, so the rule ends up net long and simply collects the drift.
+
+    That is the same way gold's 11x rise can masquerade as skill, so the
+    generator has to be a true martingale: E[P_(t+1) | P_t] = P_t exactly."""
     rng = np.random.default_rng(seed)
-    steps = rng.normal(0.0, sigma, size=(n, 4))
+    step_abs = 2000.0 * sigma
+    steps = rng.normal(0.0, step_abs, size=(n, 4))
     price = 2000.0
     o = np.empty(n); h = np.empty(n); lo = np.empty(n); c = np.empty(n)
     for i in range(n):
-        path = price * np.exp(np.cumsum(steps[i]))
+        path = price + np.cumsum(steps[i])
         o[i], h[i], lo[i], c[i] = price, max(price, path.max()), min(price, path.min()), path[-1]
         price = path[-1]
     idx = pd.date_range("2004-01-01", periods=n, freq="1h", tz="UTC")
@@ -445,21 +459,28 @@ def run(m, tf, label, calib=False):
         R, held = outcome(Wd, tp_j, hk)
         F = build_filters(P, Wd)
         names = list(F); cols = np.vstack([F[nm] for nm in names])
-        level = [((j,), cols[j]) for j in range(len(names))
-                 if cols[j].sum() >= MIN_N_FILTER]
+        # Masks are RECOMPUTED from the index tuples rather than stored. Holding
+        # one boolean array per surviving subset was what killed the first run:
+        # 31 filters at depth 8 over ten thousand trades is gigabytes of masks
+        # alive at once. Tuples of small ints cost a hundred bytes each.
+        def mask_of(combo):
+            m = cols[combo[0]].copy()
+            for j in combo[1:]: m &= cols[j]
+            return m
+        level = [(j,) for j in range(len(names)) if cols[j].sum() >= MIN_N_FILTER]
         tested_here = 0
         for depth in range(1, MAX_DEPTH + 1):
             if not level or tested_here >= MAX_SUBSETS: break
-            for combo, msk in level:
+            for combo in level:
                 k_total += 1; tested_here += 1
-                r = R[msk]
+                r = R[mask_of(combo)]
                 if len(r) < MIN_N_FILTER: continue
                 leaders.append((naive_t(r), r.mean(), len(r), cfg, combo, names))
             nxt = []
-            for combo, msk in level:
+            for combo in level:
+                msk = mask_of(combo)
                 for j in range(combo[-1] + 1, len(names)):
-                    m2 = msk & cols[j]
-                    if m2.sum() >= MIN_N_FILTER: nxt.append((combo + (j,), m2))
+                    if (msk & cols[j]).sum() >= MIN_N_FILTER: nxt.append(combo + (j,))
             level = nxt
         if tested_here >= MAX_SUBSETS:
             print(f"    (subset cap hit on one base rule at {tested_here:,})")

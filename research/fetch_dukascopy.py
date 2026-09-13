@@ -50,8 +50,17 @@ from concurrent.futures import ThreadPoolExecutor
 CACHE = pathlib.Path(__file__).parent / ".cache_duka"
 BASE = "https://datafeed.dukascopy.com/datafeed"
 REC = struct.Struct(">Iiiiif")
-POINT = 1000.0          # XAUUSD quotes to 3 decimals
 WORKERS = 10
+
+# Prices arrive as INTEGER POINTS, and the divisor is per instrument - it is
+# the quote's decimal count. Getting it wrong does not error, it silently
+# scales every price, so each symbol is listed explicitly rather than assumed.
+# Verified against known levels: silver 16.040 and yen 108.846 in Jan 2019,
+# euro 1.14482, pound 1.31081.
+POINTS = {"XAUUSD": 1000.0, "XAGUSD": 1000.0, "USDJPY": 1000.0,
+          "EURUSD": 100000.0, "GBPUSD": 100000.0, "AUDUSD": 100000.0,
+          "USDCHF": 100000.0, "USDCAD": 100000.0, "NZDUSD": 100000.0}
+POINT = POINTS["XAUUSD"]      # kept so existing XAUUSD callers are unchanged
 
 def _get(url, tries=4):
     """503 is Dukascopy's normal answer for an hour it has no data for AND its
@@ -152,8 +161,13 @@ def load(start="2020-01-01", end=None, refresh=False, verbose=True):
 # only setup with measured skill actually trades. The time field is seconds
 # from the start of the containing period (month for hourly, year for daily).
 
-def _period_side(path, origin, side):
-    raw = _get(f"{BASE}/XAUUSD/{path}/{side}_candles_{origin}.bi5")
+def _period_side(path, origin, side, symbol="XAUUSD"):
+    point = POINTS.get(symbol)
+    if point is None:
+        raise ValueError(f"no point divisor recorded for {symbol} - add it to "
+                         f"POINTS rather than guessing, a wrong divisor scales "
+                         f"every price silently")
+    raw = _get(f"{BASE}/{symbol}/{path}/{side}_candles_{origin}.bi5")
     if not raw: return None
     try:
         dec = lzma.LZMADecompressor(format=lzma.FORMAT_ALONE).decompress(raw)
@@ -162,18 +176,18 @@ def _period_side(path, origin, side):
     n = len(dec) // REC.size
     if n == 0: return None
     a = np.frombuffer(dec[:n * REC.size], dtype=">u4,>i4,>i4,>i4,>i4,>f4")
-    o, c, l, h = (a[f"f{i}"].astype(np.float64) / POINT for i in (1, 2, 3, 4))
+    o, c, l, h = (a[f"f{i}"].astype(np.float64) / point for i in (1, 2, 3, 4))
     keep = (o > 0) & (h > 0) & (l > 0) & (c > 0)
     if not keep.any(): return None
     return (a["f0"].astype(np.int64)[keep], o[keep], h[keep], l[keep],
             c[keep], a["f5"].astype(np.float64)[keep])
 
 def fetch_h1_month(ym):
-    year, month = ym
+    year, month, symbol = ym if len(ym) == 3 else (*ym, "XAUUSD")
     path = f"{year}/{month - 1:02d}"
-    b = _period_side(path, "hour_1", "BID")
+    b = _period_side(path, "hour_1", "BID", symbol)
     if b is None: return None
-    a = _period_side(path, "hour_1", "ASK")
+    a = _period_side(path, "hour_1", "ASK", symbol)
     if a is None: return None
     bi = pd.DataFrame({"bid_open": b[1], "bid_high": b[2], "bid_low": b[3],
                        "bid_close": b[4], "volume": b[5]}, index=b[0])
@@ -184,14 +198,15 @@ def fetch_h1_month(ym):
     j.index = pd.Timestamp(f"{year}-{month:02d}-01") + pd.to_timedelta(j.index, unit="s")
     return j.tz_localize("UTC")
 
-def load_h1(start_year=2003, end_year=None, refresh=False, verbose=True):
+def load_h1(start_year=2003, end_year=None, refresh=False, verbose=True,
+            symbol="XAUUSD"):
     """Cached H1 for whole years. One parquet for the lot - it is small."""
     end_year = end_year or dt.date.today().year
     CACHE.mkdir(exist_ok=True)
-    p = CACHE / f"XAUUSD_H1_{start_year}_{end_year}.parquet"
+    p = CACHE / f"{symbol}_H1_{start_year}_{end_year}.parquet"
     if p.exists() and not refresh:
         return pd.read_parquet(p)
-    months = [(y, m) for y in range(start_year, end_year + 1)
+    months = [(y, m, symbol) for y in range(start_year, end_year + 1)
               for m in range(1, 13)
               if not (y == dt.date.today().year and m > dt.date.today().month)]
     if verbose: print(f"  downloading {len(months)} months of H1 ...", flush=True)
