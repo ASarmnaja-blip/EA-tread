@@ -335,6 +335,37 @@ def naive_t(R):
     sd = Rw.std(ddof=1)
     return Rw.mean() / (sd / math.sqrt(len(Rw))) if sd > 0 else float("nan")
 
+def block_bootstrap_ci(R, entry_idx, held, reps=2000, seed=SEED):
+    """PERCENTILE block bootstrap: a 95% interval for the mean of R.
+
+    Chosen over a t-ratio because `metric_audit.py` measured both on data
+    whose true mean is known to be zero:
+        naive per-trade t, fat-tailed book      18.4% false positives
+        percentile bootstrap, same data          5.3%
+        naive t, overlapping trades             70.7%
+        block bootstrap t, same data            10.3%
+        percentile BLOCK bootstrap, both         0.5%
+    Blocks handle the overlap; the percentile form handles the fat tail that a
+    stop-loss book always has. The combination is conservative - it will miss
+    real effects before it invents one - which is the correct direction to err
+    for a gate, given how much of this program has been spent retracting
+    effects that were never there.
+
+    Returns (lo, hi) of the 95% interval, or None when there are too few
+    blocks to resample honestly."""
+    if len(R) < 30: return None
+    span = max(int(np.nanmedian(held)) * 2, 10)
+    block = np.maximum(entry_idx // span, 0).astype(int)
+    uniq = np.unique(block)
+    if len(uniq) < 8: return None
+    groups = [R[block == b] for b in uniq]
+    rng = np.random.default_rng(seed)
+    means = np.empty(reps)
+    for r in range(reps):
+        pick = rng.integers(0, len(groups), len(groups))
+        means[r] = np.concatenate([groups[p] for p in pick]).mean()
+    return float(np.percentile(means, 2.5)), float(np.percentile(means, 97.5))
+
 def block_bootstrap_t(R, entry_idx, held, bar_minutes, reps=2000, seed=SEED):
     """Overlap-aware significance. Trades are grouped into contiguous blocks
     long enough to contain a full holding period, so trades that share price
@@ -557,6 +588,7 @@ def run(m, tf, label, calib=False):
         r = R[msk]
         if len(r) < MIN_N_FILTER: continue
         bt = block_bootstrap_t(r, Wd["i"][msk], held[msk], 1)
+        ci = block_bootstrap_ci(r, Wd["i"][msk], held[msk])
         Wf = {kk: (vv[..., msk] if kk in ("t_tp","p_tp","c_at") else vv[msk])
               for kk, vv in Wd.items()}
         ctrl = matched_control(P, Wf, tp_j, hk)
@@ -568,13 +600,19 @@ def run(m, tf, label, calib=False):
         cfgs = f"look{look} buf{buf} {sm} tp{tpname} hold{HOLDS[hk]}"
         print(f"  {len(r):>6}{r.mean():>+9.4f}{t:>+9.2f}{bt:>+8.2f}"
               f"{sk:>+9.4f}{ct:>+8.2f}  {cfgs} | {'+'.join(nm[x] for x in combo)}")
-        final.append((bt, ct, r.mean(), len(r), cfg, combo, nm))
+        ci_clear = ci is not None and ci[0] > 0
+        final.append((bt, ct, r.mean(), len(r), cfg, combo, nm, ci_clear, ci))
         if len(final) >= TOP_LEADERS: break
 
+    # THE GATE: the percentile block bootstrap's 95% interval must sit
+    # entirely above zero, AND the control-adjusted skill must be positive,
+    # AND the overlap-corrected t must clear the search's own noise bar. All
+    # three, because each catches something the others do not.
     survivors = [f for f in final
-                 if np.isfinite(f[0]) and abs(f[0]) > bar and np.isfinite(f[1]) and f[1] > 0]
-    print(f"\n  clearing the {bar:.2f} bar on the OVERLAP-CORRECTED t, with a "
-          f"positive control-adjusted skill: {len(survivors)}")
+                 if np.isfinite(f[0]) and abs(f[0]) > bar
+                 and np.isfinite(f[1]) and f[1] > 0 and f[7]]
+    print(f"\n  clearing all three gates (bootstrap CI above zero, positive "
+          f"control-adjusted skill, |t| > {bar:.2f}): {len(survivors)}")
     if not survivors:
         print("  Nothing survives. The holdout stays closed - opening it for a")
         print("  configuration that already failed in discovery would only")
@@ -583,7 +621,7 @@ def run(m, tf, label, calib=False):
         return
 
     # ---- the holdout, opened exactly once ---------------------------------
-    bt, ct, e, n, cfg, combo, nm = survivors[0]
+    bt, ct, e, n, cfg, combo, nm, _, ci = survivors[0]
     look, buf, sm, tp_j, hk = cfg
     print(f"\n  HOLDOUT - opened once, on the single best survivor only")
     W, _ = walks[(look, buf, sm)]
@@ -600,7 +638,8 @@ def run(m, tf, label, calib=False):
     tpname = "none" if tp_j is None else f"{[x for x in TPS if x is not None][tp_j]}R"
     print(f"  config: look{look} buf{buf} {sm} tp{tpname} hold{HOLDS[hk]} | "
           f"{'+'.join(nm[x] for x in combo)}")
-    print(f"  discovery : n={n:>5}  E={e:+.4f}  boot t={bt:+.2f}  ctrl t={ct:+.2f}")
+    print(f"  discovery : n={n:>5}  E={e:+.4f}  boot t={bt:+.2f}  ctrl t={ct:+.2f}"
+          f"  bootstrap 95% CI [{ci[0]:+.4f}, {ci[1]:+.4f}]")
     if len(rh) < 30:
         print(f"  holdout   : n={len(rh)} - too few to judge")
     else:
