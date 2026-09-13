@@ -153,7 +153,7 @@ def main():
     # -- the forward relationship, which is the only one that pays ---------
     print(f"\nFORWARD (the only one that can be traded)")
     print(f"  {'hypothesis':<22}{'k':>3}{'h':>4}{'n':>8}{'effect':>11}"
-          f"{'t':>8}{'CI low':>10}{'CI high':>10}  verdict")
+          f"{'t':>8}{'t_indep':>9}{'CI low':>10}  verdict")
     rows = []
     for k in LOOKBACKS:
         dr = np.full(n, np.nan); dr[k:] = (x[k:] - x[:-k]) / x[:-k]
@@ -185,14 +185,38 @@ def main():
                        and np.isfinite(t) and abs(t) > bar)
                 cost_atr = 0.260 / float(np.nanmedian(A))
                 trade = det and abs(r.mean()) > cost_atr
+                # THE OVERLAP TRAP, CHECKED AUTOMATICALLY.
+                # Consecutive bars share almost all of their forward window,
+                # so n is not the number of independent observations. Every
+                # candidate in this project that looked significant and then
+                # died - the M15 calendar effects, the Friday effect on M15 -
+                # died exactly here. The block bootstrap already widens the
+                # interval for overlap and it is still not enough, so the
+                # decisive test is re-run on a thinned sample taking every
+                # h-th bar, which is genuinely non-overlapping.
+                t_min = float("nan")
+                t_ind = []
+                for off in range(min(3, h)):
+                    thin = np.zeros(n, bool); thin[off::h] = True
+                    s = thin & ok
+                    if s.sum() < 200: continue
+                    rr = fwd[s] * sig[s]
+                    ww = np.where(s)[0].astype(float)
+                    t_ind.append(M.block_bootstrap_t(
+                        rr, ww, np.full(len(rr), float(h)), 1))
+                t_min = min(t_ind) if t_ind else float("nan")
+                survives = det and np.isfinite(t_min) and abs(t_min) > bar
                 rows.append(dict(hypothesis=nm, k=k, h=h, n=int(ok.sum()),
                                  effect=float(r.mean()), t=float(t),
                                  ci_lo=float(lo), ci_hi=float(hi),
-                                 detected=bool(det), tradeable=bool(trade)))
-                v = ("TRADEABLE" if trade else
+                                 t_independent=float(t_min),
+                                 detected=bool(det),
+                                 tradeable=bool(trade and survives)))
+                v = ("TRADEABLE" if (trade and survives) else
+                     "dies on independent samples" if det and not survives else
                      "detected, too small" if det else "-")
                 print(f"  {nm:<22}{k:>3}{h:>4}{ok.sum():>8,}{r.mean():>+11.4f}"
-                      f"{t:>+8.2f}{lo:>+10.4f}{hi:>+10.4f}  {v}")
+                      f"{t:>+8.2f}{t_min:>+9.2f}{lo:>+10.4f}  {v}")
 
     df = pd.DataFrame(rows)
     print("\n" + "=" * 84)
