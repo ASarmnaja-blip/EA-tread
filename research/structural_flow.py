@@ -87,7 +87,15 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import mega_search as M
 
 DISCOVERY_END = "2017-01-01"
-HORIZONS = (1, 4)
+# M15 only exists from 2019 in the M1 cache, so it needs its own split - the
+# same one already declared in exness_backtest.py, not a new choice made here.
+DISCOVERY_END_M15 = "2023-01-01"
+# Horizons are declared per timeframe so the WALL-CLOCK windows match: 1 and 4
+# hours on H1; 15 minutes, 1 hour and 4 hours on M15. Adding the third horizon
+# raises k for the M15 run and the floor moves with it.
+HORIZONS_H1 = (1, 4)
+HORIZONS_M15 = (1, 4, 16)
+HORIZONS = HORIZONS_H1
 COST_ATR_LIVE = 0.0871      # 260 points / median H1 ATR
 COST_ATR_HIST = 0.1263      # 377 points (the real historical median) / same
 
@@ -165,23 +173,35 @@ def main():
 
     m = M.load_tf(a.tf)
     P = M.prep(m)
-    n_disc = int((m.index < pd.Timestamp(DISCOVERY_END, tz="UTC")).sum())
+    sub_hourly = (m.index[1] - m.index[0]) < pd.Timedelta(minutes=60)
+    disc_end = DISCOVERY_END_M15 if sub_hourly else DISCOVERY_END
+    horizons = HORIZONS_M15 if sub_hourly else HORIZONS_H1
+    n_disc = int((m.index < pd.Timestamp(disc_end, tz="UTC")).sum())
     idx = m.index[:n_disc]
-    print(f"DISCOVERY: {n_disc:,} bars  {idx[0].date()} -> {idx[-1].date()}")
+    print(f"DISCOVERY: {n_disc:,} bars  {idx[0].date()} -> {idx[-1].date()}"
+          f"   (split ends {disc_end})")
 
     C = build_conditions(idx)
-    k = len(C) * len(HORIZONS)
+    k = len(C) * len(horizons)
     bar = math.sqrt(2 * math.log(k))
-    print(f"hypotheses: {len(C)} conditions x {len(HORIZONS)} horizons = {k}"
+    print(f"hypotheses: {len(C)} conditions x {len(horizons)} horizons = {k}"
           f"   noise floor |t| > {bar:.2f}")
-    print(f"tradeable bar: |effect| > {COST_ATR_LIVE:.4f} ATR at the live 260-point "
-          f"spread, {COST_ATR_HIST:.4f} at the 377-point historical median\n")
+    atr_med = float(np.median(P["A"][:n_disc][np.isfinite(P["A"][:n_disc])]))
+    cost_live = 0.260 / atr_med
+    cost_hist = 0.377 / atr_med
+    globals()["COST_ATR_LIVE"] = cost_live
+    print(f"median ATR on this timeframe: {atr_med:.4f} price units")
+    print(f"tradeable bar: |effect| > {cost_live:.4f} ATR at the live 260-point "
+          f"spread, {cost_hist:.4f} at the 377-point historical median")
+    print(f"  (the cost bar is RECOMPUTED per timeframe - a fixed 260-point "
+          f"spread is a bigger\n   fraction of a smaller bar's ATR, which is "
+          f"why sub-hourly is harder, not easier)\n")
 
     rows = []
     print(f"  {'condition':<24}{'h':>3}{'n':>8}{'mean(ATR)':>12}{'t':>8}"
           f"{'CI low':>10}{'CI high':>10}  verdict")
     for name, mask in C.items():
-        for h in HORIZONS:
+        for h in horizons:
             fwd = forward_returns(P, h)[:n_disc]
             sel = mask & np.isfinite(fwd)
             x = fwd[sel]
@@ -194,7 +214,7 @@ def main():
             lo, hi = (ci if ci is not None else (float("nan"), float("nan")))
             detected = (ci is not None and (lo > 0 or hi < 0)
                         and np.isfinite(t) and abs(t) > bar)
-            tradeable = detected and abs(x.mean()) > COST_ATR_LIVE
+            tradeable = detected and abs(x.mean()) > cost_live
             verdict = ("TRADEABLE" if tradeable else
                        "detected, too small to trade" if detected else "-")
             rows.append(dict(condition=name, h=h, n=len(x), mean=float(x.mean()),
@@ -212,7 +232,7 @@ def main():
     if len(det):
         print("\n  detected effects:")
         for _, r in det.iterrows():
-            mult = abs(r["mean"]) / COST_ATR_LIVE
+            mult = abs(r["mean"]) / cost_live
             print(f"    {r['condition']:<24} h={r['h']}  {r['mean']:+.4f} ATR "
                   f"= {mult:.2f}x the round-trip cost  (t={r['t']:+.2f})")
     if not len(tra):
