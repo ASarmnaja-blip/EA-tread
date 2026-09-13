@@ -77,7 +77,11 @@ DISCOVERY_END = "2019-01-01"    # everything before this is searchable
 MIN_N_BASE    = 200             # base rule needs this many trades
 MIN_N_FILTER  = 150             # filtered subset floor
 MAX_DEPTH     = 8
-TOP_BASE      = 20              # base rules promoted to the filter sweep
+TOP_BASE      = 12              # base rules promoted to the filter sweep
+MAX_SUBSETS   = 400_000         # per base rule; 31 filters at depth 8 can
+                                # otherwise reach millions of subsets, and a
+                                # cap that binds is reported rather than
+                                # silently shrinking the search
 TOP_LEADERS   = 15              # leaders promoted to stage 3
 SEED          = 17
 
@@ -443,10 +447,11 @@ def run(m, tf, label, calib=False):
         names = list(F); cols = np.vstack([F[nm] for nm in names])
         level = [((j,), cols[j]) for j in range(len(names))
                  if cols[j].sum() >= MIN_N_FILTER]
+        tested_here = 0
         for depth in range(1, MAX_DEPTH + 1):
-            if not level: break
+            if not level or tested_here >= MAX_SUBSETS: break
             for combo, msk in level:
-                k_total += 1
+                k_total += 1; tested_here += 1
                 r = R[msk]
                 if len(r) < MIN_N_FILTER: continue
                 leaders.append((naive_t(r), r.mean(), len(r), cfg, combo, names))
@@ -456,6 +461,8 @@ def run(m, tf, label, calib=False):
                     m2 = msk & cols[j]
                     if m2.sum() >= MIN_N_FILTER: nxt.append((combo + (j,), m2))
             level = nxt
+        if tested_here >= MAX_SUBSETS:
+            print(f"    (subset cap hit on one base rule at {tested_here:,})")
     leaders = [x for x in leaders if np.isfinite(x[0])]
     leaders.sort(key=lambda x: -x[0])
     bar = math.sqrt(2 * math.log(max(k_total, 2)))
