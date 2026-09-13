@@ -53,6 +53,11 @@ ACC = ExnessCent()
 
 DISCOVERY_END = "2017-01-01"
 VALIDATION_END = "2022-01-01"
+# M15/M5 only start in 2019 (M1 cache begins there); a different split is
+# needed for those timeframes so discovery isn't empty. Declared here,
+# before any M15 run, not chosen after seeing results.
+DISCOVERY_END_M15 = "2023-01-01"
+VALIDATION_END_M15 = "2025-01-01"
 
 # ---- THE FROZEN GRID, declared before the run -----------------------------
 LOOKBACKS = (10, 20, 40)
@@ -326,6 +331,13 @@ def main():
     print("SESSION RULES IN FORCE")
     print(S.audit(m.index, tf_min))
 
+    # M15/M5 data only starts in 2019 (the M1 cache's first year), so the H1
+    # split would leave discovery empty. A SEPARATE split is declared for
+    # sub-hourly timeframes, in source, before this run - not picked after
+    # seeing where the data happens to start.
+    disc_end = DISCOVERY_END if tf_min >= 60 else DISCOVERY_END_M15
+    val_end = VALIDATION_END if tf_min >= 60 else VALIDATION_END_M15
+
     real_sp = P["spread"][np.isfinite(P["spread"]) & (P["spread"] > 0)]
     print(f"\nREAL BID/ASK IN THE DATA (Dukascopy, measured not assumed)")
     print(f"  median {np.median(real_sp)*1000:.0f} points, mean "
@@ -333,14 +345,17 @@ def main():
     print(f"  the terminal's current 260 points is TIGHTER than the historical"
           f" median - the 260-point scenario is therefore the optimistic one")
 
-    n_disc = int((m.index < pd.Timestamp(DISCOVERY_END, tz="UTC")).sum())
-    n_val = int((m.index < pd.Timestamp(VALIDATION_END, tz="UTC")).sum())
+    n_disc = int((m.index < pd.Timestamp(disc_end, tz="UTC")).sum())
+    n_val = int((m.index < pd.Timestamp(val_end, tz="UTC")).sum())
     N = P["N"]
-    print(f"\nSPLIT   discovery [0,{n_disc}) = {m.index[0].date()}..{DISCOVERY_END}"
+    print(f"\nSPLIT   discovery [0,{n_disc}) = {m.index[0].date()}..{disc_end}"
           f"   validation [{n_disc},{n_val})   holdout [{n_val},{N}) "
-          f"= {VALIDATION_END}..{m.index[-1].date()}")
+          f"= {val_end}..{m.index[-1].date()}")
+    if n_disc < 1000:
+        print("  *** discovery too short for this timeframe - aborting");
+        return None
 
-    split = Split(m.index, DISCOVERY_END)
+    split = Split(m.index, disc_end)
     th = M.fit_thresholds(P, split)
     print(f"  thresholds fitted on DISCOVERY only: "
           + ", ".join(f"{k}={v:.4g}" for k, v in th.values.items()))
