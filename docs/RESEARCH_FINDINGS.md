@@ -2070,3 +2070,106 @@ The H1 combinatorial result (`atr_contracting + long_side` etc., skill +0.16,
 t +6.18) is UNCHANGED by this fix - H1's dollar-scale risk was never close to
 the cost floor, confirmed by re-adding `cost_ref` there and reproducing the
 same numbers.
+
+---
+
+# Engine audit round (Section A): what was wrong, and what the numbers are now
+
+This round produced no new strategy results. It was spent making the existing
+ones checkable, after an external review of commit `0fa85e8` named seven
+defects. Six of the seven reproduced on hand-built cases; the seventh did not
+surface on the random draw used to look for it. **The review was right on
+essentially everything.**
+
+## Retraction: the "0.5% false-positive rate" of the bootstrap gate
+
+`metric_audit.py` T4c built its fat-tailed test samples as
+`R = smooth + fat - fat.mean()`, subtracting **each sample's own mean** before
+measuring coverage. That removes exactly the tail-driven variation the test
+exists to measure, so almost no sample produced an interval clear of zero and
+the measured rate came back 0.5%. It was reported as evidence the gate was
+conservative. It was not evidence of anything.
+
+Constructing the population mean at zero instead (a 1% chance of +99 against a
+99% chance of −1 has expectation exactly 0.00) and leaving each sample free:
+
+| block length | false-positive rate | 95% Wilson CI |
+|---|---|---|
+| 10 bars | 5.5% | [3.7%, 8.2%] |
+| 20 bars (what the pipeline uses) | **6.8%** | [4.7%, 9.6%] |
+| 40 bars | 7.5% | [5.3%, 10.5%] |
+| 80 bars | 11.8% | [9.0%, 15.3%] |
+
+Nominal is 5%. **The gate is mildly loose, not conservative as previously
+claimed.** It is still far better than the alternatives on this data shape
+(naive t rejects at 70.7% with overlap, 18.4% with fat tails), and it remains
+the gate — but the earlier characterisation of it was wrong and is withdrawn.
+
+## The entry-gap defect
+
+A long signalled at 110 with its stop at 98, whose entry bar **opened at 90**,
+was booked at **+0.667R** — an exit filled at 98, a price that never traded
+after entry. The short mirror returned the same fabricated number. The engine
+now checks the entry gap before any bracket can be credited and skips the
+trade (`exec_engine.on_gap="skip"`). A gap *after* entry fills at that bar's
+open and is allowed to lose more than 1R, which is what really happens.
+
+## Strategy and control were not measured by the same rules
+
+The control had its own inline loop that expired at `c[e+H]` while the
+strategy expired at the close of bar `e+H−1` — one free bar of information on
+every control trade — and charged the *original signal's* spread to a trade
+placed at a different time. The control now calls `exec_engine.execute()`.
+
+The strategy cannot: 36 (target, hold) pairs per signal is 36× the work. It
+keeps its recorded walk, and `test_walk_equivalence.py` asserts the two **are**
+the same function over 134,316 trade-configurations. That test found two real
+divergences that no amount of reading would have:
+
+- the walk priced targets from the **fill**, `execute()` from the **signal
+  close**
+- at the right-hand edge the walk reported a full-horizon hold where
+  `execute()` correctly stopped at the last available bar
+
+## Three holdout leaks
+
+1. **Straddling trades.** Discovery was selected by signal index alone, so at
+   `hold=1000` a trade signalled on the last discovery bar consumed a thousand
+   holdout bars and still counted as a discovery result.
+2. **Thresholds fitted on everything.** `build_filters` took whole-series
+   medians of spread, volume and efficiency, so every "below median spread"
+   decision in 2012 knew where 2019-2026 would land. Refitting per period is
+   not the fix — that makes them two different strategies. They are now fitted
+   on discovery and frozen.
+3. **The control sampled everywhere**, so a discovery result was measured
+   against a baseline partly built from holdout bars.
+
+The invariance test: rewrite every bar after the boundary, and every
+discovery-side number must be bit-identical. Passes on 20 seeds. The
+**unguarded** path fails the same test on 20 of 20 seeds, which is what proves
+the test can detect the bug rather than passing vacuously.
+
+## `sqrt(2 ln k)` is not a 5% bar
+
+It is the expected maximum of k noise draws. Measured directly: at least one
+of k draws exceeds it **16.5%** of the time at k=1000 and **18.8%** at
+k=10000. It is now labelled a heuristic floor everywhere it is printed.
+
+## What an account does that R cannot show
+
+Expectancy in R has no account in it. Two effects only appear once there is
+one:
+
+- 40 losses of 1R at 1% risk cost **33.07%** of a large account, not the 40%
+  that summing R reports.
+- The identical 40 trades cost **29.20%** on a $10,000 account, because 1% of
+  $9,900 against a 20-point stop wants 0.0495 lots and can only be dealt 0.04.
+  A small account silently risks less than its budget, and a backtest in R
+  units cannot see this at all.
+
+`portfolio.py` reports max concurrent positions, peak open risk as a fraction
+of equity, **floating** drawdown alongside closed-trade drawdown, margin and
+minimum-lot rejections, and costs at three stress levels. Broker parameters
+(contract size, leverage, lot step, commission, swap, slippage) are
+**assumption**, labelled as such wherever printed. The spread series is real
+Dukascopy bid/ask.

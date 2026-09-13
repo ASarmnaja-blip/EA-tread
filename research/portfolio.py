@@ -137,10 +137,14 @@ def simulate(trades, mid, index, broker=Broker(), risk_frac=0.01,
     day = index.normalize().to_numpy() if hasattr(index, "normalize") else None
 
     def float_pl(b):
+        """Unrealised P&L on open positions, including costs already incurred.
+        Accrued swap belongs here: a long held for three weeks has really paid
+        that money and its floating equity is really lower for it."""
         tot = 0.0
         for p in open_pos:
             tot += (mid[b] - p["fill"]) * p["d"] * p["lots"] * broker.contract_size
             tot -= p["entry_cost"]
+            tot += p["swap_paid"]          # signed: negative means paid
         return tot
 
     for b in range(n):
