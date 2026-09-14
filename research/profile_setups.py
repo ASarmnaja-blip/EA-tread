@@ -102,9 +102,20 @@ def reversion_signal(P, look=20, z=1.5):
 
 
 # ------------------------------------------------------------- the regime --
-def regime_from_profile(sym, tf):
+def regime_from_profile(sym, tf, joint=False):
     """Read the hour classification off the instrument. This is the part that
-    must NOT be tuned to results - it is whatever the profile measured."""
+    must NOT be tuned to results - it is whatever the profile measured.
+
+    `joint` applies the fix vr_is_illiquidity.py argued for. Raw variance
+    ratio correlates +0.41 to +0.53 with cost across every timeframe and runs
+    INVERSELY to movement - the six highest-VR hours on gold H1 cost 1.4x
+    more and move 1.5x less than the six lowest. In a thin book price drifts
+    rather than standing still, because nobody is on the other side to push
+    it back, and a run of small one-way moves is precisely what a high
+    variance ratio measures. So raw VR cannot separate a trend from an empty
+    book. The joint classifier requires an hour to MOVE as well as to extend,
+    making the two conditions separate instead of letting one column stand
+    for both."""
     r = MP.profile(sym, tf)
     if r is None:
         return None
@@ -115,8 +126,14 @@ def regime_from_profile(sym, tf):
     vr = r["vr"]
     mom = {h for h, v in vr.items() if np.isfinite(v) and v >= VR_MOM}
     rev = {h for h, v in vr.items() if np.isfinite(v) and v <= VR_REV}
+    if joint:
+        mv = {int(x.hour): float(x.move_atr) for _, x in H.iterrows()}
+        mv_med = float(np.median(list(mv.values())))
+        alive = {h for h, m in mv.items() if m >= mv_med}
+        mom &= alive
+        rev &= alive
     return dict(affordable=aff, momentum=mom, reversion=rev, quality=r["quality"],
-                median_cost=med, vr=vr)
+                median_cost=med, vr=vr, joint=joint)
 
 
 def run(P, d, I, tick, hours=None):
@@ -137,6 +154,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tf", default="H1")
     ap.add_argument("--symbols", default=",".join(MARKETS))
+    ap.add_argument("--joint", action="store_true",
+                    help="require an hour to MOVE as well as to extend")
     a = ap.parse_args()
     t0 = time.time()
     syms = [s.strip() for s in a.symbols.split(",") if s.strip()]
@@ -146,11 +165,12 @@ def main():
     print(__doc__.split("THE TRAP THIS FILE IS BUILT TO AVOID")[1]
           .split("WHY THIS IS WORTH DOING")[0])
     print(f"  declared thresholds: momentum VR >= {VR_MOM}, reversion VR <= "
-          f"{VR_REV}, refuse hours costing > {COST_MULT}x median\n")
+          f"{VR_REV}, refuse hours costing > {COST_MULT}x median")
+    print(f"  classifier: {'JOINT (VR and movement)' if a.joint else 'raw VR'}\n")
 
     rows = []
     for sym in syms:
-        reg = regime_from_profile(sym, a.tf)
+        reg = regime_from_profile(sym, a.tf, joint=a.joint)
         if reg is None:
             continue
         df = load_bidask_h1(sym) if a.tf == "H1" else MP.load_tf(sym, a.tf)
