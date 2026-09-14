@@ -409,7 +409,21 @@
    "criterion": "Pooled expectancy at real bid/ask NON-NEGATIVE with the 2x stop, and the improvement over the 1x stop clearing the declared margin with an across-market |t| above the ledger floor. A book that improves substantially but stays negative says the bracket was a real and large defect AND that fixing it is still not sufficient - which is a different and more useful finding than either 'it works' or 'nothing changed'.",
    "min_improvement": 0.02,
    "test_period": "Nine markets H1 2004-2026 at real bid/ask. The 2x stop was selected from the random-timing control table alone, which never sees the real entries; no entry parameter is swept.",
-   "result": null
+   "result": {
+    "recorded": "2026-09-14T17:25:24.266943+00:00",
+    "baseline_er": -0.1425,
+    "variant_er": -0.0719,
+    "improvement": 0.07059999999999998,
+    "t_stat": 9.97,
+    "n_baseline": 0,
+    "n_variant": 18,
+    "k_at_test": 830,
+    "floor_at_test": 4.722585482525008,
+    "clears_margin": true,
+    "clears_floor": true,
+    "verdict": "ACCEPTED",
+    "note": "THE REGISTERED CRITERION FAILS, EVEN THOUGH THIS FILE'S MECHANICS WILL PRINT ACCEPTED. The ledger checks margin and floor, and both are met by a wide margin: improvement +0.0706R against a declared 0.02, across-market t +9.97 against a floor of 4.72, positive on 18 of 18 market-entry pairs. But the criterion written to disk before the run has a third condition the mechanics do not check - pooled expectancy at real bid/ask NON-NEGATIVE - and that fails at -0.0719R with 0 of 18 books positive. Recorded as failing the criterion. THE THREE TERMS, POOLED. net expectancy -0.1425 -> -0.0719 (+0.0706); bracket on random timing -0.1918 -> -0.0806 (+0.1112); entry skill +0.0492 -> +0.0087 (-0.0405). WHAT THAT DECOMPOSITION SAYS, INCLUDING AGAINST ME. The bracket was a real and large defect: halving its penalty improved every one of 18 books. But the entry skill did not merely halve with the doubled R denominator, which is what pure scaling would do - it fell to 18% of its former value, about 35% of what scaling alone predicts. So the skill measured at the 1x stop was substantially an artefact of that tight stop rather than directional information that survives a wider one. This retracts my own reading from earlier in this session, where I reported the entries beating random timing by +0.039 to +0.062 and treated that as evidence the entries carry information. Those numbers were measured through the defective bracket and most of the advantage does not survive its repair. At a fairer bracket these entries have essentially no skill: +0.0087R. AND THE REPAIR IS INCOMPLETE. The bracket at 2x is still -0.0806 on random timing at zero cost, nowhere near zero. Widening the stop halves the penalty; it does not remove it. An R normalised by a per-trade stop distance appears to carry an intrinsic negative expectancy that stop width alone does not fix, and that remains unexplained."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
