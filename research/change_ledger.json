@@ -124,6 +124,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "324 of 751 cells produced a usable book on both periods. Distribution of discovery skill t is OVER-DISPERSED (mean +0.155, sd 1.475 against noise 0 and 1; max +4.66, min -5.79) so the space is not dead - but the dispersion is symmetric, the signature of effects strong within a period and reversing between them. 3 cells cleared the 3.64 floor on discovery, 1 was also positive on holdout: fast_ema+in_fvg+mom_50 on H1 trail-2ATR-BE, discovery skill +0.1214 t+4.66, holdout skill +0.0265 t+0.87. Decisive number is the rank test: corr(discovery t, holdout skill) over 318 cells is Pearson -0.016 (-0.3 SE) and Spearman +0.102 (+1.8 SE), neither clearing 2 SE, and the WORST discovery quintile has higher mean holdout skill (+0.0166) than the best (+0.0042). No-selection baseline is E -0.0707 discovery, -0.0502 holdout."
    }
+  },
+  {
+   "id": "vendor_four_families",
+   "registered": "2026-09-14T02:48:09.215935+00:00",
+   "why": "Four commercial KRV EAs supplied as compiled .ex5 (no source, high entropy, no readable logic). The EAs themselves cannot be read, but the four FAMILIES their names describe can each be implemented from a standard textbook definition and tested. A dead family is strong evidence against any implementation of it; a live family would justify asking the vendor for the .mq5.",
+   "change": "Implement four families from standard definitions: (1) regular price/RSI divergence reversal, (2) range compression then breakout of the compressed range, (3) exhaustion reversal after an extended run plus a climax bar, (4) tick-volume profile POC/value-area zones. Each at 3 declared parameter variants x 2 exit designs. Skill measured against a randomised-timing control. Discovery then holdout, block-bootstrapped.",
+   "sweep_size": 24,
+   "criterion": "A family survives only if at least one variant clears the floor for 24 tests on DISCOVERY and keeps positive skill on HOLDOUT, and its skill exceeds the round-trip cost.",
+   "min_improvement": 0.02,
+   "test_period": "H1 XAUUSD, discovery 2004-2017, holdout 2017-2026",
+   "result": {
+    "recorded": "2026-09-14T05:03:32.241964+00:00",
+    "baseline_er": 0.0518,
+    "variant_er": 0.0423,
+    "improvement": -0.009500000000000001,
+    "t_stat": 0.41,
+    "n_baseline": 755,
+    "n_variant": 638,
+    "k_at_test": 787,
+    "floor_at_test": 3.651911348435885,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "All four families fail the registered three-part criterion. Best is compression (n=12,q=0.20, stop+time): discovery skill +0.3624 at t+3.61, clears the 2.52 floor, but holdout skill collapses to +0.0423 at t+0.41 - BELOW the 0.0518R round-trip cost, so baseline here is the cost itself. Compression is coherent on discovery (3 of 6 variants above t+3.0) and gone on holdout (+0.0423, +0.0241, +0.0173, -0.0156, -0.0124, -0.1490). divergence best t_d +1.42, exhaustion best t_d -0.24 (negative skill on every variant), volume_poc best t_d +2.51 - none clears. NOTE: these are reimplementations from the family names, NOT tests of the compiled .ex5 binaries, whose logic is unrecoverable. Evidence runs one way only: dead family is evidence against any build of it; a live one would only justify requesting the .mq5."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
