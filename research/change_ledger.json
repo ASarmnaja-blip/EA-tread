@@ -224,6 +224,31 @@
     "verdict": "REJECTED",
     "note": "RETRACTED BY ITS OWN CALIBRATION. The pre-fix run met both halves of the declared criterion spectacularly: skill positive 9 of 9 on both periods (P=0.0020), gross E(R) positive 9 of 9, t up to +9.68. It was a one-bar look-ahead. Entry used ask_CLOSE of bar t+1 while the exit loop scanned that same bar's high and low, so trades could be resolved by price action that happened before they were entered; the spec says 'Ask \u0e41\u0e23\u0e01\u0e02\u0e2d\u0e07\u0e41\u0e17\u0e48\u0e07 t+1' - the OPEN. Caught by running the rule on mega_search.synth martingale data, where a correct engine must return skill 0 and E(R) = minus the spread: it returned skill +0.0728 (t up to +5.02) and E(R) +0.0034. After the fix the same synthetic calibration returns skill +0.0016 and E(R) -0.0590, and the nine real markets collapse to skill positive 5 of 9 (a coin flip), gross E(R) positive 0 of 9, mean E(R) -0.0652. Two further real fixes were made in the same pass: exits were tested against MID highs and lows while entries filled at the real ask, charging half a spread instead of a whole one; and the random-timing control used a fixed 1.5xATR stop against a rule whose stop ranges 0.3-3 ATR, so R had different denominators in the two books. Neither of those was the main defect. The 13-template M15 baseline re-run with the fixed engine has 0 of 13 clearing the floor."
    }
+  },
+  {
+   "id": "setup_d_trend_zone_crossasset",
+   "registered": "2026-09-14T10:09:12.892136+00:00",
+   "why": "README marks Setup D as the ONE hypothesis that survived this project's own 16-round research: (Close-SMA200)/ATR in [1.08,7.21], permutation p=0.0005, net E +0.2312R at 8R. It is the EA's only default-ON setup. Config.mqh states plainly 'NOT YET VALIDATED: the zone was found on the FULL gold sample, not a held-out half, and cross-asset confirmation (silver, EURUSD) has not been run. If it does not reproduce there, this is gold overfit.' That test has never been run. Separately, the README's own drift table shows longs-in-zone skill is NEGATIVE after subtracting drift (-0.0494, t-4.14) while the default config trades ONLY longs - so the side being traded is the side whose raw edge is drift.",
+   "change": "Implement Setup D exactly: z=(Close-SMA200)/ATR, long [1.08,7.21] short [-7.21,-1.08], fire only on ENTERING the zone, flat 1.8 ATR stop, 8R target, 30-hour time stop, one position at a time, real bid/ask fill at the entry bar's open quote. Two runs: (1) gold M15 to verify the implementation reproduces the documented result before anything else is believed, (2) all 9 markets on H1 with the time stop matched in wall-clock hours. Report raw E AND drift-adjusted skill per market per side.",
+   "sweep_size": 2,
+   "criterion": "Cross-asset validation as Config.mqh itself defines it: the zone must reproduce outside gold. Declared bar - DRIFT-ADJUSTED skill positive on at least 8 of 9 markets for whichever side is traded (binomial P=1.95%), AND the gold M15 verification run must land within a factor of two of the documented +0.2312R at 8R, otherwise the implementation is wrong and nothing else in the run counts.",
+   "min_improvement": 0.02,
+   "test_period": "gold M15 2019-2026 for verification; 9 markets H1 2004-2026 for cross-asset",
+   "result": {
+    "recorded": "2026-09-14T10:16:42.573817+00:00",
+    "baseline_er": 0.0,
+    "variant_er": -0.1322,
+    "improvement": -0.1322,
+    "t_stat": -2.97,
+    "n_baseline": 0,
+    "n_variant": 21618,
+    "k_at_test": 811,
+    "floor_at_test": 3.6601278814039855,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "Does NOT replicate. Drift-adjusted skill positive on 0 of 9 markets on BOTH sides (declared bar was 8 of 9 on the long side). Long mean skill -0.1322 (across-market t -2.97), short -0.1226 (t -3.51). Only USDJPY long had positive raw E (+0.0557) and its skill was -0.0535 - the market went up, measured twice. Gold itself is in the failing set: XAUUSD H1 long E -0.0994, skill -0.1055. Implementation verified first: gold M15 reproduces +0.1788R at zero cost against the documented +0.2312R (which README's own table says was costed at the $0.26 terminal quote), within the declared factor of two; at real measured bid/ask the same book is +0.0439R. So the gap is cost, not a coding error, and the nine-market result is a genuine test. This is exactly the outcome Config.mqh warned about. Note also that README's own drift table already showed the long side - the ONLY side the shipped config trades - has NEGATIVE drift-adjusted skill on gold itself (-0.0494, t -4.14), while the side with positive skill (shorts, +0.1092, t +7.56) is switched off."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
