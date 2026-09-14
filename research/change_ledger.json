@@ -74,6 +74,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "Best rule was keep-t>2: 28 cells, holdout E +0.0269R. Baseline here is the matched control (+0.0029) since the question is entry skill, not raw return. Naive t was +3.12 but collapsed to +1.00 once cross-cell overlap was carried - 28 cells trading the same gold on the same bars are not 28 independent samples. Skill over the timing-destroyed control is +0.0240 at block t +0.90. NOT flat zero the way pure selection is (Part 1 null gives 0.0000 regardless of strictness), so something is carried from discovery to holdout - but it is indistinguishable from noise and 57% of the selected cells are Donchian breakout, the family cross_market.py independently closed on 9 of 9 markets."
    }
+  },
+  {
+   "id": "strictness_raises_edge",
+   "registered": "2026-09-14T01:05:23.363479+00:00",
+   "why": "User's refinement: do not loosen the rare setup - make it STRICTER still, and run enough strict setups to reach 60 signals a month. The existing four-stage ablation supports the premise: E rises monotonically with depth (-0.091, +0.001, +0.039, +0.296) and the stated reason row 4 is not a result is that its MDE exceeds its effect, which is a SAMPLE SIZE objection that breadth legitimately answers.",
+   "change": "Build conjunctions BY CONSTRUCTION rather than by selection: every combination of k conditions from a fixed 13-condition library, depths 1 to 4, nothing dropped for looking bad or for being rare. Pool all trades at each depth. Compare against two nulls - time-shuffled conditions (same rarity, no information) and randomised timing (same directions, same drift, no timing claim).",
+   "sweep_size": 4,
+   "criterion": "Skill over the timing control must RISE with depth and clear the floor for the number of depths tried.",
+   "min_improvement": 0.02,
+   "test_period": "HOLDOUT H1 2017-01-01 onwards",
+   "result": {
+    "recorded": "2026-09-14T01:05:29.704785+00:00",
+    "baseline_er": 0.02,
+    "variant_er": 0.0159,
+    "improvement": -0.0040999999999999995,
+    "t_stat": 0.33,
+    "n_baseline": 25170,
+    "n_variant": 29452,
+    "k_at_test": 12,
+    "floor_at_test": 2.2293078072747154,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "Baseline is depth 1 skill, variant is depth 4 skill - the question was whether strictness RAISES skill. It does not: skill runs +0.0200, +0.0206, +0.0261, +0.0159 across depths 1-4, flat and never significant (t +0.77, +0.61, +0.63, +0.33 against a 1.67 floor). Raw E does rise (+0.0218 to +0.0544) and time-shuffled conditions do NOT reproduce that rise - but the randomised-TIMING control does, rising +0.0017 to +0.0384. So the rise is a sampling-density effect of sparse signals, not information in the conditions. Separately, every depth's skill is below the 0.0518R round-trip cost at a 1.5 ATR stop."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
