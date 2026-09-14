@@ -199,6 +199,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "REPLICATES at the pre-declared bar: positive skill on 8 of 9 markets, P=0.0195 (t recorded is the binomial-equivalent z of 2.06). Mean skill +0.0333, median +0.0364, four markets at t>2 (gold +2.78, EURUSD +2.68, USDJPY +2.42, GBPUSD +2.12). The eight non-gold markets are out of sample in every respect and are positive on 7 of 8. This is the first rule in the project to replicate cross-market. BUT SKILL IS NOT PROFIT and here they come apart: E(R) is positive on only 2 of 9 (EURUSD +0.0137 at t+0.42, USDJPY +0.0235 at t+0.64) and NOTHING is significantly profitable anywhere. The cost relationship is real - slope -1.5070, and it survives removing XAGUSD (slope -0.5983) - but the zero-cost intercept falls from +0.0759 to +0.0143 once silver is dropped, so most of the apparent gross edge was that one point. +0.0143 is indistinguishable from zero. Reading: the entry carries genuine information about timing, replicated across nine markets, and not enough of it to pay a spread anywhere."
    }
+  },
+  {
+   "id": "xauusd1000_p01_realfill_crossmarket",
+   "registered": "2026-09-14T06:06:34.395457+00:00",
+   "why": "HONESTLY NOT BLIND: found via debugging the vendor's 25-template spec (xauusd_1000_setups.py). P01 (Donchian-20 breakout) on M15 2019-2026 real bid/ask cleared the baseline floor after a control-bug fix, and is the SAME family cross_market.py already declared dead 9/9 markets under a different spec (SL=1.5xATR, TP=2R, 12-bar hold, flat 260pt cost). This spec differs materially: SL from the signal bar's own low/high + buffer, TP=1R, 24-bar hold, REAL bid/ask fill (Buy@Ask/Sell@Bid) instead of mid minus a flat spread. Extended to full H1 2004-2026 it gave discovery skill +0.1094 t+3.70, holdout skill +0.1046 t+4.42, both periods gross E(R) positive (+0.0538, +0.0856). That is the best number this project has ever produced if real, and results this good after this many dead ends are the ones most likely to hide a bug - which is exactly why this is registered before being trusted rather than reported.",
+   "change": "Freeze the P01 spec exactly (Donchian-20 breakout, TP=1R from real fill, SL=bar low/high minus buffer, 24-bar time exit, tick-rounded, G09 pre-trade gate) and run it unchanged, real bid/ask, on all 9 markets this repo has H1 bid/ask for. No refitting per market.",
+   "sweep_size": 1,
+   "criterion": "Same bar as every prior cross-market test in this project: skill positive on at least 8 of 9 markets (binomial P=1.95%), AND gross E(R) positive on at least 6 of 9 (since this project's standing lesson is that skill and profit are different claims and skill alone was not enough for the compression rule).",
+   "min_improvement": 0.02,
+   "test_period": "Full H1 history per market, 2004-2026",
+   "result": {
+    "recorded": "2026-09-14T06:14:27.043651+00:00",
+    "baseline_er": 0.0,
+    "variant_er": 0.0171,
+    "improvement": 0.0171,
+    "t_stat": 0.22,
+    "n_baseline": 9,
+    "n_variant": 9,
+    "k_at_test": 809,
+    "floor_at_test": 3.6594532151835173,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "RETRACTED BY ITS OWN CALIBRATION. The pre-fix run met both halves of the declared criterion spectacularly: skill positive 9 of 9 on both periods (P=0.0020), gross E(R) positive 9 of 9, t up to +9.68. It was a one-bar look-ahead. Entry used ask_CLOSE of bar t+1 while the exit loop scanned that same bar's high and low, so trades could be resolved by price action that happened before they were entered; the spec says 'Ask \u0e41\u0e23\u0e01\u0e02\u0e2d\u0e07\u0e41\u0e17\u0e48\u0e07 t+1' - the OPEN. Caught by running the rule on mega_search.synth martingale data, where a correct engine must return skill 0 and E(R) = minus the spread: it returned skill +0.0728 (t up to +5.02) and E(R) +0.0034. After the fix the same synthetic calibration returns skill +0.0016 and E(R) -0.0590, and the nine real markets collapse to skill positive 5 of 9 (a coin flip), gross E(R) positive 0 of 9, mean E(R) -0.0652. Two further real fixes were made in the same pass: exits were tested against MID highs and lows while entries filled at the real ask, charging half a spread instead of a whole one; and the random-timing control used a fixed 1.5xATR stop against a rule whose stop ranges 0.3-3 ATR, so R had different denominators in the two books. Neither of those was the main defect. The 13-template M15 baseline re-run with the fixed engine has 0 of 13 clearing the floor."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
