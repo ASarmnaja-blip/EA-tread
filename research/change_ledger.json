@@ -359,7 +359,21 @@
    "criterion": "One comparison: matched minus swapped, pooled across the nine markets, positive with an across-market |t| clearing the ledger floor. A difference near zero says the regime split is real as a description and empty as a guide - which is a specific falsifiable thing to learn about the instrument and is NOT the same as the map being wrong.",
    "min_improvement": 0.02,
    "test_period": "Nine markets H1 2004-2026. The hour classification is computed by the instrument on each market's own history; the entries are fixed in source before the run and neither their parameters nor the VR and cost thresholds are swept.",
-   "result": null
+   "result": {
+    "recorded": "2026-09-14T16:34:47.263374+00:00",
+    "baseline_er": 0.0,
+    "variant_er": -0.0172,
+    "improvement": -0.0172,
+    "t_stat": -1.77,
+    "n_baseline": 0,
+    "n_variant": 61294,
+    "k_at_test": 828,
+    "floor_at_test": 4.721558784529141,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "REJECTED, and in the direction the instrument's own diagnosis predicts. Matching momentum entries to hours measured as extending and reversion entries to hours measured as reverting came out -0.0172R WORSE than the swapped control, across-market t -1.77, positive on 3 of 9 markets. Per market: XAUUSD -0.0088, XAGUSD -0.0513, EURUSD -0.0093, GBPUSD -0.0277, USDJPY +0.0255, AUDUSD +0.0130, USDCHF -0.0493, USDCAD -0.0511, NZDUSD +0.0043. No single market's difference clears |t| 1.25. WHY IT IS NEGATIVE RATHER THAN ZERO, established from measurements alone. vr_is_illiquidity.py found the variance ratio correlates +0.42/+0.41/+0.41/+0.53 with cost per unit of movement at M1/M5/M15/H1 and runs INVERSELY to movement: the six highest-VR hours on gold H1 cost 1.4x more and move 1.5x less than the six lowest. In a thin book price drifts rather than standing still because nobody is on the other side to push back, and a run of small one-way moves is exactly what a high variance ratio measures - so raw VR cannot separate a trend from an empty book. Matching therefore sent breakouts into the dead expensive end of the day. The size checks out: the cost gap between high-VR and low-VR hours is about 6.3% of range, roughly 0.06R, which is LARGER than the -0.0172R observed. So the cost differential alone more than accounts for the result and there is no need to claim the regime information is anti-predictive - if anything a small positive information content is partly offsetting the cost penalty, though that is not separable at this resolution. TWO THINGS WORTH KEEPING. The map is not refuted: cost per unit of movement spanning 3.1% to 175.6% across hour and timeframe, and the VR-cost correlation itself, are measurements that stand. What is refuted is using RAW VR to choose entries. And on the signal-count question: matched produced 310 signals per market per year, about 2,800 across nine markets, four times the 700/year target. Signal scarcity was never the constraint - each signal loses 0.11R to 0.24R, and producing more of them loses money faster, not slower."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
