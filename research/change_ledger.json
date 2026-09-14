@@ -149,6 +149,31 @@
     "verdict": "REJECTED",
     "note": "All four families fail the registered three-part criterion. Best is compression (n=12,q=0.20, stop+time): discovery skill +0.3624 at t+3.61, clears the 2.52 floor, but holdout skill collapses to +0.0423 at t+0.41 - BELOW the 0.0518R round-trip cost, so baseline here is the cost itself. Compression is coherent on discovery (3 of 6 variants above t+3.0) and gone on holdout (+0.0423, +0.0241, +0.0173, -0.0156, -0.0124, -0.1490). divergence best t_d +1.42, exhaustion best t_d -0.24 (negative skill on every variant), volume_poc best t_d +2.51 - none clears. NOTE: these are reimplementations from the family names, NOT tests of the compiled .ex5 binaries, whose logic is unrecoverable. Evidence runs one way only: dead family is evidence against any build of it; a live one would only justify requesting the .mq5."
    }
+  },
+  {
+   "id": "vendor_four_families_v2",
+   "registered": "2026-09-14T05:16:16.613507+00:00",
+   "why": "The vendor supplied full written specifications for all four EAs. My first implementation (vendor_four_families, REJECTED) was materially wrong against those specs: Volume Power Zones is a volume-weighted ORDER BLOCK with an ATR-x4 displacement trigger and a retest, not a volume profile POC - I implemented the wrong strategy entirely. Exhaustion omitted its core mechanism, declining volume through the run plus a shift bar on ABOVE-average volume. Divergence omitted Hidden divergence and every trend filter, which the docs single out as the biggest win-rate lever. Compression omitted BBW, the minimum squeeze duration, the impulse-body test and the volume surge. The previous REJECTED verdict therefore does not stand as a test of these families.",
+   "change": "Reimplement all four to the written specs. Divergence: Regular AND Hidden, with and without an HTF EMA trend gate. Compression: BBW and ATR both below their own rolling means for a minimum number of bars, range box, close breakout plus impulse body, with and without volume surge. Exhaustion: 4-9 bar run with declining relative volume, then an opposite shift bar on above-average volume with a body-ratio and close-position test. Volume Power Zones: confirmed swing pivots weighted by volume against a 20-bar volume MA, ATR-x4 displacement trigger, retest of the block with a cooldown. 10 signal configurations x 2 exits.",
+   "sweep_size": 20,
+   "criterion": "A family survives only if at least one configuration clears the floor for 20 tests on DISCOVERY, keeps positive skill on HOLDOUT, and its holdout skill exceeds the round-trip cost. All three, as before.",
+   "min_improvement": 0.02,
+   "test_period": "H1 XAUUSD, discovery 2004-2017, holdout 2017-2026",
+   "result": {
+    "recorded": "2026-09-14T05:19:04.745853+00:00",
+    "baseline_er": 0.0518,
+    "variant_er": 0.0999,
+    "improvement": 0.048100000000000004,
+    "t_stat": 1.93,
+    "n_baseline": 1023,
+    "n_variant": 785,
+    "k_at_test": 807,
+    "floor_at_test": 3.6587767541269716,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "ONE configuration meets the registered three-part criterion: compression, min_bars=6 impulse=1.0 vol_surge=True, 1leg 2R BE. Discovery skill +0.1564 at t+3.58 (clears the 2.52 floor, 1,023 trades); holdout skill +0.0999 at t+1.93 (positive, and above the 0.0518R cost, 785 trades). Baseline here is the cost itself. The volume surge is what did it and it is a filter from the vendor's own documentation, not something searched for: without it t_d +2.63/+1.36 and holdout -0.0701/-0.0471; with it t_d +3.58/+4.07 and holdout +0.0999/-0.0073. Caveats: 1 of 24 tests, holdout t does not itself clear the floor, and the 3leg sister config of the same signal is negative on holdout. Ran 24 tests not the 20 registered (12 configs x 2 exits, not 10) - floor 2.52 rather than 2.45, stricter than registered. Everything else dead: div_regular best t_d +2.49, div_hidden +0.65, exhaustion +2.05, power_zones +0.89."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
