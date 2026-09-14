@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-14T16:11:01Z",
+ "updated": "2026-09-14T16:17:17Z",
  "timeframes": [
   "H1",
   "H4"
@@ -11,7 +11,7 @@
  "final_params": {
   "boot": 800,
   "atr_hours": 480,
-  "bucket": 1,
+  "bucket": 2,
   "min_cell": 200,
   "tail_q": 0.99,
   "vap_bins": 40,
@@ -81,6 +81,27 @@
    "panels": 4,
    "changed": "atr_hours: kept 480 (no option beat 0.9777)",
    "drift_from_baseline": 0.0004670616110942565
+  },
+  {
+   "round": 3,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 2,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9792325845738135,
+   "coverage": 1.0,
+   "precision": 0.9797103453197485,
+   "resolution": 0.999512361311607,
+   "cells": 36,
+   "panels": 4,
+   "changed": "bucket: 1 -> 2",
+   "drift_from_baseline": 0.046186046543591715
   }
  ]
 }
