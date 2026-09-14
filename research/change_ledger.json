@@ -49,6 +49,31 @@
     "verdict": "REJECTED",
     "note": "The session deadline binds first: 4,886 of 5,455 trades were UNCHANGED because the 20:30 UTC force-close already closed them before bar 12. Of the 569 that could move, 255 improved and 314 worsened. The horizon lever is not available on an intraday setup - rule 6 (force close before rollover) caps it structurally, so raising hold_max on H1 changes almost nothing and what it does change is slightly worse."
    }
+  },
+  {
+   "id": "portfolio_of_rare_setups",
+   "registered": "2026-09-14T00:53:58.146446+00:00",
+   "why": "User's argument: one strict setup firing once a month is unmeasurable, but 100 equally strict setups reach 70+ signals a month, which IS tradeable. Acknowledged upfront that it would be overfit, but proposed the result might still be positive. The frequency half of this is correct and setup_power.py answered the wrong question by treating one setup in isolation.",
+   "change": "Take the frozen 176-cell grid in multi_tf_setup_grid.py WHOLE (11 entry families x params x 4 exits x 2 stops). Select cells on DISCOVERY only by six declared rules, then measure those same cells on HOLDOUT as one pooled portfolio, block-bootstrapped over time so cross-cell overlap is carried, and against a matched control that preserves direction mix and exit design but randomises entry timing.",
+   "sweep_size": 6,
+   "criterion": "The pooled holdout book must beat zero with a block-bootstrap t clearing the floor for the number of selection rules tried, AND show skill over the timing-destroyed control.",
+   "min_improvement": 0.02,
+   "test_period": "HOLDOUT H1 2017-01-01 onwards; selection used DISCOVERY 2004-2017 only",
+   "result": {
+    "recorded": "2026-09-14T00:54:04.704746+00:00",
+    "baseline_er": 0.0029,
+    "variant_er": 0.0269,
+    "improvement": 0.024,
+    "t_stat": 0.9,
+    "n_baseline": 33247,
+    "n_variant": 33247,
+    "k_at_test": 8,
+    "floor_at_test": 2.039333980337618,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "Best rule was keep-t>2: 28 cells, holdout E +0.0269R. Baseline here is the matched control (+0.0029) since the question is entry skill, not raw return. Naive t was +3.12 but collapsed to +1.00 once cross-cell overlap was carried - 28 cells trading the same gold on the same bars are not 28 independent samples. Skill over the timing-destroyed control is +0.0240 at block t +0.90. NOT flat zero the way pure selection is (Part 1 null gives 0.0000 regardless of strictness), so something is carried from discovery to holdout - but it is indistinguishable from noise and 57% of the selected cells are Donchian breakout, the family cross_market.py independently closed on 9 of 9 markets."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
