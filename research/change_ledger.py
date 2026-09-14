@@ -60,6 +60,7 @@ import numpy as np, pandas as pd
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import mega_search as M
+import overfit_stats
 
 import os
 # The real ledger is one file and is meant to be the only one. The override
@@ -81,8 +82,37 @@ def cumulative_k(d):
     """Every hypothesis ever spent on this setup, including sweeps."""
     return sum(int(e.get("sweep_size", 1)) for e in d["entries"])
 
-def floor_for(k):
-    return math.sqrt(2 * math.log(max(k, 2)))
+# Cross-sectional sd of the trial statistics, MEASURED rather than assumed:
+# search_751_results.csv holds 324 configurations whose discovery t has
+# sd 1.475 (holdout 1.398). Under the null it would be 1.0. Whether the
+# excess is real effects or correlated trades inflating each t, the expected
+# maximum of the trials scales with it either way.
+TRIAL_SIGMA = 1.475
+
+
+def floor_for(k, sigma=TRIAL_SIGMA):
+    """The bar a candidate must clear, given every hypothesis spent so far.
+
+    This used to return sqrt(2 * ln k). That is the ASYMPTOTE of the expected
+    maximum of k standard normals, and it was wrong on two counts that pull
+    opposite ways - see discipline_audit.py, which measured both:
+
+      - the asymptote overstates the exact expectation (3.664 vs 3.199 at
+        k = 823), so it was too harsh on that axis;
+      - it assumes the trials have unit variance, and this repo's own search
+        measured 1.475, so it was much too lenient on that one.
+
+    Net, the old floor was 22% too low at k = 823: 3.66 where the honest
+    number is 4.72. The exact first-order expression (Bailey and Lopez de
+    Prado) is used instead, scaled by the measured dispersion, and it is
+    checked against Monte Carlo in test_overfit_stats.py.
+
+    Re-judging every result already recorded against this floor changes no
+    verdict - nothing here came close enough for 1.05 of a t to matter. It
+    bites on SEARCHES, where the best-of-many t landed inside the gap: the
+    751-representative search's best discovery t of +4.664 cleared the old
+    floor and does not clear this one."""
+    return overfit_stats.expected_max_t(max(k, 2), sigma)
 
 def cmd_register(a):
     d = load()
