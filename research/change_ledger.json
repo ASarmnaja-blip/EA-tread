@@ -334,7 +334,21 @@
    "criterion": "On the sealed crosses, a finalist must show positive E(R) at real bid/ask with an across-market |t| above the expected maximum of three draws, about 1.02. Not 4.72: the 21,889 rules were selected on data already spent and only the three finalists are ever charged against the untouched universe. If nothing clears - or if no finalist is nominated because nothing passed the zero-cost gate - that is the result and there is no second opening.",
    "min_improvement": 0.02,
    "test_period": "DISCOVERY: the nine already-burned markets, XAUUSD/XAGUSD and seven majors, H1 2004-2026. HOLDOUT: fourteen FX crosses (EURJPY GBPJPY AUDJPY CHFJPY CADJPY NZDJPY EURGBP EURCHF EURAUD EURCAD AUDNZD AUDCAD GBPCHF GBPAUD) H1 2012-2026, never fetched, plotted, or tabulated in this repo, and sharing no USD leg with the discovery set.",
-   "result": null
+   "result": {
+    "recorded": "2026-09-14T16:11:15.089685+00:00",
+    "baseline_er": 0.0,
+    "variant_er": -0.0992,
+    "improvement": -0.0992,
+    "t_stat": 2.061,
+    "n_baseline": 0,
+    "n_variant": 21889,
+    "k_at_test": 827,
+    "floor_at_test": 4.7210444323782825,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "NO FINALIST NOMINATED. The sealed universe was never opened, which the registered criterion names as a valid outcome rather than a failure to reach one. Two independent gates both returned nothing. THE SIMULATED NULL. 21,889 rules - twelve causal features cut at five of their own quantiles from both sides, ANDed at depths one to three - scored on nine markets over 23 years as overlap-adjusted t of signed forward return per ATR entered at the next bar's open. 17,136 fired on seven or more markets. The best scored 2.061. Eight independent information-free random walks through the identical screen produced maxima of 2.53, 2.68, 2.72, 2.42, 2.50, 2.41, 2.30 and 2.12, so the best real rule in the space does not reach even the WEAKEST of the eight null runs. Zero rules cleared the 2.716 bar. Against a closed-form expected maximum the same screen would have called the best-of-21,889 comfortably significant; simulating the null is what showed it is not. THE ZERO-COST GATE. The top 60 went through run_e01 anyway so numbers exist rather than resting on the screen. All 60 came back positive on 0 of 9 markets with NO spread charged at all, best pooled zero-cost E among them -0.0992R and worst -0.2454R. That is the gate venue_change.py established as decisive: a rule losing money frictionless cannot be rescued by a cheaper broker, a futures contract, a larger account, or a better fill. TWO STRUCTURAL OBSERVATIONS. The leaders are near-duplicates - z_sma50>0.50 alone, then the same condition paired with upwick<0.50, range_atr>0.10, range_atr<0.90, dnwick<0.90 - which is what a ranking looks like when it sorts noise around one weakly-correlated feature rather than finding distinct effects. And the protocol machinery was itself tested first, on throwaway symlinked copies, because holdout_test.py can run only once: all five paths verified including the one-shot refusal and the hash check. The fourteen crosses remain sealed and unexamined, available to a future question that earns them."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
