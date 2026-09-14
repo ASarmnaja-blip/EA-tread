@@ -174,6 +174,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "ONE configuration meets the registered three-part criterion: compression, min_bars=6 impulse=1.0 vol_surge=True, 1leg 2R BE. Discovery skill +0.1564 at t+3.58 (clears the 2.52 floor, 1,023 trades); holdout skill +0.0999 at t+1.93 (positive, and above the 0.0518R cost, 785 trades). Baseline here is the cost itself. The volume surge is what did it and it is a filter from the vendor's own documentation, not something searched for: without it t_d +2.63/+1.36 and holdout -0.0701/-0.0471; with it t_d +3.58/+4.07 and holdout +0.0999/-0.0073. Caveats: 1 of 24 tests, holdout t does not itself clear the floor, and the 3leg sister config of the same signal is negative on holdout. Ran 24 tests not the 20 registered (12 configs x 2 exits, not 10) - floor 2.52 rather than 2.45, stricter than registered. Everything else dead: div_regular best t_d +2.49, div_hidden +0.65, exhaustion +2.05, power_zones +0.89."
    }
+  },
+  {
+   "id": "compression_surge_cross_market",
+   "registered": "2026-09-14T05:24:32.323199+00:00",
+   "why": "One configuration cleared all three parts of the vendor_families_v2 criterion: compression with vol_surge=True at 1leg 2R BE, discovery skill +0.1564 t+3.58, holdout skill +0.0999 t+1.93 against a 0.0518R cost. The volume surge is the vendor's own documented filter, not a searched parameter, and turning it on flipped holdout from -0.0701 to +0.0999. It is still 1 of 24 tests on one instrument, and this repo's standing rule is that an effect found on gold and absent elsewhere is gold overfit.",
+   "change": "Freeze that exact rule - BBW and ATR both under their rolling means for 6 bars, range box, close breakout with body >= 1.0 ATR, volume above 1.2x its 20-bar mean, 1.5 ATR stop, single 2R target with break-even - and run it unchanged on all nine markets, each charged its own measured median spread. No parameter is refitted per market. For the eight non-gold markets every bar is out of sample, since none of their data was used to find the rule.",
+   "sweep_size": 1,
+   "criterion": "Pre-declared at the same bar cross_market.py already uses: the rule REPLICATES only if skill is positive on at least 8 of 9 markets (binomial P = 1.95%). 7 of 9 is suggestive and is NOT a pass. Markets are not independent, so the binomial figure is an upper bound on the evidence.",
+   "min_improvement": 0.02,
+   "test_period": "Full history per market, 2003-2026, H1",
+   "result": {
+    "recorded": "2026-09-14T05:27:21.272155+00:00",
+    "baseline_er": 0.0,
+    "variant_er": 0.0333,
+    "improvement": 0.0333,
+    "t_stat": 2.06,
+    "n_baseline": 9,
+    "n_variant": 14400,
+    "k_at_test": 808,
+    "floor_at_test": 3.6591152095885406,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "REPLICATES at the pre-declared bar: positive skill on 8 of 9 markets, P=0.0195 (t recorded is the binomial-equivalent z of 2.06). Mean skill +0.0333, median +0.0364, four markets at t>2 (gold +2.78, EURUSD +2.68, USDJPY +2.42, GBPUSD +2.12). The eight non-gold markets are out of sample in every respect and are positive on 7 of 8. This is the first rule in the project to replicate cross-market. BUT SKILL IS NOT PROFIT and here they come apart: E(R) is positive on only 2 of 9 (EURUSD +0.0137 at t+0.42, USDJPY +0.0235 at t+0.64) and NOTHING is significantly profitable anywhere. The cost relationship is real - slope -1.5070, and it survives removing XAGUSD (slope -0.5983) - but the zero-cost intercept falls from +0.0759 to +0.0143 once silver is dropped, so most of the apparent gross edge was that one point. +0.0143 is indistinguishable from zero. Reading: the entry carries genuine information about timing, replicated across nine markets, and not enough of it to pay a spread anywhere."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
