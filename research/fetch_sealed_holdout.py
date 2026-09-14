@@ -37,6 +37,18 @@ WHAT THIS MAKES POSSIBLE, AND THE CORRECTION IT RESTS ON
 
   Break any of them and this data is burned too, permanently, and there is
   no third universe waiting.
+
+THE SEAL IS THE HASH, NOT THE FILE
+
+  .cache_duka/ is gitignored and these parquets are ~1GB, so they do not
+  travel with the repo and do not survive a container. That is deliberate
+  rather than a gap: the manifest commits the symbol, the year range, the
+  point divisor and a sha256 per file, and this fetcher is deterministic
+  against a fixed vendor archive. A later session refetches and holdout_test
+  verifies - if the hashes match, the data is provably the same bytes that
+  were sealed, which is a stronger guarantee than a file someone could have
+  edited. If Dukascopy has revised a month, the hash fails and the seal is
+  correctly reported broken instead of quietly passing.
 """
 import hashlib
 import json
