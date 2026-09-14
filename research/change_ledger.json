@@ -99,6 +99,31 @@
     "verdict": "REJECTED",
     "note": "Baseline is depth 1 skill, variant is depth 4 skill - the question was whether strictness RAISES skill. It does not: skill runs +0.0200, +0.0206, +0.0261, +0.0159 across depths 1-4, flat and never significant (t +0.77, +0.61, +0.63, +0.33 against a 1.67 floor). Raw E does rise (+0.0218 to +0.0544) and time-shuffled conditions do NOT reproduce that rise - but the randomised-TIMING control does, rising +0.0017 to +0.0384. So the rise is a sampling-density effect of sparse signals, not information in the conditions. Separately, every depth's skill is below the 0.0518R round-trip cost at a 1.5 ATR stop."
    }
+  },
+  {
+   "id": "search_751_representatives",
+   "registered": "2026-09-14T01:31:10.614479+00:00",
+   "why": "combinatorics.py measured that the 131,040-cell nominal space is only of order 751 effectively independent questions (m_eff = 3.69 k^0.451, fitted on measured return-series correlation). So the whole space can be probed at 751 tests rather than 131,040, and the honest multiple-testing floor is sqrt(2 ln 751) = 3.64 rather than 4.85. Running the representatives is cheap and the floor is already known.",
+   "change": "Stratified random sample of 751 cells across depth 1-6 x 4 exits x 2 stops x 4 timeframes, seed 17 fixed and declared. NOTHING is chosen by performance - the strata and the seed fully determine the sample. Each cell measured on its own timeframe's discovery split, then the same cell measured on holdout. Skill is taken against a randomised-TIMING control, not raw E, because strictness.py showed raw E carries a signal-density artefact that a random-timing book reproduces.",
+   "sweep_size": 751,
+   "criterion": "A cell PASSES only if its discovery skill t clears 3.64 AND its holdout skill is positive. Both, declared now. The pooled all-751 book is reported alongside as the no-selection baseline.",
+   "min_improvement": 0.02,
+   "test_period": "Per timeframe: H1 discovery 2004-2017 / holdout 2017-2026; M5-M30 discovery to 2023 / holdout 2023-2026",
+   "result": {
+    "recorded": "2026-09-14T02:09:58.002013+00:00",
+    "baseline_er": 0.0,
+    "variant_er": 0.0265,
+    "improvement": 0.0265,
+    "t_stat": 0.87,
+    "n_baseline": 324,
+    "n_variant": 1798,
+    "k_at_test": 763,
+    "floor_at_test": 3.643420928546263,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "324 of 751 cells produced a usable book on both periods. Distribution of discovery skill t is OVER-DISPERSED (mean +0.155, sd 1.475 against noise 0 and 1; max +4.66, min -5.79) so the space is not dead - but the dispersion is symmetric, the signature of effects strong within a period and reversing between them. 3 cells cleared the 3.64 floor on discovery, 1 was also positive on holdout: fast_ema+in_fvg+mom_50 on H1 trail-2ATR-BE, discovery skill +0.1214 t+4.66, holdout skill +0.0265 t+0.87. Decisive number is the rank test: corr(discovery t, holdout skill) over 318 cells is Pearson -0.016 (-0.3 SE) and Spearman +0.102 (+1.8 SE), neither clearing 2 SE, and the WORST discovery quintile has higher mean holdout skill (+0.0166) than the best (+0.0042). No-selection baseline is E -0.0707 discovery, -0.0502 holdout."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
