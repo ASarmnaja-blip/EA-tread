@@ -38,9 +38,20 @@ PRE-REGISTERED, BEFORE THE RUN
       t > 2.39 is a result; skill inside +/-0.05 says the fill was never the
       problem and the signal is noise.
   S2  The test that either opens the family or closes it. The repo's precedent
-      is a SIGN FLIP between horizons - that is what disqualified the liquidity
-      sweep, the strongest candidate in the program. Skill > +0.15 at t > 2.39
-      earns a fourth test; a sign flip retires the family.
+      is a SIGN FLIP between horizons. Skill > +0.15 at t > 2.39 earns a
+      fourth test; a sign flip retires the family.
+
+      CORRECTION, added after liquidity_sweep_crossmarket.py: this paragraph
+      used to say a sign flip "disqualified the liquidity sweep, the strongest
+      candidate in the program". That was wrong, and it contradicted
+      RESEARCH_FINDINGS line 911, which recorded that the sweep did NOT flip
+      sign. Measured at real bid/ask on 9 markets and 43,198 trades, its
+      drift-adjusted skill is +0.0283 and positive on 9 of 9 markets - the
+      same sign as the +0.051 recorded at zero cost, just smaller. The sign
+      flip that retired a candidate belongs to smc_entry_test.py's H1-to-daily
+      result, not to this one. What killed the sweep was expectancy: -0.1040R
+      per trade at a real quote. Its skill is genuine, consistent, and worth
+      about a quarter of the spread it has to pay.
   S3  If CHoCH+FVG carries entry-TIMING information, gating it on a trend
       independently known to work should raise skill above the ungated +0.0293.
       If the gate only selects trending markets, E rises and skill does not -

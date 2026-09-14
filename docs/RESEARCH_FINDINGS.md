@@ -916,6 +916,32 @@ configuration than the +0.0786 recorded earlier, so it is not a like-for-like
 replacement of that number. But it did not flip sign, and nothing else has
 managed that.
 
+> **SETTLED, at real cost — `research/liquidity_sweep_crossmarket.py`.** The
+> numbers in this section were measured at **zero cost**, which is why they
+> could not answer the only question that mattered. Re-run on 9 markets, H1,
+> 2004–2026, **43,198 trades at real Dukascopy bid/ask**, entry at the entry
+> bar's open, against the same matched random-timing control:
+>
+> | | zero cost (this section) | real bid/ask |
+> |---|---|---|
+> | expectancy | −0.091 | **−0.1040** (block t −21.75) |
+> | skill | +0.051 (t +1.89) | **+0.0283**, positive on **9 of 9** markets |
+>
+> **The sign holds.** That settles the contradiction against
+> `choch_fvg_three_setups.py`, which claimed a sign flip had disqualified this
+> rule; that line was wrong and is corrected in the source. The sweep's skill
+> is real, small, and consistent across every market tested.
+>
+> It is dead anyway, and for a reason zero-cost measurement structurally
+> cannot see: **the skill is worth about a quarter of the spread it has to
+> pay.** Beating a random-timing control by +0.028R while losing 0.104R per
+> trade is a fact about the control, not a reason to trade. A calibration run
+> on an information-free random walk passed first (E −0.0749 ≈ the spread,
+> skill +0.0104 ≈ none) and caught a real bug in the process.
+>
+> Recorded REJECTED as `liquidity_sweep_stage1_realcost_crossmarket`.
+
+
 ### Spread
 
 Gold H1, the same 10 trades: E −0.327 at $0.26, −0.471 at $0.7525. The spread
