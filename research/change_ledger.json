@@ -1,0 +1,55 @@
+{
+ "entries": [
+  {
+   "id": "widen_stop_atr1_to_atr2",
+   "registered": "2026-09-14T00:06:54.669490+00:00",
+   "why": "Attribution on DISCOVERY (H1 look20 buf0.0 atr1 hold12, 6,678 trades) showed stop-hit trades are 56.4% of the book and account for -4,066.6R, while full-hold time exits earn +2.5212R each. Losers reached only 0.726R MFE before dying at 1.407R MAE, i.e. they were killed while still near entry, not after a real move against them.",
+   "change": "Same signal rule, same hold, same session deadline, same cost. Stop moves from 1x ATR to 2x ATR. R is renormalised to the new risk, so E(R) stays comparable under fixed-fractional sizing.",
+   "sweep_size": 1,
+   "criterion": "Paired per-signal difference (variant minus baseline on signals BOTH arms take) must beat the declared margin, and its block-bootstrap t must clear the cumulative-k floor.",
+   "min_improvement": 0.02,
+   "test_period": "HOLDOUT H1 2017-01-01 onwards - the attribution that suggested this ran on discovery only",
+   "result": {
+    "recorded": "2026-09-14T00:07:08.739190+00:00",
+    "baseline_er": -0.0001,
+    "variant_er": 0.0009,
+    "improvement": 0.001,
+    "t_stat": 0.06,
+    "n_baseline": 5455,
+    "n_variant": 5457,
+    "k_at_test": 1,
+    "floor_at_test": 1.1774100225154747,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "Win rate rose 33.4%->44.0% and 3,601 of 5,455 signals improved against 1,854 worsened, yet the net is +0.0010R. The wider stop converts many small losses into small wins and makes the remaining losses proportionally larger; the money nets out. Separately: the baseline itself earns -0.0001R on holdout against +0.0175R on discovery, so the config being improved has no edge to improve."
+   }
+  },
+  {
+   "id": "lengthen_hold_12_to_24",
+   "registered": "2026-09-14T00:09:41.822583+00:00",
+   "why": "Arithmetic, not a pattern: the spread is fixed at 0.260 price units regardless of horizon, so the only way to raise the gross edge against it is a larger move. The first test proved the stop cannot do this - it scales the edge and the cost by the same factor. Hold is the other lever. DISCLOSURE: I have already seen the holdout cost decomposition for atr1/atr2, so this test is not fully blind. Recorded here rather than hidden.",
+   "change": "Same signal rule, same atr1 stop, same session deadline, same cost. hold_max moves from 12 bars to 24. The 20:30 UTC force-close still binds first on most trades, so the effective change is smaller than 12 to 24 suggests.",
+   "sweep_size": 1,
+   "criterion": "Paired per-signal difference on shared signals must beat the declared margin, and its block-bootstrap t must clear the cumulative-k floor.",
+   "min_improvement": 0.02,
+   "test_period": "HOLDOUT H1 2017-01-01 onwards",
+   "result": {
+    "recorded": "2026-09-14T00:09:55.639365+00:00",
+    "baseline_er": -0.0001,
+    "variant_er": -0.0123,
+    "improvement": -0.0122,
+    "t_stat": -1.14,
+    "n_baseline": 5455,
+    "n_variant": 5455,
+    "k_at_test": 2,
+    "floor_at_test": 1.1774100225154747,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "The session deadline binds first: 4,886 of 5,455 trades were UNCHANGED because the 20:30 UTC force-close already closed them before bar 12. Of the 569 that could move, 255 improved and 314 worsened. The horizon lever is not available on an intraday setup - rule 6 (force close before rollover) caps it structurally, so raising hold_max on H1 changes almost nothing and what it does change is slightly worse."
+   }
+  }
+ ],
+ "created": "2026-09-14T00:06:54.669470+00:00"
+}
