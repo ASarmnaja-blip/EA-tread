@@ -192,7 +192,9 @@ def main():
 
         fam = family_pooled(P, deadline, n_disc, cost_px, th)
         fr = frozen_rule(P, deadline, n_disc, cost_px, th)
-        rec = dict(symbol=sym, bars=len(m), n_disc=n_disc, cost_px=cost_px)
+        atr_med = float(np.nanmedian(P["A"][:n_disc]))
+        rec = dict(symbol=sym, bars=len(m), n_disc=n_disc, cost_px=cost_px,
+                   atr_med=atr_med, cost_atr=cost_px / atr_med)
         if fam:
             ci = M.block_bootstrap_ci(fam["R"], fam["i"], fam["held"])
             bt = M.block_bootstrap_t(fam["R"], fam["i"], fam["held"], 1)
@@ -264,6 +266,66 @@ def main():
         print(f"  are not independent - the dollar is on one side of most of")
         print(f"  them - so the binomial p above is an UPPER BOUND on the")
         print(f"  evidence, not an exact level.")
+
+    # ---- Q3 ---------------------------------------------------------------
+    # This question CANNOT be asked on one market, which is why it is here and
+    # not anywhere else in the repo. Every failure on XAUUSD so far has had two
+    # readings that no amount of gold data can separate:
+    #
+    #     "the entry has no edge"            vs   "the edge is real, the
+    #                                              spread eats it"
+    #
+    # The nine markets separate them, because they span a 7x range of cost
+    # measured against their own volatility - EURUSD pays 3.0% of ATR round
+    # trip, XAGUSD pays 20.3%. Regress expectancy on that ratio and the
+    # INTERCEPT is what the family would earn at zero cost. If the intercept
+    # is positive, this is a cost problem and a cheaper broker or a bigger
+    # timeframe fixes it. If it is not, no cost reduction can help, because
+    # there is nothing underneath the cost to uncover.
+    print("\n" + "=" * 82)
+    print("QUESTION 3 - IS THIS A COST PROBLEM OR A NO-EDGE PROBLEM?")
+    q3 = df[df["fam_E"].notna() & df["cost_atr"].notna()] if "fam_E" in df \
+        else df.iloc[0:0]
+    if len(q3) < 4:
+        print("  too few markets to separate cost from edge")
+    else:
+        x = q3["cost_atr"].to_numpy(float)
+        y = q3["fam_E"].to_numpy(float)
+        slope, icpt = np.polyfit(x, y, 1)
+        rng = np.random.default_rng(7)
+        ints = []
+        for _ in range(20000):
+            k = rng.integers(0, len(x), len(x))
+            if len(np.unique(x[k])) < 2:
+                continue
+            ints.append(np.polyfit(x[k], y[k], 1)[1])
+        ints = np.asarray(ints)
+        lo, hi = np.percentile(ints, [2.5, 97.5])
+        print(f"  {'market':<9}{'cost/ATR':>10}{'family E(R)':>13}")
+        for _, r in q3.sort_values("cost_atr").iterrows():
+            print(f"  {r['symbol']:<9}{r['cost_atr']*100:>9.2f}%"
+                  f"{r['fam_E']:>+13.4f}")
+        print(f"\n  slope     {slope:+.4f} E(R) per unit of cost/ATR")
+        print(f"  INTERCEPT {icpt:+.4f} <- what the family earns at ZERO cost")
+        print(f"  bootstrap 95% CI over markets [{lo:+.4f}, {hi:+.4f}]   "
+              f"({float((ints >= 0).mean())*100:.1f}% of resamples >= 0)")
+        print(f"\n  n={len(x)} and these markets share the dollar on one side of")
+        print(f"  most of them, so that CI is OPTIMISTIC - the true interval is")
+        print(f"  wider. Read the conclusion under BOTH ends of it:")
+        if hi < 0:
+            print(f"    Both ends negative: the family loses money before a")
+            print(f"    single pip of spread is charged. NO-EDGE PROBLEM.")
+        elif icpt < 0:
+            print(f"    Best case, the intercept is zero: the family earns")
+            print(f"    NOTHING before costs. Worst case it is negative. Under")
+            print(f"    either reading cost reduction cannot rescue it, because")
+            print(f"    there is no gross edge underneath the cost to uncover.")
+            print(f"    A cheaper broker, a wider stop and a bigger timeframe")
+            print(f"    all attack the cost term and all inherit this ceiling.")
+        else:
+            print(f"    The intercept is positive: there IS gross edge and cost")
+            print(f"    is consuming it. Cheaper execution is then the lever,")
+            print(f"    and this becomes a pre-registered hypothesis to test.")
 
     print("\n" + "=" * 82)
     if not alive and (len(fz) == 0 or int((fz['fz_E'] > 0).sum()) < 8):
