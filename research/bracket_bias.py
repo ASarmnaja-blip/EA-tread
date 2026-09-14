@@ -15,16 +15,22 @@ THE FINDING THAT PROMPTED THIS
 
 THE PRINCIPLE THAT MAKES IT MEASURABLE
 
-  A PURE TIME EXIT is unbiased by construction. Enter, wait N bars, leave -
-  the expectancy is the mean forward return over N bars, which is the market's
-  drift and nothing else. It cannot manufacture a loss.
+  A FIRST DRAFT OF THIS FILE CLAIMED that a pure time exit is unbiased by
+  construction - enter, wait N bars, leave, so expectancy is the mean forward
+  return and nothing else. THAT IS WRONG, and the measurement said so: time
+  exit came back at +0.1258 on gold, -0.3284 on EURUSD and +0.4337 on GBPUSD.
 
-  So the bias of any bracketed exit is simply
+  The error is that R is not a return. R is (exit - entry) / dist, and dist
+  is the stop distance, which differs every trade. So E[R] is a
+  dist-weighted quantity in which trades with a small stop are amplified
+  enormously, and a time exit inherits all of that dispersion. There is no
+  "unbiased by construction" reference here, and any exit compared against
+  one is being compared against a number that does not mean what it looks
+  like.
 
-      E(bracket, random timing) - E(time exit, random timing)
-
-  measured at zero cost, on the same bars, with the same random entries. No
-  theory about stops is needed; the difference IS the penalty.
+  What is left is the comparison between designs at matched random timing,
+  read with the cross-market dispersion in full view rather than through a
+  mean that can be near zero because large opposite numbers cancelled.
 
 THE RULE THIS FILE MUST NOT BREAK
 
@@ -140,17 +146,32 @@ def engine(P, dvec, Ivec, tick, tp_R=1.0, hold=HOLD, stop_mult=1.0,
     return np.asarray(R), np.asarray(I_), np.asarray(HD)
 
 
-def random_like(dvec, rng, lo=300):
-    """Same number of signals, same direction mix, placed at random bars."""
+def random_like(P, dvec, rng, lo=300):
+    """Same count and direction mix at random bars, WITH ITS OWN stop levels.
+
+    The first version of this returned only a direction array and reused the
+    real signal's Ivec. Ivec is finite only at the 15,651 bars where a signal
+    actually fired, out of 188,569, so almost every randomised trade was
+    skipped for want of a stop level: 568 trades executed against the real
+    rule's 7,506, and the survivors were the random picks that happened to
+    land on real signal bars - a subsample of the signal, not a control.
+
+    run_e01_control's docstring in xauusd_1000_setups.py names this exact
+    failure. I read past it and rebuilt it. The fix is that a random entry
+    takes its invalidation from ITS OWN bar's extreme, the same way the real
+    signal takes it from the signal bar's."""
     out = np.zeros_like(dvec)
+    Iout = np.full(len(dvec), np.nan)
     live = np.where(dvec != 0)[0]
     live = live[live >= lo]
     pool = np.arange(lo, len(dvec) - HOLD - 2)
     if len(pool) < len(live) or len(live) == 0:
-        return out
+        return out, Iout
     pick = rng.choice(pool, size=len(live), replace=False)
-    out[pick] = dvec[live]
-    return out
+    dirs = dvec[live]
+    out[pick] = dirs
+    Iout[pick] = np.where(dirs > 0, P["l"][pick], P["h"][pick])
+    return out, Iout
 
 
 DESIGNS = [
@@ -220,8 +241,8 @@ def main():
         for s, P in frames.items():
             d, I = momentum_signal(P)
             rng = np.random.default_rng(SEED)
-            rd = random_like(d, rng)
-            r = engine(P, rd, I, TICKS.get(s, 0.00001), **kw)
+            rd, rI = random_like(P, d, rng)
+            r = engine(P, rd, rI, TICKS.get(s, 0.00001), **kw)
             vals.append(float(r[0].mean()) if r is not None else np.nan)
         m = float(np.nanmean(vals))
         rows.append(dict(label=label, mean=m, **kw))
@@ -247,8 +268,8 @@ def main():
         for lab, fn in (("mom", momentum_signal), ("rev", reversion_signal)):
             d, I = fn(P)
             r = engine(P, d, I, TICKS.get(s, 0.00001), **kw)
-            rd = random_like(d, np.random.default_rng(SEED))
-            rc = engine(P, rd, I, TICKS.get(s, 0.00001), **kw)
+            rd, rI = random_like(P, d, np.random.default_rng(SEED))
+            rc = engine(P, rd, rI, TICKS.get(s, 0.00001), **kw)
             if r is None or rc is None:
                 continue
             re, ce = float(r[0].mean()), float(rc[0].mean())
