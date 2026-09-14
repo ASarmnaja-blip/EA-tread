@@ -14,36 +14,49 @@ THE ASSUMPTION AND WHAT IT COSTS
         1.0x          8.5-10.5%     -0.093 to -0.118   -0.008 to -0.013
         2.0x           2.1-4.5%     -0.017 to -0.042   +0.002 to +0.004
 
-  The assumption accounts for essentially the whole bracket penalty. Corrected
-  to a coin flip, a random-timing control returns almost exactly zero, which
-  is what a random control through a symmetric bracket should return.
+  A coin flip would put the correction at about 0.10R per trade at the 1x
+  stop, and an earlier draft of this file said exactly that - that the rule
+  "has been costing 0.10R a trade for no reason".
 
-WHY THAT MATTERS MORE THAN IT SOUNDS
+WHAT THE MINUTE DATA ACTUALLY SAID
 
-  At the 1x stop the gap between the pessimistic reading and the neutral one
-  is about 0.10R per trade. The largest drift-adjusted skill ever measured in
-  this repo is +0.073R. So at that stop width the modelling assumption is
-  worth more than any edge the project has ever found, and no result measured
-  through it can distinguish a profitable rule from an unprofitable one - the
-  answer is set by the assumption before the data is consulted.
+  It refuted that. For gold, the ambiguity is resolvable: XAUUSD minute data
+  covers 2019-2026, so for every H1 bar that touched both levels the minute
+  path inside it says which came first.
 
-  That is the argument for a wider stop, and it is not "wider stops make more
-  money". It is that at 2x the ambiguity band narrows to about 0.03R, which
-  is comparable to the edges rather than dominant over them.
+      stop width   ambiguous   stop first   target first   unresolved   share
+        1.0x          133          85           31            17       73.3%
+        2.0x           44          26           10             8       72.2%
 
-WHAT THIS FILE DOES ABOUT IT
+  The stop really is reached first about three times in four, at both widths,
+  and neither 95% interval contains 50%. The conservative rule is
+  substantially correct.
 
-  For gold, the ambiguity is not unresolvable. XAUUSD minute data covers
-  2019-2026, so for every H1 bar that touched both levels the minute path
-  inside it says which was reached first. That turns an assumption into a
-  measurement - for one market, over seven years.
+  The overcharge is therefore 2*(1-p) = +0.534R per ambiguous bar rather than
+  the +1.0R a coin flip implies - about half what the earlier draft claimed:
 
-  The result is a FREQUENCY, not a licence. If the true split is far from
-  50/50 in either direction, every R in this repo needs restating; if it is
-  near 50/50, the conservative rule has been costing 0.10R per trade for
-  nothing. Either way the number replaces a guess.
+      gold, 1.0x stop   measured -0.0931   corrected -0.0477
+      gold, 2.0x stop   measured -0.0169   corrected -0.0052
+
+  At the 2x stop the bracket is essentially fair once the real rate is
+  applied. At the 1x stop -0.048R survives the correction and the ambiguity
+  rule does not explain it. A stop sitting inside typical bar noise being
+  clipped by wicks would account for it; that is untested and is not asserted
+  here.
+
+  The stability across widths - 73.3% against 72.2% - is the part to trust
+  most, being a consistency check the measurement was not designed to pass.
+
+LIMITS THAT TRAVEL WITH THE NUMBER
+
+  Gold only: no other market in this repo has minute data, so applying 73% to
+  EURUSD or GBPUSD would be assumption rather than measurement. n = 36
+  resolved at the 2x stop is thin, with an interval from 57.6% to 86.9%. Bars
+  touching both levels in the SAME minute are counted unresolved rather than
+  assigned, because the identical problem reappears one scale down.
 """
 import argparse
+import json
 import math
 import pathlib
 import sys
@@ -177,6 +190,7 @@ def main():
 
     print(f"  {'stop':<7}{'ambiguous':>11}{'stop first':>12}{'target first':>14}"
           f"{'unresolved':>12}{'stop-first share':>18}")
+    saved = {}
     for sm in stops:
         rd, rI = random_like(P, d, np.random.default_rng(SEED))
         r = resolve(P, rd, rI, 0.001, sm, m1, idx)
@@ -192,6 +206,10 @@ def main():
         print(f"  {'':<7}95% CI on that share: "
               f"[{(share-1.96*se)*100:.1f}%, {(share+1.96*se)*100:.1f}%]"
               f"   (50% would mean the coin flip is right)")
+        saved[f"{sm:.1f}"] = dict(
+            stop_first=r["stop_first"], target_first=r["tp_first"],
+            unresolved=r["unresolved"], resolved=tot, share=share,
+            ci=[share - 1.96 * se, share + 1.96 * se])
 
     print(f"\n  Read the share against 50%. Far above and the conservative rule")
     print(f"  is roughly correct and every R here stands. Far below and the")
@@ -200,6 +218,18 @@ def main():
     print(f"  no reason - which is more than any edge this project has found.")
     print(f"\n  Gold only, 2019-2026. Nothing here transfers to the other eight")
     print(f"  markets, whose minute data this repo does not hold.")
+    out = HERE / "ambiguous_bars.json"
+    out.write_text(json.dumps(dict(
+        created=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        symbol="XAUUSD", window=[str(m1.index[0].date()), str(m1.index[-1].date())],
+        signal="momentum, random-timing control", cost="zero",
+        note=("G12 scores every ambiguous bar -1R; the true expectancy at a "
+              "share p of stop-first is p*(-1)+(1-p)*(+1), so the overcharge "
+              "is 2*(1-p) per ambiguous bar. Gold only - no other market in "
+              "this repo has minute data, so applying this share elsewhere "
+              "would be assumption rather than measurement."),
+        by_stop_width=saved), indent=1))
+    print(f"  saved -> {out.name}")
     print(f"  elapsed {time.time()-t0:.0f}s")
 
 
