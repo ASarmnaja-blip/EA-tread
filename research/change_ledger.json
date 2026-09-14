@@ -384,7 +384,21 @@
    "criterion": "Pooled expectancy at real bid/ask NON-NEGATIVE on the cost-restricted H4 book, with the restricted book beating the unrestricted one by at least the declared margin and an across-market |t| clearing the ledger floor. A restricted book that is still negative says the cost map is correct about which hours are dear and that the edge is too small to survive even the cheapest of them - which closes the timeframe question rather than leaving it open.",
    "min_improvement": 0.02,
    "test_period": "Nine markets, H4 resampled from the H1 cache, 2004-2026. The hour classification is computed by the instrument on each market's own history. Neither entry parameter nor the 1.5x cost threshold is swept.",
-   "result": null
+   "result": {
+    "recorded": "2026-09-14T16:42:09.117209+00:00",
+    "baseline_er": -0.1723,
+    "variant_er": -0.1639,
+    "improvement": 0.008400000000000019,
+    "t_stat": 1.78,
+    "n_baseline": 0,
+    "n_variant": 50681,
+    "k_at_test": 829,
+    "floor_at_test": 4.7220724673494745,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "REJECTED, and it closes the timeframe question as the criterion said it would. Restricted book -0.1639R, unrestricted -0.1723R, so the cost constraint is worth +0.0084R at t +1.78 - real, consistent in direction, and nowhere near enough. Positive on 0 of 9 markets. 256 signals per market per year restricted. A DESIGN FLAW IN MY OWN TEST, found mid-run and recorded rather than quietly fixed: H4 bars start only at 0, 4, 8, 12, 16 and 20 UTC, so the 24-hour map has six populated cells there and the 1.5x cost cutoff removes exactly one of them (20:00, at 13.51% against a 6.0% median). A constraint that drops one slot in six is barely a constraint, so the per-market differences are mostly sampling noise. I should have checked the cell count before applying a 24-hour map to a six-slot timeframe. THE NUMBER THAT SURVIVES THE FLAW, because it does not depend on the restriction: both H4 arms are as negative as H1's, despite the map measuring H4 at 6.0% of range against H1's 12.5%. The cost saving is cancelled by a gross edge that degrades at the longer horizon - the same conclusion tsmom_d1.py reached at D1 by a different mechanism. AND THE MEASUREMENT THAT REFRAMES ALL OF IT. Running both entries at ZERO cost: momentum -0.0436/-0.0593/-0.0427 at H1 and -0.0175/-0.0558/-0.0492 at H4 on gold/EURUSD/GBPUSD; reversion -0.1221/-0.1217/-0.1129 at H1 and -0.1520/-0.1490/-0.1368 at H4. Every gross expectancy is NEGATIVE. I have repeatedly written in this ledger that the edges here are smaller than the costs. That is wrong. These entries lose money before a single spread is charged, and cost is a penalty stacked on an already-negative base rather than the reason for it. The practical consequence is that the whole cost-reduction avenue - cheaper venue, longer timeframe, affordable hours - cannot help, because zero cost still loses. Reversion is consistently the worse of the two by about 0.09R, which says moves at these horizons continue more than they revert; that is a real directional fact and is NOT a licence to flip the rule, since a bracketed trade's expectancy does not negate when its direction does."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
