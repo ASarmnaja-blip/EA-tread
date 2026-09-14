@@ -249,6 +249,31 @@
     "verdict": "REJECTED",
     "note": "Does NOT replicate. Drift-adjusted skill positive on 0 of 9 markets on BOTH sides (declared bar was 8 of 9 on the long side). Long mean skill -0.1322 (across-market t -2.97), short -0.1226 (t -3.51). Only USDJPY long had positive raw E (+0.0557) and its skill was -0.0535 - the market went up, measured twice. Gold itself is in the failing set: XAUUSD H1 long E -0.0994, skill -0.1055. Implementation verified first: gold M15 reproduces +0.1788R at zero cost against the documented +0.2312R (which README's own table says was costed at the $0.26 terminal quote), within the declared factor of two; at real measured bid/ask the same book is +0.0439R. So the gap is cost, not a coding error, and the nine-market result is a genuine test. This is exactly the outcome Config.mqh warned about. Note also that README's own drift table already showed the long side - the ONLY side the shipped config trades - has NEGATIVE drift-adjusted skill on gold itself (-0.0494, t -4.14), while the side with positive skill (shorts, +0.1092, t +7.56) is switched off."
    }
+  },
+  {
+   "id": "tsmom_d1_monthly_10market",
+   "registered": "2026-09-14T10:21:54.360203+00:00",
+   "why": "Every test in this repo - 33 topics, 40 files - runs at M1 to H1, where the measured round-turn spread is 5% to 57% of ATR (mean 19.0%). Nothing has ever gone UP the timeframe. Measured just now on the same caches: the same cost is 4.18% of ATR at D1 and 1.19% at W1 - a 5.3x and 16x reduction. Every candidate this project has killed died on cost, and the one lever that moves cost by an order of magnitude has never been pulled. Separately, this is the first hypothesis here that comes from OUTSIDE the data: time-series momentum (Moskowitz/Ooi/Pedersen 2012, 58 futures 1965-2009; extended to 1880 by Hurst/Ooi/Pedersen) is the most replicated anomaly in this space, and its prediction is made before the run rather than found by searching this sample.",
+   "change": "Resample H1 bid/ask to D1 for 10 markets, 2004-2026. At each month end take the sign of the trailing k-month mid-close return, k in {1,3,6,12}. Enter at the OPEN of the first trading day of the next month (ask for long, bid for short) and exit at the CLOSE of its last trading day (bid for long, ask for short). Non-overlapping monthly holds. Size to constant ex-ante volatility using an exponentially-weighted daily vol estimated only from data up to the signal, so R = realised return / ex-ante monthly vol. Decompose per market: raw E(R) = mean(d*x), drift term = mean(d)*mean(x), skill = covariance(d,x) - the genuine timing component. Build the equal-weight cross-market portfolio month by month so the pooled t accounts for cross-market correlation rather than assuming 10 independent tests. Swap = 0 in the main test per this project's cost rules, with a separate overnight report using the known XAUUSDc swap of -534.9 points.",
+   "sweep_size": 4,
+   "criterion": "At the 12-month lookback - the literature's headline specification, fixed before the run - drift-adjusted skill positive on at least 8 of 10 markets AND the equal-weight portfolio's net-of-cost t clearing the multiple-testing floor.",
+   "min_improvement": 0.02,
+   "test_period": "10 markets D1 2004-2026 (XAUUSD, XAGUSD, USDSEK, EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF, USDCAD, NZDUSD). No entry rule in this repo was ever fitted at D1 or on a monthly hold, so the whole timeframe is out of sample with respect to every prior search here.",
+   "result": {
+    "recorded": "2026-09-14T10:24:48.525520+00:00",
+    "baseline_er": 0.0,
+    "variant_er": 0.0248,
+    "improvement": 0.0248,
+    "t_stat": 0.74,
+    "n_baseline": 0,
+    "n_variant": 260,
+    "k_at_test": 815,
+    "floor_at_test": 3.661471866132761,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "DOES NOT CLEAR. At the headline 12-month lookback the equal-weight portfolio makes +0.0248R/month, t +0.74, annualised Sharpe +0.13, and drift-adjusted skill is positive on 6 of 10 markets (binomial P 0.377, itself an upper bound since seven share the dollar). Declared bar was 8 of 10 plus a portfolio t clearing 3.66; both fail. The sweep is monotone in the literature's own direction (1m -0.0458 t -3.01, 3m -0.0439, 6m -0.0121, 12m +0.0248) - short-horizon reversal, long-horizon momentum - so the SIGN structure replicates while the magnitude does not survive this floor. Gold is again mostly drift: raw +0.2028 (t +2.29) splits into drift +0.1295 and skill +0.0852 (t +0.96), the same shape as Setup D. TWO FINDINGS THAT OUTLIVE THIS TEST. First, the cost premise was half right and half backwards: spread does collapse at D1 (gold 0.0119R/trade) but swap explodes (0.2498R/trade, 21x the spread), taking gold from +0.2028R to -0.0470R. Going up the timeframe trades a small cost problem for a larger one. Second, and it is closed form: with spread S paid once and swap w paid per night against a move growing like sqrt(h), cost/move is minimised at h* = S/w, with volatility cancelling entirely. For XAUUSDc long that is 0.4540/0.5349 = 0.85 nights. The cost-optimal hold for a gold long on this account is under one night, which means the premise of this file was wrong before the first trade was simulated - and the H1/H4 horizons this project has always used are not a habit but close to the only viable window. The asymmetry is unexploited: a gold short receives financing, so h* does not exist on that side, and this repo has worked the long side throughout."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
