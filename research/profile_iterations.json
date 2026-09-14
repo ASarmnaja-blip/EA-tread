@@ -1,0 +1,65 @@
+{
+ "updated": "2026-09-14T16:01:15Z",
+ "timeframes": [
+  "H1",
+  "H4"
+ ],
+ "symbols": [
+  "XAUUSD",
+  "EURUSD"
+ ],
+ "final_params": {
+  "boot": 800,
+  "atr_hours": 480,
+  "bucket": 1,
+  "min_cell": 200,
+  "tail_q": 0.99,
+  "vap_bins": 40,
+  "vap_window": "1D",
+  "vr_k": 4
+ },
+ "rounds": [
+  {
+   "round": 0,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 1,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9777334880363027,
+   "coverage": 1.0,
+   "precision": 0.9783268445913517,
+   "resolution": 0.9993934974001355,
+   "cells": 60,
+   "panels": 4,
+   "changed": null,
+   "drift_from_baseline": 0.0
+  },
+  {
+   "round": 1,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 1,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9777334880363027,
+   "coverage": 1.0,
+   "precision": 0.9782592687290763,
+   "resolution": 0.9993882186307456,
+   "cells": 60,
+   "panels": 4,
+   "changed": "boot: kept 800 (no option beat 0.9777)",
+   "drift_from_baseline": 0.0
+  }
+ ]
+}
