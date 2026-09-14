@@ -29,7 +29,7 @@ from exness_cent import ExnessCent
 ACC = ExnessCent()
 
 
-def trade_log(P, dvec, Ivec, lo, hi, tick, risk_frac):
+def trade_log(P, dvec, Ivec, lo, hi, tick, risk_frac, start_equity=500.0):
     """Every trade P01 actually takes, with real prices and real money.
 
     This mirrors run_e01's mechanics exactly (same gate, same fill, same
@@ -38,7 +38,7 @@ def trade_log(P, dvec, Ivec, lo, hi, tick, risk_frac):
     idx, bid, ask, A, spread = P["idx"], P["bid"], P["ask"], P["A"], P["spread"]
     rows = []
     busy = -1
-    equity = 500.0          # USC, matching this project's standard start
+    equity = start_equity   # USC
     peak = equity
     for t in range(max(lo, 300), min(hi, N - 1)):
         d = dvec[t]

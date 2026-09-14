@@ -28,6 +28,7 @@ from p01_trade_log import trade_log
 YEAR = 2026
 TICK = 0.001
 RISK = 0.01
+START_EQUITY = 5000.0
 
 
 def h1_source():
@@ -63,7 +64,7 @@ def run_tf(name, bars):
     P = X.prep(bars, 0)
     dvec, Ivec = X.make_templates(P)["P01"]()
     n_yr = int((P["idx"] < pd.Timestamp(f"{YEAR}-01-01", tz="UTC")).sum())
-    T = trade_log(P, dvec, Ivec, n_yr, P["N"], TICK, RISK)
+    T = trade_log(P, dvec, Ivec, n_yr, P["N"], TICK, RISK, START_EQUITY)
     T["timeframe"] = name
     return P, T
 
@@ -84,7 +85,7 @@ def summarize(name, T):
         f"{k} {v} ({v/n*100:.0f}%)" for k, v in
         T.exit_reason.value_counts().items()))
     print(f"  total P&L           {T.pnl_USC.sum():+,.2f} USC "
-          f"(from 500.00 start)")
+          f"(from {START_EQUITY:,.0f} start)")
     print(f"  ending equity       {T.equity_USC.iloc[-1]:,.2f} USC")
     print(f"  max drawdown        {T.drawdown_pct.max():.1f}%")
     zeroed = int((T.pnl_USC == 0).sum())
@@ -95,8 +96,8 @@ def summarize(name, T):
 
 def main():
     print("P01 - 2026 TRADES ONLY - H4 / H1 / M15 / M1 - FIXED ENGINE")
-    print(f"risk {RISK*100:.0f}% of equity/trade, start 500 USC, real "
-          f"Dukascopy bid/ask\n")
+    print(f"risk {RISK*100:.0f}% of equity/trade, start {START_EQUITY:,.0f} USC, "
+          f"real Dukascopy bid/ask\n")
 
     results = {}
 
@@ -140,21 +141,29 @@ def main():
     # engine, it is the account: report what risk fraction this account
     # would actually need to open a single H1 trade, since "0 P&L" alone
     # reads like a bug rather than a sizing wall.
-    print(f"\n{'='*80}\nWHAT RISK THIS 500 USC ACCOUNT WOULD NEED, JUST TO OPEN")
+    print(f"\n{'='*80}\nWHAT RISK THIS {START_EQUITY:,.0f} USC ACCOUNT WOULD NEED, "
+          f"JUST TO OPEN")
     print(f"{'='*80}")
+    any_wall = False
     for name, T in results.items():
         if len(T) == 0:
             continue
         dist = (T.entry_px - T.stop_px).abs()
-        need = ACC_MIN_LOT_RISK = dist * 100 * 0.01  # USC needed for 0.01 lot
-        pct = need / 500 * 100
+        need = dist * 100 * 0.01  # USC needed for 0.01 lot
+        pct = need / START_EQUITY * 100
+        flag = "  <- exceeds the 1% risk budget" if pct.median() > 1.0 else ""
+        if pct.median() > 1.0:
+            any_wall = True
         print(f"  {name:<6}median stop ${dist.median():>7.2f}   needs "
               f"{need.median():>6.2f} USC for 0.01 lot   = "
-              f"{pct.median():>5.1f}% of equity per trade")
-    print(f"\n  At 1% risk this account cannot open a single H4 or H1 trade")
-    print(f"  on gold at current prices - not underperformance, a sizing")
-    print(f"  wall. M15/M1 partially clear it because their tighter stops")
-    print(f"  need less capital per 0.01 lot.")
+              f"{pct.median():>5.2f}% of equity per trade{flag}")
+    if any_wall:
+        print(f"\n  At {RISK*100:.0f}% risk this account still cannot open every")
+        print(f"  timeframe at minimum lot - see the flagged rows above.")
+    else:
+        print(f"\n  At {RISK*100:.0f}% risk on {START_EQUITY:,.0f} USC, the minimum")
+        print(f"  lot no longer binds on any timeframe - unlike the 500 USC")
+        print(f"  case, where H4 and H1 could not open a single trade.")
 
     for name, T in results.items():
         out = pathlib.Path(__file__).parent / f"p01_2026_{name}.csv"
