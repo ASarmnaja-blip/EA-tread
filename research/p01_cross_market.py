@@ -58,7 +58,52 @@ DISC_END = "2017-01-01"
 SEED = 17
 
 
-def load_bidask_h1(sym):
+def load_bidask_h1(sym, drop_flat=True):
+    """Hourly bid/ask bars, with the hours the venue was shut removed.
+
+    THE FILTER THAT WAS MISSING AND WHAT IT WAS COSTING
+
+      The gate below already dropped bars with a non-positive spread, and its
+      comment says those are hours the venue was not quoting. It let through a
+      much larger set of exactly the same thing: bars where high equals low.
+      There are 58,233 of them in gold alone, 31% of the series, and every
+      market in the panel carries between 28.8% and 31.0% in every year from
+      2004 to 2026. 54,000 are Saturdays and Sundays - the feed emits a flat
+      bar for every hour the market is closed - and the rest are the daily
+      rollover and the Friday close.
+
+      A flat bar has a true range of exactly zero, and Wilder's ATR is an
+      exponential mean of true range, so forty-eight consecutive zeros
+      multiply it by (13/14)^48 = 0.030. Measured on gold, the ATR(14) median
+      by weekday as a share of Thursday's:
+
+          as loaded   Mon 55.6%  Tue 86.5%  Wed 94.3%  Thu 100%  Fri 97.7%
+          filtered    Mon 97.5%  Tue 94.0%  Wed 94.9%  Thu 100%  Fri 99.2%
+
+      The engine gates every trade on the spread being at most 10% of ATR,
+      so an understated ATR closes it:
+
+          as loaded   rejects 84.8% of Monday bars, 56.9% of Thursday's
+          filtered    rejects 53.5% of Monday bars, 52.9% of Thursday's
+
+      Across the nine-market panel this moved Monday's share of entries from
+      14.5% to 17.6%, against the 20% a flat week would give, and expectancy
+      by +0.0075R - the same order as every edge this project has looked for.
+      It moved them unevenly: the dollar majors sat ABOVE 20% before the fix
+      and gold, silver and the commodity currencies below 13%, so cross-market
+      comparisons were distorted too.
+
+      This does not make any earlier conclusion wrong. Most of them are null,
+      and a distortion in which trades are ELIGIBLE does not manufacture
+      directional skill. It does mean every number in this repository before
+      this commit was measured on a sample selected by an artifact of the
+      feed, and anything that leaned on hour-of-day, session or
+      volatility-regime cells was measuring that artifact as well.
+
+      drop_flat=False reproduces the old frame exactly, so a figure published
+      before this change can still be checked against the data that produced
+      it rather than quietly restated.
+    """
     p = CACHE / f"{sym}_H1_2003_2026.parquet"
     if not p.exists():
         return None
@@ -71,6 +116,8 @@ def load_bidask_h1(sym):
     # venue was not quoting, and a breakout rule would happily trade those
     # flat synthetic bars.
     df = df[(spr > 0) & (df.high >= df.low) & (df.low > 0)]
+    if drop_flat:
+        df = df[df.high > df.low]
     return df
 
 
