@@ -1,7 +1,7 @@
 {
- "created": "2026-09-19T13:42:37Z",
+ "created": "2026-09-19T14:43:31Z",
  "git": {
-  "commit": "6b1ccef94e64a64d47ed96aa2dd3d1147a59c815",
+  "commit": "09ebfc1c8907fc05b9cb84e327d9fe264c936fbd",
   "dirty": true,
   "branch": "claude/order-position-choch-gab-im08db"
  },
@@ -262,6 +262,62 @@
    "tol": 1e-09
   },
   {
+   "stage": "passive_execution",
+   "path": "viable",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "cheap_corner",
+   "path": "viable",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "financing_closure",
+   "path": "closed",
+   "ok": true,
+   "expected": true,
+   "got": true,
+   "tol": 0
+  },
+  {
+   "stage": "reversal_anatomy",
+   "path": "regression.beta_atr",
+   "ok": true,
+   "expected": 0.986,
+   "got": 0.9855420143435426,
+   "tol": 0.03
+  },
+  {
+   "stage": "reversal_anatomy",
+   "path": "regression.beta_spread",
+   "ok": true,
+   "expected": -0.103,
+   "got": -0.10295165823015545,
+   "tol": 0.03
+  },
+  {
+   "stage": "back_catalogue",
+   "path": "clear",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "back_catalogue",
+   "path": "rank_corr_R_vs_edge",
+   "ok": true,
+   "expected": -0.05,
+   "got": -0.04825014947459375,
+   "tol": 0.1
+  },
+  {
    "stage": "failure_distribution",
    "path": "distribution.0.code",
    "ok": true,
@@ -279,6 +335,6 @@
   }
  ],
  "reran": [],
- "passed": 18,
- "total": 18
+ "passed": 25,
+ "total": 25
 }

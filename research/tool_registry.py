@@ -112,6 +112,26 @@ REGISTRY = {
                      "difference matters",
         cost="negligible"),
 
+    "feasibility": dict(
+        version="1.0", status="VALIDATED",
+        answers="How large would this effect have to be to pay for itself, "
+                "expressed in whatever unit the idea is stated in?",
+        inputs=["timeframe or a spread/ATR ratio", "nights held", "swap"],
+        outputs=["required amplitude in ATR", "required sign accuracy",
+                 "required win rate at 1:1 and 2:1", "multiple of the "
+                 "largest effect measured here"],
+        assumptions=["every constant is measured in this repository and "
+                     "cited to the file that measured it",
+                     "a resting order's requirement includes the measured "
+                     "adverse selection of 7.30 round trips, because without "
+                     "it the answer is a meaningless zero",
+                     "it answers how big, never whether it is true"],
+        validated_on="reproduces the figures the run derived the hard way - "
+                     "61.28% sign accuracy at H1 against the 59.91% measured "
+                     "in reversal_mechanism, and 8.9x against the venue "
+                     "requirement computed in reversal_anatomy",
+        cost="instant"),
+
     # ----------------------------------------------------------- discipline
     "change_ledger": dict(
         version="1.1", status="VALIDATED",
