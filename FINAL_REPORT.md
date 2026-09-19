@@ -56,6 +56,13 @@ once, so the net has a single maximum — and it is negative.
 | break-even financing rate | 0.2038 spreads/night |
 | gold's known long swap | 1.2616 spreads/night — 6.2× too expensive |
 
+**Corrected after this section was first written.** The exponent of 0.233 was
+fitted over a ladder that stops at one week. Extending it shows the edge
+**peaks at W1 and falls after it** — W2 +0.2415, M1 −2.2143, Q1 −6.5896 — so
+the exponent was an average over a curve that rises and then turns. The
+"8,900 hours to breakeven" figure this report originally quoted applied that
+fit five times past its anchor and describes nothing real. See §12.
+
 ### 4. What if financing is removed entirely?
 
 Swap is charged at one moment, not continuously, so a hold that never spans a
@@ -208,20 +215,46 @@ above.
 
 ### 12. What should happen next?
 
-**One lookup, not an experiment.** Gold's short-side swap is not in this
-repository, and the overnight economic verdict turns on it: 0.2038 spreads a
-night is breakeven against a known long rate of 1.2616. If the short side is
-credited rather than charged, a direction-symmetric strategy pays roughly zero
-net financing and the whole horizon analysis has to be redone. That is the
-single most decision-relevant unknown in the project and it costs nothing to
-resolve.
+**This answer has been superseded by a later measurement and the original is
+kept below it.**
 
-Beyond that, ranked by what could change a conclusion:
+~~One lookup, not an experiment. Gold's short-side swap is not in this
+repository, and the overnight economic verdict turns on it: 0.2038 spreads a
+night is breakeven against a known long rate of 1.2616.~~
+
+The swap is no longer decision-relevant. Extending the horizon ladder to two
+weeks, one month and one quarter shows **every horizon is negative at a
+financing rate of exactly zero**, and no venue can charge less than nothing:
+
+| tf | hours | bars/mkt | edge | 95% interval | net at zero carry |
+|---|---|---|---|---|---|
+| H1 | 1 | 125,336 | +0.1203 | [+0.065, +0.176] | −0.880 |
+| H4 | 4 | 32,581 | +0.1099 | [−0.096, +0.317] | −0.890 |
+| D1 | 24 | 6,322 | +0.1648 | [−0.499, +0.850] | −0.835 |
+| **W1** | 168 | 1,071 | **+0.4397** | [−0.774, +1.764] | **−0.560** |
+| W2 | 336 | 546 | +0.2415 | [−2.324, +2.953] | −0.759 |
+| M1 | 730 | 260 | −2.2143 | [−13.97, +8.79] | −3.214 |
+| Q1 | 2,190 | 90 | −6.5896 | [−47.3, +29.3] | −7.590 |
+
+**The interval does not exclude a positive net and that is stated rather than
+glossed.** W1's net interval is [−1.774, +0.764], whose upper end is above
+zero. On the point estimate it fails; on the interval it is not established
+either way.
+
+What closes it anyway is the horizon itself. W1 is seven nights, so carry is
+charged seven times. At **0.05 spreads a night — a twenty-fifth of gold's
+known long rate** — W1 falls to −0.910 and the best horizon reverts to H1 at
+−0.882. The only horizon whose interval reaches positive is the one that any
+nonzero swap destroys fastest, and at every rate above zero H1 is best at
+about −0.88.
+
+**What to do instead, ranked by what could change a conclusion:**
 
 1. Decompose the unconditional reversal across the ten markets. It is the only
    thing left standing and it has never been taken apart.
 2. Establish whether a venue materially cheaper than this feed exists for a
-   retail account. Every verdict here is a ratio to a spread.
+   retail account. Every verdict here is a ratio to a spread, and that is now
+   the *only* input that could move one.
 3. Re-examine whether any of the 837 pre-run hypotheses read differently on
    the cleaned frame with the corrected control and metric. Most are null and
    would stay null — but that is an assumption and it has not been checked.
@@ -240,6 +273,19 @@ Beyond that, ranked by what could change a conclusion:
 | **Tool registry** | 10 live tools, 2 superseded — kept with the defect named, so an old number can be traced to the tool that made it. |
 | **Reproduction** | 18 checks on numbers, not exit codes, with git state and a sha256 per cached series reported separately. |
 | **Provenance** | Append-only progress log across 12 phases. |
+
+## Corrections to this report after first writing
+
+Kept rather than edited away, because a report that revises itself silently
+is worth less than one that does not revise itself at all.
+
+| where | what changed |
+|---|---|
+| §3 | The 0.233 exponent was fitted over a ladder ending at one week. The edge **peaks at W1 and falls after it**, so the exponent averages a curve that turns, and the "8,900 hours to breakeven" figure applied the fit five times past its anchor. Retracted. |
+| §12 | Gold's short-side swap was named the most decision-relevant unknown. It is no longer: every horizon is negative at **zero** financing, so no swap rate can change the verdict. |
+
+Both corrections make the negative conclusion stronger, not weaker, which is
+worth saying because the opposite direction would deserve more suspicion.
 
 ## Integrity state
 
