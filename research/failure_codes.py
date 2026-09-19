@@ -113,6 +113,15 @@ CODES = {
         "read until the disagreement is resolved.",
         "a repeat under a changed nuisance parameter moves skill by more "
         "than its own standard error x3"),
+    "BELOW_MULTIPLICITY_FLOOR": (
+        "Fails nothing except the bar its own search earned. Survives the "
+        "controls, the parameter neighbourhood, both halves of the sample "
+        "and the removal of any one market, and its point estimate clears "
+        "the economic cost - but its interval does not clear the floor the "
+        "cumulative hypothesis count implies. More hypotheses cannot fix "
+        "this; only independent data can.",
+        "skill vs C7 positive with |t| > 2, every structural test passed, "
+        "and the best available t below the floor"),
     "UNKNOWN_FAILURE": (
         "Died without matching any named pattern. Every one of these is a "
         "gap in this taxonomy and is listed individually rather than "
@@ -240,6 +249,20 @@ def classify(m):
             and m["neighbourhood_ratio"] < 0.50):
         out.append("PARAMETER_FRAGILITY")
 
+    # The candidate that fails nothing named. This code was added because the
+    # pilot's two survivors returned UNKNOWN_FAILURE, and UNKNOWN is supposed
+    # to mean the taxonomy has a gap - which it did. It is a distinct
+    # situation from every other code here: nothing about the hypothesis is
+    # wrong, and no further search can improve it, because the floor rises
+    # with every hypothesis spent looking.
+    if not out:
+        t7 = m.get("t_c7")
+        tb = m.get("t_best", t7)
+        flr = m.get("floor")
+        if (m.get("skill_c7") is not None and m["skill_c7"] > 0
+                and t7 is not None and abs(t7) > SIG_T
+                and (flr is None or tb is None or tb <= flr)):
+            out.append("BELOW_MULTIPLICITY_FLOOR")
     if not out:
         out.append("UNKNOWN_FAILURE")
     # order by the sequence in CODES so aggregation is stable
