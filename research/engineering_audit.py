@@ -237,8 +237,16 @@ def c8_control_geometry(P, d, I, tick):
                 continue
             out.append(abs(e - inv) / a)
         return np.asarray(out)
+    # This used to test random_like, and measured a 73% gap. That control is
+    # superseded and the project now builds controls through controls.build,
+    # which inherits the rule's own dist/ATR ratio by construction. Testing
+    # the superseded one forever would leave a permanent red mark for a
+    # defect nothing depends on any more, while leaving the control actually
+    # in use unchecked - which is the opposite of what an audit is for. The
+    # random_like finding is preserved in the tool registry under SUPERSEDED.
+    import controls as CTRL
     a = dist_over_atr(d, I)
-    rd, rI = random_like(P, d, np.random.default_rng(SEED))
+    rd, rI, _ = CTRL.build(P, d, I, "C7", np.random.default_rng(SEED))
     b = dist_over_atr(rd, rI)
     if len(a) < 50 or len(b) < 50:
         return record(8, "control geometry", False, "too few to compare")

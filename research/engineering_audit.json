@@ -1,12 +1,12 @@
 {
- "created": "2026-09-19T08:28:55Z",
+ "created": "2026-09-19T13:26:25Z",
  "symbol": "XAUUSD",
  "checks": [
   {
    "check": 1,
    "name": "determinism",
    "passed": true,
-   "detail": "engine reruns identical=True, seeded control identical=True, n=2,341",
+   "detail": "engine reruns identical=True, seeded control identical=True, n=2,708",
    "severity": "blocking"
   },
   {
@@ -27,35 +27,35 @@
    "check": 4,
    "name": "exit-side quotes",
    "passed": true,
-   "detail": "base -0.0553, bid-side worsened -0.0554, ask-side worsened -0.0553",
+   "detail": "base -0.0430, bid-side worsened -0.0436, ask-side worsened -0.0430",
    "severity": "blocking"
   },
   {
    "check": 5,
    "name": "cost monotonicity",
    "passed": false,
-   "detail": "spread x1 -0.0524 (n 2,342)  x2 -0.0615 (n 620)  x4 -0.0534 (n 68); 3% of trades survive x4 - a cost sweep that also reselects the population cannot isolate cost",
+   "detail": "spread x1 -0.0434 (n 2,710)  x2 -0.0508 (n 799)  x4 +0.0258 (n 98); 4% of trades survive x4 - a cost sweep that also reselects the population cannot isolate cost",
    "severity": "blocking"
   },
   {
    "check": 6,
    "name": "overlap accounting",
    "passed": true,
-   "detail": "2,341 trades, 0 duplicate entry bars, min gap 2",
+   "detail": "2,708 trades, 0 duplicate entry bars, min gap 2",
    "severity": "blocking"
   },
   {
    "check": 7,
    "name": "control trade mass",
    "passed": true,
-   "detail": "rule fires 15,651, control 15,638, ratio 0.999 (<0.95 is the sparse-invalidation bug)",
+   "detail": "rule fires 12,540, control 12,522, ratio 0.999 (<0.95 is the sparse-invalidation bug)",
    "severity": "blocking"
   },
   {
    "check": 8,
    "name": "control geometry",
-   "passed": false,
-   "detail": "dist/ATR quartiles rule [1.091, 1.638, 2.591] vs control [0.29, 0.559, 1.031], max rel gap 73%; a control with a tighter stop is a different instrument, not a different entry",
+   "passed": true,
+   "detail": "dist/ATR quartiles rule [0.894, 1.263, 1.766] vs control [0.894, 1.262, 1.766], max rel gap 0%; a control with a tighter stop is a different instrument, not a different entry",
    "severity": "blocking"
   },
   {
@@ -69,7 +69,7 @@
    "check": 10,
    "name": "index alignment",
    "passed": true,
-   "detail": "prep N 188,569 == frame 188,569, closes and timestamps identical: True",
+   "detail": "prep N 130,094 == frame 130,094, closes and timestamps identical: True",
    "severity": "blocking"
   },
   {
@@ -90,22 +90,22 @@
    "check": 13,
    "name": "float determinism",
    "passed": true,
-   "detail": "mean varies by 1.39e-17 across summation orders (reported to 4dp, so anything under 1e-6 is invisible)",
+   "detail": "mean varies by 6.94e-18 across summation orders (reported to 4dp, so anything under 1e-6 is invisible)",
    "severity": "advisory"
   },
   {
    "check": 14,
    "name": "legacy reproduction",
    "passed": true,
-   "detail": "template P01: run_e01 2,809 trades E -0.086915; engine 2,809 trades E -0.086915; identical=True",
+   "detail": "template P01: run_e01 3,381 trades E -0.086213; engine 3,381 trades E -0.086213; identical=True",
    "severity": "blocking"
   }
  ],
- "blocking": 2,
+ "blocking": 1,
  "advisory": 1,
  "manifest": {
   "git": {
-   "commit": "c2f8c25254ff7e47f31a3407f84252fa27ac5788",
+   "commit": "5574fdb01a1b4feabd58b4f899fc3745ff30d7f9",
    "dirty": true,
    "branch": "claude/order-position-choch-gab-im08db"
   },
