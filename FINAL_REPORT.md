@@ -248,16 +248,53 @@ known long rate** — W1 falls to −0.910 and the best horizon reverts to H1 at
 nonzero swap destroys fastest, and at every rate above zero H1 is best at
 about −0.88.
 
-**What to do instead, ranked by what could change a conclusion:**
+**Items 1 and 2 below have since been answered and are closed. What remains
+is item 3.**
 
-1. Decompose the unconditional reversal across the ten markets. It is the only
-   thing left standing and it has never been taken apart.
-2. Establish whether a venue materially cheaper than this feed exists for a
-   retail account. Every verdict here is a ratio to a spread, and that is now
-   the *only* input that could move one.
-3. Re-examine whether any of the 837 pre-run hypotheses read differently on
-   the cleaned frame with the corrected control and metric. Most are null and
-   would stay null — but that is an assumption and it has not been checked.
+**1. Decompose the reversal — DONE, and it is volatility-scaled.** Log
+absolute move on log spread and log ATR jointly, 5,461 market-hour-year cells,
+market fixed effects: **log ATR +0.986** (se 0.045, t +22.0), **log spread
+−0.103** (se 0.030, t −3.4), R² 0.513. Bid-ask bounce would have produced the
+opposite pair. It is not a dollar artifact — USD-base +0.0996, USD-quote
++0.1581, metals +0.0448 — is positive in 21 of 23 years, and its worst
+leave-one-market-out swing is 14%.
+
+That matters because it means the edge in spread units is amplitude ÷ cost
+ratio, so a tighter quote genuinely raises it. Had the spread coefficient come
+back near one, the edge would have been a constant of the microstructure and
+no execution improvement anywhere could have helped.
+
+**2. Could a cheaper venue reach it? — DONE, and no.** The requirement is
+execution **8.9× cheaper** than this feed, or **4.7× cheaper than its own
+cheapest decile**. Sweeping the cost cross-section outward from the cheapest
+half-percent:
+
+| cheapest | spread/ATR | edge | amplitude | markets + |
+|---|---|---|---|---|
+| 0.5% | 0.00553 | +0.7901 | 0.00437 | — |
+| **1%** | 0.00681 | **+0.8897** | 0.00606 | 2/3 |
+| 5% | 0.01315 | +0.7753 | 0.01020 | 5/7 |
+| 10% | 0.01835 | +0.5198 | 0.00954 | 6/8 |
+| 20% | 0.02747 | +0.2232 | 0.00613 | 8/10 |
+| all | 0.08881 | +0.1120 | 0.00995 | 10/10 |
+
+**The curve turns.** From the whole sample to the cheapest half-percent the
+quote tightens 16.1× and the edge grows only 7.1×, because the amplitude falls
+from 0.00995 ATR to 0.00437. Where the spread is small the move is small too.
+At the tightest step the edge is no longer climbing at all.
+
+The best step, +0.8897, needs only 1.1× more — but it clears three markets, is
+positive on two of them against a required six of nine, produces 189 signals a
+year against a required 200, and is the maximum of an eight-step sweep. It is
+62% EURUSD and 34% USDJPY: the two deepest books in the panel, not a
+time-of-day corner.
+
+**The cost floor is a property of this instrument class, not of the venue.**
+
+**3. Still open.** Re-examine whether any of the 837 pre-run hypotheses read
+differently on the cleaned frame with the corrected control and metric. Most
+are null and would stay null — but that is an assumption and it has not been
+checked.
 
 ---
 
@@ -283,6 +320,7 @@ is worth less than one that does not revise itself at all.
 |---|---|
 | §3 | The 0.233 exponent was fitted over a ladder ending at one week. The edge **peaks at W1 and falls after it**, so the exponent averages a curve that turns, and the "8,900 hours to breakeven" figure applied the fit five times past its anchor. Retracted. |
 | §12 | Gold's short-side swap was named the most decision-relevant unknown. It is no longer: every horizon is negative at **zero** financing, so no swap rate can change the verdict. |
+| §12 | Items 1 and 2 of the next-steps list have since been answered. The reversal is volatility-scaled (log ATR +0.986, log spread −0.103), so a cheaper quote genuinely helps — but the edge stops climbing at +0.8897 in the cheapest 1% of cells and turns down after it. Both execution levers are now closed on measured data. |
 
 Both corrections make the negative conclusion stronger, not weaker, which is
 worth saying because the opposite direction would deserve more suspicion.
