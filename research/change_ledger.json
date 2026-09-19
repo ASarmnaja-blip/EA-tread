@@ -874,6 +874,31 @@
     "verdict": "REJECTED",
     "note": "THE SEALED HOLDOUT IS A DETERMINISTIC FUNCTION OF THE PANEL IT WAS BUILT TO TEST AGAINST. Fourteen of fourteen sealed symbols are exactly synthesisable from two of the nine panel markets by triangular arbitrage: AUDCAD = AUDUSD x USDCAD, AUDJPY = USDJPY x AUDUSD, AUDNZD = AUDUSD x NZDUSD, CADJPY = USDJPY x USDCAD, CHFJPY = USDJPY x USDCHF, EURAUD = EURUSD x AUDUSD, EURCAD = EURUSD x USDCAD, EURCHF = EURUSD x USDCHF, EURGBP = EURUSD x GBPUSD, EURJPY = EURUSD x USDJPY, GBPAUD = GBPUSD x AUDUSD, GBPCHF = GBPUSD x USDCHF, GBPJPY = GBPUSD x USDJPY, NZDJPY = USDJPY x NZDUSD. Zero remain independent. THE CRITERION THAT BUILT IT GUARANTEES THE OPPOSITE OF WHAT IT PROMISED. The set was chosen as fourteen FX crosses with NO USD LEG, on the reasoning that a dollar-dominated panel could not have touched them. A cross with no USD leg is precisely the one no-arbitrage pins to two USD pairs, and the panel holds both legs of every one. HOW IT WAS FOUND, WHICH IS THE PART WORTH KEEPING. Not by auditing the holdout. The relative-value run selected on synthetic crosses built from panel pairs and its best performers were EURUSD/USDJPY, AUDUSD/USDCAD, AUDUSD/NZDUSD and EURUSD/USDCHF - which ARE EURJPY, AUDCAD, AUDNZD and EURCHF, four sealed symbols, selected on directly, without anyone opening anything. WHAT IT RETRACTS AND WHAT IT DOES NOT. It retracts the PROTECTION claimed for the holdout, not any result. Nothing was ever tested on it, it has never been opened, and establishing this required no series to be read - the synthesis follows from the currency names alone, so the seal is intact and examined remains false. WHAT THE SEAL CAN STILL ADJUDICATE. The mid price is pinned; the QUOTE is not. Each cross has its own book, spread, thin hours and no-arbitrage band width, none of which follows from its legs. So the sealed set can still settle anything about cost or tradability - which is not a small residue, since every economic verdict in this project divides by a spread - and can settle nothing about where price goes, which is every directional hypothesis here. WHAT A REAL HOLDOUT WOULD NEED: to differ in something other than which currencies appear in the ticker. A different asset class, a different venue, or a different era. The last of those this project already has and has been using, and 2004-2016 against 2017-2026 has killed two candidates on its own."
    }
+  },
+  {
+   "id": "nfp_post_reaction_continuation",
+   "registered": "2026-09-19T16:19:46.374261+00:00",
+   "why": "The prior NFP test asked whether direction could be predicted BEFORE the release, which requires knowing the number in advance - it failed, correctly. It never tested the different and testable claim the user raised: once the market has already reacted to the release, does that initial reaction predict what happens next. This needs no news content, only the price's own first move, which is data already in this repository.",
+   "change": "Locate NFP release bars via the existing zoneinfo calendar (first Friday, 08:30 America/New_York). Measure the initial reaction as the signed mid move over the first 15 minutes after the release on gold minute data (2019-2026), and over the first H1 bar for the panel markets where minute data is absent. Then test whether that reaction's SIGN predicts the signed move over the following 1h, 4h and 24h - entering at the end of the reaction window, scored in spread units on the ratio of means, against a C1-style control drawn from non-NFP Fridays at the same times.",
+   "sweep_size": 6,
+   "criterion": "Continuation is a candidate only if edge exceeds one round trip with the same sign on a majority of markets tested and a bootstrap t above the current floor. Given NFP is once a month, the honest ceiling on sample size (about 22 years x 12 = 264 events per market) is stated up front rather than discovered after a positive result.",
+   "min_improvement": 0.02,
+   "test_period": "Gold minute data 2019-2026 for the reaction window; H1 panel 2004-2026 for continuation. No holdout touched.",
+   "result": {
+    "recorded": "2026-09-19T16:20:57.157278+00:00",
+    "baseline_er": 1.0,
+    "variant_er": -1.7246,
+    "improvement": -2.7245999999999997,
+    "t_stat": -2.37,
+    "n_baseline": 9,
+    "n_variant": 9,
+    "k_at_test": 1884,
+    "floor_at_test": 5.0608709064544675,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "REJECTED, AND THE SIGN IS NEGATIVE. Sign accuracy of the initial NFP reaction predicting the next move sits at 49.3-50.6% across all three horizons pooled across nine markets - indistinguishable from a coin, and slightly below it. Pooled edge: +1h -0.1886 (t -0.95, 3/9 positive), +4h -1.2960 (t -1.71, 3/9), +24h -1.7246 (t -2.37, 3/9). Gold specifically on minute-precision reaction (83 events since 2019) shows the same pattern with more noise: +1h sign 44.6%, +4h sign 51.8%, +24h sign 49.4%, none distinguishable from chance at n=83. THE HONEST READING OF WHY. Continuation after a violent, well-telegraphed move is exactly the case where mean reversion (the one effect this project has established, +0.1120 unconditional) and momentum are fighting over the same window, and at a monthly sample size neither wins clearly enough to see. n=252 per market over 22 years is the ceiling this event allows, and that ceiling is too low to resolve an effect the size of anything measured elsewhere in this project. This does not reopen the earlier NFP finding (structural: volatility spikes real and located correctly; directional: fails). It answers a different, narrower question the user raised - does the market's own first reaction (not a forecast) predict its second move - and the answer is no at the power available. FAILURE CODE: SAMPLE_TOO_SMALL primarily; NO_DIRECTIONAL_SKILL secondarily, since even the point estimates split roughly evenly in sign across markets rather than clustering on one side."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
