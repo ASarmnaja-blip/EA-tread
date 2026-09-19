@@ -1,0 +1,126 @@
+{
+ "created": "2026-09-19T08:28:55Z",
+ "symbol": "XAUUSD",
+ "checks": [
+  {
+   "check": 1,
+   "name": "determinism",
+   "passed": true,
+   "detail": "engine reruns identical=True, seeded control identical=True, n=2,341",
+   "severity": "blocking"
+  },
+  {
+   "check": 2,
+   "name": "entry uses next bar",
+   "passed": true,
+   "detail": "perturbing entry-bar opens changes the book: True",
+   "severity": "blocking"
+  },
+  {
+   "check": 3,
+   "name": "feature causality",
+   "passed": true,
+   "detail": "0 of 12 features change when the future is removed; pivots stable=True",
+   "severity": "blocking"
+  },
+  {
+   "check": 4,
+   "name": "exit-side quotes",
+   "passed": true,
+   "detail": "base -0.0553, bid-side worsened -0.0554, ask-side worsened -0.0553",
+   "severity": "blocking"
+  },
+  {
+   "check": 5,
+   "name": "cost monotonicity",
+   "passed": false,
+   "detail": "spread x1 -0.0524 (n 2,342)  x2 -0.0615 (n 620)  x4 -0.0534 (n 68); 3% of trades survive x4 - a cost sweep that also reselects the population cannot isolate cost",
+   "severity": "blocking"
+  },
+  {
+   "check": 6,
+   "name": "overlap accounting",
+   "passed": true,
+   "detail": "2,341 trades, 0 duplicate entry bars, min gap 2",
+   "severity": "blocking"
+  },
+  {
+   "check": 7,
+   "name": "control trade mass",
+   "passed": true,
+   "detail": "rule fires 15,651, control 15,638, ratio 0.999 (<0.95 is the sparse-invalidation bug)",
+   "severity": "blocking"
+  },
+  {
+   "check": 8,
+   "name": "control geometry",
+   "passed": false,
+   "detail": "dist/ATR quartiles rule [1.091, 1.638, 2.591] vs control [0.29, 0.559, 1.031], max rel gap 73%; a control with a tighter stop is a different instrument, not a different entry",
+   "severity": "blocking"
+  },
+  {
+   "check": 9,
+   "name": "NaN discipline",
+   "passed": true,
+   "detail": "0 nan_to_num calls on price-like names",
+   "severity": "advisory"
+  },
+  {
+   "check": 10,
+   "name": "index alignment",
+   "passed": true,
+   "detail": "prep N 188,569 == frame 188,569, closes and timestamps identical: True",
+   "severity": "blocking"
+  },
+  {
+   "check": 11,
+   "name": "data integrity",
+   "passed": true,
+   "detail": "9 symbols checked, 0 with issues",
+   "severity": "blocking"
+  },
+  {
+   "check": 12,
+   "name": "survivorship",
+   "passed": false,
+   "detail": "cache holds the 2003-2026 series for ['AUDUSD', 'EURUSD', 'GBPUSD', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'USDSEK', 'XAGUSD', 'XAUUSD']; the panel uses ['AUDUSD', 'EURUSD', 'GBPUSD', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAGUSD', 'XAUUSD']; excluded ['USDSEK']",
+   "severity": "advisory"
+  },
+  {
+   "check": 13,
+   "name": "float determinism",
+   "passed": true,
+   "detail": "mean varies by 1.39e-17 across summation orders (reported to 4dp, so anything under 1e-6 is invisible)",
+   "severity": "advisory"
+  },
+  {
+   "check": 14,
+   "name": "legacy reproduction",
+   "passed": true,
+   "detail": "template P01: run_e01 2,809 trades E -0.086915; engine 2,809 trades E -0.086915; identical=True",
+   "severity": "blocking"
+  }
+ ],
+ "blocking": 2,
+ "advisory": 1,
+ "manifest": {
+  "git": {
+   "commit": "c2f8c25254ff7e47f31a3407f84252fa27ac5788",
+   "dirty": true,
+   "branch": "claude/order-position-choch-gab-im08db"
+  },
+  "config_hash": "e6dfe2d13ed628bc",
+  "config": {
+   "symbol": "XAUUSD",
+   "stop_mult": 2.0,
+   "seed": 17
+  },
+  "data": {
+   "XAUUSD_H1_2003_2026.parquet": {
+    "sha256": "ae710b32d3326c2eb3c199d631dad6b81e12c8f766efb3c4c808283498dee2be",
+    "bytes": 9419126,
+    "mtime": "2026-09-12T11:38:54.185326+00:00"
+   }
+  }
+ }
+}
