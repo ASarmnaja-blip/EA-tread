@@ -72,6 +72,21 @@ STAGES = [
     ("fresh_market_batch", "every candidate collapses on a fresh market",
      "fresh_market_batch.json",
      [(("beat_cost",), 0, 0)]),
+    ("expanded_discovery", "no state lifts path asymmetry in both eras",
+     "expanded_discovery.json",
+     [(("unconditional_path", 1, "p"), 0.5008, 0.003),
+      (("unconditional_path", 1, "breakeven"), 0.5289, 0.003)]),
+    ("straddle_validation", "the straddle's edge is a scoring assumption",
+     "straddle_validation.json",
+     [(("survives",), 0, 0)]),
+    ("straddle_intrabar", "minute data resolves the ambiguity against it",
+     "straddle_intrabar.json",
+     [(("per_state", "dislocation 2.0 ATR", "stopped_share"), 1.0, 1e-9),
+      (("per_state", "dislocation 2.0 ATR", "share_profitable"), 0.0, 1e-9)]),
+    ("failure_distribution", "the failure distribution names cost",
+     "failure_distribution.json",
+     [(("distribution", 0, "code"), "COST_DOMINATED", 0),
+      (("hypotheses",), 127, 0)]),
 ]
 
 

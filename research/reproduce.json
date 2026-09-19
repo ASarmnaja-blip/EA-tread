@@ -1,7 +1,7 @@
 {
- "created": "2026-09-19T13:26:31Z",
+ "created": "2026-09-19T13:42:37Z",
  "git": {
-  "commit": "5574fdb01a1b4feabd58b4f899fc3745ff30d7f9",
+  "commit": "6b1ccef94e64a64d47ed96aa2dd3d1147a59c815",
   "dirty": true,
   "branch": "claude/order-position-choch-gab-im08db"
  },
@@ -220,9 +220,65 @@
    "expected": 0,
    "got": 0,
    "tol": 0
+  },
+  {
+   "stage": "expanded_discovery",
+   "path": "unconditional_path.1.p",
+   "ok": true,
+   "expected": 0.5008,
+   "got": 0.5008241808682503,
+   "tol": 0.003
+  },
+  {
+   "stage": "expanded_discovery",
+   "path": "unconditional_path.1.breakeven",
+   "ok": true,
+   "expected": 0.5289,
+   "got": 0.5288989927239318,
+   "tol": 0.003
+  },
+  {
+   "stage": "straddle_validation",
+   "path": "survives",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "straddle_intrabar",
+   "path": "per_state.dislocation 2.0 ATR.stopped_share",
+   "ok": true,
+   "expected": 1.0,
+   "got": 1.0,
+   "tol": 1e-09
+  },
+  {
+   "stage": "straddle_intrabar",
+   "path": "per_state.dislocation 2.0 ATR.share_profitable",
+   "ok": true,
+   "expected": 0.0,
+   "got": 0.0,
+   "tol": 1e-09
+  },
+  {
+   "stage": "failure_distribution",
+   "path": "distribution.0.code",
+   "ok": true,
+   "expected": "COST_DOMINATED",
+   "got": "COST_DOMINATED",
+   "tol": 0
+  },
+  {
+   "stage": "failure_distribution",
+   "path": "hypotheses",
+   "ok": true,
+   "expected": 127,
+   "got": 127,
+   "tol": 0
   }
  ],
  "reran": [],
- "passed": 11,
- "total": 11
+ "passed": 18,
+ "total": 18
 }
