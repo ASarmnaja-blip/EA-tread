@@ -124,6 +124,25 @@ CONFIRMED = [
      "final report was a fit applied past its anchor. W1's net interval "
      "[-1.774, +0.764] does not exclude positive, but W1 is seven nights and "
      "at 0.05 spreads a night it falls to -0.910."),
+    ("passive_execution_bound",
+     "Not paying the spread does not help: the adverse selection on a resting "
+     "order is seven times the spread it saves.",
+     "At an offset of 0.25 ATR a resting order fills 53.1% of windows. Those "
+     "windows entered at market would have earned -4.3888 of a round trip; "
+     "the ones that did not fill would have earned +2.9145 - a gap of "
+     "-7.3033. It widens with the offset: -5.11 at zero, -9.54 at 0.5 ATR, "
+     "-14.95 at 1.0. Zero of ten markets positive at any offset in either "
+     "mode. Fills are assumed wherever the quote trades through by a tick "
+     "with no queue or rejection, so this is an UPPER BOUND, and it fails."),
+    ("cheap_corner",
+     "The cost floor belongs to the instrument class, not the venue: where "
+     "the spread is small, the move is small too.",
+     "Sweeping the cost cross-section, the edge climbs from +0.1120 over the "
+     "whole sample to +0.8897 in the cheapest 1% of cells and then TURNS "
+     "DOWN to +0.7901 in the cheapest 0.5%. The quote tightens 16.1x while "
+     "the edge grows only 7.1x, because the implied amplitude falls from "
+     "0.00995 ATR to 0.00437. The best step needs 1.1x more and is 62% "
+     "EURUSD, positive on 2 of 3 markets, 189 signals a year."),
     ("control_geometry",
      "A control must inherit the rule's risk geometry or it is a different "
      "instrument, and a spread-normalised edge must be a ratio of means.",

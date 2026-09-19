@@ -14,6 +14,11 @@ costs to act on — and every attempt to find a conditioning state, a horizon, a
 target or an execution design that closes that gap was either falsified by
 fresh data or turned out to be a defect in my own measurement.**
 
+Five levers have now been closed on measured data rather than argument:
+**conditioning states**, **horizon**, **financing**, **venue cheapness** and
+**execution style**. The last one fails hardest: a resting order saves a
+spread worth 1.0 and buys an adverse selection worth 7.3.
+
 ---
 
 ## The twelve questions
@@ -291,7 +296,39 @@ time-of-day corner.
 
 **The cost floor is a property of this instrument class, not of the venue.**
 
-**3. Still open.** Re-examine whether any of the 837 pre-run hypotheses read
+**3. A fifth lever, never measured — and it fails worst of all.** Every
+verdict above assumes the trade *crosses* the spread. A resting order does
+not: limit-in/market-out pays nothing, limit-in/limit-out **earns** a spread.
+Against a +0.1120 edge that is the entire shortfall, and it is the execution
+the mechanism argues for — fading an extension is liquidity provision, and
+short-horizon reversal is the textbook compensation for providing it.
+
+It fails by the largest margin of anything tested. At an offset of 0.25 ATR
+the order fills 53.1% of windows:
+
+| | at market |
+|---|---|
+| windows that **filled** | **−4.3888** round trips |
+| windows that **missed** | **+2.9145** |
+| **adverse selection** | **−7.3033** |
+
+The resting order fills precisely when the trade was going to be bad. It
+saves a spread worth 1.0 and buys a selection that costs 7.3 — and the gap
+widens with the offset: −5.11 at zero, −9.54 at 0.5 ATR, −14.95 at 1.0. Zero
+of ten markets positive at any offset in either mode.
+
+The apparent improvement at wide offsets is not one. Counting misses as zero,
+the all-windows figure rises from −0.4280 to −0.0964, but the fill rate falls
+from 53.1% to 10.5% and the edge **per fill** gets *worse*, from −0.8652 to
+−1.0506. Approaching zero by trading a tenth as often is less of a loss, not
+an edge.
+
+Fills are assumed wherever the quote trades *through* the level by a tick,
+with no queue, no partial fill, no rejection and no requote. That is an
+**upper bound**, and since even the bound fails, no venue policy can rescue
+it.
+
+**4. Still open.** Re-examine whether any of the 837 pre-run hypotheses read
 differently on the cleaned frame with the corrected control and metric. Most
 are null and would stay null — but that is an assumption and it has not been
 checked.
@@ -320,6 +357,7 @@ is worth less than one that does not revise itself at all.
 |---|---|
 | §3 | The 0.233 exponent was fitted over a ladder ending at one week. The edge **peaks at W1 and falls after it**, so the exponent averages a curve that turns, and the "8,900 hours to breakeven" figure applied the fit five times past its anchor. Retracted. |
 | §12 | Gold's short-side swap was named the most decision-relevant unknown. It is no longer: every horizon is negative at **zero** financing, so no swap rate can change the verdict. |
+| §12 | A fifth execution lever — passive/limit orders — was identified as never having been measured, and measured. It fails worst of all: adverse selection of −7.3033 round trips against a spread worth 1.0. |
 | §12 | Items 1 and 2 of the next-steps list have since been answered. The reversal is volatility-scaled (log ATR +0.986, log spread −0.103), so a cheaper quote genuinely helps — but the edge stops climbing at +0.8897 in the cheapest 1% of cells and turns down after it. Both execution levers are now closed on measured data. |
 
 Both corrections make the negative conclusion stronger, not weaker, which is

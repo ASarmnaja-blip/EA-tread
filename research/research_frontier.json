@@ -1,15 +1,15 @@
 {
- "generated": "2026-09-19T13:52:06Z",
+ "generated": "2026-09-19T14:38:54Z",
  "git": {
-  "commit": "55623ddfcda8c7ff6f6841ba6de3ca77d770360e",
+  "commit": "084c984f7d408c62eb4c94d2f5935470e79c1352",
   "dirty": true,
   "branch": "claude/order-position-choch-gab-im08db"
  },
  "ledger": {
-  "entries": 30,
-  "cumulative_k": 1625,
+  "entries": 32,
+  "cumulative_k": 1651,
   "verdicts": {
-   "REJECTED": 22,
+   "REJECTED": 24,
    "INCONCLUSIVE": 6,
    "ACCEPTED": 2
   }
@@ -20,7 +20,7 @@
   "examined": false,
   "created": "2026-09-14T18:03:36Z"
  },
- "progress_records": 37,
+ "progress_records": 41,
  "phases": [
   "phase0-data-integrity",
   "phase0-engineering-audit",
@@ -38,8 +38,10 @@
   "phase4-expanded",
   "phase4-straddle",
   "phase4-straddle-intrabar",
+  "phase5-cheap-corner",
   "phase5-financing-closure",
-  "phase5-reversal-anatomy"
+  "phase5-reversal-anatomy",
+  "phase6-passive-execution"
  ],
  "confirmed": [
   {
@@ -91,6 +93,16 @@
    "id": "financing_closure",
    "claim": "Every horizon loses at a financing rate of exactly zero, so the unknown short-side swap cannot change the verdict.",
    "evidence": "Ladder extended to two weeks, one month and one quarter. Best net at zero carry is -0.560 at W1. The edge PEAKS at one week and falls after it - W2 +0.2415, M1 -2.2143, Q1 -6.5896 - so the 0.233 exponent averaged a curve that turns, and the 8,900-hour crossing quoted in the final report was a fit applied past its anchor. W1's net interval [-1.774, +0.764] does not exclude positive, but W1 is seven nights and at 0.05 spreads a night it falls to -0.910."
+  },
+  {
+   "id": "passive_execution_bound",
+   "claim": "Not paying the spread does not help: the adverse selection on a resting order is seven times the spread it saves.",
+   "evidence": "At an offset of 0.25 ATR a resting order fills 53.1% of windows. Those windows entered at market would have earned -4.3888 of a round trip; the ones that did not fill would have earned +2.9145 - a gap of -7.3033. It widens with the offset: -5.11 at zero, -9.54 at 0.5 ATR, -14.95 at 1.0. Zero of ten markets positive at any offset in either mode. Fills are assumed wherever the quote trades through by a tick with no queue or rejection, so this is an UPPER BOUND, and it fails."
+  },
+  {
+   "id": "cheap_corner",
+   "claim": "The cost floor belongs to the instrument class, not the venue: where the spread is small, the move is small too.",
+   "evidence": "Sweeping the cost cross-section, the edge climbs from +0.1120 over the whole sample to +0.8897 in the cheapest 1% of cells and then TURNS DOWN to +0.7901 in the cheapest 0.5%. The quote tightens 16.1x while the edge grows only 7.1x, because the implied amplitude falls from 0.00995 ATR to 0.00437. The best step needs 1.1x more and is 62% EURUSD, positive on 2 of 3 markets, 189 signals a year."
   },
   {
    "id": "control_geometry",

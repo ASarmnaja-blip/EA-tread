@@ -1,12 +1,12 @@
 # Research frontier
 
-Generated 2026-09-19T13:52:06Z at commit `55623ddfcd` (tree dirty).
+Generated 2026-09-19T14:38:54Z at commit `084c984f7d` (tree dirty).
 
-30 registered changes, cumulative hypothesis count 1625, verdicts {'REJECTED': 22, 'INCONCLUSIVE': 6, 'ACCEPTED': 2}.
+32 registered changes, cumulative hypothesis count 1651, verdicts {'REJECTED': 24, 'INCONCLUSIVE': 6, 'ACCEPTED': 2}.
 
 Sealed holdout: 14 symbols, `examined: False`.
 
-37 progress records across phases phase0-data-integrity, phase0-engineering-audit, phase1-control-hierarchy, phase1-mechanism, phase1-reframe-target, phase1-timeframe-ratio, phase2-failure-distribution, phase2-falsification, phase2-fresh-market, phase2-pilot, phase2-validation, phase3-fresh-market-batch, phase3-intraday-window, phase4-expanded, phase4-straddle, phase4-straddle-intrabar, phase5-financing-closure, phase5-reversal-anatomy.
+41 progress records across phases phase0-data-integrity, phase0-engineering-audit, phase1-control-hierarchy, phase1-mechanism, phase1-reframe-target, phase1-timeframe-ratio, phase2-failure-distribution, phase2-falsification, phase2-fresh-market, phase2-pilot, phase2-validation, phase3-fresh-market-batch, phase3-intraday-window, phase4-expanded, phase4-straddle, phase4-straddle-intrabar, phase5-cheap-corner, phase5-financing-closure, phase5-reversal-anatomy, phase6-passive-execution.
 
 
 ## Confirmed
@@ -62,6 +62,16 @@ Log absolute move on log spread and log ATR jointly, 5,461 market-hour-year cell
 **Every horizon loses at a financing rate of exactly zero, so the unknown short-side swap cannot change the verdict.**  
 `financing_closure`  
 Ladder extended to two weeks, one month and one quarter. Best net at zero carry is -0.560 at W1. The edge PEAKS at one week and falls after it - W2 +0.2415, M1 -2.2143, Q1 -6.5896 - so the 0.233 exponent averaged a curve that turns, and the 8,900-hour crossing quoted in the final report was a fit applied past its anchor. W1's net interval [-1.774, +0.764] does not exclude positive, but W1 is seven nights and at 0.05 spreads a night it falls to -0.910.
+
+
+**Not paying the spread does not help: the adverse selection on a resting order is seven times the spread it saves.**  
+`passive_execution_bound`  
+At an offset of 0.25 ATR a resting order fills 53.1% of windows. Those windows entered at market would have earned -4.3888 of a round trip; the ones that did not fill would have earned +2.9145 - a gap of -7.3033. It widens with the offset: -5.11 at zero, -9.54 at 0.5 ATR, -14.95 at 1.0. Zero of ten markets positive at any offset in either mode. Fills are assumed wherever the quote trades through by a tick with no queue or rejection, so this is an UPPER BOUND, and it fails.
+
+
+**The cost floor belongs to the instrument class, not the venue: where the spread is small, the move is small too.**  
+`cheap_corner`  
+Sweeping the cost cross-section, the edge climbs from +0.1120 over the whole sample to +0.8897 in the cheapest 1% of cells and then TURNS DOWN to +0.7901 in the cheapest 0.5%. The quote tightens 16.1x while the edge grows only 7.1x, because the implied amplitude falls from 0.00995 ATR to 0.00437. The best step needs 1.1x more and is 62% EURUSD, positive on 2 of 3 markets, 189 signals a year.
 
 
 **A control must inherit the rule's risk geometry or it is a different instrument, and a spread-normalised edge must be a ratio of means.**  

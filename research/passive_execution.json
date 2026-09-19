@@ -1,0 +1,236 @@
+{
+ "created": "2026-09-19T14:38:06Z",
+ "hold": 2,
+ "offsets": [
+  0.0,
+  0.1,
+  0.25,
+  0.5,
+  1.0
+ ],
+ "results": {
+  "limit in, market out": [
+   {
+    "markets": 10,
+    "fill_rate": 0.8804984607875042,
+    "fills_per_year": 5005.495454545455,
+    "edge_filled": -0.9686927826516968,
+    "edge_all": -0.8281676571483778,
+    "mkt_baseline": -0.8482440291069849,
+    "mkt_on_filled": -1.4686927826516958,
+    "mkt_on_unfilled": 3.6378476999390728,
+    "adverse": -5.106540482590768,
+    "positive": 0,
+    "k": 0.0,
+    "mode": "limit in, market out"
+   },
+   {
+    "markets": 10,
+    "fill_rate": 0.7315266711026349,
+    "fills_per_year": 4160.236363636363,
+    "edge_filled": -0.9109583447441791,
+    "edge_all": -0.6382899739794298,
+    "mkt_baseline": -0.8482440291069849,
+    "mkt_on_filled": -2.584850496106792,
+    "mkt_on_unfilled": 3.7046989507728774,
+    "adverse": -6.289549446879669,
+    "positive": 0,
+    "k": 0.1,
+    "mode": "limit in, market out"
+   },
+   {
+    "markets": 10,
+    "fill_rate": 0.5309627304569984,
+    "fills_per_year": 3023.7818181818184,
+    "edge_filled": -0.8652204731314395,
+    "edge_all": -0.42800265784104896,
+    "mkt_baseline": -0.8482440291069849,
+    "mkt_on_filled": -4.388808172836675,
+    "mkt_on_unfilled": 2.91448747253252,
+    "adverse": -7.303295645369195,
+    "positive": 0,
+    "k": 0.25,
+    "mode": "limit in, market out"
+   },
+   {
+    "markets": 10,
+    "fill_rate": 0.3025967485367266,
+    "fills_per_year": 1726.568181818182,
+    "edge_filled": -0.8735307641269655,
+    "edge_all": -0.23531118796801312,
+    "mkt_baseline": -0.8482440291069849,
+    "mkt_on_filled": -7.673088704825981,
+    "mkt_on_unfilled": 1.8695616585267731,
+    "adverse": -9.542650363352756,
+    "positive": 0,
+    "k": 0.5,
+    "mode": "limit in, market out"
+   },
+   {
+    "markets": 10,
+    "fill_rate": 0.1047488228165242,
+    "fills_per_year": 597.9954545454544,
+    "edge_filled": -1.050568964980243,
+    "edge_all": -0.09642527083410828,
+    "mkt_baseline": -0.8482440291069849,
+    "mkt_on_filled": -14.3676914892276,
+    "mkt_on_unfilled": 0.5832469028565179,
+    "adverse": -14.950938392084117,
+    "positive": 0,
+    "k": 1.0,
+    "mode": "limit in, market out"
+   }
+  ],
+  "limit in, limit out": [
+   {
+    "markets": 10,
+    "fill_rate": 0.8804984607875042,
+    "fills_per_year": 5005.495454545455,
+    "edge_filled": -1.0667685407220393,
+    "edge_all": -0.9160134484407987,
+    "mkt_baseline": -0.8482440291069849,
+    "mkt_on_filled": -1.4686927826516958,
+    "mkt_on_unfilled": 3.6378476999390728,
+    "adverse": -5.106540482590768,
+    "positive": 0,
+    "k": 0.0,
+    "mode": "limit in, limit out"
+   },
+   {
+    "markets": 10,
+    "fill_rate": 0.7315266711026349,
+    "fills_per_year": 4160.236363636363,
+    "edge_filled": -0.910031529035282,
+    "edge_all": -0.6383937461324731,
+    "mkt_baseline": -0.8482440291069849,
+    "mkt_on_filled": -2.584850496106792,
+    "mkt_on_unfilled": 3.7046989507728774,
+    "adverse": -6.289549446879669,
+    "positive": 0,
+    "k": 0.1,
+    "mode": "limit in, limit out"
+   },
+   {
+    "markets": 10,
+    "fill_rate": 0.5309627304569984,
+    "fills_per_year": 3023.7818181818184,
+    "edge_filled": -0.8139361407299635,
+    "edge_all": -0.4035652759621352,
+    "mkt_baseline": -0.8482440291069849,
+    "mkt_on_filled": -4.388808172836675,
+    "mkt_on_unfilled": 2.91448747253252,
+    "adverse": -7.303295645369195,
+    "positive": 0,
+    "k": 0.25,
+    "mode": "limit in, limit out"
+   },
+   {
+    "markets": 10,
+    "fill_rate": 0.3025967485367266,
+    "fills_per_year": 1726.568181818182,
+    "edge_filled": -0.8307823173141669,
+    "edge_all": -0.2228004781832032,
+    "mkt_baseline": -0.8482440291069849,
+    "mkt_on_filled": -7.673088704825981,
+    "mkt_on_unfilled": 1.8695616585267731,
+    "adverse": -9.542650363352756,
+    "positive": 0,
+    "k": 0.5,
+    "mode": "limit in, limit out"
+   },
+   {
+    "markets": 10,
+    "fill_rate": 0.1047488228165242,
+    "fills_per_year": 597.9954545454544,
+    "edge_filled": -1.0551737344110141,
+    "edge_all": -0.09672628009602977,
+    "mkt_baseline": -0.8482440291069849,
+    "mkt_on_filled": -14.3676914892276,
+    "mkt_on_unfilled": 0.5832469028565179,
+    "adverse": -14.950938392084117,
+    "positive": 0,
+    "k": 1.0,
+    "mode": "limit in, limit out"
+   }
+  ]
+ },
+ "viable": 0,
+ "best": {
+  "markets": 10,
+  "fill_rate": 0.1047488228165242,
+  "fills_per_year": 597.9954545454544,
+  "edge_filled": -1.050568964980243,
+  "edge_all": -0.09642527083410828,
+  "mkt_baseline": -0.8482440291069849,
+  "mkt_on_filled": -14.3676914892276,
+  "mkt_on_unfilled": 0.5832469028565179,
+  "adverse": -14.950938392084117,
+  "positive": 0,
+  "k": 1.0,
+  "mode": "limit in, market out"
+ },
+ "manifest": {
+  "git": {
+   "commit": "084c984f7d408c62eb4c94d2f5935470e79c1352",
+   "dirty": true,
+   "branch": "claude/order-position-choch-gab-im08db"
+  },
+  "config_hash": "a6a691414fc3b87f",
+  "config": {
+   "hold": 2,
+   "seed": 17
+  },
+  "data": {
+   "XAUUSD_H1_2003_2026.parquet": {
+    "sha256": "ae710b32d3326c2eb3c199d631dad6b81e12c8f766efb3c4c808283498dee2be",
+    "bytes": 9419126,
+    "mtime": "2026-09-12T11:38:54.185326+00:00"
+   },
+   "XAGUSD_H1_2003_2026.parquet": {
+    "sha256": "b2d6e6d9a0256b6c9d78795fdc69b930700d5cb4581234a383348c7796662643",
+    "bytes": 5081235,
+    "mtime": "2026-09-13T11:42:42.240180+00:00"
+   },
+   "EURUSD_H1_2003_2026.parquet": {
+    "sha256": "3c77446c21a6f721a6573ee273b9c2b2512ae564af796acad0991bb4a40496e5",
+    "bytes": 7277380,
+    "mtime": "2026-09-13T12:01:35.988187+00:00"
+   },
+   "GBPUSD_H1_2003_2026.parquet": {
+    "sha256": "1866bfa7d9450944447823b31f007d0160fa0be83ff6010bcaaaf9b3ff21f745",
+    "bytes": 7559567,
+    "mtime": "2026-09-13T12:19:17.832193+00:00"
+   },
+   "USDJPY_H1_2003_2026.parquet": {
+    "sha256": "432ebeba1bf63e5d498ed5635cfc1d3de5b48855f771c940e5913c5ee4a25120",
+    "bytes": 6480684,
+    "mtime": "2026-09-13T12:35:44.760199+00:00"
+   },
+   "AUDUSD_H1_2003_2026.parquet": {
+    "sha256": "240dd03bd5471fd236f7e0f50f369838140f20ccfc3c2307bcc083592e35e7fd",
+    "bytes": 6614434,
+    "mtime": "2026-09-13T12:54:33.816206+00:00"
+   },
+   "USDCHF_H1_2003_2026.parquet": {
+    "sha256": "7e3b7c1afbd26e110a332d5c920995b7e1ed553a35b2668d2ebdb318a561ea9a",
+    "bytes": 6942513,
+    "mtime": "2026-09-13T13:12:10.680212+00:00"
+   },
+   "USDCAD_H1_2003_2026.parquet": {
+    "sha256": "b7c89d032b1b9fac27a89110879c82f6bb1a083fd8179587057afb1c064e4f84",
+    "bytes": 6702097,
+    "mtime": "2026-09-13T16:00:17.360274+00:00"
+   },
+   "NZDUSD_H1_2003_2026.parquet": {
+    "sha256": "aa33ba9d2b5eaa856acd168224318183e725fb41e8a1519b43597a7af2ec085e",
+    "bytes": 6189965,
+    "mtime": "2026-09-13T16:18:22.344281+00:00"
+   },
+   "USDSEK_H1_2003_2026.parquet": {
+    "sha256": "a5b05158da9af9abaa50618e1792e04947e5273f01e6eda6bfa7134d1d24bbbd",
+    "bytes": 10977507,
+    "mtime": "2026-09-13T16:52:28.936293+00:00"
+   }
+  }
+ }
+}
