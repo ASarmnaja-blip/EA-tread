@@ -121,21 +121,31 @@ def measure(g, min_bars=400):
     ok = np.isfinite(move) & np.isfinite(sp) & (sp > 0)
     if ok.sum() < min_bars:
         return None
-    x = move[ok] / sp[ok]
+    mv, spo = move[ok], sp[ok]
+    x = mv / spo
     w, l = x[x > 0], x[x <= 0]
     if len(w) < 50 or len(l) < 50:
         return None
     mw, ml = float(w.mean()), float(-l.mean())
     tot = mw + ml
     n_eff = max(len(x), 2)
+    # RATIO OF MEANS, not the mean of ratios. The mean of ratios is what a
+    # trader earns only by sizing inversely to each trade's own spread -
+    # putting the most capital exactly where the quote is thinnest - and on
+    # this data it reads 1.3x to 2.3x above the economics. The first version
+    # of this table used it and was optimistic by that factor throughout.
+    ratio = float(mv.sum() / spo.sum())
+    r_se = float(np.std(mv - ratio * spo, ddof=1)
+                 / (spo.mean() * math.sqrt(n_eff)))
     se = float(x.std(ddof=1) / math.sqrt(n_eff))
     return dict(bars=int(len(g)), n=int(ok.sum()),
                 sign_rate=float((move[ok] > 0).mean()),
-                edge_spreads=float(x.mean()),
-                t_edge=float(x.mean() / se) if se > 0 else np.nan,
+                edge_spreads=ratio,
+                edge_mean_ratio=float(x.mean()),
+                t_edge=ratio / r_se if r_se > 0 else np.nan,
                 mean_win=mw, mean_loss=ml,
                 breakeven_net=(1.0 + ml) / tot if tot > 0 else np.nan,
-                net_edge=float(x.mean()) - 1.0,
+                net_edge=ratio - 1.0,
                 cost_over_range=float(np.nanmedian(spread / tr)))
 
 

@@ -132,8 +132,30 @@ def _pct_rank(x, win=2000):
 
 
 # =========================================================== measurement ===
-def score(P, t, d, h, cost=COST_SPREADS):
-    """Signed move in spread units, from the next open to the close h on."""
+def score(P, t, d, h, cost=COST_SPREADS, idx=None):
+    """Signed move in spread units, from the next open to the close h on.
+
+    TWO WAYS TO DIVIDE BY THE SPREAD, AND ONLY ONE IS THE ECONOMICS
+
+      mean of ratios   average of move/spread over trades. This is what a
+                       trader earns only if they size every position inversely
+                       to that trade's spread, putting the most capital
+                       exactly where the quote is thinnest. Nobody does this,
+                       and it makes a handful of unusually tight quotes
+                       dominate the average.
+
+      ratio of means   total move divided by total spread. This is what a
+                       constant-lot trader earns, because net per trade is
+                       mean(move) - mean(spread).
+
+      The gap is not small. On gold's best intraday cell the two read +0.275
+      and +0.119; on USDJPY +1.054 and +0.462. Every edge figure this project
+      produced before this fix was the first one, and therefore optimistic by
+      roughly a factor of two.
+
+      `edge` is now the ratio of means. `edge_mean_ratio` is kept beside it so
+      the earlier numbers remain checkable rather than silently restated.
+    """
     N = P["N"]
     o = (np.asarray(P["bid_o"], float) + np.asarray(P["ask_o"], float)) / 2
     c = np.asarray(P["c"], float)
@@ -147,15 +169,35 @@ def score(P, t, d, h, cost=COST_SPREADS):
     ok = np.isfinite(move) & np.isfinite(sp) & (sp > 0)
     if ok.sum() < 30:
         return None
-    x = move[ok] / sp[ok]
+    mv, spo = move[ok], sp[ok]
+    x = mv / spo
+    ratio = float(mv.sum() / spo.sum())
+    # standard error of the ratio of means, by the delta method, with the
+    # overlap charged the same way as everywhere else in this project
     n_eff = max(len(x) / h, 2.0)
+    r_se = float(np.std(mv - ratio * spo, ddof=1)
+                 / (spo.mean() * math.sqrt(n_eff)))
     se = float(x.std(ddof=1) / math.sqrt(n_eff))
-    return dict(n=int(ok.sum()), edge=float(x.mean()),
-                t=float(x.mean() / se) if se > 0 else np.nan,
-                sign_rate=float((move[ok] > 0).mean()),
-                net=float(x.mean()) - cost,
-                median_spread_atr=float(np.nanmedian(
-                    sp[ok] / np.asarray(P["A"], float)[t[ok]])))
+    out = dict(n=int(ok.sum()), edge=ratio,
+               t=ratio / r_se if r_se > 0 else np.nan,
+               edge_mean_ratio=float(x.mean()),
+               t_mean_ratio=float(x.mean() / se) if se > 0 else np.nan,
+               sign_rate=float((mv > 0).mean()),
+               net=ratio - cost,
+               mean_move=float(mv.mean()), mean_spread=float(spo.mean()),
+               median_spread_atr=float(np.nanmedian(
+                   spo / np.asarray(P["A"], float)[t[ok]])))
+    if idx is not None:
+        # how much of the total profit comes from its single best year - a
+        # result carried by one year is not a result
+        yr = pd.DatetimeIndex(idx)[t[ok]].year.to_numpy()
+        tot = mv.sum()
+        if abs(tot) > 1e-12:
+            by = pd.Series(mv).groupby(yr).sum()
+            out["top_year_share"] = float(by.max() / tot) if tot > 0 else 1.0
+            out["years_positive"] = int((by > 0).sum())
+            out["years"] = int(len(by))
+    return out
 
 
 # ============================================================= families ====
