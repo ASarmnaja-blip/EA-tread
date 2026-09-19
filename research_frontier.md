@@ -1,12 +1,12 @@
 # Research frontier
 
-Generated 2026-09-19T13:29:10Z at commit `662b627ebe` (tree dirty).
+Generated 2026-09-19T13:42:25Z at commit `1dff926c7b` (tree dirty).
 
-27 registered changes, cumulative hypothesis count 1215, verdicts {'REJECTED': 20, 'INCONCLUSIVE': 6, 'ACCEPTED': 1}.
+28 registered changes, cumulative hypothesis count 1615, verdicts {'REJECTED': 21, 'INCONCLUSIVE': 6, 'ACCEPTED': 1}.
 
 Sealed holdout: 14 symbols, `examined: False`.
 
-25 progress records across phases phase0-data-integrity, phase0-engineering-audit, phase1-control-hierarchy, phase1-mechanism, phase1-reframe-target, phase1-timeframe-ratio, phase2-falsification, phase2-fresh-market, phase2-pilot, phase2-validation, phase3-fresh-market-batch, phase3-intraday-window.
+30 progress records across phases phase0-data-integrity, phase0-engineering-audit, phase1-control-hierarchy, phase1-mechanism, phase1-reframe-target, phase1-timeframe-ratio, phase2-failure-distribution, phase2-falsification, phase2-fresh-market, phase2-pilot, phase2-validation, phase3-fresh-market-batch, phase3-intraday-window, phase4-expanded, phase4-straddle, phase4-straddle-intrabar.
 
 
 ## Confirmed
@@ -37,6 +37,21 @@ Best cell enters 07:00 UTC and holds three hours: +0.717 of a round trip, bootst
 **29% of every bar this project had used is an hour the venue was shut, and it distorted which trades were eligible.**  
 `weekend_contamination`  
 58,233 flat bars in gold alone, 28.8% to 31.0% on every market in every year. Wilder ATR falls to 6.5% of its Thursday level by Sunday, and the engine's spread-under-10%-of-ATR gate rejected 84.8% of Monday bars against 56.9% of Thursday's. Fixed; Monday's share of entries moved from 14.5% to 17.6% against a flat week's 20%.
+
+
+**A bracket pays its own width rather than the expected move, which makes path asymmetry the target with the better arithmetic - and nothing lifts it.**  
+`expanded_three_targets`  
+At a 1.5-ATR bracket the width is 27 spreads, so breakeven sits at p = 52.89% rather than at a five-fold amplitude increase. The unconditional p is 50.08% and 0 of 118 hypotheses lifted it in both halves of the sample at any of three bracket widths.
+
+
+**The conditional breakout straddle's apparent edge was a scoring assumption, and minute data resolves it against the strategy.**  
+`expanded_three_targets`  
+Scoring windows that touch both barriers in one bar as no trade gave +2.498 round trips for a 2-ATR dislocation state against an unconditional -0.140, lift over C7 +1.078 at t +4.94 on 8 of 9. Those windows are 19.9% of that state against 7.9% of an unconditioned bar. Gold minute data 2019-2026 resolved every one of them: 130 of 130, 53 of 53 and 3,121 of 3,121 stopped out, none profitable, mean -16.2 to -25.8 spreads. The resolved figures land on the pessimistic bound and the state reads -0.647.
+
+
+**The failure distribution names cost, not measurement.**  
+`pilot_conditional_amplitude`  
+Over 127 pilot hypotheses: COST_DOMINATED 52.0%, NO_DIRECTIONAL_SKILL 31.5%, CROSS_MARKET_INSTABILITY 27.6%, BELOW_MULTIPLICITY_FLOOR 18.1%. Activity selection accounts for 2.4% and session selection 1.6%, so the control hierarchy found almost no selection artifacts to remove.
 
 
 **A control must inherit the rule's risk geometry or it is a different instrument, and a spread-normalised edge must be a ratio of means.**  

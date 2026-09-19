@@ -1,15 +1,15 @@
 {
- "generated": "2026-09-19T13:29:10Z",
+ "generated": "2026-09-19T13:42:25Z",
  "git": {
-  "commit": "662b627ebe507d242f70a420fbf03b5748797c9d",
+  "commit": "1dff926c7bfce8c07de2876de65a664a5ccf9fc7",
   "dirty": true,
   "branch": "claude/order-position-choch-gab-im08db"
  },
  "ledger": {
-  "entries": 27,
-  "cumulative_k": 1215,
+  "entries": 28,
+  "cumulative_k": 1615,
   "verdicts": {
-   "REJECTED": 20,
+   "REJECTED": 21,
    "INCONCLUSIVE": 6,
    "ACCEPTED": 1
   }
@@ -20,7 +20,7 @@
   "examined": false,
   "created": "2026-09-14T18:03:36Z"
  },
- "progress_records": 25,
+ "progress_records": 30,
  "phases": [
   "phase0-data-integrity",
   "phase0-engineering-audit",
@@ -28,12 +28,16 @@
   "phase1-mechanism",
   "phase1-reframe-target",
   "phase1-timeframe-ratio",
+  "phase2-failure-distribution",
   "phase2-falsification",
   "phase2-fresh-market",
   "phase2-pilot",
   "phase2-validation",
   "phase3-fresh-market-batch",
-  "phase3-intraday-window"
+  "phase3-intraday-window",
+  "phase4-expanded",
+  "phase4-straddle",
+  "phase4-straddle-intrabar"
  ],
  "confirmed": [
   {
@@ -60,6 +64,21 @@
    "id": "weekend_contamination",
    "claim": "29% of every bar this project had used is an hour the venue was shut, and it distorted which trades were eligible.",
    "evidence": "58,233 flat bars in gold alone, 28.8% to 31.0% on every market in every year. Wilder ATR falls to 6.5% of its Thursday level by Sunday, and the engine's spread-under-10%-of-ATR gate rejected 84.8% of Monday bars against 56.9% of Thursday's. Fixed; Monday's share of entries moved from 14.5% to 17.6% against a flat week's 20%."
+  },
+  {
+   "id": "expanded_three_targets",
+   "claim": "A bracket pays its own width rather than the expected move, which makes path asymmetry the target with the better arithmetic - and nothing lifts it.",
+   "evidence": "At a 1.5-ATR bracket the width is 27 spreads, so breakeven sits at p = 52.89% rather than at a five-fold amplitude increase. The unconditional p is 50.08% and 0 of 118 hypotheses lifted it in both halves of the sample at any of three bracket widths."
+  },
+  {
+   "id": "expanded_three_targets",
+   "claim": "The conditional breakout straddle's apparent edge was a scoring assumption, and minute data resolves it against the strategy.",
+   "evidence": "Scoring windows that touch both barriers in one bar as no trade gave +2.498 round trips for a 2-ATR dislocation state against an unconditional -0.140, lift over C7 +1.078 at t +4.94 on 8 of 9. Those windows are 19.9% of that state against 7.9% of an unconditioned bar. Gold minute data 2019-2026 resolved every one of them: 130 of 130, 53 of 53 and 3,121 of 3,121 stopped out, none profitable, mean -16.2 to -25.8 spreads. The resolved figures land on the pessimistic bound and the state reads -0.647."
+  },
+  {
+   "id": "pilot_conditional_amplitude",
+   "claim": "The failure distribution names cost, not measurement.",
+   "evidence": "Over 127 pilot hypotheses: COST_DOMINATED 52.0%, NO_DIRECTIONAL_SKILL 31.5%, CROSS_MARKET_INSTABILITY 27.6%, BELOW_MULTIPLICITY_FLOOR 18.1%. Activity selection accounts for 2.4% and session selection 1.6%, so the control hierarchy found almost no selection artifacts to remove."
   },
   {
    "id": "control_geometry",
