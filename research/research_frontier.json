@@ -1,15 +1,15 @@
 {
- "generated": "2026-09-19T14:38:54Z",
+ "generated": "2026-09-19T14:41:31Z",
  "git": {
-  "commit": "084c984f7d408c62eb4c94d2f5935470e79c1352",
+  "commit": "871af01c62545e97129420674dd3fb148cd4a310",
   "dirty": true,
   "branch": "claude/order-position-choch-gab-im08db"
  },
  "ledger": {
-  "entries": 32,
-  "cumulative_k": 1651,
+  "entries": 33,
+  "cumulative_k": 1677,
   "verdicts": {
-   "REJECTED": 24,
+   "REJECTED": 25,
    "INCONCLUSIVE": 6,
    "ACCEPTED": 2
   }
@@ -20,7 +20,7 @@
   "examined": false,
   "created": "2026-09-14T18:03:36Z"
  },
- "progress_records": 41,
+ "progress_records": 42,
  "phases": [
   "phase0-data-integrity",
   "phase0-engineering-audit",
@@ -41,6 +41,7 @@
   "phase5-cheap-corner",
   "phase5-financing-closure",
   "phase5-reversal-anatomy",
+  "phase6-back-catalogue",
   "phase6-passive-execution"
  ],
  "confirmed": [
@@ -105,6 +106,11 @@
    "evidence": "Sweeping the cost cross-section, the edge climbs from +0.1120 over the whole sample to +0.8897 in the cheapest 1% of cells and then TURNS DOWN to +0.7901 in the cheapest 0.5%. The quote tightens 16.1x while the edge grows only 7.1x, because the implied amplitude falls from 0.00995 ATR to 0.00437. The best step needs 1.1x more and is 62% EURUSD, positive on 2 of 3 markets, 189 signals a year."
   },
   {
+   "id": "back_catalogue_restated",
+   "claim": "The repository's own catalogue survives its own correction - and the measure it was ranked by has zero rank correlation with the economics.",
+   "evidence": "All thirteen P-series templates on the cleaned frame with the corrected control and metric: 0 of 13 clear one round trip. But the rank correlation between R through the bracket and the edge over the spread is -0.05 across the thirteen. The catalogue's best by R is P09 at -0.0192R whose edge is +0.1705 spreads; the best by edge is P15 at +0.4955 spreads whose R is the WORST of all thirteen. 837 hypotheses were ranked by a quantity uncorrelated with the one that pays."
+  },
+  {
    "id": "control_geometry",
    "claim": "A control must inherit the rule's risk geometry or it is a different instrument, and a spread-normalised edge must be a ratio of means.",
    "evidence": "random_like took the random bar's own high or low as the invalidation level, so its stop sat a third as far from entry as the rule's while R divides by that distance - dist/ATR median 0.559 against 1.638. The replacement measures a 0.00% gap across all eight levels. Separately, computing edge as the mean of move/spread ratios implicitly sizes inversely to each trade's own spread and reads 1.3x to 2.3x above the economics."
@@ -138,8 +144,7 @@
   }
  ],
  "unresolved": [
-  "Whether the short side of gold's swap is charged at the same rate as the long side. The whole overnight economic verdict turns on it: at 0.2038 spreads a night the reversal breaks even, at the known long rate of 1.2616 it cannot. Nothing in this repository holds the short figure. This is the single most decision-relevant unknown and it is one lookup, not an experiment.",
-  "Whether a venue materially cheaper than the cached feed exists for a retail account. Every economic verdict is a ratio to that feed's spread, and the live account's quoted gold spread of 260 points is 1.5x tighter than the cache's 396-point median at 07:00 UTC. A venue three times cheaper would change the answer; whether one exists is not a question this data can settle.",
+  "Whether the reversal is one phenomenon or several with a common sign. The anatomy established it is volatility-scaled, present on USD-base, USD-quote and metals alike and in 21 of 23 years, with a 14% leave-one-market-out swing - but that is consistency, not a mechanism. Why a market reverts at all after one hour has no explanation here beyond liquidity provision being compensated, and that explanation was not tested, only invoked.",
   "Why 42% of the conditional reversal lives in the most recent quote. It survives the one-bar lag, so it is not purely microstructure, but the part that does not survive has no mechanism attached to it.",
   "Whether the reversal is one phenomenon or several with a common sign. Leave-one-market-out moved the t by 17% on the candidate, but the unconditional effect has not been decomposed, and the dollar is on one side of six of the nine panel markets.",
   "The one blocking audit check left open: the engine's pre-trade gates read the spread, so a cost sweep reselects the population. At 4x spread only 4% of gold's momentum trades survive. Nothing this run concludes goes through that bracket, so it was recorded rather than fixed.",

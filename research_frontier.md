@@ -1,12 +1,12 @@
 # Research frontier
 
-Generated 2026-09-19T14:38:54Z at commit `084c984f7d` (tree dirty).
+Generated 2026-09-19T14:41:31Z at commit `871af01c62` (tree dirty).
 
-32 registered changes, cumulative hypothesis count 1651, verdicts {'REJECTED': 24, 'INCONCLUSIVE': 6, 'ACCEPTED': 2}.
+33 registered changes, cumulative hypothesis count 1677, verdicts {'REJECTED': 25, 'INCONCLUSIVE': 6, 'ACCEPTED': 2}.
 
 Sealed holdout: 14 symbols, `examined: False`.
 
-41 progress records across phases phase0-data-integrity, phase0-engineering-audit, phase1-control-hierarchy, phase1-mechanism, phase1-reframe-target, phase1-timeframe-ratio, phase2-failure-distribution, phase2-falsification, phase2-fresh-market, phase2-pilot, phase2-validation, phase3-fresh-market-batch, phase3-intraday-window, phase4-expanded, phase4-straddle, phase4-straddle-intrabar, phase5-cheap-corner, phase5-financing-closure, phase5-reversal-anatomy, phase6-passive-execution.
+42 progress records across phases phase0-data-integrity, phase0-engineering-audit, phase1-control-hierarchy, phase1-mechanism, phase1-reframe-target, phase1-timeframe-ratio, phase2-failure-distribution, phase2-falsification, phase2-fresh-market, phase2-pilot, phase2-validation, phase3-fresh-market-batch, phase3-intraday-window, phase4-expanded, phase4-straddle, phase4-straddle-intrabar, phase5-cheap-corner, phase5-financing-closure, phase5-reversal-anatomy, phase6-back-catalogue, phase6-passive-execution.
 
 
 ## Confirmed
@@ -74,6 +74,11 @@ At an offset of 0.25 ATR a resting order fills 53.1% of windows. Those windows e
 Sweeping the cost cross-section, the edge climbs from +0.1120 over the whole sample to +0.8897 in the cheapest 1% of cells and then TURNS DOWN to +0.7901 in the cheapest 0.5%. The quote tightens 16.1x while the edge grows only 7.1x, because the implied amplitude falls from 0.00995 ATR to 0.00437. The best step needs 1.1x more and is 62% EURUSD, positive on 2 of 3 markets, 189 signals a year.
 
 
+**The repository's own catalogue survives its own correction - and the measure it was ranked by has zero rank correlation with the economics.**  
+`back_catalogue_restated`  
+All thirteen P-series templates on the cleaned frame with the corrected control and metric: 0 of 13 clear one round trip. But the rank correlation between R through the bracket and the edge over the spread is -0.05 across the thirteen. The catalogue's best by R is P09 at -0.0192R whose edge is +0.1705 spreads; the best by edge is P15 at +0.4955 spreads whose R is the WORST of all thirteen. 837 hypotheses were ranked by a quantity uncorrelated with the one that pays.
+
+
 **A control must inherit the rule's risk geometry or it is a different instrument, and a spread-normalised edge must be a ratio of means.**  
 `control_geometry`  
 random_like took the random bar's own high or low as the invalidation level, so its stop sat a third as far from entry as the rule's while R divides by that distance - dist/ATR median 0.559 against 1.638. The replacement measures a 0.00% gap across all eight levels. Separately, computing edge as the mean of move/spread ratios implicitly sizes inversely to each trade's own spread and reads 1.3x to 2.3x above the economics.
@@ -112,9 +117,7 @@ Gold minute data resolved the ambiguous bars: stop really is first 73.3% of the 
 ## Unresolved
 
 
-- Whether the short side of gold's swap is charged at the same rate as the long side. The whole overnight economic verdict turns on it: at 0.2038 spreads a night the reversal breaks even, at the known long rate of 1.2616 it cannot. Nothing in this repository holds the short figure. This is the single most decision-relevant unknown and it is one lookup, not an experiment.
-
-- Whether a venue materially cheaper than the cached feed exists for a retail account. Every economic verdict is a ratio to that feed's spread, and the live account's quoted gold spread of 260 points is 1.5x tighter than the cache's 396-point median at 07:00 UTC. A venue three times cheaper would change the answer; whether one exists is not a question this data can settle.
+- Whether the reversal is one phenomenon or several with a common sign. The anatomy established it is volatility-scaled, present on USD-base, USD-quote and metals alike and in 21 of 23 years, with a 14% leave-one-market-out swing - but that is consistency, not a mechanism. Why a market reverts at all after one hour has no explanation here beyond liquidity provision being compensated, and that explanation was not tested, only invoked.
 
 - Why 42% of the conditional reversal lives in the most recent quote. It survives the one-bar lag, so it is not purely microstructure, but the part that does not survive has no mechanism attached to it.
 

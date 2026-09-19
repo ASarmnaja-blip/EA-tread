@@ -328,10 +328,27 @@ with no queue, no partial fill, no rejection and no requote. That is an
 **upper bound**, and since even the bound fails, no venue policy can rescue
 it.
 
-**4. Still open.** Re-examine whether any of the 837 pre-run hypotheses read
-differently on the cleaned frame with the corrected control and metric. Most
-are null and would stay null — but that is an assumption and it has not been
-checked.
+**4. The back catalogue — DONE, and it survives its own correction.** All
+thirteen P-series templates on the cleaned frame, with the corrected control
+and metric: **0 of 13** clear one round trip. The best, P15, reaches +0.4955
+spreads on 5 markets, positive on 2, t +0.68. Nothing was hidden by the
+contaminated frame — which was a real possibility, since the weekend defect
+had biased against Monday trades threefold.
+
+But the restatement found something else. **The rank correlation between R
+through the bracket and the edge over the spread is −0.05 across the thirteen
+templates.** Not imprecise — uncorrelated. The catalogue's best by R is P09 at
+−0.0192R, whose edge is +0.1705 spreads; the best by edge is P15 at +0.4955
+spreads, whose R is the *worst of all thirteen*.
+
+So 837 hypotheses were not ranked badly by the right quantity. They were
+ranked by a quantity with no rank correlation to the one that pays — the
+bracket's ATR denominator charging exactly the rules whose moves are large
+relative to a fixed spread. That is a statement about this repository's
+method, not about the market, and it is the single most useful thing the
+restatement produced.
+
+**Nothing on the original next-steps list remains open.**
 
 ---
 
@@ -357,6 +374,7 @@ is worth less than one that does not revise itself at all.
 |---|---|
 | §3 | The 0.233 exponent was fitted over a ladder ending at one week. The edge **peaks at W1 and falls after it**, so the exponent averages a curve that turns, and the "8,900 hours to breakeven" figure applied the fit five times past its anchor. Retracted. |
 | §12 | Gold's short-side swap was named the most decision-relevant unknown. It is no longer: every horizon is negative at **zero** financing, so no swap rate can change the verdict. |
+| §12 | Item 3 (later renumbered 4), the back catalogue, has been restated: 0 of 13 templates clear, and the rank correlation between the catalogue's own R and the economics is −0.05. |
 | §12 | A fifth execution lever — passive/limit orders — was identified as never having been measured, and measured. It fails worst of all: adverse selection of −7.3033 round trips against a spread worth 1.0. |
 | §12 | Items 1 and 2 of the next-steps list have since been answered. The reversal is volatility-scaled (log ATR +0.986, log spread −0.103), so a cheaper quote genuinely helps — but the edge stops climbing at +0.8897 in the cheapest 1% of cells and turns down after it. Both execution levers are now closed on measured data. |
 
