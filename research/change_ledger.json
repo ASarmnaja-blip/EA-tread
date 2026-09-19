@@ -459,7 +459,21 @@
    "criterion": "If the skill measured against the timing-only control largely survives the volatility-matched one, it is directional information and every prior skill figure stands. If it collapses toward zero across all four families, then the controls used throughout this session were too weak and those figures measured activity selection rather than direction - which would retract the skill readings in the regime-matched, wider-stop and value-area entries alike. A mixed result, surviving in some families and not others, identifies which measurements to keep.",
    "min_improvement": 0.02,
    "test_period": "Nine markets H1 2004-2026, real bid/ask, 2.0x stop - the same books already measured, re-run against a stronger control rather than on new data.",
-   "result": null
+   "result": {
+    "recorded": "2026-09-15T00:09:55.809101+00:00",
+    "baseline_er": 0.0171,
+    "variant_er": 0.0015,
+    "improvement": -0.015600000000000001,
+    "t_stat": 0.08,
+    "n_baseline": 0,
+    "n_variant": 36,
+    "k_at_test": 833,
+    "floor_at_test": 4.72412053894324,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "THE CONTROL USED THROUGHOUT THIS SESSION WAS TOO WEAK, AND 91% OF EVERY SKILL FIGURE IT PRODUCED WAS ACTIVITY SELECTION. Skill measured against a timing-only control versus against one matched on the signal bar's own true-range decile: momentum +0.0253 -> +0.0049 (20% retained, t +0.63, positive on 6 of 9); reversion -0.0079 -> -0.0186 (already negative, worse); value-area rotation +0.0306 -> +0.0005 (2% retained, t +0.08, 5 of 9); value-area breakout +0.0206 -> +0.0191 (93% retained, t +1.77, 7 of 9). Across all four families +0.0171 -> +0.0015, nine percent retained. WHAT THIS RETRACTS, INCLUDING THINGS I CALLED ENCOURAGING. The regime-matched entry skill, the +0.0492 skill in the wider-stop comparison, and the value-area rotation skill were all measured against timing-only controls and are mostly not directional information. A rule that fires only when something is happening beats a control that enters at any bar including dead ones, without knowing which way the something goes. The tell was already visible and I named it before running this: rotation and breakout are near-opposite readings of one structure and BOTH beat the timing control, which cannot happen if the structure carries direction. THE SCOPE IS WIDER THAN THIS SESSION. run_e01_control, used across this repo's 830 hypotheses, randomises timing with matched risk ratios - dist over ATR - which matches trade GEOMETRY but not the activity level of the bar the signal fired on. Every skill number in this project that leans on it inherits the same weakness. I am not restating those results here; I am recording that the instrument they used has a measured 91% inflation on the four families tested. WHAT PARTIALLY SURVIVES. Value-area breakout retains 93% of its skill at +0.0191 with t +1.77 on 7 of 9 markets. That is the only family where the effect looks directional rather than selectional, and it is still far below the 4.72 floor and still cannot pay the bracket penalty and the spread."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
