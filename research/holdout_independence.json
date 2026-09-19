@@ -1,0 +1,78 @@
+{
+ "created": "2026-09-19T14:53:25Z",
+ "holdout": [
+  "EURJPY",
+  "GBPJPY",
+  "AUDJPY",
+  "CHFJPY",
+  "CADJPY",
+  "NZDJPY",
+  "EURGBP",
+  "EURCHF",
+  "EURAUD",
+  "EURCAD",
+  "AUDNZD",
+  "AUDCAD",
+  "GBPCHF",
+  "GBPAUD"
+ ],
+ "panel": [
+  "XAUUSD",
+  "XAGUSD",
+  "EURUSD",
+  "GBPUSD",
+  "USDJPY",
+  "AUDUSD",
+  "USDCHF",
+  "USDCAD",
+  "NZDUSD",
+  "USDSEK"
+ ],
+ "synthesis": {
+  "EURGBP": [
+   "EURUSD x GBPUSD"
+  ],
+  "EURJPY": [
+   "EURUSD x USDJPY"
+  ],
+  "EURAUD": [
+   "EURUSD x AUDUSD"
+  ],
+  "EURCHF": [
+   "EURUSD x USDCHF"
+  ],
+  "EURCAD": [
+   "EURUSD x USDCAD"
+  ],
+  "GBPJPY": [
+   "GBPUSD x USDJPY"
+  ],
+  "GBPAUD": [
+   "GBPUSD x AUDUSD"
+  ],
+  "GBPCHF": [
+   "GBPUSD x USDCHF"
+  ],
+  "AUDJPY": [
+   "USDJPY x AUDUSD"
+  ],
+  "CHFJPY": [
+   "USDJPY x USDCHF"
+  ],
+  "CADJPY": [
+   "USDJPY x USDCAD"
+  ],
+  "NZDJPY": [
+   "USDJPY x NZDUSD"
+  ],
+  "AUDCAD": [
+   "AUDUSD x USDCAD"
+  ],
+  "AUDNZD": [
+   "AUDUSD x NZDUSD"
+  ]
+ },
+ "pinned": 14,
+ "independent": 0,
+ "seal_intact": true
+}

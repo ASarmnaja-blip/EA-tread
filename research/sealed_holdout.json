@@ -79,5 +79,46 @@
    "sha256": "b070ba3ba7d125500cb89bf7a6e58e4561ce52e545d4bc296000ec6cce4a0305",
    "points": 100000.0
   }
+ },
+ "independence_defect": {
+  "found": "2026-09-19T14:53:25Z",
+  "finding": "all 14 sealed symbols are exactly synthesisable from the nine-market panel by triangular arbitrage; the criterion used to build the set - no USD leg - guarantees dependence on a USD panel rather than independence from it",
+  "synthesis": {
+   "EURGBP": "EURUSD x GBPUSD",
+   "EURJPY": "EURUSD x USDJPY",
+   "EURAUD": "EURUSD x AUDUSD",
+   "EURCHF": "EURUSD x USDCHF",
+   "EURCAD": "EURUSD x USDCAD",
+   "GBPJPY": "GBPUSD x USDJPY",
+   "GBPAUD": "GBPUSD x AUDUSD",
+   "GBPCHF": "GBPUSD x USDCHF",
+   "AUDJPY": "USDJPY x AUDUSD",
+   "CHFJPY": "USDJPY x USDCHF",
+   "CADJPY": "USDJPY x USDCAD",
+   "NZDJPY": "USDJPY x NZDUSD",
+   "AUDCAD": "AUDUSD x USDCAD",
+   "AUDNZD": "AUDUSD x NZDUSD"
+  },
+  "pinned": [
+   "AUDCAD",
+   "AUDJPY",
+   "AUDNZD",
+   "CADJPY",
+   "CHFJPY",
+   "EURAUD",
+   "EURCAD",
+   "EURCHF",
+   "EURGBP",
+   "EURJPY",
+   "GBPAUD",
+   "GBPCHF",
+   "GBPJPY",
+   "NZDJPY"
+  ],
+  "independent": [],
+  "can_adjudicate": "cost and tradability, which depend on each cross's own book",
+  "cannot_adjudicate": "anything directional, since the mid is pinned to within the no-arbitrage band",
+  "seal_intact": true,
+  "note": "no holdout series was read to establish this; the synthesis follows from the currency names alone"
  }
 }
