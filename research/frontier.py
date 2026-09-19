@@ -103,6 +103,27 @@ CONFIRMED = [
      "31.5%, CROSS_MARKET_INSTABILITY 27.6%, BELOW_MULTIPLICITY_FLOOR 18.1%. "
      "Activity selection accounts for 2.4% and session selection 1.6%, so the "
      "control hierarchy found almost no selection artifacts to remove."),
+    ("reversal_anatomy",
+     "The reversal is volatility-scaled, not bid-ask bounce - so a cheaper "
+     "quote genuinely improves the ratio, and the requirement is 4.7x beyond "
+     "the cheapest decile of an ECN feed.",
+     "Log absolute move on log spread and log ATR jointly, 5,461 "
+     "market-hour-year cells on ten markets, market fixed effects: ATR "
+     "+0.986 (se 0.045, t +22.0), spread -0.103 (se 0.030, t -3.4), R2 0.513. "
+     "Bounce would have given the opposite pair. Panel needs execution 8.9x "
+     "cheaper; the cheapest cost decile already runs 7.4x tighter and still "
+     "needs 4.7x. Positive in 21 of 23 years, on USD-base, USD-quote and "
+     "metals alike, leave-one-market-out swing 14%."),
+    ("financing_closure",
+     "Every horizon loses at a financing rate of exactly zero, so the "
+     "unknown short-side swap cannot change the verdict.",
+     "Ladder extended to two weeks, one month and one quarter. Best net at "
+     "zero carry is -0.560 at W1. The edge PEAKS at one week and falls after "
+     "it - W2 +0.2415, M1 -2.2143, Q1 -6.5896 - so the 0.233 exponent "
+     "averaged a curve that turns, and the 8,900-hour crossing quoted in the "
+     "final report was a fit applied past its anchor. W1's net interval "
+     "[-1.774, +0.764] does not exclude positive, but W1 is seven nights and "
+     "at 0.05 spreads a night it falls to -0.910."),
     ("control_geometry",
      "A control must inherit the rule's risk geometry or it is a different "
      "instrument, and a spread-normalised edge must be a ratio of means.",

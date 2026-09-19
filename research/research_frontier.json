@@ -1,17 +1,17 @@
 {
- "generated": "2026-09-19T13:42:25Z",
+ "generated": "2026-09-19T13:52:06Z",
  "git": {
-  "commit": "1dff926c7bfce8c07de2876de65a664a5ccf9fc7",
+  "commit": "55623ddfcda8c7ff6f6841ba6de3ca77d770360e",
   "dirty": true,
   "branch": "claude/order-position-choch-gab-im08db"
  },
  "ledger": {
-  "entries": 28,
-  "cumulative_k": 1615,
+  "entries": 30,
+  "cumulative_k": 1625,
   "verdicts": {
-   "REJECTED": 21,
+   "REJECTED": 22,
    "INCONCLUSIVE": 6,
-   "ACCEPTED": 1
+   "ACCEPTED": 2
   }
  },
  "holdout": {
@@ -20,7 +20,7 @@
   "examined": false,
   "created": "2026-09-14T18:03:36Z"
  },
- "progress_records": 30,
+ "progress_records": 37,
  "phases": [
   "phase0-data-integrity",
   "phase0-engineering-audit",
@@ -37,7 +37,9 @@
   "phase3-intraday-window",
   "phase4-expanded",
   "phase4-straddle",
-  "phase4-straddle-intrabar"
+  "phase4-straddle-intrabar",
+  "phase5-financing-closure",
+  "phase5-reversal-anatomy"
  ],
  "confirmed": [
   {
@@ -79,6 +81,16 @@
    "id": "pilot_conditional_amplitude",
    "claim": "The failure distribution names cost, not measurement.",
    "evidence": "Over 127 pilot hypotheses: COST_DOMINATED 52.0%, NO_DIRECTIONAL_SKILL 31.5%, CROSS_MARKET_INSTABILITY 27.6%, BELOW_MULTIPLICITY_FLOOR 18.1%. Activity selection accounts for 2.4% and session selection 1.6%, so the control hierarchy found almost no selection artifacts to remove."
+  },
+  {
+   "id": "reversal_anatomy",
+   "claim": "The reversal is volatility-scaled, not bid-ask bounce - so a cheaper quote genuinely improves the ratio, and the requirement is 4.7x beyond the cheapest decile of an ECN feed.",
+   "evidence": "Log absolute move on log spread and log ATR jointly, 5,461 market-hour-year cells on ten markets, market fixed effects: ATR +0.986 (se 0.045, t +22.0), spread -0.103 (se 0.030, t -3.4), R2 0.513. Bounce would have given the opposite pair. Panel needs execution 8.9x cheaper; the cheapest cost decile already runs 7.4x tighter and still needs 4.7x. Positive in 21 of 23 years, on USD-base, USD-quote and metals alike, leave-one-market-out swing 14%."
+  },
+  {
+   "id": "financing_closure",
+   "claim": "Every horizon loses at a financing rate of exactly zero, so the unknown short-side swap cannot change the verdict.",
+   "evidence": "Ladder extended to two weeks, one month and one quarter. Best net at zero carry is -0.560 at W1. The edge PEAKS at one week and falls after it - W2 +0.2415, M1 -2.2143, Q1 -6.5896 - so the 0.233 exponent averaged a curve that turns, and the 8,900-hour crossing quoted in the final report was a fit applied past its anchor. W1's net interval [-1.774, +0.764] does not exclude positive, but W1 is seven nights and at 0.05 spreads a night it falls to -0.910."
   },
   {
    "id": "control_geometry",
