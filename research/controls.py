@@ -352,24 +352,43 @@ def build(P, dvec, Ivec, level, rng, lo=300, exclude_real=True):
         pools[k] = tbl
 
     sig_keys = {k: key_at(live_idx, k) for k in range(len(binned) + 1)}
-    # a boolean mask rather than a set: the membership test runs once per
-    # candidate per signal, and np.isin against a growing list turned an
-    # 8,000-signal book into minutes
+    # Each cell's donors are shuffled ONCE and then handed out in order,
+    # rather than re-filtering the cell for every signal. The old form built
+    # `cand[~taken[cand]]` per signal, which on C1 - a single cell holding the
+    # whole eligible sample - is 12,540 signals x 130,000 candidates, and it
+    # was what made C1 six times slower than C7 despite matching on nothing.
+    # The draw is still uniform without replacement; only its order is fixed
+    # in advance, and it stays deterministic under the seed.
+    shuffled = {}
+    for k, tbl in pools.items():
+        sh = {}
+        for key, arr in tbl.items():
+            a = arr.copy()
+            rng.shuffle(a)
+            sh[key] = [a, 0]
+        shuffled[k] = sh
     taken = np.zeros(N, bool)
+    # drawn in one call rather than one per signal: rng.choice on a 2-tuple
+    # rebuilds an array every time it is called
+    coins = rng.choice((-1, 1), size=len(geo))
     for j, (t, d, ratio) in enumerate(geo):
         placed = False
         for k in range(len(binned), -1, -1):
             key = sig_keys[k][j]
             if not np.isfinite(key):
                 continue
-            cand = pools[k].get(float(key))
-            if cand is None or len(cand) == 0:
+            slot = shuffled[k].get(float(key))
+            if slot is None:
                 continue
-            free = cand[~taken[cand]]
-            if len(free) == 0:
+            arr, ptr = slot
+            while ptr < len(arr) and taken[arr[ptr]]:
+                ptr += 1
+            slot[1] = ptr
+            if ptr >= len(arr):
                 continue
-            t2 = int(rng.choice(free))
-            dd = int(rng.choice((-1, 1))) if dirmode == "random" else d
+            t2 = int(arr[ptr])
+            slot[1] = ptr + 1
+            dd = int(coins[j]) if dirmode == "random" else d
             entry = _entry_price(P, t2, dd)
             a2 = P["A"][t2]
             if not (np.isfinite(entry) and np.isfinite(a2) and a2 > 0):

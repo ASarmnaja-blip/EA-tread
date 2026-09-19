@@ -53,7 +53,7 @@ sys.path.insert(0, str(HERE))
 import controls as C
 import provenance as PR
 import xauusd_1000_setups as X
-from bracket_bias import engine
+from engine_fast import engine
 from p01_cross_market import MARKETS, TICKS, load_bidask_h1
 from profile_setups import momentum_signal, reversion_signal
 from value_area_setups import (STOP_MULT, breakout_signal, prior_value_areas,

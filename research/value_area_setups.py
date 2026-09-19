@@ -79,9 +79,17 @@ def prior_value_areas(P, bins=40):
     out_lo = np.full(P["N"], np.nan)
     out_hi = np.full(P["N"], np.nan)
     out_poc = np.full(P["N"], np.nan)
-    days = pd.unique(day)
+    # One pass over the bars to group them by day. The previous form was
+    # {d: np.where(day == d)[0] for d in days}, which scans all 130,000 bars
+    # once per day - about 5,700 days here, so 700 million comparisons per
+    # market, and the single largest cost in the cross-market runs.
+    codes, days = pd.factorize(day)
+    order = np.argsort(codes, kind="stable")
+    bounds = np.searchsorted(codes[order], np.arange(len(days)))
+    starts = {d: order[bounds[i]:(bounds[i + 1] if i + 1 < len(bounds)
+                                  else len(order))]
+              for i, d in enumerate(days)}
     prev = None
-    starts = {d: np.where(day == d)[0] for d in days}
     for i, d in enumerate(days):
         cur = starts[d]
         if prev is not None and len(prev) >= 4:

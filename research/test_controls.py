@@ -1,24 +1,46 @@
 #!/usr/bin/env python3
-"""Thirteen fixtures for the control layer, on data whose answer is known.
+"""Fourteen fixtures for the control layer, on data whose answer is known.
 
 WHY THE FIXTURES USE SYNTHETIC PROCESSES
 
   A control cannot be validated against a market, because nobody knows what a
   market's answer is - that is the whole research question. It can be
-  validated against a process whose answer is known by construction:
+  validated against a process whose answer is known by construction.
 
-    a pure random walk has no directional information, so every control level
-    must return a skill indistinguishable from zero;
+  Three of these carry the weight:
 
-    a walk with a PLANTED rule that genuinely predicts direction must survive
-    all the way to C7, because the information is real;
+    a pure random walk has no directional information, so every level must
+    return a skill indistinguishable from zero;
 
-    a walk with a planted ACTIVITY preference and no direction must beat C1
-    and die at C3, because that is exactly the artifact C3 exists to remove.
+    a walk with a rule that genuinely predicts direction must survive all the
+    way to C7, because a hierarchy that kills real information is as broken as
+    one that passes noise;
 
-  The third is the one that matters. A control hierarchy that cannot tell the
-  second from the third is decoration, and the only way to know is to build
-  both and check.
+    a walk that drifts during four hours of the day, traded by a rule that is
+    long in exactly those hours, must show ZERO skill against C4 - which keeps
+    the hours and the direction - and POSITIVE skill against C7, which keeps
+    the hours and coins the direction. That pair is the whole point of the
+    hierarchy: it separates knowing when from knowing which way.
+
+WHAT THE FIXTURES CHANGED ABOUT THE RESEARCH
+
+  The third fixture originally planted an ACTIVITY preference, on the
+  assumption - carried through this whole session - that selecting busy bars
+  inflates apparent skill. It does not. With geometry matched, an
+  activity-selecting rule facing a coin shows |t| below 2 at every one of the
+  eight levels, C1 included. There was no artifact there to remove.
+
+  vol_matched_control had reported that 91% of this session's apparent skill
+  was activity selection. It measured that through random_like, whose control
+  stop sits a third as far from entry as the rule's. The 91% was the geometry
+  gap. Fixture 12b records the negative result so the earlier claim is not
+  quietly inherited.
+
+  The reason runs the other way, and both fixture 12 and fixture 13 show it:
+  R divides by the stop distance, the stop distance is set from ATR, and a
+  busy bar has a high ATR. Entering when the market is moving earns a SMALLER
+  R for the same price move. Under this normalisation, activity selection is a
+  cost.
 
 WHAT EACH FIXTURE ASSERTS
 
@@ -32,9 +54,10 @@ WHAT EACH FIXTURE ASSERTS
    8 stratum fidelity       matched dim distributions agree within 0.15 TV
    9 relaxation is reported when cells empty, meta says so rather than lying
   10 null process           random walk: every level's skill is near zero
-  11 planted direction      survives C0 through C7
-  12 planted activity       beats C1, dies by C3 - the discriminating case
-  13 monotone strength      later controls are not systematically easier
+  11 planted direction      real information survives C0 through C7
+  12 planted selection      a clock effect dies at C4 and survives at C7
+  12b activity is not one   geometry-matched activity selection finds nothing
+  13 strength ordering      no level is distinguishable from zero on noise
 """
 import math
 import pathlib
@@ -120,6 +143,41 @@ def rule_activity_only(P, rng, q=0.75, rate=0.25):
     I = np.full(n, np.nan)
     a = np.asarray(P["A"], float)
     I[fire] = P["c"][fire] - d[fire] * 1.2 * a[fire]
+    return d, I
+
+
+def walk_session_drift(n=60000, seed=2, hours=(13, 14, 15, 16),
+                       drift=0.00035, **kw):
+    """A walk that genuinely drifts up during four hours of the day.
+
+    The drift is real, exploitable, and entirely explained by the clock. A
+    rule that goes long in those hours has found something - but it has found
+    WHEN, not WHICH WAY, and a control drawn from the same hours facing the
+    same way captures all of it. That is the artifact C4 exists to remove, and
+    unlike the activity case it is one that actually inflates skill against a
+    timing-only control."""
+    df = walk(n, seed=seed, drift=0.0, **kw)
+    idx = pd.DatetimeIndex(df.index)
+    bump = np.where(np.isin(idx.hour, hours), drift, 0.0)
+    factor = np.exp(np.cumsum(bump))
+    for k in ("open", "high", "low", "close"):
+        for pre in ("", "bid_", "ask_"):
+            df[f"{pre}{k}"] = df[f"{pre}{k}"] * factor
+    return df
+
+
+def rule_session_only(P, rng, hours=(13, 14, 15, 16), rate=0.35):
+    """Goes long in the drifting hours and nowhere else. No other content."""
+    n = P["N"]
+    hr = pd.DatetimeIndex(P["idx"]).hour.to_numpy()
+    fire = np.isin(hr, hours) & (rng.random(n) < rate)
+    fire[:400] = False
+    fire[n - 40:] = False
+    d = np.zeros(n, np.int8)
+    d[fire] = 1
+    I = np.full(n, np.nan)
+    a = np.asarray(P["A"], float)
+    I[fire] = P["c"][fire] - 1.2 * a[fire]
     return d, I
 
 
@@ -338,22 +396,81 @@ def f11_planted_direction(P, tick):
                  f"(a hierarchy that kills this is over-controlling)")
 
 
-def f12_planted_activity(P, tick):
-    """The discriminating fixture. A rule with a strong activity preference
-    and a coin for a direction must beat C1 and die by C3."""
+def f12_planted_selection(tick):
+    """The discriminating fixture: an artifact that genuinely inflates skill.
+
+    The first version planted an ACTIVITY preference and asserted the skill
+    would be large against C1 and gone by C3. It is not large against C1. On a
+    geometry-matched comparison an activity-selecting rule with a coin for a
+    direction shows |t| below 2 at every one of the eight levels, and its C1
+    and C3 figures differ by less than their own standard error. There is no
+    artifact there to remove.
+
+    That is itself worth stating, because it is the opposite of what this
+    session concluded before the geometry defect was found. vol_matched_control
+    reported that 91% of apparent skill was activity selection - measured
+    through random_like, whose control stop sat a third as far away as the
+    rule's. When the control is the same instrument, activity selection does
+    not inflate skill at all. The 91% was the geometry gap, not activity.
+
+    So the fixture plants a clock effect instead: four hours of the day with a
+    real upward drift, and a rule that goes long in exactly those hours.
+
+    The discriminating pair is C4 against C7, and it is the whole reason the
+    hierarchy separates direction from timing:
+
+      C4 keeps the hours AND the direction. The control is long in the same
+      four hours, so it captures everything the rule captures and the skill
+      must be zero - the rule's choice of WHEN WITHIN the session is worth
+      nothing.
+
+      C7 keeps the hours and COINS the direction. Going long rather than short
+      in those hours is real information, so the skill must survive.
+
+    A hierarchy that returned zero at both would be over-controlling and would
+    discard a genuine conditional edge; one that returned skill at both would
+    not have removed the clock at all.
+
+    The C1 figure is NEGATIVE here, at -0.0950, and that is not a defect
+    either. The drift enlarges the bars it occurs in, so the ATR is higher in
+    those hours, so dist is higher, and R divides by dist. Entering on a
+    high-volatility bar earns a smaller R for the same price move. This is the
+    same mechanism that makes an activity-selecting rule lose to a
+    random-timing control, and it says something that runs against the
+    intuition this project has been carrying: under R normalisation, selecting
+    volatile moments is a cost, not a free edge."""
+    df = walk_session_drift(60000, seed=2)
+    P = X.prep(df, 60)
+    rng = np.random.default_rng(13)
+    d, I = rule_session_only(P, rng)
+    e, out = skill_by_level(P, d, I, tick)
+    t1 = out.get("C1", {}).get("t", np.nan)
+    s1 = out.get("C1", {}).get("skill", np.nan)
+    s4 = out.get("C4", {}).get("skill", np.nan)
+    t4 = out.get("C4", {}).get("t", np.nan)
+    s7 = out.get("C7", {}).get("skill", np.nan)
+    t7 = out.get("C7", {}).get("t", np.nan)
+    timing_worthless = np.isfinite(t4) and abs(t4) < 3.0
+    direction_survives = np.isfinite(t7) and t7 > 3.0
+    return check("planted selection", timing_worthless and direction_survives,
+                 f"session-drift rule: vs C1 {s1:+.4f} (t {t1:+.1f}), "
+                 f"vs C4 {s4:+.4f} (t {t4:+.1f}) so timing within the session "
+                 f"is worth nothing, vs C7 {s7:+.4f} (t {t7:+.1f}) so the "
+                 f"direction is real")
+
+
+def f12b_activity_is_not_an_artifact(P, tick):
+    """Records the negative result the previous fixture was built on."""
     rng = np.random.default_rng(11)
     d, I = rule_activity_only(P, rng)
     e, out = skill_by_level(P, d, I, tick)
-    s1 = out.get("C1", {}).get("skill", np.nan)
-    s3 = out.get("C3", {}).get("skill", np.nan)
-    t3 = out.get("C3", {}).get("t", np.nan)
-    t7 = out.get("C7", {}).get("t", np.nan)
-    died = np.isfinite(t3) and abs(t3) < 3.0 and np.isfinite(t7) and abs(t7) < 3.0
-    shrank = np.isfinite(s1) and np.isfinite(s3) and abs(s3) <= abs(s1) + 1e-6
-    return check("planted activity", died and shrank,
-                 f"activity-only rule: skill vs C1 {s1:+.4f} -> vs C3 "
-                 f"{s3:+.4f} (t {t3:+.1f}), C7 t {t7:+.1f}; the artifact must "
-                 f"not survive the control built to remove it")
+    ts = {lv: out[lv]["t"] for lv in C.LEVELS if lv in out}
+    worst = max((abs(v) for v in ts.values() if np.isfinite(v)), default=np.nan)
+    return check("activity is not an artifact", worst < 3.0,
+                 "with geometry matched, an activity-selecting rule facing a "
+                 "coin shows |t| "
+                 + " ".join(f"{k} {abs(v):.1f}" for k, v in ts.items())
+                 + " - no level finds anything, including C1")
 
 
 def f13_strength_ordering(P, tick):
@@ -435,14 +552,15 @@ def main():
     f9_relaxation_reported(P, d, I)
     f10_null_process(P, tick)
     f11_planted_direction(P, tick)
-    f12_planted_activity(P, tick)
+    f12_planted_selection(tick)
+    f12b_activity_is_not_an_artifact(P, tick)
     f13_strength_ordering(P, tick)
 
     print("\n" + "=" * 96)
     if FAIL:
-        print(f"  {len(FAIL)} of 13 fixtures FAILED: {FAIL}")
+        print(f"  {len(FAIL)} of 14 fixtures FAILED: {FAIL}")
         sys.exit(1)
-    print("  all 13 fixtures pass")
+    print("  all 14 fixtures pass")
 
 
 if __name__ == "__main__":
