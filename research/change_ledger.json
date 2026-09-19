@@ -484,7 +484,21 @@
    "criterion": "A family carries directional information only if its skill against C7 is positive with a cross-market t above the floor the cumulative hypothesis count implies, currently 4.72. Skill against C1 that does not survive to C7 is activity, session or regime selection and is reported as such with the level named. If no family clears C7, the finding is that these four families carry no directional information at this horizon once geometry, timing, activity, volatility, session, regime and range position are all held constant - and the earlier 91%-retraction figure is superseded by a number measured on a correct instrument rather than merely repeated.",
    "min_improvement": 0.02,
    "test_period": "Nine markets H1 2004-2026, real bid/ask, 2.0x stop - the same books, re-measured through a corrected control rather than on new data. No holdout is touched.",
-   "result": null
+   "result": {
+    "recorded": "2026-09-19T09:07:03.125964+00:00",
+    "baseline_er": 0.0,
+    "variant_er": -0.0011,
+    "improvement": -0.0011,
+    "t_stat": 0.14,
+    "n_baseline": 36,
+    "n_variant": 36,
+    "k_at_test": 837,
+    "floor_at_test": 4.726158034968317,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "REJECTED. No family carries directional information at C7, and the strongest is reversion at t -0.14; all four are NEGATIVE against the strongest control. By family, skill against C7: momentum -0.0116 (t -1.28, positive on 2 of 9); reversion -0.0011 (t -0.14, 4 of 9); value-area rotation -0.0056 (t -0.95, 3 of 9); value-area breakout -0.0094 (t -1.17, 3 of 9). THE EARLIER NUMBERS WERE MOSTLY INSTRUMENT. vol_matched_control measured +0.0171 against a timing-only control. On the cleaned frame with a geometry-matched control the same quantity is +0.0026 to +0.0066, and at one family it is negative. Two defects account for the difference and both are now fixed: random_like took the random bar's own high or low as the invalidation level, so its stop sat a third as far from entry as the rule's while R divides by that distance; and 29% of every bar in the sample was a weekend or rollover hour the venue did not quote, which collapsed Wilder ATR to 6.5% of its Thursday level by Sunday and made the engine reject 84.8% of Monday bars against 56.9% of Thursday's. THE 91% ACTIVITY-SELECTION CLAIM IS SUPERSEDED, NOT CONFIRMED. A synthetic rule that selects busy bars and faces a coin shows no skill at any level once geometry is matched - |t| below 2 at all eight, C1 included. There was no activity artifact to remove; the 91% was the geometry gap. WHAT THE PROFILE SHOWS INSTEAD. Several levels are significantly NEGATIVE: momentum against session-matched -0.0095 t -2.79 on 1 of 9; reversion against C5 -0.0113 t -2.63; value-area rotation against regime-matched -0.0149 t -3.16 on 1 of 9; value-area breakout against C5 -0.0190 t -2.91 on 1 of 9. All four families do systematically WORSE than matched random entries. The mechanism is measured rather than guessed: R divides by a stop distance set from ATR, these rules fire on high-ATR bars, and a larger denominator earns a smaller R for the same price move. Under this normalisation selecting volatile moments is a cost. That makes R-through-a-bracket a poor instrument for asking whether directional information exists, which is the next thing to separate."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
