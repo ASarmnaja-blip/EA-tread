@@ -1,0 +1,933 @@
+{
+ "created": "2026-09-19T09:41:36Z",
+ "holds": [
+  1,
+  2,
+  3,
+  4,
+  6,
+  8,
+  12
+ ],
+ "last_exit": 20,
+ "floor": 4.85,
+ "live_gold_spread_points": 260.0,
+ "surface": [
+  {
+   "hold": 2,
+   "entry_hour": 2,
+   "markets": 9,
+   "n_per_market": 5217,
+   "edge": -0.12648194688086795,
+   "t": -2.5207578092146585,
+   "positive": 2,
+   "points": -0.07321735059748274,
+   "spread_points": 63.550788610205814
+  },
+  {
+   "hold": 2,
+   "entry_hour": 3,
+   "markets": 9,
+   "n_per_market": 5213,
+   "edge": 0.02450179500075646,
+   "t": 0.39982613178352877,
+   "positive": 5,
+   "points": -3.152139359834848,
+   "spread_points": 63.805433923371915
+  },
+  {
+   "hold": 2,
+   "entry_hour": 4,
+   "markets": 9,
+   "n_per_market": 5207,
+   "edge": 0.30435718566413145,
+   "t": 2.7093026996529512,
+   "positive": 9,
+   "points": 3.905892676766685,
+   "spread_points": 62.54703872351115
+  },
+  {
+   "hold": 2,
+   "entry_hour": 5,
+   "markets": 9,
+   "n_per_market": 5210,
+   "edge": 0.20556487259138986,
+   "t": 3.6029069963054874,
+   "positive": 9,
+   "points": 6.182418042413258,
+   "spread_points": 62.00850901502302
+  },
+  {
+   "hold": 2,
+   "entry_hour": 6,
+   "markets": 9,
+   "n_per_market": 5215,
+   "edge": 0.31978645975751474,
+   "t": 4.500856235478695,
+   "positive": 9,
+   "points": 19.762550510040594,
+   "spread_points": 64.61722127075507
+  },
+  {
+   "hold": 2,
+   "entry_hour": 7,
+   "markets": 9,
+   "n_per_market": 5216,
+   "edge": 0.4950514028176866,
+   "t": 2.7133107939663086,
+   "positive": 9,
+   "points": 8.783004552338765,
+   "spread_points": 61.61447651257467
+  },
+  {
+   "hold": 2,
+   "entry_hour": 8,
+   "markets": 9,
+   "n_per_market": 5221,
+   "edge": -0.04956668533497915,
+   "t": -0.6370956072330948,
+   "positive": 2,
+   "points": -1.6505703364269495,
+   "spread_points": 58.718959328856236
+  },
+  {
+   "hold": 2,
+   "entry_hour": 9,
+   "markets": 9,
+   "n_per_market": 5220,
+   "edge": -0.11620204123026172,
+   "t": -1.4081921383762244,
+   "positive": 3,
+   "points": -3.48199922714148,
+   "spread_points": 61.948982838319566
+  },
+  {
+   "hold": 2,
+   "entry_hour": 10,
+   "markets": 9,
+   "n_per_market": 5217,
+   "edge": -0.12670310654979733,
+   "t": -0.9972424215792648,
+   "positive": 3,
+   "points": -1.9016002697515586,
+   "spread_points": 58.48585109148294
+  },
+  {
+   "hold": 2,
+   "entry_hour": 11,
+   "markets": 9,
+   "n_per_market": 5217,
+   "edge": -0.04179455892698723,
+   "t": -0.22388383415114166,
+   "positive": 8,
+   "points": 13.155147448614507,
+   "spread_points": 56.72276704911774
+  },
+  {
+   "hold": 2,
+   "entry_hour": 12,
+   "markets": 9,
+   "n_per_market": 5220,
+   "edge": 0.20133391297681333,
+   "t": 2.90423745301904,
+   "positive": 8,
+   "points": 7.915329831061366,
+   "spread_points": 58.65036146809348
+  },
+  {
+   "hold": 2,
+   "entry_hour": 13,
+   "markets": 9,
+   "n_per_market": 5220,
+   "edge": 0.22571800080440102,
+   "t": 1.1819985375745947,
+   "positive": 7,
+   "points": 20.565286384096616,
+   "spread_points": 63.365231803142706
+  },
+  {
+   "hold": 2,
+   "entry_hour": 14,
+   "markets": 9,
+   "n_per_market": 5223,
+   "edge": -0.11278325495197088,
+   "t": -1.2074506795946596,
+   "positive": 5,
+   "points": 4.229175283005164,
+   "spread_points": 65.96666534265727
+  },
+  {
+   "hold": 2,
+   "entry_hour": 15,
+   "markets": 9,
+   "n_per_market": 5217,
+   "edge": -0.07039074469055688,
+   "t": -1.2346839066868227,
+   "positive": 2,
+   "points": -17.47198390610115,
+   "spread_points": 60.889121136557165
+  },
+  {
+   "hold": 2,
+   "entry_hour": 16,
+   "markets": 9,
+   "n_per_market": 5209,
+   "edge": 0.14669238563018555,
+   "t": 3.0031400127915164,
+   "positive": 7,
+   "points": 6.514009077956818,
+   "spread_points": 58.36579126809712
+  },
+  {
+   "hold": 2,
+   "entry_hour": 17,
+   "markets": 9,
+   "n_per_market": 5197,
+   "edge": 0.02357330001059335,
+   "t": 0.531630275243837,
+   "positive": 3,
+   "points": -5.566907600931594,
+   "spread_points": 61.73940153299119
+  },
+  {
+   "hold": 2,
+   "entry_hour": 18,
+   "markets": 9,
+   "n_per_market": 5189,
+   "edge": 0.45036760067533144,
+   "t": 3.5618730160267904,
+   "positive": 9,
+   "points": 21.971146963976803,
+   "spread_points": 63.49626562117872
+  },
+  {
+   "hold": 2,
+   "entry_hour": 19,
+   "markets": 9,
+   "n_per_market": 5170,
+   "edge": 0.33536239883995184,
+   "t": 3.551659188479639,
+   "positive": 7,
+   "points": -1.2036369675573648,
+   "spread_points": 61.79692393772388
+  },
+  {
+   "hold": 3,
+   "entry_hour": 3,
+   "markets": 9,
+   "n_per_market": 5224,
+   "edge": -0.15858364561987498,
+   "t": -2.0285910580122155,
+   "positive": 1,
+   "points": -15.822309361405031,
+   "spread_points": 63.837438221352826
+  },
+  {
+   "hold": 3,
+   "entry_hour": 4,
+   "markets": 9,
+   "n_per_market": 5221,
+   "edge": 0.20083487195538421,
+   "t": 1.143270577271059,
+   "positive": 5,
+   "points": -9.688170607298837,
+   "spread_points": 62.57593658756692
+  },
+  {
+   "hold": 3,
+   "entry_hour": 5,
+   "markets": 9,
+   "n_per_market": 5219,
+   "edge": 0.25725551892126336,
+   "t": 1.678464859960179,
+   "positive": 6,
+   "points": -0.27254392886937784,
+   "spread_points": 62.0008510121626
+  },
+  {
+   "hold": 3,
+   "entry_hour": 6,
+   "markets": 9,
+   "n_per_market": 5217,
+   "edge": 0.05890289494019407,
+   "t": 0.398022787698862,
+   "positive": 7,
+   "points": -6.5369963442918095,
+   "spread_points": 64.54955592305917
+  },
+  {
+   "hold": 3,
+   "entry_hour": 7,
+   "markets": 9,
+   "n_per_market": 5221,
+   "edge": 0.7166495438913278,
+   "t": 2.6994009252028133,
+   "positive": 8,
+   "points": 12.216598413756877,
+   "spread_points": 61.606406533344476
+  },
+  {
+   "hold": 3,
+   "entry_hour": 8,
+   "markets": 9,
+   "n_per_market": 5226,
+   "edge": 0.08640954020044558,
+   "t": 0.4976538650286204,
+   "positive": 5,
+   "points": -16.08223569219034,
+   "spread_points": 58.73048845759599
+  },
+  {
+   "hold": 3,
+   "entry_hour": 9,
+   "markets": 9,
+   "n_per_market": 5225,
+   "edge": -0.09588448749731499,
+   "t": -0.7614388127472594,
+   "positive": 4,
+   "points": -6.552318848620511,
+   "spread_points": 61.966222169614944
+  },
+  {
+   "hold": 3,
+   "entry_hour": 10,
+   "markets": 9,
+   "n_per_market": 5222,
+   "edge": -0.22078530462117438,
+   "t": -0.969661554717043,
+   "positive": 4,
+   "points": -11.001780295096278,
+   "spread_points": 58.49516875689463
+  },
+  {
+   "hold": 3,
+   "entry_hour": 11,
+   "markets": 9,
+   "n_per_market": 5226,
+   "edge": -0.15213030267916347,
+   "t": -0.7021335054012365,
+   "positive": 5,
+   "points": 5.3807123816986575,
+   "spread_points": 56.73089751837375
+  },
+  {
+   "hold": 3,
+   "entry_hour": 12,
+   "markets": 9,
+   "n_per_market": 5225,
+   "edge": -0.18111139495471065,
+   "t": -1.3071965568309432,
+   "positive": 3,
+   "points": -4.078922720928397,
+   "spread_points": 58.65167147373509
+  },
+  {
+   "hold": 3,
+   "entry_hour": 13,
+   "markets": 9,
+   "n_per_market": 5222,
+   "edge": 0.07525689262068765,
+   "t": 0.4714845485463755,
+   "positive": 5,
+   "points": 22.108208999540093,
+   "spread_points": 63.351268679925084
+  },
+  {
+   "hold": 3,
+   "entry_hour": 14,
+   "markets": 9,
+   "n_per_market": 5221,
+   "edge": 0.08397235180725277,
+   "t": 0.6911608798377872,
+   "positive": 5,
+   "points": -4.356495194194422,
+   "spread_points": 65.97162978459686
+  },
+  {
+   "hold": 3,
+   "entry_hour": 15,
+   "markets": 9,
+   "n_per_market": 5215,
+   "edge": -0.0832638678773587,
+   "t": -2.150456787217356,
+   "positive": 2,
+   "points": -13.959245278503566,
+   "spread_points": 60.92499179757301
+  },
+  {
+   "hold": 3,
+   "entry_hour": 16,
+   "markets": 9,
+   "n_per_market": 5206,
+   "edge": -0.0014530222007665128,
+   "t": -0.03154017593043843,
+   "positive": 5,
+   "points": -6.9248719298358345,
+   "spread_points": 58.464312050796366
+  },
+  {
+   "hold": 3,
+   "entry_hour": 17,
+   "markets": 9,
+   "n_per_market": 5195,
+   "edge": 0.11444742245357105,
+   "t": 1.2459320271128758,
+   "positive": 6,
+   "points": 3.238624648098588,
+   "spread_points": 61.699997052420635
+  },
+  {
+   "hold": 3,
+   "entry_hour": 18,
+   "markets": 9,
+   "n_per_market": 5187,
+   "edge": 0.47334015059120627,
+   "t": 3.143865101182475,
+   "positive": 9,
+   "points": 7.130794210959373,
+   "spread_points": 63.434013080616786
+  },
+  {
+   "hold": 4,
+   "entry_hour": 4,
+   "markets": 9,
+   "n_per_market": 5224,
+   "edge": -0.05411038466017809,
+   "t": -0.4811788318516294,
+   "positive": 3,
+   "points": -3.9930563480025985,
+   "spread_points": 62.558594104020784
+  },
+  {
+   "hold": 4,
+   "entry_hour": 5,
+   "markets": 9,
+   "n_per_market": 5218,
+   "edge": -0.3248878953972884,
+   "t": -1.9592104994378159,
+   "positive": 2,
+   "points": -28.715330234378932,
+   "spread_points": 61.949915926059994
+  },
+  {
+   "hold": 4,
+   "entry_hour": 6,
+   "markets": 9,
+   "n_per_market": 5217,
+   "edge": -0.10685480122353003,
+   "t": -0.86720196335145,
+   "positive": 4,
+   "points": -17.02713463816532,
+   "spread_points": 64.5572389127562
+  },
+  {
+   "hold": 4,
+   "entry_hour": 7,
+   "markets": 9,
+   "n_per_market": 5221,
+   "edge": 0.4980083718584831,
+   "t": 1.5782939644873186,
+   "positive": 6,
+   "points": -7.886845441371516,
+   "spread_points": 61.62372966831203
+  },
+  {
+   "hold": 4,
+   "entry_hour": 8,
+   "markets": 9,
+   "n_per_market": 5227,
+   "edge": 0.1626895551783716,
+   "t": 0.7466948310802252,
+   "positive": 5,
+   "points": -14.344013207462792,
+   "spread_points": 58.72190865015106
+  },
+  {
+   "hold": 4,
+   "entry_hour": 9,
+   "markets": 9,
+   "n_per_market": 5229,
+   "edge": 0.07923036808503207,
+   "t": 0.7207584041194908,
+   "positive": 5,
+   "points": -2.6142231739605,
+   "spread_points": 61.97491223477314
+  },
+  {
+   "hold": 4,
+   "entry_hour": 10,
+   "markets": 9,
+   "n_per_market": 5225,
+   "edge": -0.03659532958548552,
+   "t": -0.17959378136525264,
+   "positive": 5,
+   "points": 4.969539110682588,
+   "spread_points": 58.485559841531945
+  },
+  {
+   "hold": 4,
+   "entry_hour": 11,
+   "markets": 9,
+   "n_per_market": 5225,
+   "edge": -0.2262661756525867,
+   "t": -1.387371675264855,
+   "positive": 2,
+   "points": -15.608110965131564,
+   "spread_points": 56.72799875723476
+  },
+  {
+   "hold": 4,
+   "entry_hour": 12,
+   "markets": 9,
+   "n_per_market": 5225,
+   "edge": -0.5120991595640947,
+   "t": -1.9207100311584604,
+   "positive": 3,
+   "points": -13.988953529367025,
+   "spread_points": 58.65059961564399
+  },
+  {
+   "hold": 4,
+   "entry_hour": 13,
+   "markets": 9,
+   "n_per_market": 5223,
+   "edge": -0.1357457172499087,
+   "t": -0.5355555650023636,
+   "positive": 6,
+   "points": 0.7731136924602838,
+   "spread_points": 63.3414389060232
+  },
+  {
+   "hold": 4,
+   "entry_hour": 14,
+   "markets": 9,
+   "n_per_market": 5214,
+   "edge": -0.11079582127721901,
+   "t": -1.105314715445116,
+   "positive": 2,
+   "points": -3.9120414484504633,
+   "spread_points": 66.01769162880633
+  },
+  {
+   "hold": 4,
+   "entry_hour": 15,
+   "markets": 9,
+   "n_per_market": 5207,
+   "edge": -0.0382664704575318,
+   "t": -0.3919957180885965,
+   "positive": 5,
+   "points": -22.306432660600272,
+   "spread_points": 61.03385670575366
+  },
+  {
+   "hold": 4,
+   "entry_hour": 16,
+   "markets": 9,
+   "n_per_market": 5201,
+   "edge": 0.019402598659271544,
+   "t": 0.24146135085870762,
+   "positive": 4,
+   "points": -18.76143591689516,
+   "spread_points": 58.43341547585991
+  },
+  {
+   "hold": 4,
+   "entry_hour": 17,
+   "markets": 9,
+   "n_per_market": 5196,
+   "edge": 0.08735058497109033,
+   "t": 1.506982373012213,
+   "positive": 6,
+   "points": -9.93709109585317,
+   "spread_points": 61.65427520009767
+  },
+  {
+   "hold": 6,
+   "entry_hour": 6,
+   "markets": 9,
+   "n_per_market": 5223,
+   "edge": -0.16850123483375312,
+   "t": -0.8966200064668268,
+   "positive": 5,
+   "points": 1.1101737528449347,
+   "spread_points": 64.5557407544213
+  },
+  {
+   "hold": 6,
+   "entry_hour": 7,
+   "markets": 9,
+   "n_per_market": 5222,
+   "edge": 0.18915128572526466,
+   "t": 0.7640714091760797,
+   "positive": 4,
+   "points": -14.572961034515941,
+   "spread_points": 61.61762154076152
+  },
+  {
+   "hold": 6,
+   "entry_hour": 8,
+   "markets": 9,
+   "n_per_market": 5225,
+   "edge": 0.05879014385210389,
+   "t": 0.32796949716646506,
+   "positive": 4,
+   "points": -24.846395772057555,
+   "spread_points": 58.72386830629806
+  },
+  {
+   "hold": 6,
+   "entry_hour": 9,
+   "markets": 9,
+   "n_per_market": 5227,
+   "edge": -0.05150038861802894,
+   "t": -0.22112315344695774,
+   "positive": 4,
+   "points": -37.86446526083279,
+   "spread_points": 61.97897814380263
+  },
+  {
+   "hold": 6,
+   "entry_hour": 10,
+   "markets": 9,
+   "n_per_market": 5227,
+   "edge": -0.3383405217138977,
+   "t": -1.2635435986456365,
+   "positive": 3,
+   "points": -57.381818606754955,
+   "spread_points": 58.471080764033154
+  },
+  {
+   "hold": 6,
+   "entry_hour": 11,
+   "markets": 9,
+   "n_per_market": 5222,
+   "edge": -0.11218216638360949,
+   "t": -0.5106230274678446,
+   "positive": 3,
+   "points": -36.27775496061965,
+   "spread_points": 56.72813496365556
+  },
+  {
+   "hold": 6,
+   "entry_hour": 12,
+   "markets": 9,
+   "n_per_market": 5216,
+   "edge": -0.02207905407590803,
+   "t": -0.1062900401449441,
+   "positive": 4,
+   "points": -47.047729688652446,
+   "spread_points": 58.6679029463171
+  },
+  {
+   "hold": 6,
+   "entry_hour": 13,
+   "markets": 9,
+   "n_per_market": 5210,
+   "edge": -0.27936156915685856,
+   "t": -1.5774855836387691,
+   "positive": 4,
+   "points": -39.64325237388596,
+   "spread_points": 63.469950601189694
+  },
+  {
+   "hold": 6,
+   "entry_hour": 14,
+   "markets": 9,
+   "n_per_market": 5201,
+   "edge": -0.29137494239825934,
+   "t": -1.9926965793771587,
+   "positive": 4,
+   "points": -1.5328014427784908,
+   "spread_points": 66.20098194954454
+  },
+  {
+   "hold": 6,
+   "entry_hour": 15,
+   "markets": 9,
+   "n_per_market": 5196,
+   "edge": -0.19772265622208735,
+   "t": -1.3343643329523915,
+   "positive": 3,
+   "points": -23.375832158907432,
+   "spread_points": 61.07551671208018
+  },
+  {
+   "hold": 8,
+   "entry_hour": 8,
+   "markets": 9,
+   "n_per_market": 5227,
+   "edge": -0.19570335192234764,
+   "t": -0.8628571679212993,
+   "positive": 3,
+   "points": -38.5561030348871,
+   "spread_points": 58.729826386186545
+  },
+  {
+   "hold": 8,
+   "entry_hour": 9,
+   "markets": 9,
+   "n_per_market": 5223,
+   "edge": -0.21188130599096894,
+   "t": -0.7934962885105585,
+   "positive": 3,
+   "points": -50.23943127725897,
+   "spread_points": 61.98499693267672
+  },
+  {
+   "hold": 8,
+   "entry_hour": 10,
+   "markets": 9,
+   "n_per_market": 5216,
+   "edge": -0.29842938378926737,
+   "t": -1.3137944335065153,
+   "positive": 2,
+   "points": -54.78587147314392,
+   "spread_points": 58.49450098147233
+  },
+  {
+   "hold": 8,
+   "entry_hour": 11,
+   "markets": 9,
+   "n_per_market": 5210,
+   "edge": -0.4153326380240057,
+   "t": -2.1774781226820474,
+   "positive": 1,
+   "points": -53.35648014728598,
+   "spread_points": 56.80246257500368
+  },
+  {
+   "hold": 8,
+   "entry_hour": 12,
+   "markets": 9,
+   "n_per_market": 5204,
+   "edge": -0.07330295790990485,
+   "t": -0.2772521564453005,
+   "positive": 5,
+   "points": -58.004948508861176,
+   "spread_points": 58.76192743093783
+  },
+  {
+   "hold": 8,
+   "entry_hour": 13,
+   "markets": 9,
+   "n_per_market": 5198,
+   "edge": -0.15423329760692608,
+   "t": -0.7073304449765664,
+   "positive": 4,
+   "points": -39.826969307457375,
+   "spread_points": 63.39631606298547
+  }
+ ],
+ "by_hold": [
+  {
+   "hold": 2,
+   "cells": 18,
+   "mean": 0.11602149867796302,
+   "best": 0.4950514028176866,
+   "best_t": 2.7133107939663086,
+   "best_hour": 7,
+   "points": 4.36010587510712,
+   "spread_points": 61.571655026314424
+  },
+  {
+   "hold": 3,
+   "cells": 16,
+   "mean": 0.07336607262068556,
+   "best": 0.7166495438913278,
+   "best_t": 2.6994009252028133,
+   "best_hour": 7,
+   "points": -2.8250594716988013,
+   "spread_points": 61.43692806872682
+  },
+  {
+   "hold": 4,
+   "cells": 14,
+   "mean": -0.04992430545111245,
+   "best": 0.4980083718584831,
+   "best_t": 1.5782939644873186,
+   "best_hour": 7,
+   "points": -10.953715418321172,
+   "spread_points": 61.123652544787475
+  },
+  {
+   "hold": 6,
+   "cells": 10,
+   "mean": -0.1213121103825034,
+   "best": 0.18915128572526466,
+   "best_t": 0.7640714091760797,
+   "best_hour": 7,
+   "points": -28.14328375461603,
+   "spread_points": 61.14897766821038
+  },
+  {
+   "hold": 8,
+   "cells": 6,
+   "mean": -0.2248138225405701,
+   "best": -0.07330295790990485,
+   "best_t": -0.2772521564453005,
+   "best_hour": 12,
+   "points": -49.12830062481575,
+   "spread_points": 59.69500506154376
+  }
+ ],
+ "detail": [
+  {
+   "hold": 3,
+   "entry_hour": 7,
+   "edge": 0.7166495438913278,
+   "cross_t": 2.6994009252028133,
+   "positive": 8,
+   "markets": 9,
+   "n_per_market": 5221,
+   "boot_t": 4.140877387849161,
+   "boot_ci": [
+    0.38761026149079675,
+    1.0793118980608962
+   ],
+   "p_above_cost": 0.05333333333333334,
+   "skill_c7": 0.7143713744491264,
+   "skill_c7_t": 3.180858527352373,
+   "skill_c7_positive": 8
+  },
+  {
+   "hold": 4,
+   "entry_hour": 7,
+   "edge": 0.4980083718584831,
+   "cross_t": 1.5782939644873186,
+   "positive": 6,
+   "markets": 9,
+   "n_per_market": 5221,
+   "boot_t": 2.902804185116495,
+   "boot_ci": [
+    0.16981198816099918,
+    0.8344560642239857
+   ],
+   "p_above_cost": 0.0033333333333333335,
+   "skill_c7": 0.41882339204275226,
+   "skill_c7_t": 1.5133255305286955,
+   "skill_c7_positive": 4
+  },
+  {
+   "hold": 2,
+   "entry_hour": 7,
+   "edge": 0.4950514028176866,
+   "cross_t": 2.7133107939663086,
+   "positive": 9,
+   "markets": 9,
+   "n_per_market": 5216,
+   "boot_t": 3.1162570054275713,
+   "boot_ci": [
+    0.20454150634195664,
+    0.8024007693310733
+   ],
+   "p_above_cost": 0.002,
+   "skill_c7": 0.5389329793916054,
+   "skill_c7_t": 1.9669468914913553,
+   "skill_c7_positive": 7
+  },
+  {
+   "hold": 3,
+   "entry_hour": 18,
+   "edge": 0.47334015059120627,
+   "cross_t": 3.143865101182475,
+   "positive": 9,
+   "markets": 9,
+   "n_per_market": 5187,
+   "boot_t": 3.6413858177075102,
+   "boot_ci": [
+    0.23209778400403905,
+    0.7450704258192223
+   ],
+   "p_above_cost": 0.0,
+   "skill_c7": 0.45733303196785446,
+   "skill_c7_t": 2.1771505901308172,
+   "skill_c7_positive": 7
+  },
+  {
+   "hold": 2,
+   "entry_hour": 18,
+   "edge": 0.45036760067533144,
+   "cross_t": 3.5618730160267904,
+   "positive": 9,
+   "markets": 9,
+   "n_per_market": 5189,
+   "boot_t": 4.053961879263192,
+   "boot_ci": [
+    0.23471009075339042,
+    0.6691714518830553
+   ],
+   "p_above_cost": 0.0,
+   "skill_c7": 0.46933760774249467,
+   "skill_c7_t": 2.9518057467027736,
+   "skill_c7_positive": 8
+  }
+ ],
+ "viable": 0,
+ "manifest": {
+  "git": {
+   "commit": "70a568bc3c2b25b39c489a2d7fb1996e595ff27b",
+   "dirty": true,
+   "branch": "claude/order-position-choch-gab-im08db"
+  },
+  "config_hash": "cf48a02af2d29369",
+  "config": {
+   "holds": [
+    1,
+    2,
+    3,
+    4,
+    6,
+    8,
+    12
+   ],
+   "seed": 17
+  },
+  "data": {
+   "XAUUSD_H1_2003_2026.parquet": {
+    "sha256": "ae710b32d3326c2eb3c199d631dad6b81e12c8f766efb3c4c808283498dee2be",
+    "bytes": 9419126,
+    "mtime": "2026-09-12T11:38:54.185326+00:00"
+   },
+   "XAGUSD_H1_2003_2026.parquet": {
+    "sha256": "b2d6e6d9a0256b6c9d78795fdc69b930700d5cb4581234a383348c7796662643",
+    "bytes": 5081235,
+    "mtime": "2026-09-13T11:42:42.240180+00:00"
+   },
+   "EURUSD_H1_2003_2026.parquet": {
+    "sha256": "3c77446c21a6f721a6573ee273b9c2b2512ae564af796acad0991bb4a40496e5",
+    "bytes": 7277380,
+    "mtime": "2026-09-13T12:01:35.988187+00:00"
+   },
+   "GBPUSD_H1_2003_2026.parquet": {
+    "sha256": "1866bfa7d9450944447823b31f007d0160fa0be83ff6010bcaaaf9b3ff21f745",
+    "bytes": 7559567,
+    "mtime": "2026-09-13T12:19:17.832193+00:00"
+   },
+   "USDJPY_H1_2003_2026.parquet": {
+    "sha256": "432ebeba1bf63e5d498ed5635cfc1d3de5b48855f771c940e5913c5ee4a25120",
+    "bytes": 6480684,
+    "mtime": "2026-09-13T12:35:44.760199+00:00"
+   },
+   "AUDUSD_H1_2003_2026.parquet": {
+    "sha256": "240dd03bd5471fd236f7e0f50f369838140f20ccfc3c2307bcc083592e35e7fd",
+    "bytes": 6614434,
+    "mtime": "2026-09-13T12:54:33.816206+00:00"
+   },
+   "USDCHF_H1_2003_2026.parquet": {
+    "sha256": "7e3b7c1afbd26e110a332d5c920995b7e1ed553a35b2668d2ebdb318a561ea9a",
+    "bytes": 6942513,
+    "mtime": "2026-09-13T13:12:10.680212+00:00"
+   },
+   "USDCAD_H1_2003_2026.parquet": {
+    "sha256": "b7c89d032b1b9fac27a89110879c82f6bb1a083fd8179587057afb1c064e4f84",
+    "bytes": 6702097,
+    "mtime": "2026-09-13T16:00:17.360274+00:00"
+   },
+   "NZDUSD_H1_2003_2026.parquet": {
+    "sha256": "aa33ba9d2b5eaa856acd168224318183e725fb41e8a1519b43597a7af2ec085e",
+    "bytes": 6189965,
+    "mtime": "2026-09-13T16:18:22.344281+00:00"
+   }
+  }
+ }
+}

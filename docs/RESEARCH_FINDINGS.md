@@ -581,6 +581,14 @@ leveraged index fund and no code. The signal is the part that loses money.
 
 ## Smart-money entries, tested as entries
 
+> **The `skill` column in this table is measured against a flattering control
+> and should not be used.** Its random control drew direction at random rather
+> than matching each rule's own per-market long/short mix, so each market's
+> drift was credited to the signal. Re-measured with a matched control, the
+> CHoCH+FVG row moves from +0.0293 to **−0.0748**. See *Three CHoCH + FVG
+> setups, and a control bug in the table above* at the end of this file. The
+> other eight rows have not yet been re-measured.
+
 CHoCH and order blocks had only ever been tested as a *filter* on an EMA cross.
 BOS, fair value gaps, liquidity sweeps and every multi-timeframe combination had
 not been tested at all. `research/smc_entry_test.py` tests nine of them
@@ -746,3 +754,1448 @@ Both M5 and M15 agree in sign and rough size with the QuantConnect
 measurement (-0.2152 R on 5,326 minute-resolved signals), which is the useful
 part: the chart-bar approximation did not rescue the rule, it just measured it
 with a hundredth of the sample.
+
+---
+
+## Three CHoCH + FVG setups, and a control bug in the table above (2026-09-10)
+
+`research/choch_fvg_three_setups.py`. The CHoCH+FVG row in the smart-money
+table was measured once, one way: entry at the close of the bar that re-enters
+the gap, on H1, with no higher-timeframe context. Three things were never
+varied, and each is something this repo had separately named as a reason
+intraday results die — the fill, the horizon, and the direction filter.
+
+Predictions were written before the run and are in the script's docstring.
+
+### The calibration row found the real result
+
+Nothing was read until the harness reproduced a number the repo already had.
+Re-measuring the exact configuration `smc_entry_test.py` reported:
+
+| | E | skill |
+|---|---|---|
+| recorded in `smc_entry_test.py` | −0.0943 | **+0.0293** |
+| reproduced here | −0.1189 | — |
+| …against a **random-direction** control (the old method) | | **+0.0312** |
+| …against a **direction-matched** control (the correction) | | **−0.0748** |
+
+The expectancy reproduces. The skill does not, and the entire difference is the
+control. `smc_entry_test.py` drew its control's direction at random; matching
+each market's own long/short mix — the correction `gold_only_search.py` had to
+make for exactly this reason — moves CHoCH+FVG from a small positive skill to a
+**negative** one.
+
+The aggregate signal mix is 50.9% long, so the bias is not in the pooled
+direction count. It is **per market**: a market whose signals were 70% long was
+being compared against a 50/50 control, and that market's own drift arrived as
+skill. Pooling hides it; the matched control removes it.
+
+**This invalidates the skill column of the nine-rule table above, not just this
+row.** All nine used the random-direction control. That includes the liquidity
+sweep at +0.0786 — the strongest candidate this program ever produced, and the
+source of the only skill reading above 2 anywhere in it. Re-measuring those
+nine against a matched control is now the highest-value open task in the repo,
+and the prior should be that they move the same way this one did.
+
+### The three setups
+
+27 CME futures. S1 and S3 hourly over 730 days, S2 daily over 20 years. Cost
+2bp of price per leg round turn charged on every leg, 1R = 2.0×ATR(14), three
+legs at 1R/2R/3R with break-even after leg one. Controls are matched on count,
+direction mix and — for S1 — entry mechanics, pooled over ten draws.
+
+| setup | n | E | t | skill | skill t | mkts+ |
+|---|---|---|---|---|---|---|
+| S0 close entry (calibration) | 7,534 | −0.1189 | −3.04 | −0.0748 | −1.84 | 11/27 |
+| S1 gap-edge limit entry, H1 | 6,570 | −0.1158 | −2.74 | −0.0848 | −1.93 | 10/27 |
+| S2 CHoCH+FVG, daily, 20y | 3,555 | +0.0822 | +1.42 | **−0.1650** | **−2.74** | 8/27 |
+| S3 daily Donchian gate + H1 | 4,021 | −0.1018 | −1.90 | −0.1013 | −1.83 | 10/27 |
+
+Against the pre-registered readings:
+
+**S1 — the fill was never the problem.** A limit at the far gap edge fills on
+67.2% of signals and improves the entry price on every one of them, and skill
+gets *worse*, not better. The 32.8% that expire unfilled are not a random
+subset: they are the signals price walked away from, which is the half a
+directional edge would want to keep.
+
+**S2 — the family is retired.** Daily is the horizon where this repo's only
+survivor lives, and cost per R falls about fivefold. E goes positive (+0.0822)
+and skill goes to −0.1650 at t = −2.74 — past the three-test Bonferroni bar of
+2.39, in the wrong direction. That positive E is the twenty-year drift of a
+futures book, and the entry rule **subtracts** from it. This is the same shape
+`universe_trend_test.py` found on 199 equities, where a Donchian rule reached
+t = +4.33 while being measurably worse than darts.
+
+**S3 — the gate contributes nothing the gate did not already have.** Direction
+from daily Donchian-55, timing from CHoCH+FVG: skill −0.1013. The gate raises E
+relative to ungated H1 (−0.1018 against −0.1189) and skill falls, which is
+precisely the pattern the direction-matched control exists to expose. The trend
+filter works; letting CHoCH+FVG choose the moment inside it costs money.
+
+All three are negative, and all three are negative on the market count as well
+as the pooled t — 8 to 11 markets of 27 beat their own control, where chance is
+13.5.
+
+**Consequence:** no new setup is enabled. The CHoCH + FVG family is closed on
+this evidence, and the smart-money table above is now known to be measured
+against a flattering control.
+
+---
+
+## Short-Term Setup 01: sweep → CHoCH → displacement → FVG (2026-09-10)
+
+`research/dobby_setup01_sweep_chain.py`. The full four-stage smart-money chain,
+specified completely before any Pine was written, with every stage parameter
+taken from the EA's own defaults where one exists (`InpSweepMinPenATR`,
+`InpMinBreakATR`, `InpMinBodyATR`, `InpMinCloseLocation`, `InpDisplacementLookback`).
+Stop beyond the sweep extreme + 0.10 ATR, three legs at 1R/2R/3R, break-even
+after leg one, entry on a resting limit at the proximal edge of the gap.
+
+**The setup is fully mechanisable.** That part of the design instinct is right:
+every stage is a closed rule with no discretion in it, and it went from
+description to running code without a single judgement call. The problem is
+somewhere else.
+
+### It does not fire often enough to be a short-term system
+
+| | bars | trades | trades/year | MDE |
+|---|---|---|---|---|
+| gold M15 (60d, Yahoo's limit) | 4,541 | 5 | 25.7 | 5.02 R |
+| gold H1 (730d) | 13,729 | 10 | **4.2** | 2.55 R |
+| gold D1 (20y) | 5,030 | 3 | 0.2 | 3.73 R |
+
+Four trades a year on H1. The smallest true edge those samples could detect at
+80% power is 2.5 to 5.0 R per trade — an effect that large has never existed in
+any market. **These rows cannot fail to be inconclusive**, and reporting their
+expectancy would be reporting noise.
+
+### The funnel says exactly where the sample goes
+
+Consistent across all three gold timeframes and across 27 futures:
+
+| stage | kept |
+|---|---|
+| 1 sweep | — |
+| 2 + CHoCH within 12 bars | **8–13%** |
+| 3 + displacement within 5 bars | 79–85% |
+| 4 + displacement leaves an FVG | **28–40%** |
+| 5 + stop inside 4 ATR | 86–93% |
+| 6 + limit actually filled | **34–50%** |
+
+Three stages each cut by roughly two thirds to nine tenths. End to end, **0.8%
+of sweeps become trades** — 26,185 sweeps across 27 markets and two years leave
+217 positions. The sweep→CHoCH step is the dominant filter, and the FVG
+requirement and the unfilled-limit rate are the other two.
+
+### The ablation: no stage can be shown to earn its place
+
+27 futures, H1, 730 days, **zero cost**, run only because gold alone cannot
+reach a usable sample. Identical stop, identical ladder, identical matched
+control at every depth — the rows differ only in how late they commit.
+
+| depth | n | E | skill | skill t | MDE |
+|---|---|---|---|---|---|
+| 1 sweep only | 18,187 | −0.091 | +0.051 | +1.89 | 0.07 |
+| 2 + CHoCH | 1,160 | +0.001 | +0.019 | +0.20 | 0.25 |
+| 3 + displacement | 883 | +0.039 | +0.035 | +0.33 | 0.29 |
+| 4 + FVG limit (full setup) | 217 | +0.296 | **+0.296** | +1.25 | **0.64** |
+
+The skill point estimate does rise with depth, from +0.05 to +0.30. **The MDE
+rises faster**, from 0.07 to 0.64. At the full depth the measured skill is
+*smaller than the smallest effect the sample could detect* — so the honest
+reading of +0.296 is not "promising", it is "unmeasurable". No row clears the
+four-test Bonferroni bar of 2.50, and none clears a plain 2.
+
+The one row with real statistical resolution is stage 1 alone: 18,187 trades,
+MDE 0.07, skill **+0.051 at t = +1.89**. Under the corrected matched control
+the liquidity sweep is the only smart-money primitive in this repo that has
+*not* collapsed — CHoCH+FVG went from +0.029 to −0.075 under the same
+correction. It is still under the bar, and this is a different stop and cost
+configuration than the +0.0786 recorded earlier, so it is not a like-for-like
+replacement of that number. But it did not flip sign, and nothing else has
+managed that.
+
+> **SETTLED, at real cost — `research/liquidity_sweep_crossmarket.py`.** The
+> numbers in this section were measured at **zero cost**, which is why they
+> could not answer the only question that mattered. Re-run on 9 markets, H1,
+> 2004–2026, **43,198 trades at real Dukascopy bid/ask**, entry at the entry
+> bar's open, against the same matched random-timing control:
+>
+> | | zero cost (this section) | real bid/ask |
+> |---|---|---|
+> | expectancy | −0.091 | **−0.1040** (block t −21.75) |
+> | skill | +0.051 (t +1.89) | **+0.0283**, positive on **9 of 9** markets |
+>
+> **The sign holds.** That settles the contradiction against
+> `choch_fvg_three_setups.py`, which claimed a sign flip had disqualified this
+> rule; that line was wrong and is corrected in the source. The sweep's skill
+> is real, small, and consistent across every market tested.
+>
+> It is dead anyway, and for a reason zero-cost measurement structurally
+> cannot see: **the skill is worth about a quarter of the spread it has to
+> pay.** Beating a random-timing control by +0.028R while losing 0.104R per
+> trade is a fact about the control, not a reason to trade. A calibration run
+> on an information-free random walk passed first (E −0.0749 ≈ the spread,
+> skill +0.0104 ≈ none) and caught a real bug in the process.
+>
+> Recorded REJECTED as `liquidity_sweep_stage1_realcost_crossmarket`.
+
+
+### Spread
+
+Gold H1, the same 10 trades: E −0.327 at $0.26, −0.471 at $0.7525. The spread
+question is worth about **0.14 R per trade** here. That is the right order of
+magnitude to care about — and it is not what is wrong with this setup.
+
+### Consequence
+
+Not implemented as a Dobby setup, and no Pine written. The blocker is frequency,
+not a measured absence of edge: at 4 trades a year on H1 the question cannot be
+asked at all. Two things would change that, in order of value:
+
+1. **Minute data.** Yahoo caps M15 at 60 days. The QuantConnect path already in
+   `research/qc_*.py` reaches XAUUSD minute bars, which is the only way to get
+   an M15/M5 sample large enough to test this chain on gold specifically.
+2. **Drop stage 4.** The ablation already measures it: entering at the
+   displacement close instead of waiting for an FVG retrace takes n from 217 to
+   883 at the same stop. Neither is significant, so this is a way to *reach* a
+   testable sample, not a result.
+
+---
+
+## Why "gold only has to move $1 to cover the spread" does not rescue it (2026-09-10)
+
+`research/cost_vs_exit_decomposition.py`. The objection is correct on its own
+terms and it deserved a measurement rather than a restatement of the earlier
+conclusion. A trade's expectancy decomposes into three independent parts —
+information in the entry, the structural return of the exit design, and the
+cost — and every earlier file here measured only the sum.
+
+### The spread really is small now
+
+| M15 ATR | 1R at 1.8×ATR | $0.26 as R | $0.7525 as R |
+|---|---|---|---|
+| $1.14 (2018) | $2.05 | 0.127 | 0.367 |
+| $2.58 (15y mean) | $4.64 | 0.056 | 0.162 |
+| $5.44 (2025) | $9.79 | 0.027 | 0.077 |
+| $11.35 (2026) | $20.43 | **0.013** | **0.037** |
+
+At 2026 volatility the spread is 1–4% of R. **The "cost kills intraday" finding
+in this file was formed when gold's ATR was a quarter of what it is now**, and
+that conclusion has quietly expired. The premise in the question is right.
+
+### The exit ladder is not a hidden tax either
+
+The hypothesis was that the 3-leg ladder charges its own toll. Measured on
+random entries at zero cost — a random entry has no information, so whatever
+comes back is the design's own return:
+
+| exit design | 8 markets, H1, n | E per leg | t |
+|---|---|---|---|
+| 1 leg 1R | 19,857 | −0.0101 | −1.43 |
+| 1 leg 2R, BE at 1R | 17,996 | −0.0133 | −1.32 |
+| 1 leg 3R | 17,020 | +0.0188 | +1.56 |
+| **3 legs 1/2/3, BE at 1R** | 17,902 | **+0.0012** | **+0.15** |
+| trail 2 ATR, BE at 1R | 19,893 | **+0.0336** | **+4.45** |
+| stop + time only | 16,299 | +0.0244 | +1.72 |
+
+The ladder is fair. The hypothesis was wrong.
+
+### So the decomposition resolves to something harsher
+
+```
+entry contributes   ~0.00    no rule in this repo has beaten this
+exit  contributes   ~0.00    measured above
+cost  contributes   -0.015 to -0.045 per leg
+```
+
+and that sum is exactly the loss every test here reports. **The whole loss is
+the spread — not because the spread is large, but because the other two terms
+are zero.** Covering a $0.26 spread does not require a big edge; it requires
+the entry to call direction better than a coin. The bar is low and nothing has
+cleared it. That is the answer to the question, and it is worse news than "the
+spread is too big", because a shrinking spread does not fix it.
+
+### The one replicated positive is in the exit, not the entry
+
+Trail 2 ATR with break-even, on **random** entries, eight markets: +0.0336 at
+t = +4.45. A stop caps the loss while a trend lets the winner run, so the
+asymmetry needs no forecast at all. It is also about the size of the spread it
+must pay, which makes it a lead rather than a system — but it is the only thing
+in this program that replicates across markets without an entry rule attached.
+
+---
+
+## A wide tuned grid across M5–H1, and what its best cell is worth (2026-09-10)
+
+`research/multi_tf_setup_grid.py`. 11 entry families × parameter variants ×
+4 exit designs × 2 stop multiples × 4 timeframes (M5, M15, M30, H1) on gold —
+631 cells that cleared a 30-trade floor. Every cell has its own matched control
+using **the same exit**, so the skill column measures what the entry knows with
+the exit's own return divided out.
+
+Reporting the winner of a 631-cell search is how overfit systems get built, so
+the run reports the distribution instead:
+
+| | observed | pure noise |
+|---|---|---|
+| mean skill t | +0.224 | 0.00 |
+| sd of skill t | 0.907 | 1.00 |
+| cells with \|t\| > 2 | 21 | 28.7 |
+| best t | **+2.813** | — |
+| expected max of 631 draws | — | **+3.591** |
+
+**No cell clears the line.** The best configuration in the entire grid — EMA
+9/21 on M30 with a stop-and-time exit, n = 44 — is smaller than what the maximum
+of 631 noise draws looks like. Nothing was re-tested cross-asset because there
+was nothing to re-test. The top of the table is dominated by M30 cells with
+n between 33 and 144, which is what a search returns when it is ranking
+sampling error.
+
+### The bug this grid produced first, and how it was caught
+
+The first run reported Bollinger fade + trailing stop at t = +3.89 on gold,
+clearing the line, and confirming cross-asset at **9 of 9 markets, skill +0.152,
+Stouffer Z = +15.0** — per-market t from +2.8 to +6.8. That is not a discovery,
+it is the size of number this repo has learned to distrust on sight.
+
+Run on a driftless random walk built from 24 sub-steps per bar, the same cell
+returned +0.009. The harness was fair; the interaction was not. **The trailing
+stop was seeded from the entry bar's own high or low.** A fade entry closes near
+the bar's extreme by construction, so the seeded stop sat much closer than
+`entry ∓ risk` while R stayed denominated on the nominal ATR multiple — capping
+the loss below −1R with no offsetting reduction in the win. Free asymmetry,
+worth +0.15R, and it selected exactly the mean-reversion families to the top of
+the table.
+
+Denominating R on the *actual* seeded stop instead only moved the problem: that
+stop can land at or beyond the entry, the divisor goes to zero, and expectancy
+blows up to **+5.9R a trade**. The design is not well posed until the trail
+starts one bar after entry. Fixed there. The same cell then reads +0.033 at
+Stouffer Z = +2.13, and the grid's best t falls from +3.89 to +2.81 — under the
+line.
+
+This is the third control-or-harness bug in this program that manufactured a
+result large enough to look like a discovery (after the random-direction control
+and the inverted stops in `backtest_dobby_indicator.py`). The rule that caught
+all three is the same one: **calibrate on data whose answer you already know
+before reading any number you like.**
+
+---
+
+## What I would actually trade, and what it does on gold (2026-09-10)
+
+`research/principles_backtest_gold.py`. Asked what principles I would trade on,
+rather than which indicator, the answer follows from what this repo has already
+measured — and the first principle contradicts the entire preceding search.
+
+**P1 — do not forecast direction.** 16 rounds, ~47 configurations, 9 smart-money
+entries, a 631-cell grid over 11 families and 4 timeframes. Not one entry rule
+has cleared a multiple-comparison bar against a matched control. The response to
+that much evidence is to stop paying for forecasts, not to buy a better one.
+
+**P2 — the measured asymmetry is in the exit.** A 2-ATR trailing stop with
+break-even, on *random* entries at zero cost, returns +0.0336R at t = +4.45
+across eight markets. Only thing here that replicates without an entry rule.
+
+**P3 — trade the horizon where the effect is.** Daily trend across 27 futures:
++0.2232R, 20/27 markets, p = 0.0096. Hourly, same rules, same markets: −0.2670R
+at t = −6.23.
+
+**P4 — size for the drawdown, not the target.** The only lever that ever moved
+drawdown in fifteen years of testing.
+
+**P5 — believe nothing that has not beaten a matched random control.** Three
+bugs in this program manufactured discovery-sized numbers; all three died here.
+
+### Gold D1, 20 years. Buy and hold: +10.6%/yr, max drawdown 44.4%
+
+Sized so every rule takes the **same drawdown budget buy and hold took** — the
+only basis on which two return numbers can be compared:
+
+| trigger | exit | /yr | E | skill | skill t | CAGR @ 44.4% DD |
+|---|---|---|---|---|---|---|
+| **Donchian 55 both** | trail 2ATR + BE | 8.6 | +0.441 | +0.137 | +1.17 | **+41.4%** |
+| **Donchian 55 long** | trail 2ATR + BE | 5.6 | +0.594 | +0.254 | +1.64 | **+41.3%** |
+| Donchian 55 long | trail 3ATR + BE | 4.4 | +0.762 | +0.283 | +1.25 | +32.2% |
+| trend zone (EA D) | trail 2ATR + BE | 5.8 | +0.473 | +0.181 | +1.18 | +26.6% |
+| **no view (long every 20th bar)** | trail 2ATR + BE | 10.8 | +0.395 | +0.041 | +0.38 | **+28.9%** |
+| above SMA200 | trail 2ATR + BE | 2.8 | +0.314 | +0.013 | +0.07 | +6.5% |
+
+On H1 over 2.4 years (gold +29.2%/yr, DD 29.0%) the ordering is the same and
+larger: Donchian 55 long + trail 2ATR reaches +117.6%, and **no view at all
+reaches +102.9%**.
+
+### Read the "no view" row before anything else
+
+A rule with **no opinion whatsoever** — long every twentieth bar — delivers
++28.9% against buy and hold's +10.6% on the same drawdown budget, at skill
+t = +0.38. That row is the control for this entire table. It says most of what
+the good rows earn comes from the **exit and the sizing**, not from the trigger:
+truncate the loss, let the winner run, then use the drawdown you saved as
+leverage headroom.
+
+Donchian 55 does beat it — 41.3% against 28.9% — and beats it in **both halves**
+of the twenty years (+37.0% / +29.6% against +13.1% / +20.8%), with the required
+risk fraction stable to within 1.7× between halves. That is the most robust
+thing found anywhere in this program.
+
+### And it is still not skill
+
+Best skill t in the table is **+1.77**, against an expected-max line of 2.45 for
+20 cells. Nothing here demonstrates that any trigger knows where gold is going.
+What the table shows is **beta harvested well**: gold rose, a channel breakout
+keeps you in the large up-moves and out of the deep retracements, a trailing
+stop truncates the rest, and sizing converts the saved drawdown into return. It
+spends exactly like alpha and it is not alpha — it stops working the moment gold
+stops trending, and nothing in this table would warn you.
+
+Two limits that are not optional reading:
+
+- **The risk fractions are not offers.** Reaching those returns needs 8–14% of
+  equity risked per trade on D1. `ACCOUNT_SCALING.md` shows a small account is
+  already floored near 2% by the minimum lot at current gold volatility. The
+  column is arithmetic, and the account is the binding constraint.
+- **CAGR@BH-DD is built on maximum drawdown**, which is one observation — the
+  worst one — and the least reproducible statistic in any backtest. The split
+  sample is in the script output precisely because sizing to a historical max
+  drawdown is how accounts are destroyed.
+
+**Consequence:** no change to the EA's defaults on this evidence. `trail 2ATR +
+BE` outperformed `8R target + time` on risk-adjusted return in almost every row
+of both tables, which makes the exit — not another entry rule — the one part of
+`Config.mqh` worth revisiting next.
+
+---
+
+## M15 gold, six years: a signal that turned out to belong to the data source (2026-09-10)
+
+`research/fetch_m15_gold.py`, `research/m15_regime_search.py`. Every M15 result
+in this repo rested on one 60-day window, because Yahoo caps 15-minute data at
+60 days and returns HTTP 422 for any older request. That is why the M15 rows
+everywhere above came back with samples too small to conclude from.
+
+**Fixed by changing source.** PAX Gold (PAXG/USDT on Binance) is a token
+redeemable for allocated London gold, and the exchange serves six years of
+15-minute bars: **149,777 bars after removing the hours the metal is shut**,
+about 40× the previous sample. Validated before use — resampled to H1 against
+GC=F over Yahoo's two-year overlap: level correlation 0.9997, **return
+correlation 0.9041**, mean premium −0.50%.
+
+### The hypothesis came from reading charts, and it failed
+
+Five consecutive M15 charts showed the obvious thing: some two-day windows
+trend cleanly and some are pure range, and the range ones stop out every
+breakout. So the tested claim was that a **regime filter** — Kaufman efficiency
+ratio, ATR expansion, session hours — decides which window you are in. Never
+tested anywhere in this program.
+
+Discovery half 2020-08 → 2023-09, holdout 2023-09 → 2026-09, **split fixed
+before any result was seen.** 151 cells.
+
+| entry + exit | regime | disc skill | disc t | hold skill | hold t |
+|---|---|---|---|---|---|
+| sweep 20 + 3leg | **any** | +0.070 | +2.75 | +0.006 | +0.24 |
+| | ER32 ≥ 0.40 | +0.127 | +1.27 | −0.067 | −1.06 |
+| | ER96 ≤ 0.20 | +0.069 | +2.67 | +0.027 | +1.06 |
+| | ATR exp ≥ 1.2 | +0.098 | +2.20 | −0.029 | −0.69 |
+| | London+NY | +0.053 | +1.80 | −0.025 | −0.88 |
+
+**No regime filter beats "any"**, in either half. The trend-regime filters —
+the ones the charts suggested — are the *worst* rows in the holdout. The
+hypothesis is dead.
+
+Across the whole grid: mean skill t **−1.330**, best +2.753 against an
+expected-max line of +3.168. **Nothing cleared it.** The top three, carried to
+the holdout anyway and labelled as failed, decayed +2.75 → +0.24, +2.67 → +1.06,
++2.54 → **−1.88**.
+
+### M15 breakouts are not neutral, they are adverse
+
+| Donchian 48, trail 2ATR | n | E | skill | t |
+|---|---|---|---|---|
+| breakout, discovery | 3,198 | −0.280 | −0.176 | **−9.07** |
+| breakout, holdout | 3,197 | −0.071 | −0.055 | −2.09 |
+| **fade**, discovery | 3,290 | +0.043 | **+0.185** | **+9.86** |
+| **fade**, holdout | 3,386 | −0.032 | +0.047 | +2.37 |
+
+The inversion is **antisymmetric** — −0.176 against +0.185. That is the
+signature of real directional information, and it is exactly what the Setup A
+inversion test failed to show (there both sides lost, by the spread). M15 gold
+mean-reverts, and buying a 12-hour channel break is the wrong side of it.
+
+### And then the test that ended it
+
+PAXG is a token traded on a crypto exchange. The metal is shut Friday 21:00 to
+Sunday 22:00 UTC; the token is not. An effect belonging to **gold** should be
+weaker in those hours. An effect belonging to a thin crypto book with no metal
+to arbitrage against should be stronger:
+
+| | n | win% | RR | E | skill | t |
+|---|---|---|---|---|---|---|
+| metal **open** | 6,681 | 41.4% | 1.44 | +0.005 | +0.103 | +7.55 |
+| metal **shut** (weekend) | 2,028 | 49.6% | 2.24 | +0.339 | **+0.328** | +4.84 |
+
+**Three times stronger when gold is not trading.** The mean reversion is
+substantially the token's microstructure, not gold's price discovery — which is
+also why the fade does not confirm on real XAUUSD H1, where two of three
+lookbacks flip sign.
+
+**Consequence:** no setup. The one M15 signal that survived a pre-registered
+holdout turned out to be a property of the data source, caught by a one-minute
+test. What does replicate is the negative: **M15 breakouts on gold are
+measurably worse than random** (−9.07 discovery, −2.09 holdout, and −6.23 on 26
+markets hourly in `universe_trend_test.py`). That is worth knowing and it is
+worth not trading.
+
+Settling the fade on real gold needs real XAUUSD M15 history. Yahoo will not
+serve it, and Stooq, Dukascopy and Binance direct are all unreachable from this
+environment — that is the specific blocker, not the analysis.
+
+---
+
+## At 1–5 trades a week: what is achievable, and the control this repo never ran (2026-09-10)
+
+`research/portfolio_frequency_study.py`. One instrument cannot supply that
+frequency at the horizon that works — Donchian 55 on gold daily fires 3.8 times
+a *year*. 1–5 trades a week is 52–260 a year, reachable at the daily horizon
+only through breadth. So this is a real book: 27 CME futures, 20 years, daily
+bars, trail 2 ATR with break-even, fixed fractional risk, positions held
+concurrently, and **equity marked to market every day** — compounding on exits
+alone understates drawdown badly when positions overlap.
+
+### The frequency dial is the lookback (risk 0.500% per trade)
+
+| rule | /week | E(R) | win | RR | PF | R/year | CAGR | maxDD | Sharpe | MAR | lose streak |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Donchian 200 | 2.297 | +0.123 | 0.402 | 2.005 | 1.347 | 14.678 | 0.071 | 0.167 | 0.871 | 0.425 | 20 |
+| Donchian 120 | 2.909 | +0.121 | 0.404 | 1.979 | 1.339 | 18.262 | 0.089 | 0.151 | 0.924 | 0.586 | 22 |
+| Donchian 80 | 3.449 | +0.103 | 0.398 | 1.944 | 1.288 | 18.402 | 0.088 | 0.177 | 0.850 | 0.495 | 18 |
+| **Donchian 55** | **3.921** | +0.104 | 0.405 | 1.896 | 1.293 | 21.215 | **0.102** | **0.165** | 0.928 | 0.620 | 21 |
+| Donchian 34 | 4.459 | +0.092 | 0.400 | 1.882 | 1.253 | 21.276 | 0.102 | 0.220 | 0.878 | 0.463 | 17 |
+| Donchian 20 | 4.884 | +0.071 | 0.391 | 1.855 | 1.189 | 18.051 | 0.084 | 0.247 | 0.731 | 0.340 | 19 |
+
+Risk is the only lever on drawdown, exactly as recorded fifteen years ago:
+
+| Donchian 55 at | CAGR | maxDD |
+|---|---|---|
+| 0.250% | 0.052 | 0.087 |
+| 0.500% | 0.102 | 0.165 |
+| 1.000% | 0.197 | 0.302 |
+| 2.000% | 0.360 | 0.510 |
+
+Breadth buys frequency and costs smoothness:
+
+| markets | /week | CAGR | maxDD | Sharpe | MAR |
+|---|---|---|---|---|---|
+| 1 | 0.165 | 0.019 | 0.023 | 2.008 | 0.854 |
+| 3 | 0.519 | 0.042 | 0.056 | 1.446 | 0.747 |
+| 6 | 0.995 | 0.066 | 0.086 | 1.303 | 0.769 |
+| 12 | 1.920 | 0.090 | 0.111 | 1.130 | 0.815 |
+| 27 | 3.921 | 0.102 | 0.165 | 0.928 | 0.620 |
+
+### The control this repo never ran on its own headline
+
+`universe_trend_test.py` reported Donchian 55 daily at +0.2232R, 20 of 27
+markets, binomial p = 0.0096, and that result has stood as the one survivor of
+the whole program. **It was never measured against a random control.** The
+random control in that file was run on the 199-equity leg, where it beat the
+rule; the futures leg was never asked "compared to what?"
+
+Asked now, with matched count and matched direction mix per market:
+
+| | E(R) | CAGR | maxDD | Sharpe | MAR |
+|---|---|---|---|---|---|
+| Donchian 55 | +0.105 | 0.117 | 0.171 | 0.937 | 0.682 |
+| **matched direction, random timing** | **+0.133** | **0.181** | **0.139** | **1.678** | **1.296** |
+| random direction, random timing | +0.054 | 0.069 | 0.283 | 0.755 | 0.244 |
+
+**The rule loses to its own control on every measure** — lower expectancy,
+lower return, deeper drawdown, half the MAR. And it is not the concurrency cap:
+removing it entirely widens the gap (rule MAR 0.682 against 1.296).
+
+The harness reproduces the number it is contradicting, which is why this is
+reported rather than debugged: run with `universe_trend_test.py`'s own settings
+(3 legs 1/2/3, 60-bar hold, zero cost) it returns **+0.1852R at t = +2.86, 21 of
+27 markets** against the recorded +0.2232R at t = +2.48, 20 of 27 — the same
+result on a 20-year span instead of 10.
+
+### Which half of the rule is wrong
+
+The three-way split above separates them. Row B keeps Donchian's direction mix
+and randomises only *when*; row C randomises both. B beats C by a wide margin
+(+0.133 against +0.054, MAR 1.296 against 0.244), so **the direction call
+carries real information**. B also beats A, so **waiting for the channel break
+before acting destroys more than the break is worth.**
+
+**Caveat that matters:** row B is a benchmark, not a strategy. Its direction
+sequence is the realised one, known only afterwards, so it is not tradeable as
+written. What it licenses is a testable claim — enter on the trend *state*
+rather than at the moment of the breakout — not a system.
+
+**Consequence:** the repo's last standing edge is now a rule that underperforms
+random timing at the same direction. What survives the control is the book
+itself: breadth, a trailing exit, and sizing. That is the third time in this
+program the answer has landed there.
+
+---
+
+## Wick-tip entries: tuned, held out, and killed by the durability check (2026-09-10)
+
+`research/wick_tip_tuner.py`. "Trading the tip of the wick" done properly: a
+resting limit at the prior N-bar extreme ± k×ATR, filled when a spike wicks
+through it, stop beyond the fill, target a multiple of it. 306 configurations
+tuned on the first 40 of Yahoo's 60 M5/M15 days, with the last 20 held back —
+the split fixed by date before the first run.
+
+### Three harness bugs, in order, each one worth a fake result
+
+| bug | what it did | win rate it produced |
+|---|---|---|
+| fill bar skipped entirely | the spike that reached the limit could keep going and take the stop out in the same candle; those were booked as live trades | **0.743** |
+| whole fill bar tested | the bar's HIGH may print *before* the wick down that fills you, so it booked wins on prices that happened while still flat | **0.778** |
+| trades allowed to overlap | positions sharing a price path are not independent observations, and every t-statistic is inflated | t = 13.655 |
+
+With OHLC alone the path inside a bar is unknowable, so the fill bar is now
+tested for the **stop only** — the pessimistic reading — and `busy` is set to
+the exit bar.
+
+### After the fixes, the held-out window looked genuinely good
+
+| config (held out, 20 days) | n | win | RR | PF | E(R) | E($) | t |
+|---|---|---|---|---|---|---|---|
+| M5 look=24 off=1.0 sl=1.0, spread 0.26 | 49 | **0.633** | 1.374 | **2.366** | +0.528 | +$2.792 | 3.037 |
+| …same at spread 0.7525 | 49 | 0.633 | 1.166 | 2.008 | +0.427 | +$2.299 | 2.455 |
+| …its random control | 376 | 0.335 | 1.361 | 0.686 | −0.220 | −$1.083 | −3.621 |
+
+**All six held-out configs positive, all six controls negative.** That is not
+one lucky cell, and at this point it was the most promising thing in the repo.
+
+### The durability check ended it
+
+Same rules on six years of M15 (PAX Gold, metal-open hours), split into three
+eras, spread $0.7525:
+
+| config | era | n | E(R) | control E(R) | skill |
+|---|---|---|---|---|---|
+| look=24 off=1.0 sl=1.0 tp=1.5 | 2020-08→2022-08 | 1,050 | −0.041 | −0.333 | **+0.292** |
+| | 2022-09→2024-08 | 1,301 | −0.273 | −0.329 | +0.056 |
+| | **2024-09→2026-09** | 1,575 | −0.231 | −0.146 | **−0.085** |
+| look=24 off=0.5 sl=1.5 tp=1.0 | 2020-08→2022-08 | 1,981 | +0.087 | −0.153 | +0.240 |
+| | 2022-09→2024-08 | 2,247 | −0.096 | −0.174 | +0.078 |
+| | **2024-09→2026-09** | 2,619 | −0.161 | −0.117 | **−0.044** |
+
+Two things settle it. **Expectancy is negative in eleven of twelve era-cells** —
+the rule never made money over six years, even where it beat its control. And
+the skill **decays monotonically and flips negative in the most recent era**,
+which is the era the flattering 60-day holdout sits inside. A 49-trade window
+inside a two-year stretch where the rule is worse than random is a lucky slice,
+not a discovery.
+
+The sign flip between horizons and eras is the same signature that has now
+disqualified every candidate in this program.
+
+**Caveat kept deliberately:** the six-year series is PAX Gold, not XAUUSD, and
+this repo has already recorded that its M15 mean reversion is partly the
+token's own microstructure. That weakens the durability test — but it weakens
+it toward *more* apparent edge, not less, and the recent era still comes out
+negative. Settling it properly needs real XAUUSD M15 history, which remains the
+one blocker this analysis cannot route around.
+
+**Consequence:** not implemented. The tuned parameters are in the script for
+anyone who wants to re-run them against real broker data.
+
+---
+
+## CORRECTION: the wick-tip setup's positive results were a look-ahead bug (2026-09-10)
+
+Every positive number reported for the wick-tip setup in this session — the
+tuned-and-held-out result, the 60-day full statistics, the finer-tuned winner,
+and the "skill survives an exit swap across six years" finding — **is void.**
+They shared one filter, `wick_min`, and that filter is a look-ahead bug.
+
+### The bug
+
+`trades_limit()`'s `wick_min` required the fill bar's own tail-to-range ratio
+— `(body bottom − low) / (high − low)` for a long — to clear a threshold before
+the trade counted. The fill price is the bar's **low** (or near it), touched
+**mid-bar**. The tail ratio needs the bar's **close**, known only once the bar
+finishes. Gating a mid-bar fill on that same bar's end-of-bar shape means every
+accepted trade had already enjoyed that bar's own recovery from low to close —
+for free, before the position's forward-looking outcome is even evaluated. A
+live system cannot know a bar will close near its high before it closes; this
+harness quietly did.
+
+### How it was caught
+
+This repo's standing practice — calibrate on a driftless random walk at zero
+cost before trusting any number — was applied to the fresh code in
+`wick_tip_entry_skill.py` and failed loudly (E +0.35 to +1.4R on data with
+no information in it). Tracing it back, the SAME bug was in `trades_limit()`
+and `resolve()` themselves, the functions the 60-day report and the finer-tuned
+grid had been using the whole time. **That check had never been run on those
+functions before.** Every other file in this program was calibrated this way
+before its numbers were trusted; this pair was not, because it grew out of an
+already-passing 20-day holdout and no one asked "would this still say
+something on data with nothing in it."
+
+Direct confirmation, driftless walk, zero cost, three trials:
+
+| wick_min | n | E(R) |
+|---|---|---|
+| 0.00 | ~1,040 | −0.09 |
+| 0.20 | ~320 | **+0.29** |
+| 0.35 | ~177 | **+0.45** |
+| 0.45 | ~122 | **+0.55** |
+| 0.60 | ~65 | **+0.55** |
+
+Monotonic in the threshold, on data engineered to have zero edge. Confirmed
+again on the real 60-day XAUUSD data the setup was built on:
+
+| config | wick_min | n | E(R) |
+|---|---|---|---|
+| 60-day report config | 0.00 | 376 | **−0.182** |
+| | 0.35 (as reported) | 138 | +0.308 |
+| | 0.45 | 100 | +0.502 |
+| finetune winner | 0.00 | 247 | **−0.070** |
+| | 0.35 | 89 | +0.492 |
+| | 0.45 (as reported) | 62 | +0.772 |
+
+At `wick_min=0` — the only honest setting — **both configurations are
+negative**, matching every other intraday result in this program. Both
+positive numbers reported earlier this session (+0.424R for the 60-day
+report, +0.731R for the fine-tuned winner) were entirely this artefact.
+
+### What this also retracts
+
+The "durability check on the matching M5 timeframe, skill survives an exit
+swap" finding from earlier this session used `wick_min=0.35` and `0.45`
+throughout. It is also void, in full — not partially discounted, void. There
+was no informational content in the wick-tip fill; there was a filter that
+could see the future.
+
+### Fix
+
+`trades_limit()`'s `wick_min` parameter now raises if passed anything other
+than `0.0`. There is no honest version of this filter to keep: deciding
+whether a fill counts from the shape of the bar it filled on cannot be done
+without that bar's close, and nothing later in the bar's life changes that.
+`wick_tip_finetune.py`'s grid no longer searches it, and `wick_tip_60d_report.py`
+now reports the corrected, negative number.
+
+### Where this leaves the wick-tip line of work
+
+Nowhere new. With the bug removed, wick-tip entries on 60 days of real XAUUSD
+M5 return **−0.182R** (main config) and **−0.070R** (finer-tuned config) —
+negative, like every other entry rule this program has tested. This is not a
+disappointing update to a working system; it is the fifth harness bug this
+program has caught with the same random-walk test, and the result it was
+hiding was the same result as everything else.
+
+---
+
+## Deep research: three signal families from outside the chart (2026-09-10)
+
+`research/deep_research_signals.py`. Everything tested in this program before
+now was price-derived — candles, swings, breakouts, ranges — all reading the
+same information (the chart) and all dying. This searched published research
+for signals different in **kind**, not just parameters, sourced from outside
+gold's own price path:
+
+- **calendar seasonality** — Lucey & Tully (2006): Monday-weak/Friday-strong,
+  attributed to week-end institutional hedging; Seasonax and arXiv:2003.11027
+  document a turn-of-month effect. A calendar fact cannot be curve-fit to
+  gold's own chart.
+- **gold/silver ratio mean reversion** — standard desk practice, published
+  backtests (QuantifiedStrategies, SSRN 5710242): fade the ratio from
+  statistical extremes. An intermarket signal, needs silver.
+- **COT positioning extremes** — CFTC's weekly Commitment of Traders report,
+  managed-money net position z-scored against its own trailing history. A
+  flow signal from a dataset this repo had never touched.
+
+Four tests, pre-registered before any result was read, at the exit design this
+repo already validated as its best risk-adjusted one (trail 2×ATR, BE at 1R),
+against a matched random control (same count, direction, exit). Bonferroni bar
+for four tests: |t| > 2.39.
+
+| signal | n | E(R) | control E(R) | skill | skill t |
+|---|---|---|---|---|---|
+| S1 Monday short / Friday long | 990 | +0.011 | −0.010 | +0.021 | +1.45 |
+| S2 turn-of-month long | 228 | +0.165 | +0.110 | +0.055 | +0.86 |
+| S3 gold/silver ratio fade | 170 | −0.004 | +0.087 | −0.091 | −1.08 |
+| S4 COT managed-money fade | 30 | +0.008 | +0.119 | −0.110 | −0.52 |
+
+**None clears the bar. None clears a plain 2.** Same outcome as every
+price-derived signal tested before it — the day-of-week folklore and the
+gold/silver ratio folklore are both real, published patterns, and neither
+survives a matched control on this data at this cost.
+
+Two notes worth keeping regardless of the null result:
+
+- **COT's publication lag matters and is easy to get backwards.** The report
+  is dated Tuesday but not released until the following **Friday** — a
+  3-calendar-day gap. An early draft of this file reindexed on the report date
+  directly, which would have let the signal "know" positioning up to three
+  trading days before it was public. Shifted the index forward to the real
+  release day before use; flagged here because it is the kind of silent
+  look-ahead this session has already been burned by twice.
+- **S4's sample is thin by construction** (n=30 over 20 years) because COT is
+  weekly and the z-score rarely clears 1.5 standard deviations — a structural
+  property of the signal, not a bug, but it means S4's null is weaker evidence
+  than the other three and would need a longer history or a looser threshold
+  to say much either way.
+
+**Consequence:** no new signal. The pattern holds across every distinct
+category of idea tried in this program — price action, smart-money structure,
+regime filters, wick mechanics, calendar effects, intermarket ratios, and now
+positioning flow. Gold's daily bar, at this cost, does not contain
+directional information that these methods can find.
+
+---
+
+## Round 2 of deep research: VWAP, dollar lead-lag, GVZ regime, and Setup C (2026-09-10)
+
+`research/intermarket_signals_60d.py`, `research/opening_range_setup_c.py`.
+Scoped to 60 real days (the window asked for this round) rather than the
+6-year PAXG series, on real XAUUSD M5. Same validated exit (trail 2×ATR, BE at
+1R) and matched random control as the rest of this program.
+
+| signal | n | E(R) | control E(R) | skill | skill t |
+|---|---|---|---|---|---|
+| T1 session VWAP fade (\|z\|≥1.5 ATR) | 98 | +0.065 | −0.141 | +0.206 | +1.21 |
+| T2 DXY momentum → inverse gold | 118 | +0.005 | −0.123 | +0.128 | +0.87 |
+| Setup C: OR breakout (London+NY, no retest) | 51 | −0.145 | −0.033 | −0.111 | −0.77 |
+
+None clears the pre-registered bar (2.39 Bonferroni for T1/T2; 1.96 for Setup
+C as the round's only remaining test).
+
+**T3 (GVZ regime gate on the sweep-reversal entry) is reported but not
+trusted**, for two reasons stated before reading too much into it: the
+sub-sample counts (26 and 28 trades) are far too small to separate a real
+regime effect from noise even at the loose numbers seen (+0.679 and +0.495
+skill, neither clearing any reasonable bar at that n), and splitting the
+sample by regime changes which trades survive the one-position-at-a-time
+overlap rule — the pooled "ungated" count (33) came out **smaller** than
+either regime split alone, which is the sequencing effect this repo's own
+`qc_4part_filter_test.py` documents ("a filter that rejects a signal frees the
+account for the next one"), not a discovery.
+
+### Setup C closes a real gap in this repo's own record
+
+`docs/RESEARCH_FINDINGS.md`'s status table has listed Setup C as "never
+tested" since the table existed. It is now tested: 95 raw breakout events over
+60 days, 51 survive to a tradeable signal, skill −0.111R at t = −0.77. Dead,
+same as A and B before it. The retest filter `Setups.mqh` applies by default
+was deliberately left out here so the plain breakout could be judged on its
+own first; testing the retest-filtered version is the natural next step if
+opening-range breakouts are revisited.
+
+### Where the program stands after this round
+
+Every distinct category a careful search would think to check has now been
+tested against a matched random control on real cost: price action (many
+forms), smart-money structure, regime filters (four independent kinds - ATR
+expansion, efficiency ratio, session hours, and now an options-derived vol
+index), wick mechanics, calendar effects, an intermarket price ratio,
+positioning flow, VWAP, cross-asset lead-lag, and the EA's own untested
+opening-range setup. None has produced a result that survives.
+
+---
+
+## Multi-factor: does confirming VWAP with DXY help, or just cut the sample? (2026-09-10)
+
+`research/vwap_dxy_confluence.py`. Built on round 2's two mildly-positive
+leads (VWAP fade skill +0.206R t +1.21; DXY lead-lag skill +0.128R t +0.87,
+neither significant) — asking whether requiring them to **agree** removes
+noise. Stated up front: this is nested selection on the same 60-day window
+that produced the leads, so a positive result here is a lead, not a
+confirmation — the same caveat `wick_tip_finetune.py` had to carry.
+
+| combination | n | skill | skill t | parent signal |
+|---|---|---|---|---|
+| M1 VWAP trigger, DXY confirms | 80 | +0.208 | +1.10 | T1 alone: +0.206 (t +1.21) |
+| M2 DXY trigger, VWAP confirms | 104 | +0.152 | +1.12 | T2 alone: +0.128 (t +0.87) |
+| M3 strict confluence (both fire) | 59 | +0.250 | +1.14 | — |
+
+**None clears the plain 95% bar (t > 1.96).** More tellingly, confirmation
+does not do what confirmation is supposed to do: M1's skill sits almost
+exactly where VWAP alone was (+0.208 vs +0.206) while its t actually **fell**
+(1.21 → 1.10) despite cutting the sample by a fifth — the signature of
+cutting the sample without removing noise, not of finding a cleaner
+subpopulation. M2 improved marginally; M3, the strictest form, is still not
+significant at n = 59.
+
+**Consequence:** the multi-factor combination does not rescue either parent
+signal. Combined with round 1 and round 2, this closes the last reasonably
+scoped idea this program had queued. Every category tried — including now
+combining the two best leads this whole deep-research pass produced — has
+died the same way.
+
+---
+
+## Golden Area / Fibonacci OTE, Version 1 of the 13-clip Backtest Matrix (2026-09-10)
+
+`research/golden_area_ote.py`, rulebook in `docs/GOLDEN_AREA_RULEBOOK.md`. The
+user manually read 13 NIFTY 50 5-minute chart-replay clips and identified a
+recurring Premium/Discount structure with a Fibonacci "Golden Area" (62–79%
+retracement of the last impulse leg) as the precise entry zone, rated
+High-Probability (75–80% confidence from the clips). This is the first
+result from that rulebook's Backtest Matrix, testing the zone alone — no
+Sweep, CHoCH-confirm, FVG, or confirmation-candle filter, since those are
+lower-confidence tiers that belong layered on top of whichever level
+survives here, not baked in from the start.
+
+**Market-transfer caveat, stated before the result:** the clips are NIFTY
+50; this repo has no NIFTY intraday feed, only gold. This tests whether the
+structural idea transfers to a different market, not whether the NIFTY
+reading itself is correct.
+
+Swing pivots: 5-bar fractal, confirmed 5 bars after the fact (no
+look-ahead). A leg starts on a BOS/CHoCH close beyond the last confirmed
+opposite pivot; its extreme is tracked bar-by-bar as the running high/low
+since the break. Exit is this repo's already-validated trail-2×ATR +
+BE-at-1R design, not the clips' literal dynamic-liquidity target — entry
+skill has to be measured against a fixed exit, the same reason
+`cost_vs_exit_decomposition.py` exists.
+
+Calibrated first on a driftless random walk (zero cost, zero drift): all
+three levels stayed under the pre-registered 2.39 bar (t −2.13, −1.97,
+−1.04 on n = 40–47 — negative, the opposite sign of a look-ahead bug, and
+consistent with single-seed sampling noise at that n). Clean enough to
+proceed.
+
+| level | n | skill | skill t |
+|---|---|---|---|
+| A 62% | 79 | +0.043 | +0.33 |
+| B 70.5% | 71 | −0.039 | −0.32 |
+| C 79% | 64 | −0.131 | −1.08 |
+
+**None clears the 2.39 Bonferroni bar (3 pre-registered levels).** The
+Golden Area hypothesis, tested as a standalone entry filter with no other
+condition, does not show measurable skill on gold M5 over the same 60-day
+window this round has used throughout. Version 2 (layering Sweep/CHoCH/FVG/
+confirmation-candle filters from the rulebook's speculative tier) has no
+surviving level from V1 to be layered on — the same funnel-collapse this
+program has hit on every prior multi-stage chain.
+
+---
+
+## The 20-bar H1 breakout: the first thing to clear the bar — and why it still misses the target (2026-09-12)
+
+`research/breakout_h1_dd_target.py`, `research/breakout_h1_long_history.py`.
+
+**Where the rule came from.** The user supplied an externally-produced audit
+(`Nonnor_Audit_Report_V2.md`, `Nonnor_Backtest_V3_GC_H1.xlsx`,
+`Breakout_DD30_Upgrade.xlsx`) that tested seven setups on GC=F H1 and found
+exactly one with an expectancy CI clear of zero: a 20-bar range breakout with
+the stop at the opposite range edge and a 2R target. Its rules were
+transcribed verbatim — nothing was tuned here.
+
+**The target being tested.** The user asked for a setup delivering ≥1R per
+day, or 10–50%+ a year inside a 35% drawdown ceiling.
+
+### Replication, and the control the workbook did not run
+
+| window | n | E(R) | t | net R | ctrl E | skill | skill t |
+|---|---|---|---|---|---|---|---|
+| GC=F H1, 2.4y, base cost | 377 | +0.1037 | +2.50 | +39.10 | +0.0330 | +0.0707 | +1.59 |
+| GC=F H1, 2.4y, high cost | 377 | +0.0928 | +2.24 | +35.00 | +0.0043 | +0.0885 | +1.99 |
+| PAXG H1, 6.0y, base cost | 910 | +0.0562 | +2.08 | +51.13 | −0.0379 | **+0.0941** | **+3.25** |
+| PAXG H1, 6.0y, high cost | 910 | +0.0381 | +1.41 | +34.63 | −0.0859 | **+0.1240** | **+4.28** |
+
+The replication is faithful (workbook: n=383, E +0.1191, t +2.85). But a third
+of the 2.4-year expectancy is gold's own drift — the matched random control
+earned +0.0330 knowing nothing. **On six years the skill clears the repo's
+2.39 bar (t +3.25, +4.28).** That is the first signal in this entire program
+to do so against a matched control.
+
+### But the money is one regime
+
+| year | n | E(R) | net R |
+|---|---|---|---|
+| 2020 | 44 | −0.0017 | −0.07 |
+| 2021 | 128 | −0.0389 | −4.98 |
+| 2022 | 154 | −0.0218 | −3.36 |
+| 2023 | 147 | +0.0460 | +6.76 |
+| 2024 | 137 | +0.0343 | +4.69 |
+| 2025 | 179 | +0.1445 | +25.87 |
+| 2026 | 121 | +0.1836 | +22.22 |
+
+Three losing years, then +48R of the +51R total arrives in 2025–2026. The
+2.4-year GC=F window is entirely inside that good stretch, which is why it
+looked twice as strong.
+
+### The two targets, measured
+
+**≥1R/day: not reachable.** +0.0447 R/calendar-day on GC=F 2.4y, +0.0232 on
+PAXG 6y — short by 22× and 43×. The rule fires 0.43×/day at ~0.06–0.10R.
+
+**10–50% a year at ≤35% DD: depends entirely on which history you believe.**
+
+| basis | best risk inside 35% | CAGR | max DD | buy & hold, same window |
+|---|---|---|---|---|
+| GC=F H1, 2.4y | 4.0% | **+77.15%** | 29.84% | +28.94% at 29.00% DD |
+| PAXG H1, 6.0y | 1.5% | **+12.28%** | 28.34% | +13.99% at 29.23% DD |
+
+On the recent window the rule beats levered buy-and-hold 2.7×. On six years
+it **does not beat simply owning gold** at the same drawdown. The sizing
+decision differs by 2.7× depending on which window is trusted — that spread
+is itself the risk.
+
+### Cross-market: not a general effect
+
+The same frozen rule on 26 futures, H1, 730d: mean skill **−0.0329, t −2.87,
+positive in only 6 of 26**. Gold is the best market of the set. Nasdaq, AUD,
+soybeans, sugar, cotton and platinum are all significantly negative. A 20-bar
+breakout with a range-width stop is adverse on average — consistent with
+`m15_regime_search.py`'s finding that M15 Donchian breakout is adverse
+(skill −0.176, t −9.07).
+
+### Does the exit waste the entry? No
+
+Same signal, same planned risk, same 24-bar cap, six-year data:
+
+| exit | n | E(R) | net R | skill | skill t | CAGR @35% |
+|---|---|---|---|---|---|---|
+| (a) fixed 2R target — the frozen rule | 910 | +0.0562 | +51.13 | +0.0941 | +3.25 | +12.28% |
+| (b) trail 1R + BE at 1R | 944 | +0.0163 | +15.37 | +0.1038 | +3.99 | +2.11% |
+| (c) no target, hold 24 | 898 | +0.0372 | +33.38 | +0.1266 | +4.09 | +7.41% |
+
+Note the trap in this table: skill rises as money falls. Skill is measured
+against a control using the *same* exit, so a higher skill number here means
+the control got worse, not that the rule got better. The frozen 2R target is
+the best of the three on money, which is the column that pays.
+
+### Standing conclusion
+
+The breakout entry carries real information — six years, matched control,
+t +3.25, the only such result in this program. But it converts to money only
+in trending regimes, it is adverse across other markets, and over a full six
+years it does not beat owning gold at the same drawdown. The 1R/day target is
+out of reach by more than an order of magnitude. The 10–50% target is
+reachable only on the assumption that 2025–2026-style trending persists.
+
+Unresolved and required before any live use, per the source audit's own gate:
+real XAUUSD broker data with bid/ask, commission, swap and contract terms —
+PAXG is a crypto-venue proxy, and the drawdowns above are measured on
+trade-exit equity marks, so true intrabar drawdown is worse.
+
+---
+
+## Real XAUUSD, real spread, 22 years: the breakout has real skill and still misses the target (2026-09-12)
+
+`research/fetch_dukascopy.py`, `research/breakout_real_xauusd.py`.
+
+**The data ceiling is gone.** Dukascopy publishes free, keyless XAUUSD candles
+with BID and ASK as separate series, back to 2003. That replaces three
+compromises at once: the instrument is spot XAUUSD rather than GC=F futures or
+the PAXG token; the history is 22.7 years rather than 60 days; and the cost is
+the **measured spread of the entry bar** rather than a constant.
+
+The decoder was verified against an independent endpoint before use (the tick
+file for 2026-07-15 10:00 UTC opens at bid 4030.155; minute 600 of that day's
+BID candle file reads 4030.155). Daily-return correlation against GC=F is
+0.877 over 2,398 shared days. 2003 is dropped — it carries placeholder rows
+(gold quoted at 1.25) and 33% zero-spread bars; every year from 2004 has a
+zero-spread share of 0.000. Bars with zero volume are dropped as market-closed,
+verified: 100% of Saturdays, 91.6% of Sundays, 12.6% of Fridays, and the
+weekday remainder clusters at 21:00–23:00 UTC.
+
+### The spread everyone was guessing at
+
+| era | median spread | in basis points |
+|---|---|---|
+| 2004 | — | 10.35 bp |
+| 2017–2018 | ~0.27 | 1.9 bp |
+| 2026 | 0.660 | 1.46 bp |
+
+The repo assumed 0.26 and the supplied workbook 0.36 as "base cost". That was
+roughly era-correct for 2017–2019 and **2.7× too cheap for 2025–2026**.
+
+### Cost dominates every parameter
+
+3,570 trades, 2004–2026:
+
+| cost basis | E(R) | t | net R | skill | skill t |
+|---|---|---|---|---|---|
+| assumed 0.36 (old base) | +0.0374 | +2.60 | +133.36 | +0.0930 | +6.04 |
+| assumed 0.8525 (old high) | −0.0034 | −0.23 | **−12.00** | +0.1620 | +10.50 |
+| **measured spread** | +0.0342 | +2.38 | +121.96 | +0.0998 | +6.49 |
+| **measured + 0.07 commission** | +0.0284 | +1.97 | +101.30 | +0.1096 | +7.12 |
+
+At a flat 0.8525 all-in the rule **loses money**. It is profitable only because
+real spreads are tighter than that in most eras. Broker choice is existential
+here, not a detail. (Skill rising with cost is partly mechanical: the control's
+random-timing trades have narrower planned risk, so a fixed cost is a larger
+share of their R. Read E and net R for money, skill for information.)
+
+### The pre-registered regime test — and it passes
+
+Gold's 2011–2015 bear and 2015–2018 range are both inside this window. Skill
+was measured separately in years where gold moved more than 10% and years where
+it did not, each against its own matched control:
+
+| | n | E(R) | net R | skill | skill t |
+|---|---|---|---|---|---|
+| trending years | 2,274 | +0.0308 | +70.02 | +0.0935 | +5.01 |
+| range years | 1,298 | +0.0223 | +28.94 | +0.0987 | +3.80 |
+
+**Both positive, both clear the bar.** This overturns the earlier six-year PAXG
+read, where the edge looked confined to 2025–2026. On 22 years of the real
+instrument the breakout's entry carries information in every regime —
+skill +0.1096 at **t +7.12**, the strongest statistical result this program has
+produced.
+
+### But skill is not the target
+
+| basis | best risk inside 35% DD | CAGR | max DD |
+|---|---|---|---|
+| GC=F H1, 2.4 years (the flattering window) | 4.0% | +77.15% | 29.84% |
+| **real XAUUSD H1, 22.7 years** | **1.5%** | **+5.56%** | **33.51%** |
+| buy & hold XAUUSD 2004–2026 | — | +11.04% | 45.25% |
+
+The rule returns **+0.0122 R per calendar day — the 1R/day target needs 82×
+more**. And +5.56% a year at 33.5% drawdown is below the 10% floor of the
+return target, while buy-and-hold beats it on return per unit of drawdown
+(0.244 vs 0.166).
+
+**The diagnosis is arithmetic, not statistics.** The edge is real and stable at
++0.11R of skill per trade, but the rule fires only ~157 times a year, so it
+harvests ~4.5R annually. Hitting 10–50% needs roughly an order of magnitude
+more R per year. The 35% drawdown ceiling blocks getting there by leverage, so
+the only remaining lever is **trade frequency** — the same rule on a lower
+timeframe, where real M1 data now makes an honest test possible for the first
+time.
+
+---
+
+## Two months, DD raised to 50-75%: where the wall actually is (2026-09-12)
+
+`research/frequency_scan_2m.py`, `research/target_feasibility_2m.py`.
+
+Asked to work from the last two months of price only and to raise the drawdown
+ceiling to 50-75%. Both levers were measured rather than assumed.
+
+### Lever 1 — raising the drawdown ceiling. There is a hard ceiling at +9.2%.
+
+22.7 years of real XAUUSD, honest cost, 3,570 trades:
+
+| risk/trade | CAGR | max DD |
+|---|---|---|
+| 1% | +3.97% | 23.1% |
+| 2% | +6.87% | 43.1% |
+| 3% | +8.63% | 59.7% |
+| **4%** | **+9.21%** | **72.8%** |
+| 5% | +8.60% | 82.5% |
+| 8% | +0.14% | 98.4% |
+| 10% | **−10.02%** | 99.9% |
+
+Best inside 50%: +6.87%. Best inside 75%: +9.21%. **Both below the 10% floor
+of the target.** Past 4% risk the CAGR *falls* — volatility drag overwhelms a
++0.028R edge, and by 10% risk the account loses money despite the edge being
+positive. Leverage cannot reach the target; it has a maximum, and the maximum
+is under it. Buy-and-hold over the same 22 years returns +11.04% at 45.2% DD,
+which still beats every row.
+
+### Lever 2 — frequency. The edge does not survive down the timeframes.
+
+Same frozen rule, last two months of real M1, priced at the measured spread:
+
+| TF | n | trades/day | E(R) | R/day | skill t |
+|---|---|---|---|---|---|
+| M5 | 369 | 6.15 | −0.0470 | −0.289 | +0.28 |
+| M15 | 125 | 2.08 | −0.0710 | −0.148 | −0.66 |
+| M30 | 60 | 1.00 | −0.0407 | −0.041 | −0.07 |
+| H1 | 28 | 0.47 | −0.0034 | −0.002 | −1.08 |
+
+Cost is not the reason — it runs 3.3% of planned risk at M5 and 0.8% at H1,
+moving the breakeven win rate only from 33.3% to 34.4%.
+
+### Why two months cannot settle this
+
+At a per-trade SD near 1.2R, seeing an edge of +0.0284R at t=2 needs **~7,141
+trades** — 3.2 years at M5's rate, 41.6 years at H1's. Two months at M5 gives
+369 trades, **5% of what is required**. A window this size cannot confirm or
+refute the rule. It can only be fitted to.
+
+### The search, honestly accounted
+
+32 cells (4 timeframes × 4 lookbacks × breakout/fade), noise bar
+sqrt(2 ln 32) = 2.63 stated before the run. Best cell by skill: M5 10-bar
+breakout, t **+1.94 — does not clear**. Best by money: H1 10-bar breakout,
++4.55R on 38 trades; sized to 12% risk it returns +34.70% on the window
+(+513% annualised) at 35.4% DD — **and its skill t is +0.48**. That is exactly
+what the best of 32 noise draws looks like.
+
+### One real finding: the fade is dead, and the old PAXG result was the proxy
+
+Fading the breakout is catastrophically negative on real XAUUSD at every
+timeframe — E from −0.16 to −0.75, skill t down to −2.82. `m15_regime_search.py`
+once recorded M15 Donchian breakout as adverse with its inverse looking strong
+(+0.185, t +9.86) and suspected PAXG's crypto microstructure. **Confirmed: on
+the real instrument the fade loses badly.** That suspicion is now settled.
+
+### Standing position
+
+The one real edge this program has found is +0.0284R per trade, ~157 trades a
+year, regime-independent, at t +7.12 over 22.7 years. It supports at most
++9.2% a year at a 75% drawdown. Neither leverage nor timeframe closes the gap
+to the target. The only structural lever left untested is **breadth** — running
+the same edge across many instruments at once, which multiplies R per year
+rather than R per trade, and which Dukascopy can now supply at real spreads.
+
+---
+
+## The combinatorial sweep found what single-factor testing missed (2026-09-12)
+
+`research/combinatorial_filter_search.py`, `research/atr_contraction_long_validation.py`.
+
+**This section exists because a prior judgement was wrong.** Every component in
+this repo had been tested alone, or in a handful of hand-picked pairings. The
+full sweep — all singles, all pairs, all subsets up to ten conditions — was
+never run, on the reasoning that components which die alone will not help in
+company. That was a guess, not a measurement, and it was wrong.
+
+### How the sweep was made meaningful rather than a noise generator
+
+Each candidate trade is resolved **once** into an R outcome; a filter is then a
+boolean column over those trades and a combination is a bitwise AND, so the
+expensive part runs 3,570 times in total instead of per combination. Any subset
+falling under 120 trades is pruned along with every superset of it, since
+adding conditions can only shrink the sample. 18 filters, 67,338 subsets
+actually tested, on 22.7 years of real XAUUSD H1 at the measured spread.
+
+The bar is derived from the search itself: the best of k noise draws lands near
+sqrt(2 ln k), so **|t| > 4.72** for k = 67,338. Leaders were then re-run with
+sequential non-overlapping trades and a matched random control.
+
+### What it found
+
+Stripped of decoration, one rule: **take the 20-bar breakout LONG, only when
+ATR(14) is below its own 50-period average** — a breakout out of quiet, not out
+of noise.
+
+| variant | n | E(R) | skill | skill t |
+|---|---|---|---|---|
+| all breakouts, no filter | 3570 | +0.0284 | +0.1096 | +7.12 |
+| quiet ATR, both sides | 2052 | +0.0559 | +0.1012 | +4.73 |
+| **quiet ATR, long only** | 1272 | +0.0919 | +0.1482 | +5.52 |
+| **quiet ATR, long + RSI agrees** | 1216 | +0.1002 | +0.1636 | **+6.18** |
+| quiet ATR, short only | 985 | −0.0125 | +0.1148 | +3.70 |
+| noisy ATR, long only (the mirror) | 1466 | −0.0023 | +0.0460 | +2.19 |
+
+The filter **more than tripled the edge per trade**, from +0.0284R to +0.1002R.
+
+### Why it is probably not just gold's bull market
+
+Three checks, each of which could have killed it:
+
+1. **The short side has positive skill too** (+0.1148, t +3.70) even though its
+   raw expectancy is negative. Shorting a market that rose 11× loses money
+   regardless; against its own direction-matched control the quiet-ATR short
+   still carries information. The mechanism is not long-side beta.
+2. **The mirror is weak.** Noisy-ATR longs score skill +0.0460 against
+   quiet-ATR longs' +0.1482. The filter separates two populations rather than
+   shrinking one.
+3. **Both halves of the 22 years work**: first half skill +0.1586 (t +4.15),
+   second half +0.1207 (t +3.32). Split at 2015-02-25.
+
+**Profitable in 19 of 23 years.** The four losing years are all small (worst
+−6.53R in 2021). Under a 50/50 null, 19/23 has p ≈ 0.0008.
+
+### And it reaches the return target
+
+1,216 trades, 0.15/day, +121.83R over 22.7 years:
+
+| risk/trade | CAGR | max DD |
+|---|---|---|
+| 2% | +10.44% | 18.5% |
+| 3% | +15.35% | 26.7% |
+| **5%** | **+24.36%** | **41.2%** |
+| 8% | +35.19% | 59.1% |
+| **10%** | **+40.23%** | **69.5%** |
+| buy & hold | +11.04% | 45.2% |
+
+Inside a 50% ceiling it returns **+24.36% at 41.2% DD**; inside 75%, **+40.23%
+at 69.5% DD**. Both land in the 10–50% band that was asked for, and unlike the
+unfiltered rule — which peaked at +9.21% and then *fell* as risk rose — this one
+beats buy-and-hold on return **and** on drawdown at the same time.
+
+### What is still not true
+
+- **1R/day remains out of reach.** +0.0147 R/day at 0.15 trades/day is 68×
+  short. Frequency, not edge, is the binding constraint on that target.
+- The rule was **selected on this data**. The era split and the 19/23 year
+  consistency are supporting evidence that was not selected for, but no
+  untouched holdout exists — 22.7 years is the whole record.
+- Drawdowns are measured on trade-exit equity marks, so true intrabar figures
+  are worse, and 10% risk sits close enough to the optimal-f peak that an
+  overestimated edge turns it into ruin.
+- Not yet tested on another instrument, which is the strongest remaining check
+  that the mechanism is structural rather than gold's.
+
+---
+
+## CORRECTION: the M1/M5 sweep results were another look-ahead-shaped artifact (2026-09-12)
+
+The combinatorial sweep was re-run on M30/M15/M5/M1 (2019-2026 M1 cache, ~7.7
+years, built via `--tf` in `combinatorial_filter_search.py`). The first pass
+produced results that should have been distrusted on sight and initially were
+reported before the check that killed them:
+
+| timeframe | best skill t (before fix) |
+|---|---|
+| M30 | +3.06 (did not clear) |
+| M15 | +3.25 (did not clear) |
+| **M5** | **+4.84 (CLEARED, barely)** |
+| **M1** | **up to +14.99 (CLEARED repeatedly)**, on combos whose own E(R) was NEGATIVE |
+
+Skill of +0.52 to +0.56 at t up to +14.99 while E(R) is −0.05 to −0.08 is the
+tell: skill = E − ctrlE, so the control was catastrophically worse than the
+already-losing signal. That is not a directional edge appearing - it is the
+control breaking.
+
+**Root cause.** `plan()`'s risk-eligibility check (0.25-8× ATR) scales with
+ATR, but the round-trip cost is a fixed dollar amount. On H1, ATR-scaled risk
+runs $20-200 against a ~$0.5-0.9 cost, so this never mattered. On M1, ATR
+itself is a few cents, so risk can be a few cents too, and cost then dominates
+R entirely — not a losing trade, an unmeasurable one, exploding the variance
+of whichever random bars the control happened to draw. Filters that require
+`range_wide` and `spread_tight` incidentally dodge exactly the bars where this
+blows up; the "skill" they showed was measuring which combinations avoid a
+division-by-near-zero artifact, not which combinations predict direction.
+
+**Confirmed on a pure driftless random walk before touching the real numbers
+again**, per this repo's standing rule: replaying the exact winning M1
+filter combination on synthetic M1-scale noise (same spread, same cost, zero
+information) produced skill +0.40 at **t +5.31** — a "significant" result on
+data with nothing in it. That is the same shape as the `wick_min` retraction.
+
+**Fix**: `plan()` now takes an optional `P["cost_ref"]` and requires
+`risk >= 3x round-trip cost` before a trade is eligible at all - applied
+identically to the signal and to its control, removing the artifact at its
+source instead of leaving it to be incidentally dodged by whichever filter
+combination happens to select for larger ATR.
+
+**Re-run after the fix:**
+
+| timeframe | best skill t (after fix) | verdict |
+|---|---|---|
+| M5 | +3.06 | does not clear (was +4.84) |
+| M1 | +3.93 | does not clear (was +14.99) |
+
+Nothing on any sub-H1 timeframe survives the corrected eligibility check. The
+frequency question from `frequency_scan_2m.py` / `target_feasibility_2m.py`
+is answered again, more carefully this time: lower timeframes do not rescue
+the target, and the earlier two-month frequency scan's negative results stand
+un-retracted (that file used a fixed-fraction risk model without this
+artifact, since it never searched combinations that could dodge it).
+
+The H1 combinatorial result (`atr_contracting + long_side` etc., skill +0.16,
+t +6.18) is UNCHANGED by this fix - H1's dollar-scale risk was never close to
+the cost floor, confirmed by re-adding `cost_ref` there and reproducing the
+same numbers.
+
+---
+
+# Engine audit round (Section A): what was wrong, and what the numbers are now
+
+This round produced no new strategy results. It was spent making the existing
+ones checkable, after an external review of commit `0fa85e8` named seven
+defects. Six of the seven reproduced on hand-built cases; the seventh did not
+surface on the random draw used to look for it. **The review was right on
+essentially everything.**
+
+## Retraction: the "0.5% false-positive rate" of the bootstrap gate
+
+`metric_audit.py` T4c built its fat-tailed test samples as
+`R = smooth + fat - fat.mean()`, subtracting **each sample's own mean** before
+measuring coverage. That removes exactly the tail-driven variation the test
+exists to measure, so almost no sample produced an interval clear of zero and
+the measured rate came back 0.5%. It was reported as evidence the gate was
+conservative. It was not evidence of anything.
+
+Constructing the population mean at zero instead (a 1% chance of +99 against a
+99% chance of −1 has expectation exactly 0.00) and leaving each sample free:
+
+| block length | false-positive rate | 95% Wilson CI |
+|---|---|---|
+| 10 bars | 5.5% | [3.7%, 8.2%] |
+| 20 bars (what the pipeline uses) | **6.8%** | [4.7%, 9.6%] |
+| 40 bars | 7.5% | [5.3%, 10.5%] |
+| 80 bars | 11.8% | [9.0%, 15.3%] |
+
+Nominal is 5%. **The gate is mildly loose, not conservative as previously
+claimed.** It is still far better than the alternatives on this data shape
+(naive t rejects at 70.7% with overlap, 18.4% with fat tails), and it remains
+the gate — but the earlier characterisation of it was wrong and is withdrawn.
+
+## The entry-gap defect
+
+A long signalled at 110 with its stop at 98, whose entry bar **opened at 90**,
+was booked at **+0.667R** — an exit filled at 98, a price that never traded
+after entry. The short mirror returned the same fabricated number. The engine
+now checks the entry gap before any bracket can be credited and skips the
+trade (`exec_engine.on_gap="skip"`). A gap *after* entry fills at that bar's
+open and is allowed to lose more than 1R, which is what really happens.
+
+## Strategy and control were not measured by the same rules
+
+The control had its own inline loop that expired at `c[e+H]` while the
+strategy expired at the close of bar `e+H−1` — one free bar of information on
+every control trade — and charged the *original signal's* spread to a trade
+placed at a different time. The control now calls `exec_engine.execute()`.
+
+The strategy cannot: 36 (target, hold) pairs per signal is 36× the work. It
+keeps its recorded walk, and `test_walk_equivalence.py` asserts the two **are**
+the same function over 134,316 trade-configurations. That test found two real
+divergences that no amount of reading would have:
+
+- the walk priced targets from the **fill**, `execute()` from the **signal
+  close**
+- at the right-hand edge the walk reported a full-horizon hold where
+  `execute()` correctly stopped at the last available bar
+
+## Three holdout leaks
+
+1. **Straddling trades.** Discovery was selected by signal index alone, so at
+   `hold=1000` a trade signalled on the last discovery bar consumed a thousand
+   holdout bars and still counted as a discovery result.
+2. **Thresholds fitted on everything.** `build_filters` took whole-series
+   medians of spread, volume and efficiency, so every "below median spread"
+   decision in 2012 knew where 2019-2026 would land. Refitting per period is
+   not the fix — that makes them two different strategies. They are now fitted
+   on discovery and frozen.
+3. **The control sampled everywhere**, so a discovery result was measured
+   against a baseline partly built from holdout bars.
+
+The invariance test: rewrite every bar after the boundary, and every
+discovery-side number must be bit-identical. Passes on 20 seeds. The
+**unguarded** path fails the same test on 20 of 20 seeds, which is what proves
+the test can detect the bug rather than passing vacuously.
+
+## `sqrt(2 ln k)` is not a 5% bar
+
+It is the expected maximum of k noise draws. Measured directly: at least one
+of k draws exceeds it **16.5%** of the time at k=1000 and **18.8%** at
+k=10000. It is now labelled a heuristic floor everywhere it is printed.
+
+## What an account does that R cannot show
+
+Expectancy in R has no account in it. Two effects only appear once there is
+one:
+
+- 40 losses of 1R at 1% risk cost **33.07%** of a large account, not the 40%
+  that summing R reports.
+- The identical 40 trades cost **29.20%** on a $10,000 account, because 1% of
+  $9,900 against a 20-point stop wants 0.0495 lots and can only be dealt 0.04.
+  A small account silently risks less than its budget, and a backtest in R
+  units cannot see this at all.
+
+`portfolio.py` reports max concurrent positions, peak open risk as a fraction
+of equity, **floating** drawdown alongside closed-trade drawdown, margin and
+minimum-lot rejections, and costs at three stress levels. Broker parameters
+(contract size, leverage, lot step, commission, swap, slippage) are
+**assumption**, labelled as such wherever printed. The spread series is real
+Dukascopy bid/ask.

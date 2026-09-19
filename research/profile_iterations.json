@@ -1,0 +1,254 @@
+{
+ "updated": "2026-09-14T17:03:04Z",
+ "timeframes": [
+  "H1",
+  "H4"
+ ],
+ "symbols": [
+  "XAUUSD",
+  "EURUSD"
+ ],
+ "final_params": {
+  "boot": 2000,
+  "atr_hours": 120,
+  "bucket": 2,
+  "min_cell": 200,
+  "tail_q": 0.99,
+  "vap_bins": 40,
+  "vap_window": "1D",
+  "vr_k": 4
+ },
+ "rounds": [
+  {
+   "round": 0,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 1,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9777334880363027,
+   "coverage": 1.0,
+   "precision": 0.9783268445913517,
+   "resolution": 0.9993934974001355,
+   "cells": 60,
+   "panels": 4,
+   "changed": null,
+   "drift_from_baseline": 0.0
+  },
+  {
+   "round": 1,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 1,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9777334880363027,
+   "coverage": 1.0,
+   "precision": 0.9782592687290763,
+   "resolution": 0.9993882186307456,
+   "cells": 60,
+   "panels": 4,
+   "changed": "boot: kept 800 (no option beat 0.9777)",
+   "drift_from_baseline": 0.0
+  },
+  {
+   "round": 2,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 1,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9777334880363027,
+   "coverage": 1.0,
+   "precision": 0.9780547420842529,
+   "resolution": 0.9994052141892823,
+   "cells": 60,
+   "panels": 4,
+   "changed": "atr_hours: kept 480 (no option beat 0.9777)",
+   "drift_from_baseline": 0.0004670616110942565
+  },
+  {
+   "round": 3,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 2,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9792325845738135,
+   "coverage": 1.0,
+   "precision": 0.9797103453197485,
+   "resolution": 0.999512361311607,
+   "cells": 36,
+   "panels": 4,
+   "changed": "bucket: 1 -> 2",
+   "drift_from_baseline": 0.046186046543591715
+  },
+  {
+   "round": 4,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 2,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9792325845738135,
+   "coverage": 1.0,
+   "precision": 0.9797103453197485,
+   "resolution": 0.999512361311607,
+   "cells": 36,
+   "panels": 4,
+   "changed": "min_cell: kept 200 (no option beat 0.9792)",
+   "drift_from_baseline": 0.046186046543591715
+  },
+  {
+   "round": 5,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 2,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9792325845738135,
+   "coverage": 1.0,
+   "precision": 0.9797103453197485,
+   "resolution": 0.999512361311607,
+   "cells": 36,
+   "panels": 4,
+   "changed": "tail_q: kept 0.99 (no option beat 0.9792)",
+   "drift_from_baseline": 0.046186046543591715
+  },
+  {
+   "round": 6,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 2,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9792325845738135,
+   "coverage": 1.0,
+   "precision": 0.9797103453197485,
+   "resolution": 0.999512361311607,
+   "cells": 36,
+   "panels": 4,
+   "changed": "vap_bins: kept 40 (no option beat 0.9792)",
+   "drift_from_baseline": 0.046186046543591715
+  },
+  {
+   "round": 7,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 2,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9792325845738135,
+   "coverage": 1.0,
+   "precision": 0.9797103453197485,
+   "resolution": 0.999512361311607,
+   "cells": 36,
+   "panels": 4,
+   "changed": "vap_window: kept '1D' (no option beat 0.9792)",
+   "drift_from_baseline": 0.046186046543591715
+  },
+  {
+   "round": 8,
+   "params": {
+    "boot": 800,
+    "atr_hours": 480,
+    "bucket": 2,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9792325845738135,
+   "coverage": 1.0,
+   "precision": 0.9797103453197485,
+   "resolution": 0.999512361311607,
+   "cells": 36,
+   "panels": 4,
+   "changed": "vr_k: kept 4 (no option beat 0.9792)",
+   "drift_from_baseline": 0.046186046543591715
+  },
+  {
+   "round": 9,
+   "params": {
+    "boot": 2000,
+    "atr_hours": 480,
+    "bucket": 2,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9792896384284604,
+   "coverage": 1.0,
+   "precision": 0.9797557084537033,
+   "resolution": 0.9995243270875147,
+   "cells": 36,
+   "panels": 4,
+   "changed": "boot: 800 -> 2000",
+   "drift_from_baseline": 0.046186046543591715
+  },
+  {
+   "round": 10,
+   "params": {
+    "boot": 2000,
+    "atr_hours": 120,
+    "bucket": 2,
+    "min_cell": 200,
+    "tail_q": 0.99,
+    "vap_bins": 40,
+    "vap_window": "1D",
+    "vr_k": 4
+   },
+   "score": 0.9794659254547624,
+   "coverage": 1.0,
+   "precision": 0.9799330860791168,
+   "resolution": 0.999523277236644,
+   "cells": 36,
+   "panels": 4,
+   "changed": "atr_hours: 480 -> 120",
+   "drift_from_baseline": 0.0456001824274596
+  }
+ ]
+}

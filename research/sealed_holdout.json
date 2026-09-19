@@ -1,0 +1,124 @@
+{
+ "created": "2026-09-14T18:03:36Z",
+ "years": [
+  2012,
+  2026
+ ],
+ "timeframe": "H1",
+ "purpose": "sealed holdout - examined once, after finalists are fixed",
+ "examined": false,
+ "finalists_declared": null,
+ "symbols": {
+  "EURJPY": {
+   "file": "EURJPY_H1_2012_2026.parquet",
+   "sha256": "ccd967aa888028d97a3d9a681d64518ecfd76d74cdf1e26f21bda9d9eec3b5ef",
+   "points": 1000.0
+  },
+  "GBPJPY": {
+   "file": "GBPJPY_H1_2012_2026.parquet",
+   "sha256": "d26579e08a234ff412000a1308fb0d18b618be3f0c7c55b98b01174b34e85bf9",
+   "points": 1000.0
+  },
+  "AUDJPY": {
+   "file": "AUDJPY_H1_2012_2026.parquet",
+   "sha256": "22df1bcffd4704a11eb6dfc8f05aa310a9485c7141d15ea7c494507e01993241",
+   "points": 1000.0
+  },
+  "CHFJPY": {
+   "file": "CHFJPY_H1_2012_2026.parquet",
+   "sha256": "5c24c29a1d55cd217e20e9fb5104e4905c08730cf1032b9364bf1a0fac31b22d",
+   "points": 1000.0
+  },
+  "CADJPY": {
+   "file": "CADJPY_H1_2012_2026.parquet",
+   "sha256": "8dd640b11735e2791c04a360aa45b96671b2d6d542fe4cae07b37257a59c77fe",
+   "points": 1000.0
+  },
+  "NZDJPY": {
+   "file": "NZDJPY_H1_2012_2026.parquet",
+   "sha256": "b7f2eb546cede8ed58d3e6c52f5f65bd317addf0dbe723ab3a2048ec083825ce",
+   "points": 1000.0
+  },
+  "EURGBP": {
+   "file": "EURGBP_H1_2012_2026.parquet",
+   "sha256": "76c48e41e879543c65efc8d1c7e6cb1b72a1656bf64a268aa01ace88aa87d2ca",
+   "points": 100000.0
+  },
+  "EURCHF": {
+   "file": "EURCHF_H1_2012_2026.parquet",
+   "sha256": "3d51fdc39d85c7c729a5b2aeec863b02cf1f546f448e654c7b9d0de23b30299c",
+   "points": 100000.0
+  },
+  "EURAUD": {
+   "file": "EURAUD_H1_2012_2026.parquet",
+   "sha256": "ef5f147d6c5263fc9f791414f064cd77aabdc362c56566862f0f0b1ac60f978d",
+   "points": 100000.0
+  },
+  "EURCAD": {
+   "file": "EURCAD_H1_2012_2026.parquet",
+   "sha256": "cd1a088cd2960edf948c6994e12417a1bdda0a921968244c8d2cfb20f66ab96c",
+   "points": 100000.0
+  },
+  "AUDNZD": {
+   "file": "AUDNZD_H1_2012_2026.parquet",
+   "sha256": "0f864ed7b21ce68d55afbc8a4931c33557386a153337cf01b4169cba6bab52f8",
+   "points": 100000.0
+  },
+  "AUDCAD": {
+   "file": "AUDCAD_H1_2012_2026.parquet",
+   "sha256": "2fc1918a67f49c9e093f95f2f1adb6cb03b2e34143c2e0875eb2126e6316d6e2",
+   "points": 100000.0
+  },
+  "GBPCHF": {
+   "file": "GBPCHF_H1_2012_2026.parquet",
+   "sha256": "e359cf0dd2d085c98b2921317d77a89ed49895eda03655f609f287f6e028d0c3",
+   "points": 100000.0
+  },
+  "GBPAUD": {
+   "file": "GBPAUD_H1_2012_2026.parquet",
+   "sha256": "b070ba3ba7d125500cb89bf7a6e58e4561ce52e545d4bc296000ec6cce4a0305",
+   "points": 100000.0
+  }
+ },
+ "independence_defect": {
+  "found": "2026-09-19T14:53:25Z",
+  "finding": "all 14 sealed symbols are exactly synthesisable from the nine-market panel by triangular arbitrage; the criterion used to build the set - no USD leg - guarantees dependence on a USD panel rather than independence from it",
+  "synthesis": {
+   "EURGBP": "EURUSD x GBPUSD",
+   "EURJPY": "EURUSD x USDJPY",
+   "EURAUD": "EURUSD x AUDUSD",
+   "EURCHF": "EURUSD x USDCHF",
+   "EURCAD": "EURUSD x USDCAD",
+   "GBPJPY": "GBPUSD x USDJPY",
+   "GBPAUD": "GBPUSD x AUDUSD",
+   "GBPCHF": "GBPUSD x USDCHF",
+   "AUDJPY": "USDJPY x AUDUSD",
+   "CHFJPY": "USDJPY x USDCHF",
+   "CADJPY": "USDJPY x USDCAD",
+   "NZDJPY": "USDJPY x NZDUSD",
+   "AUDCAD": "AUDUSD x USDCAD",
+   "AUDNZD": "AUDUSD x NZDUSD"
+  },
+  "pinned": [
+   "AUDCAD",
+   "AUDJPY",
+   "AUDNZD",
+   "CADJPY",
+   "CHFJPY",
+   "EURAUD",
+   "EURCAD",
+   "EURCHF",
+   "EURGBP",
+   "EURJPY",
+   "GBPAUD",
+   "GBPCHF",
+   "GBPJPY",
+   "NZDJPY"
+  ],
+  "independent": [],
+  "can_adjudicate": "cost and tradability, which depend on each cross's own book",
+  "cannot_adjudicate": "anything directional, since the mid is pinned to within the no-arbitrage band",
+  "seal_intact": true,
+  "note": "no holdout series was read to establish this; the synthesis follows from the currency names alone"
+ }
+}

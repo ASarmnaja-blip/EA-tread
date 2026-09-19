@@ -1,0 +1,123 @@
+{
+ "created": "2026-09-19T09:27:37Z",
+ "rng_thr": 1.5,
+ "prev_thr": 0.7,
+ "horizon": 3,
+ "cost": 1.105,
+ "rows": [
+  {
+   "variant": "as measured",
+   "markets": 9,
+   "n_per_market": 1904.888888888889,
+   "edge": 1.2781961306965295,
+   "t": 3.229578227962037,
+   "positive": 8,
+   "share_of_base": 1.0
+  },
+  {
+   "variant": "PREV contiguous",
+   "markets": 9,
+   "n_per_market": 1856.888888888889,
+   "edge": 1.2555989305769517,
+   "t": 3.1293985706824388,
+   "positive": 8,
+   "share_of_base": 0.9748016798880075
+  },
+  {
+   "variant": "ENTRY contiguous",
+   "markets": 9,
+   "n_per_market": 1888.2222222222222,
+   "edge": 1.2670364266467473,
+   "t": 3.1592710011854117,
+   "positive": 8,
+   "share_of_base": 0.991250583294447
+  },
+  {
+   "variant": "EXIT window hourly",
+   "markets": 9,
+   "n_per_market": 1865.4444444444443,
+   "edge": 1.2412533782150852,
+   "t": 3.1859168052169964,
+   "positive": 8,
+   "share_of_base": 0.9792930471301913
+  },
+  {
+   "variant": "ALL contiguous",
+   "markets": 9,
+   "n_per_market": 1817.6666666666667,
+   "edge": 1.2151301973027855,
+   "t": 3.095813191758251,
+   "positive": 8,
+   "share_of_base": 0.9542113859076062
+  },
+  {
+   "variant": "SPANS A GAP (complement)",
+   "markets": 5,
+   "n_per_market": 122.2,
+   "edge": 1.4440919042330715,
+   "t": 2.029242000773461,
+   "positive": 4,
+   "share_of_base": 0.06415072328511433
+  }
+ ],
+ "verdict": "MARKET EFFECT - survives the calendar requirement",
+ "manifest": {
+  "git": {
+   "commit": "66ec8984c7346106329da9d2e0b82d01f6385cac",
+   "dirty": true,
+   "branch": "claude/order-position-choch-gab-im08db"
+  },
+  "config_hash": "97c3447a3955ef27",
+  "config": {
+   "rng": 1.5,
+   "prev": 0.7
+  },
+  "data": {
+   "XAUUSD_H1_2003_2026.parquet": {
+    "sha256": "ae710b32d3326c2eb3c199d631dad6b81e12c8f766efb3c4c808283498dee2be",
+    "bytes": 9419126,
+    "mtime": "2026-09-12T11:38:54.185326+00:00"
+   },
+   "XAGUSD_H1_2003_2026.parquet": {
+    "sha256": "b2d6e6d9a0256b6c9d78795fdc69b930700d5cb4581234a383348c7796662643",
+    "bytes": 5081235,
+    "mtime": "2026-09-13T11:42:42.240180+00:00"
+   },
+   "EURUSD_H1_2003_2026.parquet": {
+    "sha256": "3c77446c21a6f721a6573ee273b9c2b2512ae564af796acad0991bb4a40496e5",
+    "bytes": 7277380,
+    "mtime": "2026-09-13T12:01:35.988187+00:00"
+   },
+   "GBPUSD_H1_2003_2026.parquet": {
+    "sha256": "1866bfa7d9450944447823b31f007d0160fa0be83ff6010bcaaaf9b3ff21f745",
+    "bytes": 7559567,
+    "mtime": "2026-09-13T12:19:17.832193+00:00"
+   },
+   "USDJPY_H1_2003_2026.parquet": {
+    "sha256": "432ebeba1bf63e5d498ed5635cfc1d3de5b48855f771c940e5913c5ee4a25120",
+    "bytes": 6480684,
+    "mtime": "2026-09-13T12:35:44.760199+00:00"
+   },
+   "AUDUSD_H1_2003_2026.parquet": {
+    "sha256": "240dd03bd5471fd236f7e0f50f369838140f20ccfc3c2307bcc083592e35e7fd",
+    "bytes": 6614434,
+    "mtime": "2026-09-13T12:54:33.816206+00:00"
+   },
+   "USDCHF_H1_2003_2026.parquet": {
+    "sha256": "7e3b7c1afbd26e110a332d5c920995b7e1ed553a35b2668d2ebdb318a561ea9a",
+    "bytes": 6942513,
+    "mtime": "2026-09-13T13:12:10.680212+00:00"
+   },
+   "USDCAD_H1_2003_2026.parquet": {
+    "sha256": "b7c89d032b1b9fac27a89110879c82f6bb1a083fd8179587057afb1c064e4f84",
+    "bytes": 6702097,
+    "mtime": "2026-09-13T16:00:17.360274+00:00"
+   },
+   "NZDUSD_H1_2003_2026.parquet": {
+    "sha256": "aa33ba9d2b5eaa856acd168224318183e725fb41e8a1519b43597a7af2ec085e",
+    "bytes": 6189965,
+    "mtime": "2026-09-13T16:18:22.344281+00:00"
+   }
+  }
+ }
+}

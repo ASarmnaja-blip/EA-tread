@@ -1,0 +1,1574 @@
+{
+ "created": "2026-09-19T13:41:33Z",
+ "horizon": 3,
+ "cost": 1.105,
+ "floor": 4.84,
+ "levels": [
+  "C1",
+  "C3",
+  "C4",
+  "C7"
+ ],
+ "hypotheses": 127,
+ "per_hypothesis": [
+  {
+   "hypothesis": "CROSS/agrees/fade",
+   "family": "CROSS",
+   "edge": 0.17415413377573905,
+   "t_c7": 4.701094945245921,
+   "skill_c7": 0.20334833515859796,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CROSS/agrees/follow",
+   "family": "CROSS",
+   "edge": -0.17415413377573905,
+   "t_c7": -2.966597732259787,
+   "skill_c7": -0.1449599323928801,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CROSS/disagrees/fade",
+   "family": "CROSS",
+   "edge": 0.17134128138295246,
+   "t_c7": 4.113531659187941,
+   "skill_c7": 0.21897518692878593,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CROSS/disagrees/follow",
+   "family": "CROSS",
+   "edge": -0.17134128138295246,
+   "t_c7": -3.5270264554265878,
+   "skill_c7": -0.12370737583711902,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CROSS/ref-quiet/fade",
+   "family": "CROSS",
+   "edge": 0.18534233518545795,
+   "t_c7": 5.917471819102028,
+   "skill_c7": 0.20929531758383269,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CROSS/ref-quiet/follow",
+   "family": "CROSS",
+   "edge": -0.18534233518545795,
+   "t_c7": -3.7424172366864092,
+   "skill_c7": -0.16138935278708316,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CROSS/ref-dislocated/fade",
+   "family": "CROSS",
+   "edge": 0.03422359800349642,
+   "t_c7": 2.2373063212660957,
+   "skill_c7": 0.06289516974214565,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CROSS/ref-dislocated/follow",
+   "family": "CROSS",
+   "edge": -0.03422359800349642,
+   "t_c7": -0.055361358631697485,
+   "skill_c7": -0.005552026264847201,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/range_atr/bottom10",
+   "family": "STATE",
+   "edge": 0.06114880400056234,
+   "t_c7": 0.5201663039904583,
+   "skill_c7": 0.03604358868353848,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/range_atr/bottom25",
+   "family": "STATE",
+   "edge": 0.11318779630823401,
+   "t_c7": 4.590948755551653,
+   "skill_c7": 0.1209509531649383,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/range_atr/top25",
+   "family": "STATE",
+   "edge": 0.1299338706759935,
+   "t_c7": 2.5591498615599932,
+   "skill_c7": 0.12735167033827205,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/range_atr/top10",
+   "family": "STATE",
+   "edge": 0.008114258991302695,
+   "t_c7": -0.2599015064616402,
+   "skill_c7": -0.022200472329832934,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/body_frac/bottom10",
+   "family": "STATE",
+   "edge": 0.049250442824754215,
+   "t_c7": 0.8428536493153761,
+   "skill_c7": 0.06159380985386639,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "ACTIVITY_SELECTION",
+    "SESSION_SELECTION",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/body_frac/bottom25",
+   "family": "STATE",
+   "edge": 0.04714471594769834,
+   "t_c7": 1.6936272239623602,
+   "skill_c7": 0.05476717363428915,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "ACTIVITY_SELECTION",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/body_frac/top25",
+   "family": "STATE",
+   "edge": 0.31523085142214086,
+   "t_c7": 5.023034163305865,
+   "skill_c7": 0.34303592646801856,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/body_frac/top10",
+   "family": "STATE",
+   "edge": 0.3871995319158314,
+   "t_c7": 2.6181335511331985,
+   "skill_c7": 0.36560326578788827,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/upper_wick/bottom10",
+   "family": "STATE",
+   "edge": 0.31633461909918076,
+   "t_c7": 8.292453077581172,
+   "skill_c7": 0.36438469294768566,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/upper_wick/bottom25",
+   "family": "STATE",
+   "edge": 0.34279754866605944,
+   "t_c7": 4.5056601788725645,
+   "skill_c7": 0.33110952540303795,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/upper_wick/top25",
+   "family": "STATE",
+   "edge": 0.11024987137558163,
+   "t_c7": 1.7171543850108166,
+   "skill_c7": 0.11963129698123047,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/upper_wick/top10",
+   "family": "STATE",
+   "edge": 0.09103008496575851,
+   "t_c7": 0.4865556378139743,
+   "skill_c7": 0.018446139245765557,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/lower_wick/bottom10",
+   "family": "STATE",
+   "edge": 0.37723451013518855,
+   "t_c7": 2.299911244122437,
+   "skill_c7": 0.33128921594620464,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/lower_wick/bottom25",
+   "family": "STATE",
+   "edge": 0.32792838466979307,
+   "t_c7": 3.495792422394211,
+   "skill_c7": 0.3285996349165254,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/lower_wick/top25",
+   "family": "STATE",
+   "edge": 0.15900330225428544,
+   "t_c7": 2.4232534015914275,
+   "skill_c7": 0.0980838049460156,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/lower_wick/top10",
+   "family": "STATE",
+   "edge": 0.07213114606624187,
+   "t_c7": 1.3935926185821683,
+   "skill_c7": 0.09892359292970852,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/gap_atr/bottom10",
+   "family": "STATE",
+   "edge": 0.175291114678858,
+   "t_c7": 2.2693336534764517,
+   "skill_c7": 0.161060657099951,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/gap_atr/bottom25",
+   "family": "STATE",
+   "edge": 0.2077257226941261,
+   "t_c7": 4.4001347804025475,
+   "skill_c7": 0.24609219001197408,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/gap_atr/top25",
+   "family": "STATE",
+   "edge": 0.19370489016830603,
+   "t_c7": 3.4069371566307827,
+   "skill_c7": 0.1947914513757653,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/gap_atr/top10",
+   "family": "STATE",
+   "edge": 0.16976664560309251,
+   "t_c7": 2.511286819746091,
+   "skill_c7": 0.1691470090578176,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/atr_price/bottom10",
+   "family": "STATE",
+   "edge": 0.017515286386275777,
+   "t_c7": 1.463560717556787,
+   "skill_c7": 0.10923262712976271,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/atr_price/bottom25",
+   "family": "STATE",
+   "edge": 0.11236953653242618,
+   "t_c7": 2.4126580970962306,
+   "skill_c7": 0.12968337817011932,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/atr_price/top25",
+   "family": "STATE",
+   "edge": 0.28848692463824377,
+   "t_c7": 3.797055071971464,
+   "skill_c7": 0.33541118765256006,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/atr_price/top10",
+   "family": "STATE",
+   "edge": 0.34141922928296,
+   "t_c7": 2.5824238111745457,
+   "skill_c7": 0.2898423149808409,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/spread_atr/bottom10",
+   "family": "STATE",
+   "edge": 0.5939289358325963,
+   "t_c7": 2.035859696024994,
+   "skill_c7": 0.5177616002031961,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/spread_atr/bottom25",
+   "family": "STATE",
+   "edge": 0.4872918500595555,
+   "t_c7": 2.543115954806546,
+   "skill_c7": 0.4999812565556967,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/spread_atr/top25",
+   "family": "STATE",
+   "edge": 0.1454998500250623,
+   "t_c7": 0.7055728688278549,
+   "skill_c7": 0.04134032971714335,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/spread_atr/top10",
+   "family": "STATE",
+   "edge": 0.11632676626321246,
+   "t_c7": 1.236006756852316,
+   "skill_c7": 0.10130828260941616,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "ACTIVITY_SELECTION",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/range_pos/bottom10",
+   "family": "STATE",
+   "edge": 0.19335175225369555,
+   "t_c7": 2.4519597175746775,
+   "skill_c7": 0.3806171106170224,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/range_pos/bottom25",
+   "family": "STATE",
+   "edge": 0.24401500019479705,
+   "t_c7": 4.185622534749078,
+   "skill_c7": 0.27996676559277955,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/range_pos/top25",
+   "family": "STATE",
+   "edge": 0.23742610661048863,
+   "t_c7": 3.745239446274704,
+   "skill_c7": 0.2883708041037181,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/range_pos/top10",
+   "family": "STATE",
+   "edge": 0.12867982350193993,
+   "t_c7": 0.7511182561038463,
+   "skill_c7": 0.10807712901057862,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/eff_ratio/bottom10",
+   "family": "STATE",
+   "edge": 0.048204037226169005,
+   "t_c7": 0.31941630187870823,
+   "skill_c7": 0.028414558833509122,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "SESSION_SELECTION",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/eff_ratio/bottom25",
+   "family": "STATE",
+   "edge": 0.07844199791948753,
+   "t_c7": 0.27519153276972597,
+   "skill_c7": 0.013197009275344129,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/eff_ratio/top25",
+   "family": "STATE",
+   "edge": 0.28399972407454144,
+   "t_c7": 3.9910890922182483,
+   "skill_c7": 0.25813086810141017,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/eff_ratio/top10",
+   "family": "STATE",
+   "edge": 0.22670222427903505,
+   "t_c7": 2.222941059085845,
+   "skill_c7": 0.17209946597075457,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/ext_atr/bottom10",
+   "family": "STATE",
+   "edge": 0.1946489859927444,
+   "t_c7": 2.7290687833307237,
+   "skill_c7": 0.1540806249727924,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/ext_atr/bottom25",
+   "family": "STATE",
+   "edge": 0.26949550722647336,
+   "t_c7": 6.259694302011656,
+   "skill_c7": 0.22372385302955097,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/ext_atr/top25",
+   "family": "STATE",
+   "edge": 0.2674574512327666,
+   "t_c7": 3.0161744738875584,
+   "skill_c7": 0.2460712180819614,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/ext_atr/top10",
+   "family": "STATE",
+   "edge": 0.24745906964651196,
+   "t_c7": 2.081142210748226,
+   "skill_c7": 0.20481923758000317,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/run_len/bottom10",
+   "family": "STATE",
+   "edge": 0.4021363188121774,
+   "t_c7": 2.3715104022473423,
+   "skill_c7": 0.37064146695174954,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/run_len/bottom25",
+   "family": "STATE",
+   "edge": 0.2357960220096907,
+   "t_c7": 5.28809124706127,
+   "skill_c7": 0.1964422565195053,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/run_len/top25",
+   "family": "STATE",
+   "edge": 0.18026818889670498,
+   "t_c7": 2.403595502977178,
+   "skill_c7": 0.20680092855152593,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/run_len/top10",
+   "family": "STATE",
+   "edge": 0.38482479090373656,
+   "t_c7": 3.1988541673081685,
+   "skill_c7": 0.46862992833243844,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/ret_atr/bottom10",
+   "family": "STATE",
+   "edge": 0.2802951795598886,
+   "t_c7": 2.3662301430533503,
+   "skill_c7": 0.20586880160024268,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/ret_atr/bottom25",
+   "family": "STATE",
+   "edge": 0.34235312794782996,
+   "t_c7": 6.764351662803594,
+   "skill_c7": 0.3923731133982478,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/ret_atr/top25",
+   "family": "STATE",
+   "edge": 0.28086587772846106,
+   "t_c7": 3.3948954236650657,
+   "skill_c7": 0.2898393973846907,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "STATE/ret_atr/top10",
+   "family": "STATE",
+   "edge": 0.222211997431902,
+   "t_c7": 2.580919192817766,
+   "skill_c7": 0.25812246779888104,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/two-same-fade/fade",
+   "family": "SEQUENCE",
+   "edge": 0.311355922824622,
+   "t_c7": 3.7341244482471097,
+   "skill_c7": 0.30828350782294023,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/two-same-fade/follow",
+   "family": "SEQUENCE",
+   "edge": -0.311355922824622,
+   "t_c7": -5.182738424630955,
+   "skill_c7": -0.31442833782630375,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/two-opposite-fade/fade",
+   "family": "SEQUENCE",
+   "edge": 0.11434056375599849,
+   "t_c7": 4.308391022815326,
+   "skill_c7": 0.10595812426410624,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/two-opposite-fade/follow",
+   "family": "SEQUENCE",
+   "edge": -0.11434056375599849,
+   "t_c7": -2.6315350572400598,
+   "skill_c7": -0.1227230032478907,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/three-same-fade/fade",
+   "family": "SEQUENCE",
+   "edge": 0.39240982343553976,
+   "t_c7": 3.148827962852291,
+   "skill_c7": 0.3900959611157002,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/three-same-fade/follow",
+   "family": "SEQUENCE",
+   "edge": -0.39240982343553976,
+   "t_c7": -4.168573742494783,
+   "skill_c7": -0.3947236857553793,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/expand-after-quiet/fade",
+   "family": "SEQUENCE",
+   "edge": 0.7240672531870874,
+   "t_c7": 2.228995780727998,
+   "skill_c7": 0.7252210022125706,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/expand-after-quiet/follow",
+   "family": "SEQUENCE",
+   "edge": -0.7240672531870874,
+   "t_c7": -2.759041320176647,
+   "skill_c7": -0.7229135041616042,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/contract-after-wide/fade",
+   "family": "SEQUENCE",
+   "edge": 0.27788481338484694,
+   "t_c7": 1.0198283014231615,
+   "skill_c7": 0.3022462807250939,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/contract-after-wide/follow",
+   "family": "SEQUENCE",
+   "edge": -0.27788481338484694,
+   "t_c7": -0.859860957523476,
+   "skill_c7": -0.2535233460445999,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/outside-bar/fade",
+   "family": "SEQUENCE",
+   "edge": 0.07211923013745294,
+   "t_c7": 0.1295626830369163,
+   "skill_c7": 0.01807686324131139,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/outside-bar/follow",
+   "family": "SEQUENCE",
+   "edge": -0.07211923013745294,
+   "t_c7": -2.949728811362351,
+   "skill_c7": -0.1261615970335945,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/reversal-bar/fade",
+   "family": "SEQUENCE",
+   "edge": -0.046745794236435066,
+   "t_c7": 0.9743760798722915,
+   "skill_c7": 0.1842896858609066,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/reversal-bar/follow",
+   "family": "SEQUENCE",
+   "edge": 0.046745794236435066,
+   "t_c7": 1.3521912880226923,
+   "skill_c7": 0.2777812743337768,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/exhaustion/fade",
+   "family": "SEQUENCE",
+   "edge": -0.7509196138345312,
+   "t_c7": -0.2832097793398852,
+   "skill_c7": -0.13241248000678013,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "SEQUENCE/exhaustion/follow",
+   "family": "SEQUENCE",
+   "edge": 0.7509196138345312,
+   "t_c7": 2.1475015802670203,
+   "skill_c7": 1.3694267476622821,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "MULTISCALE/with-h4/fade",
+   "family": "MULTISCALE",
+   "edge": 0.23660898944137987,
+   "t_c7": 4.182003673777649,
+   "skill_c7": 0.23216246146803718,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "MULTISCALE/with-h4/follow",
+   "family": "MULTISCALE",
+   "edge": -0.23660898944137987,
+   "t_c7": -3.8731599101711423,
+   "skill_c7": -0.24105551741472248,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "MULTISCALE/against-h4/fade",
+   "family": "MULTISCALE",
+   "edge": 0.17525386252920253,
+   "t_c7": 4.189766266228483,
+   "skill_c7": 0.17485653137265697,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "MULTISCALE/against-h4/follow",
+   "family": "MULTISCALE",
+   "edge": -0.17525386252920253,
+   "t_c7": -2.9672110753389678,
+   "skill_c7": -0.17565119368574814,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "MULTISCALE/h4-up-low-in-range/fade",
+   "family": "MULTISCALE",
+   "edge": 0.22443397177947297,
+   "t_c7": 1.4686646469957774,
+   "skill_c7": 0.14592625910370338,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "MULTISCALE/h4-up-low-in-range/follow",
+   "family": "MULTISCALE",
+   "edge": -0.22443397177947297,
+   "t_c7": -3.3587711052977496,
+   "skill_c7": -0.30294168445524255,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "MULTISCALE/h4-down-high-in-range/fade",
+   "family": "MULTISCALE",
+   "edge": 0.2700308682498873,
+   "t_c7": 4.354408879799785,
+   "skill_c7": 0.2885064427407073,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "MULTISCALE/h4-down-high-in-range/follow",
+   "family": "MULTISCALE",
+   "edge": -0.2700308682498873,
+   "t_c7": -4.003530402382152,
+   "skill_c7": -0.25155529375906727,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "DISLOCATION/move/1.5atr-fade",
+   "family": "DISLOCATION",
+   "edge": -0.24437803264347194,
+   "t_c7": -2.0699292432176866,
+   "skill_c7": -0.5218408772635937,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "DISLOCATION/gap/0.75atr-fade",
+   "family": "DISLOCATION",
+   "edge": 0.2091232650485123,
+   "t_c7": 1.3092622428728393,
+   "skill_c7": 0.25847989516353626,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "DISLOCATION/move/2.0atr-fade",
+   "family": "DISLOCATION",
+   "edge": -0.4975774692939411,
+   "t_c7": -2.403119078234608,
+   "skill_c7": -1.0227733840588742,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "DISLOCATION/move/3.0atr-fade",
+   "family": "DISLOCATION",
+   "edge": -2.359489262793014,
+   "t_c7": -2.6343910524133465,
+   "skill_c7": -2.807853857256007,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/london-open/fade",
+   "family": "CLOCK",
+   "edge": -0.11168519942617243,
+   "t_c7": -1.3447511316196938,
+   "skill_c7": -0.11281669547196649,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/london-open/follow",
+   "family": "CLOCK",
+   "edge": 0.11168519942617243,
+   "t_c7": 0.9032336773817509,
+   "skill_c7": 0.11055370338037836,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/ny-open/fade",
+   "family": "CLOCK",
+   "edge": -0.041178134582497784,
+   "t_c7": -0.17698482253907266,
+   "skill_c7": -0.018221312817201702,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/ny-open/follow",
+   "family": "CLOCK",
+   "edge": 0.041178134582497784,
+   "t_c7": 0.8536431674319169,
+   "skill_c7": 0.06413495634779386,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/london-close/fade",
+   "family": "CLOCK",
+   "edge": 0.41126399080638515,
+   "t_c7": 4.255566987013027,
+   "skill_c7": 0.44729102570531637,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/london-close/follow",
+   "family": "CLOCK",
+   "edge": -0.41126399080638515,
+   "t_c7": -3.0793965803709082,
+   "skill_c7": -0.3752369559074541,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/rollover/fade",
+   "family": "CLOCK",
+   "edge": 0.2534342750094949,
+   "t_c7": 6.6354047905160956,
+   "skill_c7": 0.33169967045278426,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/rollover/follow",
+   "family": "CLOCK",
+   "edge": -0.2534342750094949,
+   "t_c7": -5.606367374625297,
+   "skill_c7": -0.17516887956620555,
+   "codes": [
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/asia/fade",
+   "family": "CLOCK",
+   "edge": 0.15417522242980602,
+   "t_c7": 6.537675770649745,
+   "skill_c7": 0.17650506692728965,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/asia/follow",
+   "family": "CLOCK",
+   "edge": -0.15417522242980602,
+   "t_c7": -1.2790762004565144,
+   "skill_c7": -0.1318453779323224,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/overlap/fade",
+   "family": "CLOCK",
+   "edge": 0.06527857225788315,
+   "t_c7": 2.532343458585052,
+   "skill_c7": 0.10819369174496613,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CLOCK/overlap/follow",
+   "family": "CLOCK",
+   "edge": -0.06527857225788315,
+   "t_c7": -0.39756466239612653,
+   "skill_c7": -0.022363452770800193,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CHEAP/spread-pct-bottom10/fade",
+   "family": "CHEAP",
+   "edge": 0.36604115566877915,
+   "t_c7": 2.6735649358185607,
+   "skill_c7": 0.36831078480629614,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CHEAP/spread-pct-bottom10+dislocation/fade",
+   "family": "CHEAP",
+   "edge": -0.024795515037625906,
+   "t_c7": -0.014219670389397648,
+   "skill_c7": -0.007624836340100311,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CHEAP/spread-pct-bottom25/fade",
+   "family": "CHEAP",
+   "edge": 0.27273001114428075,
+   "t_c7": 4.01836444464121,
+   "skill_c7": 0.2841826993202808,
+   "codes": [
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CHEAP/spread-pct-bottom25+dislocation/fade",
+   "family": "CHEAP",
+   "edge": -0.2416710468262907,
+   "t_c7": -0.021155246827957715,
+   "skill_c7": -0.011103307847390553,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CHEAP/spread-atr-bottom10/fade",
+   "family": "CHEAP",
+   "edge": 0.5939289358325963,
+   "t_c7": 2.035859696024994,
+   "skill_c7": 0.5177616002031961,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CHEAP/spread-atr-bottom10+dislocation/fade",
+   "family": "CHEAP",
+   "edge": 0.05660735614211898,
+   "t_c7": -0.6142296659333344,
+   "skill_c7": -0.4964977456245424,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CHEAP/spread-atr-bottom25/fade",
+   "family": "CHEAP",
+   "edge": 0.4872918500595555,
+   "t_c7": 2.543115954806546,
+   "skill_c7": 0.4999812565556967,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "CHEAP/spread-atr-bottom25+dislocation/fade",
+   "family": "CHEAP",
+   "edge": 0.11505722346614705,
+   "t_c7": -0.35157206126835167,
+   "skill_c7": -0.1382177876998658,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.2-0.4",
+   "family": "AMPLITUDE",
+   "edge": 1.0995916973049307,
+   "t_c7": 2.4861282470561172,
+   "skill_c7": 0.687749605040697,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.2-0.5",
+   "family": "AMPLITUDE",
+   "edge": 0.8456395682769321,
+   "t_c7": 1.3515397484979186,
+   "skill_c7": 0.3884329422316932,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.2-0.6",
+   "family": "AMPLITUDE",
+   "edge": 0.722617702159235,
+   "t_c7": 2.932485625606332,
+   "skill_c7": 0.6794220699836176,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.2-0.7",
+   "family": "AMPLITUDE",
+   "edge": 0.6645182336098467,
+   "t_c7": 3.9671162894722576,
+   "skill_c7": 0.8333987684427184,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.2-0.9",
+   "family": "AMPLITUDE",
+   "edge": 0.6099893176639513,
+   "t_c7": 3.3593621201887833,
+   "skill_c7": 0.7099119657960999,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.5-0.4",
+   "family": "AMPLITUDE",
+   "edge": 1.5744478156586819,
+   "t_c7": 1.4231377013942839,
+   "skill_c7": 1.3857182063148752,
+   "codes": [
+    "SAMPLE_TOO_SMALL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.5-0.5",
+   "family": "AMPLITUDE",
+   "edge": 0.7904399045960527,
+   "t_c7": 1.3052090971534716,
+   "skill_c7": 0.4021307799706411,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.5-0.6",
+   "family": "AMPLITUDE",
+   "edge": 0.8014682471909294,
+   "t_c7": 1.9131305282629019,
+   "skill_c7": 0.527761832772706,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.5-0.7",
+   "family": "AMPLITUDE",
+   "edge": 0.7240672531870874,
+   "t_c7": 2.228995780727998,
+   "skill_c7": 0.7252210022125706,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.5-0.9",
+   "family": "AMPLITUDE",
+   "edge": 0.589337915023814,
+   "t_c7": 4.0201851147567815,
+   "skill_c7": 0.6705021723050271,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.8-0.5",
+   "family": "AMPLITUDE",
+   "edge": 0.8977147751744452,
+   "t_c7": 0.9363882020256323,
+   "skill_c7": 1.0937938965780185,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.8-0.6",
+   "family": "AMPLITUDE",
+   "edge": 0.9338205319274349,
+   "t_c7": 1.5062102088778242,
+   "skill_c7": 0.8015518001378267,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.8-0.7",
+   "family": "AMPLITUDE",
+   "edge": 0.7980390457867382,
+   "t_c7": 2.1057558285225966,
+   "skill_c7": 1.0056100131100862,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/1.8-0.9",
+   "family": "AMPLITUDE",
+   "edge": 0.6099497346558719,
+   "t_c7": 3.1046984367569315,
+   "skill_c7": 0.8578182557869111,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/2.2-0.6",
+   "family": "AMPLITUDE",
+   "edge": 0.9236786754171651,
+   "t_c7": 1.9128855947506005,
+   "skill_c7": 0.9532968881184769,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/2.2-0.7",
+   "family": "AMPLITUDE",
+   "edge": 0.8838881057230816,
+   "t_c7": 3.0794201496781155,
+   "skill_c7": 1.9237367763727324,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-after-quiet/2.2-0.9",
+   "family": "AMPLITUDE",
+   "edge": 0.4252485289040166,
+   "t_c7": 1.968430329704422,
+   "skill_c7": 0.528565384680636,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-quiet-cheap/1.2",
+   "family": "AMPLITUDE",
+   "edge": 2.212365129487202,
+   "t_c7": 2.407204317698617,
+   "skill_c7": 2.0377561880739994,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-quiet-cheap/1.5",
+   "family": "AMPLITUDE",
+   "edge": 2.6311421863833733,
+   "t_c7": 2.492965696336425,
+   "skill_c7": 2.5098193509866236,
+   "codes": [
+    "BELOW_MULTIPLICITY_FLOOR"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "AMPLITUDE/expand-quiet-cheap/1.8",
+   "family": "AMPLITUDE",
+   "edge": 2.552997042736109,
+   "t_c7": 1.5207140518841369,
+   "skill_c7": 4.958304441200909,
+   "codes": [
+    "SAMPLE_TOO_SMALL"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "DISLOCATION/gap/1.0atr-fade",
+   "family": "DISLOCATION",
+   "edge": 0.2927447781077882,
+   "t_c7": 1.048319015258962,
+   "skill_c7": 0.30278658490552496,
+   "codes": [
+    "NO_DIRECTIONAL_SKILL",
+    "COST_DOMINATED"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "DISLOCATION/gap/1.5atr-fade",
+   "family": "DISLOCATION",
+   "edge": 0.6976605255682756,
+   "t_c7": -0.18054050009022576,
+   "skill_c7": -0.05484337878938863,
+   "codes": [
+    "SAMPLE_TOO_SMALL",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  },
+  {
+   "hypothesis": "DISLOCATION/move/4.0atr-fade",
+   "family": "DISLOCATION",
+   "edge": -7.800429941275538,
+   "t_c7": -2.067336771222113,
+   "skill_c7": -4.13188107148551,
+   "codes": [
+    "SAMPLE_TOO_SMALL",
+    "CROSS_MARKET_INSTABILITY"
+   ],
+   "missing": []
+  }
+ ],
+ "distribution": [
+  {
+   "code": "COST_DOMINATED",
+   "n": 66,
+   "share": 0.5196850393700787
+  },
+  {
+   "code": "NO_DIRECTIONAL_SKILL",
+   "n": 40,
+   "share": 0.31496062992125984
+  },
+  {
+   "code": "CROSS_MARKET_INSTABILITY",
+   "n": 35,
+   "share": 0.2755905511811024
+  },
+  {
+   "code": "BELOW_MULTIPLICITY_FLOOR",
+   "n": 23,
+   "share": 0.18110236220472442
+  },
+  {
+   "code": "SAMPLE_TOO_SMALL",
+   "n": 4,
+   "share": 0.031496062992125984
+  },
+  {
+   "code": "ACTIVITY_SELECTION",
+   "n": 3,
+   "share": 0.023622047244094488
+  },
+  {
+   "code": "SESSION_SELECTION",
+   "n": 2,
+   "share": 0.015748031496062992
+  }
+ ],
+ "upgrade_targets": [
+  {
+   "code": "COST_DOMINATED",
+   "n": 66,
+   "share": 0.5196850393700787,
+   "upgrade": "tradability layer"
+  },
+  {
+   "code": "NO_DIRECTIONAL_SKILL",
+   "n": 40,
+   "share": 0.31496062992125984,
+   "upgrade": "hypothesis generation, not measurement"
+  },
+  {
+   "code": "CROSS_MARKET_INSTABILITY",
+   "n": 35,
+   "share": 0.2755905511811024,
+   "upgrade": "representation (mechanism, not fit)"
+  }
+ ],
+ "manifest": {
+  "git": {
+   "commit": "4eb61876245cf5b18407e1bb3280f41ed16a581d",
+   "dirty": false,
+   "branch": "claude/order-position-choch-gab-im08db"
+  },
+  "config_hash": "fcd210dfe544ceb9",
+  "config": {
+   "horizon": 3,
+   "seed": 17
+  },
+  "data": {
+   "XAUUSD_H1_2003_2026.parquet": {
+    "sha256": "ae710b32d3326c2eb3c199d631dad6b81e12c8f766efb3c4c808283498dee2be",
+    "bytes": 9419126,
+    "mtime": "2026-09-12T11:38:54.185326+00:00"
+   },
+   "XAGUSD_H1_2003_2026.parquet": {
+    "sha256": "b2d6e6d9a0256b6c9d78795fdc69b930700d5cb4581234a383348c7796662643",
+    "bytes": 5081235,
+    "mtime": "2026-09-13T11:42:42.240180+00:00"
+   },
+   "EURUSD_H1_2003_2026.parquet": {
+    "sha256": "3c77446c21a6f721a6573ee273b9c2b2512ae564af796acad0991bb4a40496e5",
+    "bytes": 7277380,
+    "mtime": "2026-09-13T12:01:35.988187+00:00"
+   },
+   "GBPUSD_H1_2003_2026.parquet": {
+    "sha256": "1866bfa7d9450944447823b31f007d0160fa0be83ff6010bcaaaf9b3ff21f745",
+    "bytes": 7559567,
+    "mtime": "2026-09-13T12:19:17.832193+00:00"
+   },
+   "USDJPY_H1_2003_2026.parquet": {
+    "sha256": "432ebeba1bf63e5d498ed5635cfc1d3de5b48855f771c940e5913c5ee4a25120",
+    "bytes": 6480684,
+    "mtime": "2026-09-13T12:35:44.760199+00:00"
+   },
+   "AUDUSD_H1_2003_2026.parquet": {
+    "sha256": "240dd03bd5471fd236f7e0f50f369838140f20ccfc3c2307bcc083592e35e7fd",
+    "bytes": 6614434,
+    "mtime": "2026-09-13T12:54:33.816206+00:00"
+   },
+   "USDCHF_H1_2003_2026.parquet": {
+    "sha256": "7e3b7c1afbd26e110a332d5c920995b7e1ed553a35b2668d2ebdb318a561ea9a",
+    "bytes": 6942513,
+    "mtime": "2026-09-13T13:12:10.680212+00:00"
+   },
+   "USDCAD_H1_2003_2026.parquet": {
+    "sha256": "b7c89d032b1b9fac27a89110879c82f6bb1a083fd8179587057afb1c064e4f84",
+    "bytes": 6702097,
+    "mtime": "2026-09-13T16:00:17.360274+00:00"
+   },
+   "NZDUSD_H1_2003_2026.parquet": {
+    "sha256": "aa33ba9d2b5eaa856acd168224318183e725fb41e8a1519b43597a7af2ec085e",
+    "bytes": 6189965,
+    "mtime": "2026-09-13T16:18:22.344281+00:00"
+   }
+  }
+ }
+}

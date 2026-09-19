@@ -1,0 +1,402 @@
+{
+ "created": "2026-09-19T09:13:18Z",
+ "horizon": 1,
+ "floor": 4.74,
+ "per_market": [
+  {
+   "symbol": "XAUUSD",
+   "n": 39994,
+   "n_fade": 129623,
+   "fade_rate": 0.5195605718121012,
+   "rev_rate": 0.5241286192928939,
+   "ctrl_rate": 0.4977496624493674,
+   "lag_rate": 0.512151822773416,
+   "skill_vs_ctrl": 0.02637895684352648,
+   "skill_vs_fade": 0.0045680474807926474,
+   "lag_skill_vs_ctrl": 0.014402160324048563,
+   "early_rate": 0.5300121372613925,
+   "late_rate": 0.5192518748856777,
+   "magnitude": {
+    "win_rate": 0.5241286192928939,
+    "mean_win": 5.543035965299655,
+    "mean_loss": 6.306966813740349,
+    "payoff": 0.8788750803672543,
+    "breakeven_gross": 0.5322333615732107,
+    "breakeven_net": 0.616621527436663,
+    "edge_spreads": -0.09604121854515547,
+    "net_edge_spreads": -1.0960412185451556
+   },
+   "magnitude_fade": {
+    "win_rate": 0.5195605718121012,
+    "mean_win": 4.9174841865718415,
+    "mean_loss": 5.163178330636181,
+    "payoff": 0.9524141665596768,
+    "breakeven_gross": 0.5121864085641659,
+    "breakeven_net": 0.611386237771122,
+    "edge_spreads": 0.07433645104923478,
+    "net_edge_spreads": -0.9256635489507652
+   }
+  },
+  {
+   "symbol": "XAGUSD",
+   "n": 21656,
+   "n_fade": 110904,
+   "fade_rate": 0.5157974464401645,
+   "rev_rate": 0.5241503509420022,
+   "ctrl_rate": 0.4921038049501293,
+   "lag_rate": 0.5100664942741042,
+   "skill_vs_ctrl": 0.032046545991872954,
+   "skill_vs_fade": 0.008352904501837788,
+   "lag_skill_vs_ctrl": 0.017962689323974934,
+   "early_rate": 0.5328912929680684,
+   "late_rate": 0.5210047095761382,
+   "magnitude": {
+    "win_rate": 0.5241503509420022,
+    "mean_win": 2.085967783090893,
+    "mean_loss": 2.32307421293597,
+    "payoff": 0.8979341992069144,
+    "breakeven_gross": 0.5268886563179418,
+    "breakeven_net": 0.753695296150616,
+    "edge_spreads": -0.01207330340046353,
+    "net_edge_spreads": -1.0120733034004634
+   },
+   "magnitude_fade": {
+    "win_rate": 0.5157974464401645,
+    "mean_win": 1.4965701458605765,
+    "mean_loss": 1.5218387125713082,
+    "payoff": 0.9833960284345522,
+    "breakeven_gross": 0.5041857428691517,
+    "breakeven_net": 0.8354861222748489,
+    "edge_spreads": 0.03504886892022956,
+    "net_edge_spreads": -0.9649511310797705
+   }
+  },
+  {
+   "symbol": "EURUSD",
+   "n": 43013,
+   "n_fade": 127047,
+   "fade_rate": 0.5187686446748054,
+   "rev_rate": 0.528886615674331,
+   "ctrl_rate": 0.5006393415944017,
+   "lag_rate": 0.51784344268012,
+   "skill_vs_ctrl": 0.02824727407992933,
+   "skill_vs_fade": 0.010117970999525605,
+   "lag_skill_vs_ctrl": 0.017204101085718237,
+   "early_rate": 0.5351723469239347,
+   "late_rate": 0.5230947913874743,
+   "magnitude": {
+    "win_rate": 0.528886615674331,
+    "mean_win": 21.579234648079318,
+    "mean_loss": 22.67116775161898,
+    "payoff": 0.9518360449932409,
+    "breakeven_gross": 0.5123381149585557,
+    "breakeven_net": 0.5349367795078033,
+    "edge_spreads": 0.7322778157847472,
+    "net_edge_spreads": -0.26772218421525285
+   },
+   "magnitude_fade": {
+    "win_rate": 0.5187686446748054,
+    "mean_win": 20.601835374322654,
+    "mean_loss": 21.03721276709197,
+    "payoff": 0.9793044165313398,
+    "breakeven_gross": 0.5052279940608956,
+    "breakeven_net": 0.5292439128831462,
+    "edge_spreads": 0.5638198027786699,
+    "net_edge_spreads": -0.43618019722133006
+   }
+  },
+  {
+   "symbol": "GBPUSD",
+   "n": 40723,
+   "n_fade": 120434,
+   "fade_rate": 0.519869804208114,
+   "rev_rate": 0.524200083490902,
+   "ctrl_rate": 0.49974216044986863,
+   "lag_rate": 0.5150525488655339,
+   "skill_vs_ctrl": 0.024457923041033336,
+   "skill_vs_fade": 0.004330279282787952,
+   "lag_skill_vs_ctrl": 0.015310388415665233,
+   "early_rate": 0.5289251787810866,
+   "late_rate": 0.5201728451216738,
+   "magnitude": {
+    "win_rate": 0.524200083490902,
+    "mean_win": 10.864782968638362,
+    "mean_loss": 11.61057075032525,
+    "payoff": 0.9357664840321483,
+    "breakeven_gross": 0.5165912356933815,
+    "breakeven_net": 0.5610844175362216,
+    "edge_spreads": 0.17101154564302817,
+    "net_edge_spreads": -0.8289884543569719
+   },
+   "magnitude_fade": {
+    "win_rate": 0.519869804208114,
+    "mean_win": 10.040593713657003,
+    "mean_loss": 10.483886100113697,
+    "payoff": 0.9577167872462973,
+    "breakeven_gross": 0.5107991138016388,
+    "breakeven_net": 0.5595214204848542,
+    "edge_spreads": 0.18617120214466498,
+    "net_edge_spreads": -0.813828797855335
+   }
+  },
+  {
+   "symbol": "USDJPY",
+   "n": 42834,
+   "n_fade": 132188,
+   "fade_rate": 0.5171271219777892,
+   "rev_rate": 0.5230657888593173,
+   "ctrl_rate": 0.4910818508661344,
+   "lag_rate": 0.5106104820824092,
+   "skill_vs_ctrl": 0.03198393799318294,
+   "skill_vs_fade": 0.00593866688152811,
+   "lag_skill_vs_ctrl": 0.01952863121627485,
+   "early_rate": 0.5332557688578631,
+   "late_rate": 0.5135999279474016,
+   "magnitude": {
+    "win_rate": 0.5230657888593173,
+    "mean_win": 17.16786481311484,
+    "mean_loss": 19.141659768321855,
+    "payoff": 0.8968848585181985,
+    "breakeven_gross": 0.5271801266742022,
+    "breakeven_net": 0.5547211096952592,
+    "edge_spreads": -0.1493896500258949,
+    "net_edge_spreads": -1.1493896500258949
+   },
+   "magnitude_fade": {
+    "win_rate": 0.5171271219777892,
+    "mean_win": 15.420788761534451,
+    "mean_loss": 16.52741815920296,
+    "payoff": 0.9330428148541577,
+    "breakeven_gross": 0.5173191159117947,
+    "breakeven_net": 0.5486197770875837,
+    "edge_spreads": -0.006133861931135025,
+    "net_edge_spreads": -1.006133861931135
+   }
+  },
+  {
+   "symbol": "AUDUSD",
+   "n": 39302,
+   "n_fade": 123333,
+   "fade_rate": 0.5149067970453974,
+   "rev_rate": 0.5189048903363697,
+   "ctrl_rate": 0.4994911200447814,
+   "lag_rate": 0.5109154750394382,
+   "skill_vs_ctrl": 0.01941377029158825,
+   "skill_vs_fade": 0.003998093290972227,
+   "lag_skill_vs_ctrl": 0.011424354994656827,
+   "early_rate": 0.5181547786071048,
+   "late_rate": 0.5195270679141647,
+   "magnitude": {
+    "win_rate": 0.5189048903363697,
+    "mean_win": 6.703018869536315,
+    "mean_loss": 7.135505357554449,
+    "payoff": 0.9393895083324049,
+    "breakeven_gross": 0.5156261780852138,
+    "breakeven_net": 0.5878882187183015,
+    "edge_spreads": 0.04537253892127852,
+    "net_edge_spreads": -0.9546274610787214
+   },
+   "magnitude_fade": {
+    "win_rate": 0.5149067970453974,
+    "mean_win": 6.285295370067766,
+    "mean_loss": 6.457665060112905,
+    "payoff": 0.973307737635726,
+    "breakeven_gross": 0.5067633298788599,
+    "breakeven_net": 0.5852380301244622,
+    "edge_spreads": 0.10377187986766363,
+    "net_edge_spreads": -0.8962281201323363
+   }
+  },
+  {
+   "symbol": "USDCHF",
+   "n": 42173,
+   "n_fade": 130280,
+   "fade_rate": 0.5195194964691434,
+   "rev_rate": 0.5245773362103716,
+   "ctrl_rate": 0.4965262134541057,
+   "lag_rate": 0.5132667820643539,
+   "skill_vs_ctrl": 0.028051122756265923,
+   "skill_vs_fade": 0.005057839741228198,
+   "lag_skill_vs_ctrl": 0.016740568610248252,
+   "early_rate": 0.5325360019526483,
+   "late_rate": 0.517060125414976,
+   "magnitude": {
+    "win_rate": 0.5245773362103716,
+    "mean_win": 6.203521130777402,
+    "mean_loss": 6.666250869912906,
+    "payoff": 0.9305862098253812,
+    "breakeven_gross": 0.5179773868220309,
+    "breakeven_net": 0.5956788410471999,
+    "edge_spreads": 0.0849398438440401,
+    "net_edge_spreads": -0.9150601561559599
+   },
+   "magnitude_fade": {
+    "win_rate": 0.5195194964691434,
+    "mean_win": 5.842337294017042,
+    "mean_loss": 5.972469682200087,
+    "payoff": 0.9782112936343769,
+    "breakeven_gross": 0.5055071736865866,
+    "breakeven_net": 0.5901467282737222,
+    "edge_spreads": 0.1655528889643582,
+    "net_edge_spreads": -0.8344471110356417
+   }
+  },
+  {
+   "symbol": "USDCAD",
+   "n": 39079,
+   "n_fade": 121170,
+   "fade_rate": 0.5175703556986052,
+   "rev_rate": 0.5184881905882955,
+   "ctrl_rate": 0.49531729785056294,
+   "lag_rate": 0.507830492860433,
+   "skill_vs_ctrl": 0.023170892737732596,
+   "skill_vs_fade": 0.0009178348896903277,
+   "lag_skill_vs_ctrl": 0.012513195009870082,
+   "early_rate": 0.525672239355083,
+   "late_rate": 0.5120411730433094,
+   "magnitude": {
+    "win_rate": 0.5184881905882955,
+    "mean_win": 6.536225995593106,
+    "mean_loss": 6.565422890034177,
+    "payoff": 0.9955529301112668,
+    "breakeven_gross": 0.5011142450349552,
+    "breakeven_net": 0.5774405157761148,
+    "edge_spreads": 0.22762733439787144,
+    "net_edge_spreads": -0.7723726656021286
+   },
+   "magnitude_fade": {
+    "win_rate": 0.5175703556986052,
+    "mean_win": 6.086980834602652,
+    "mean_loss": 6.1185840599513845,
+    "payoff": 0.9948348792728716,
+    "breakeven_gross": 0.5012946236254429,
+    "breakeven_net": 0.5832244653524888,
+    "edge_spreads": 0.1986545040253583,
+    "net_edge_spreads": -0.8013454959746417
+   }
+  },
+  {
+   "symbol": "NZDUSD",
+   "n": 40348,
+   "n_fade": 124970,
+   "fade_rate": 0.5109946387132912,
+   "rev_rate": 0.5152423911965897,
+   "ctrl_rate": 0.49534053732527017,
+   "lag_rate": 0.5057747595915535,
+   "skill_vs_ctrl": 0.019901853871319486,
+   "skill_vs_fade": 0.00424775248329845,
+   "lag_skill_vs_ctrl": 0.010434222266283322,
+   "early_rate": 0.5217895346998999,
+   "late_rate": 0.5094286650133358,
+   "magnitude": {
+    "win_rate": 0.5152423911965897,
+    "mean_win": 4.789168298698134,
+    "mean_loss": 4.931722019489201,
+    "payoff": 0.9710945344794936,
+    "breakeven_gross": 0.5073323387120393,
+    "breakeven_net": 0.6102035745009101,
+    "edge_spreads": 0.07689275261341884,
+    "net_edge_spreads": -0.9231072473865811
+   },
+   "magnitude_fade": {
+    "win_rate": 0.5109946387132912,
+    "mean_win": 4.551390258515009,
+    "mean_loss": 4.545119756658152,
+    "payoff": 1.0013796120218112,
+    "breakeven_gross": 0.49965533474671064,
+    "breakeven_net": 0.6095876052913459,
+    "edge_spreads": 0.1031480920970928,
+    "net_edge_spreads": -0.8968519079029071
+   }
+  }
+ ],
+ "add_over_fade": {
+  "mean": 0.005281043283517923,
+  "t": 5.962743883231988,
+  "positive": 9,
+  "markets": 9
+ },
+ "lag_retained": 0.5800085179353651,
+ "verdict": "CONDITIONAL SIGNAL",
+ "economics": [
+  {
+   "label": "reversion",
+   "win_rate": 0.5224049185101193,
+   "mean_win": 9.052535608092002,
+   "mean_loss": 9.705815603770349,
+   "breakeven_gross": 0.5174757382079479,
+   "breakeven_net": 0.5991411422632322,
+   "edge_spreads": 0.12006862880365225,
+   "net_edge_spreads": -0.8799313711963478
+  },
+  {
+   "label": "unconditional fade",
+   "win_rate": 0.5171238752266013,
+   "mean_win": 8.360363993238778,
+   "mean_loss": 8.647485847615405,
+   "breakeven_gross": 0.5069932041272496,
+   "breakeven_net": 0.6058282555048415,
+   "edge_spreads": 0.15826331421290413,
+   "net_edge_spreads": -0.8417366857870959
+  }
+ ],
+ "manifest": {
+  "git": {
+   "commit": "ba167461314cf7530775537e81cd47e3d59e7195",
+   "dirty": true,
+   "branch": "claude/order-position-choch-gab-im08db"
+  },
+  "config_hash": "efce34821991ee67",
+  "config": {
+   "h": 1,
+   "seed": 17
+  },
+  "data": {
+   "XAUUSD_H1_2003_2026.parquet": {
+    "sha256": "ae710b32d3326c2eb3c199d631dad6b81e12c8f766efb3c4c808283498dee2be",
+    "bytes": 9419126,
+    "mtime": "2026-09-12T11:38:54.185326+00:00"
+   },
+   "XAGUSD_H1_2003_2026.parquet": {
+    "sha256": "b2d6e6d9a0256b6c9d78795fdc69b930700d5cb4581234a383348c7796662643",
+    "bytes": 5081235,
+    "mtime": "2026-09-13T11:42:42.240180+00:00"
+   },
+   "EURUSD_H1_2003_2026.parquet": {
+    "sha256": "3c77446c21a6f721a6573ee273b9c2b2512ae564af796acad0991bb4a40496e5",
+    "bytes": 7277380,
+    "mtime": "2026-09-13T12:01:35.988187+00:00"
+   },
+   "GBPUSD_H1_2003_2026.parquet": {
+    "sha256": "1866bfa7d9450944447823b31f007d0160fa0be83ff6010bcaaaf9b3ff21f745",
+    "bytes": 7559567,
+    "mtime": "2026-09-13T12:19:17.832193+00:00"
+   },
+   "USDJPY_H1_2003_2026.parquet": {
+    "sha256": "432ebeba1bf63e5d498ed5635cfc1d3de5b48855f771c940e5913c5ee4a25120",
+    "bytes": 6480684,
+    "mtime": "2026-09-13T12:35:44.760199+00:00"
+   },
+   "AUDUSD_H1_2003_2026.parquet": {
+    "sha256": "240dd03bd5471fd236f7e0f50f369838140f20ccfc3c2307bcc083592e35e7fd",
+    "bytes": 6614434,
+    "mtime": "2026-09-13T12:54:33.816206+00:00"
+   },
+   "USDCHF_H1_2003_2026.parquet": {
+    "sha256": "7e3b7c1afbd26e110a332d5c920995b7e1ed553a35b2668d2ebdb318a561ea9a",
+    "bytes": 6942513,
+    "mtime": "2026-09-13T13:12:10.680212+00:00"
+   },
+   "USDCAD_H1_2003_2026.parquet": {
+    "sha256": "b7c89d032b1b9fac27a89110879c82f6bb1a083fd8179587057afb1c064e4f84",
+    "bytes": 6702097,
+    "mtime": "2026-09-13T16:00:17.360274+00:00"
+   },
+   "NZDUSD_H1_2003_2026.parquet": {
+    "sha256": "aa33ba9d2b5eaa856acd168224318183e725fb41e8a1519b43597a7af2ec085e",
+    "bytes": 6189965,
+    "mtime": "2026-09-13T16:18:22.344281+00:00"
+   }
+  }
+ }
+}
