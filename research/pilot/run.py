@@ -53,9 +53,13 @@ def synth_walk(b5: D.Bars, sigma_step: float, rng) -> D.Bars:
 
 def evaluate(c: core.Ctx, signals, ex: D.Bars, nxt: np.ndarray, cost: float,
              max_bars: int, rng) -> dict:
-    tr, skipped = core.run_signals(c, signals, ex, nxt, cost, max_bars)
-    ctl_sig = core.control_signals(c, signals, nxt, CONTROL_DRAWS, rng)
-    ctl, _ = core.run_signals(c, ctl_sig, ex, nxt, cost, max_bars)
+    tr, skipped, accepted = core.run_signals(c, signals, ex, nxt, cost, max_bars)
+    # Controls are built from the ACCEPTED signals only. Building them from the
+    # raw list lets the control keep twins of signals the setup arm dropped for
+    # an inverted stop or a target already passed, so the two arms would differ
+    # by a feasibility filter instead of by timing alone.
+    ctl_sig = core.control_signals(c, accepted, nxt, CONTROL_DRAWS, rng)
+    ctl, _, _ = core.run_signals(c, ctl_sig, ex, nxt, cost, max_bars)
     s = core.summarise(tr, "net_R")
     g = core.summarise(tr, "gross_R")
     cs = core.summarise(ctl, "net_R")

@@ -53,7 +53,7 @@ for Rm in (2.0, 3.0):
             sb15, _ = D.to_15m(sb5)
             nxt = R.map_next(sb15, sb5)
             c = core.Ctx(sb15, nxt)
-            tr, _ = core.run_signals(c, null_signals(c, nxt, Rmult=Rm), sb5, nxt,
+            tr, _, _acc = core.run_signals(c, null_signals(c, nxt, Rmult=Rm), sb5, nxt,
                                      0.0, mb)
             if len(tr) < 2:
                 continue
@@ -85,9 +85,9 @@ for sd in range(SEEDS):
     c = core.Ctx(sb15, nxt)
     for name, _d, fn in core.REGISTRY:
         sg = fn(c)
-        tr, _ = core.run_signals(c, sg, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
-        cs = core.control_signals(c, sg, nxt, R.CONTROL_DRAWS, rng)
-        ct, _ = core.run_signals(c, cs, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
+        tr, _, _acc = core.run_signals(c, sg, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
+        cs = core.control_signals(c, _acc, nxt, R.CONTROL_DRAWS, rng)
+        ct, _, _acc = core.run_signals(c, cs, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
         if len(tr) < 2 or len(ct) < 2:
             continue
         a = np.array([t.net_R for t in tr])
@@ -129,9 +129,9 @@ for variant, kw in (("every 7th", {}), ("every 11th", dict(every=11)),
         nxt = R.map_next(sb15, sb5)
         c = core.Ctx(sb15, nxt)
         sg = null_signals(c, nxt, **kw)
-        tr, _ = core.run_signals(c, sg, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
-        cs = core.control_signals(c, sg, nxt, R.CONTROL_DRAWS, rng)
-        ct, _ = core.run_signals(c, cs, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
+        tr, _, _acc = core.run_signals(c, sg, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
+        cs = core.control_signals(c, _acc, nxt, R.CONTROL_DRAWS, rng)
+        ct, _, _acc = core.run_signals(c, cs, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
         if len(tr) < 2 or len(ct) < 2:
             continue
         w.append(float(np.mean([t.net_R for t in tr]) - np.mean([t.net_R for t in ct])))

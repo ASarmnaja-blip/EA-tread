@@ -326,8 +326,17 @@ def resolve(exec_bars: Bars, k0: int, direction: int, entry: float,
 
 
 def run_signals(c: Ctx, signals, exec_bars: Bars, exec_nxt: np.ndarray,
-                cost: float, max_exec_bars: int) -> tuple[list[Trade], dict]:
+                cost: float, max_exec_bars: int):
+    """Returns (trades, skipped, accepted).
+
+    `accepted` is the subset of signals that became a trade. The control must
+    be built from these and not from the raw signal list: a signal dropped for
+    an inverted stop or a target already passed is dropped from the setup arm
+    only, and letting the control keep its twin makes the two arms differ by
+    a feasibility filter rather than by timing.
+    """
     trades = []
+    accepted = []
     skipped = {"expired": 0, "bad_risk": 0, "bad_target": 0}
     for (i, d, stop, tmode, tval) in signals:
         k = exec_nxt[i]
@@ -350,7 +359,8 @@ def run_signals(c: Ctx, signals, exec_bars: Bars, exec_nxt: np.ndarray,
         g = d * (px - entry) / risk
         trades.append(Trade(int(exec_bars.t[k]), d, risk, g, g - cost / risk,
                             c.session[i], c.regime[i], why, nb))
-    return trades, skipped
+        accepted.append((i, d, stop, tmode, tval))
+    return trades, skipped, accepted
 
 
 # -------------------------------------------------------------- controls

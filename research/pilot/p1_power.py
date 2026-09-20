@@ -16,9 +16,9 @@ for sd in range(N):
     sb15, _ = D.to_15m(sb5); nxt = R.map_next(sb15, sb5); c = core.Ctx(sb15, nxt)
     for name, _d, fn in core.REGISTRY:
         sg = fn(c)
-        tr, _ = core.run_signals(c, sg, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
-        cs = core.control_signals(c, sg, nxt, R.CONTROL_DRAWS, rng)
-        ct, _ = core.run_signals(c, cs, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
+        tr, _, acc = core.run_signals(c, sg, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
+        cs = core.control_signals(c, acc, nxt, R.CONTROL_DRAWS, rng)
+        ct, _, _acc = core.run_signals(c, cs, sb5, nxt, core.COST_ROUND_TURN, core.TIME_STOP_5M)
         if len(tr) >= 2 and len(ct) >= 2:
             w[name].append(np.mean([t.net_R for t in tr]) - np.mean([t.net_R for t in ct]))
     if (sd+1) % 10 == 0:
