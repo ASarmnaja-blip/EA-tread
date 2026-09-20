@@ -292,3 +292,112 @@ Every number in `research/pilot/results/` today was measured on **synthetic data
 containing no information at all**. S3, S3V1, S3V2, S5, S5V1, S5V2 and S2V1 stay
 **UNINTERPRETABLE**. The sealed holdout stays sealed. No order is placed, and no
 claim of profit is made here or anywhere downstream of here.
+
+---
+
+## 11. The window is 2 weeks to 1 month — what that buys
+
+*Added 2026-09-21, after the operator fixed the window length and before any
+data had been read. No result existed when this section was written.*
+
+**Operator instruction:** "current" means **the last 2 weeks to 1 month**.
+Anything older must not carry weight, and must not carry it indirectly either.
+
+**What older data may still be used for, and why it is not a violation:**
+
+| Use | Admissible | Reason |
+|---|---|---|
+| observations in the sample | **no** | this is the instruction |
+| decay-weighted tail beyond the window | **no** | that is weight arriving by the back door |
+| indicator warm-up (`Ctx.warm = 200`, `rolling_pct_rank` over 200) | **yes** | an ATR percentile at time `t` is an *input to a feature at t*, not an observation of an older market. 200 M15 bars is 2.2 trading days; 200 M5 bars is 16.7 hours. These are drawn from before the window so the window itself is not consumed by warm-up |
+| the long-horizon prior of §1 | **yes, as reported context only** | `ENGINE_PROTOCOL.md` §1. It is printed beside the result and never enters the estimate |
+
+### What the window physically contains
+
+XAUUSD trades roughly 23 hours a day, five days a week.
+
+| timeframe | 2 weeks (10 trading days) | 1 month (22 trading days) |
+|---|---|---|
+| M15 | **920 bars** | **2,024 bars** |
+| M5 | **2,760 bars** | **6,072 bars** |
+
+### How many signals that is
+
+| timeframe | window | fires on 1 % | 3 % | 5 % | 10 % | 20 % |
+|---|---|---|---|---|---|---|
+| M15 | 2 weeks | 9 | 27 | 46 | 92 | 184 |
+| M15 | 1 month | 20 | 60 | 101 | 202 | 404 |
+| M5 | 2 weeks | 27 | 82 | 138 | 276 | 552 |
+| M5 | 1 month | 60 | 182 | 303 | 607 | 1,214 |
+
+### How many the test needs
+
+From the MWE of §7 and `n = (2.8·sd / MWE)²` at `sd = 1.2 R`:
+
+| timeframe | spread | cost in R | MWE | **n required** |
+|---|---|---|---|---|
+| M15 | $0.7525 | 0.0559 | 0.1119 R | **902** |
+| M15 | $0.4824 | 0.0401 | 0.0802 R | **1,757** |
+| M15 | $0.2600 | 0.0270 | 0.0540 R | **3,866** |
+| M5 | $0.7525 | 0.0969 | 0.1938 R | **301** |
+| M5 | $0.4824 | 0.0694 | 0.1388 R | **586** |
+| M5 | $0.2600 | 0.0468 | 0.0936 R | **1,289** |
+
+M5 stops are taken at `1.5 × ATR(M5)`, with `ATR(M5) ≈ ATR(M15)/√3`.
+
+### The decisive table — firing rate the window demands
+
+| timeframe | window | spread | needs | of bars | **= % of all bars** |
+|---|---|---|---|---|---|
+| M15 | 2 weeks | $0.7525 | 902 | 920 | **98.0 %** |
+| M15 | 1 month | $0.7525 | 902 | 2,024 | **44.6 %** |
+| M15 | 1 month | $0.2600 | 3,866 | 2,024 | **191 %** — impossible |
+| M5 | 2 weeks | $0.7525 | 301 | 2,760 | **10.9 %** |
+| M5 | 2 weeks | $0.2600 | 1,289 | 2,760 | **46.7 %** |
+| M5 | 1 month | $0.7525 | 301 | 6,072 | **5.0 %** |
+| M5 | 1 month | $0.2600 | 1,289 | 6,072 | **21.2 %** |
+
+**Three conclusions, fixed before the data:**
+
+1. **M15 is ruled out as the evaluation timeframe for a single window of this
+   length.** A setup would have to fire on 45 % to 191 % of all bars. The
+   mandate's M5/M15 pair survives, but M15 becomes a *context* timeframe, not
+   the one the statistics are taken on.
+2. **M5 over a full month is the only viable configuration**, and only for
+   setups that fire on **5 % of bars or more** — roughly 300 signals. Over
+   2 weeks the requirement is 11 %. None of the current eighteen was designed
+   with a firing rate that high; that is a fact to measure on the export, and
+   the count per configuration is now the first number to read off the first
+   real run.
+3. **A tighter spread makes the edge easier to earn and harder to prove.** At
+   $0.7525 the MWE is set by cost (0.194 R on M5); at $0.26 it falls to the
+   0.05 R floor, and the required sample more than quadruples. If the export
+   reports a cheap broker, the honest response is *more time*, not a smaller
+   bar.
+
+### Where the missing sample comes from
+
+Not from the past — that is closed by instruction, and §1 says the past argues
+against this horizon anyway. It comes **forward**: consecutive 2-week to 1-month
+windows, evaluated as they arrive, accumulated through the always-valid
+e-process of `ENGINE_PROTOCOL.md` §4, which is valid at every stopping time and
+therefore tolerates looking at it every window. The maximum of three consecutive
+regime windows already stands in §4; at M5 that is roughly 900 signals for a
+5 %-firing setup, which clears the $0.7525 and $0.4824 rows outright.
+
+### What this means for the first run
+
+**The expected verdict on window one is `INCONCLUSIVE`, and `NO PORTFOLIO` is
+the expected first answer.** That is not a failure of the search and it is not
+pessimism — it is what a 2,760-to-6,072-bar window can support. The deliverable
+from run one is therefore:
+
+- the **firing rate of each of the eighteen** on real XAUUSD M5, which decides
+  which of them can even be tested inside this window,
+- the **measured spread by hour**, which fixes MWE and with it the required `n`,
+- an e-process started and carried forward, not a portfolio announced early.
+
+A portfolio announced on window one, at these sample sizes, would be noise
+wearing a table. The instruction to judge on the current market is followed
+exactly — and the arithmetic of the current market is what says how long that
+judgement takes.
