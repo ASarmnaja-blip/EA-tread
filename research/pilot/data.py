@@ -157,11 +157,6 @@ def load_csv(path, meta_path=None, server_offset_hours=None) -> Bars:
     import datetime as _dt
 
     path = Path(path)
-    if server_offset_hours is None:
-        raise ValueError(
-            "server_offset_hours is required: MT5 bar times are broker server "
-            "time, not UTC. Run the offset snippet in docs/MT5_RUNBOOK.md.")
-
     point = None
     if meta_path is None:
         cand = path.with_suffix(".meta.json")
@@ -169,6 +164,14 @@ def load_csv(path, meta_path=None, server_offset_hours=None) -> Bars:
     if meta_path is not None:
         meta = json.loads(Path(meta_path).read_text())
         point = float(meta.get("point") or 0.0) or None
+        if server_offset_hours is None and meta.get("server_offset_hours") is not None:
+            server_offset_hours = float(meta["server_offset_hours"])
+
+    if server_offset_hours is None:
+        raise ValueError(
+            "server_offset_hours is required: MT5 bar times are broker server "
+            "time, not UTC. tools/mt5_export_all.py writes it into the meta "
+            "file; pass it explicitly for a file exported without one.")
 
     ts, o, h, l, c, v, sp = [], [], [], [], [], [], []
     with path.open(newline="") as fh:

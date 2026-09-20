@@ -115,3 +115,51 @@ printed table and the deinit block.
    market prices.
 
 The order does not change because the data got better.
+
+---
+
+## Job 2, in detail — the no-trade proof, line by line
+
+Before attaching anything, here is why `InpEnableTrading = false` is sufficient,
+checked against the source rather than asserted. Line numbers are in
+`MQL5/Experts/XAUM15/XAU_M15_Institutional_Adaptive.mq5` at commit `308681e`.
+
+| Step | Line | What it establishes |
+|---|---|---|
+| `g_spread.Sample(now, g_broker.Spread())` | **637** | runs on **every tick**, inside `OnTick`, **before** the new-bar block at 654. The monitor accrues whatever else is switched off |
+| `if(!InpEnableTrading) { why="trading disabled"; return false; }` | **320** | the **first line** of `EntryGatesPass`. Nothing after it is evaluated |
+| `if(gatePassed) TryEnter(now);` | **665** | the **only** call site of `TryEnter` |
+| `if(g_tm.OpenSetup(...))` | **479** | the **only** call that opens a position, and it sits inside `TryEnter` |
+| `if(... && g_tm.hasOpenSetup) g_tm.CloseAll(...)` | **639**, 642 | the close paths are guarded by `hasOpenSetup`, which can only become true through 479 |
+
+So: gates refuse at 320 → 665 never calls `TryEnter` → 479 never runs →
+`hasOpenSetup` stays false → the close paths at 639 and 642 are unreachable
+too. **No order path in the file is reachable.** The spread sampler at 637 sits
+upstream of all of it and keeps working.
+
+### Attach checklist
+
+- [ ] Account is a **demo** account. The report script prints `DEMO` or `LIVE`
+      at the top — check it
+- [ ] `InpEnableTrading` = **`false`**
+- [ ] `InpWriteDecisionLog` = `true`
+- [ ] Chart is **XAUUSD M15** (the EA warns on any other period)
+- [ ] Algo trading enabled in the terminal, otherwise the EA never gets ticks
+      and the monitor records nothing
+
+### After the first hour, confirm
+
+- [ ] Journal has **no** `[ENTRY]` line — not one, ever
+- [ ] Terminal → Trade tab shows **no open position** and **no pending order**
+- [ ] The dashboard reads `DISABLED`
+- [ ] `MQL5/Files/XAUM15_decisions.csv` is growing, and every row has
+      `decision = NO_TRADE` with `decision_reason` starting
+      `gate_blocked_before_evaluation: trading disabled`
+
+That last one is a live test of Track 1.2 as a side effect: it is the first time
+the decision log has run against real bars.
+
+### After about 20 trading days
+
+Remove the EA from the chart. On deinit it prints the hour-by-hour spread table
+and writes `MQL5/Files/XAUM15_spread_by_hour.csv`. Send the printed block.

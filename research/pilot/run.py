@@ -24,7 +24,7 @@ import data as D
 OUT = Path(__file__).resolve().parent / "results"
 RNG_MASTER = 20260919
 CONTROL_DRAWS = 20
-P1_SEEDS = 10
+P1_SEEDS = 400      # Amendment 01: 10 walks sat below the test's own resolution
 
 
 # --------------------------------------------------------------- helpers
@@ -58,7 +58,12 @@ def evaluate(c: core.Ctx, signals, ex: D.Bars, nxt: np.ndarray, cost: float,
     # raw list lets the control keep twins of signals the setup arm dropped for
     # an inverted stop or a target already passed, so the two arms would differ
     # by a feasibility filter instead of by timing alone.
-    ctl_sig = core.control_signals(c, accepted, nxt, CONTROL_DRAWS, rng)
+    # Amendment 01: circular time shift, not random entry. The random-entry
+    # control could not bound reference-anchored rules - it lands at a typical
+    # distance from the extreme or the VWAP band rather than the extreme
+    # distance that fired the signal, and it spreads trades evenly where the
+    # setups cluster.
+    ctl_sig, drop = core.circular_shift_control(c, accepted, nxt, CONTROL_DRAWS, rng)
     ctl, _, _ = core.run_signals(c, ctl_sig, ex, nxt, cost, max_bars)
     s = core.summarise(tr, "net_R")
     g = core.summarise(tr, "gross_R")
@@ -67,6 +72,7 @@ def evaluate(c: core.Ctx, signals, ex: D.Bars, nxt: np.ndarray, cost: float,
     se = (np.sqrt(s["se"] ** 2 + cs["se"] ** 2)
           if s["n"] > 1 and cs["n"] > 1 else float("nan"))
     return dict(trades=tr, ctl=ctl, skipped=skipped, net=s, gross=g, ctlstat=cs,
+                ctl_drop=core.drop_rate(drop),
                 skill=skill, skill_se=se,
                 skill_t=(skill / se if se and np.isfinite(se) and se > 0 else float("nan")))
 
@@ -79,7 +85,7 @@ def fmt(v, w=8, p=4):
 def run_p1(b5: D.Bars) -> tuple[bool, list]:
     print("=" * 96)
     print("P1  CALIBRATION ON A DRIFTLESS RANDOM WALK")
-    print("    Pre-registered pass: |skill| <= 0.02R AND |t| < 2, for all 18.")
+    print("    Amendment 01 pass: every path-level 95% CI contains zero.")
     print("    If this fails, no market data is read.")
     print("=" * 96)
 
@@ -129,9 +135,10 @@ def run_p1(b5: D.Bars) -> tuple[bool, list]:
         skill = float(w.mean())
         se = float(w.std(ddof=1) / np.sqrt(len(w)))
         t = skill / se if se > 0 else float("nan")
-        ok_mag = abs(skill) <= 0.02
+        lo, hi = skill - 1.96 * se, skill + 1.96 * se
+        ok_mag = lo <= 0 <= hi          # Amendment 01 replaces the 0.02R bound
         ok_t = abs(t) < 2
-        ok = ok_mag and ok_t
+        ok = ok_mag
         mag_fail += not ok_mag
         t_fail += not ok_t
         all_ok &= ok
@@ -141,7 +148,7 @@ def run_p1(b5: D.Bars) -> tuple[bool, list]:
         rows.append(dict(id=name, n=s["n"], walks=len(w), skill=skill, se=se, t=t,
                          ok_mag=bool(ok_mag), ok_t=bool(ok_t), ok=bool(ok)))
     print("    " + "-" * 82)
-    print(f"    magnitude arm |skill| <= 0.02R : {18 - mag_fail}/18 pass")
+    print(f"    CI contains zero (Amendment 01) : {18 - mag_fail}/18 pass")
     print(f"    t arm         |t| < 2          : {18 - t_fail}/18 pass")
     print(f"    P1 {'PASS' if all_ok else 'FAIL'}\n")
     return all_ok, rows
@@ -306,6 +313,7 @@ def main() -> int:
     print("   ", D.describe(b15, "15m sig"))
     print()
 
+    p1_only = "--p1-only" in sys.argv
     p1_ok, p1_rows = run_p1(b5)
     if not p1_ok:
         print("!" * 96)
@@ -313,6 +321,11 @@ def main() -> int:
         print("!" * 96)
         (OUT / "p1.json").write_text(json.dumps(p1_rows, indent=2, default=float))
         return 1
+
+    if p1_only:
+        (OUT / "p1.json").write_text(json.dumps(p1_rows, indent=2, default=float))
+        print("\n--p1-only: stopping before any market price is read.")
+        return 0
 
     c = core.Ctx(b15, nxt)
     checks = run_p2_p4(c, b5, nxt)
