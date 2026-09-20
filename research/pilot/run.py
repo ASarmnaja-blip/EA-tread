@@ -85,7 +85,8 @@ def fmt(v, w=8, p=4):
 def run_p1(b5: D.Bars) -> tuple[bool, list]:
     print("=" * 96)
     print("P1  CALIBRATION ON A DRIFTLESS RANDOM WALK")
-    print("    Amendment 01 pass: every path-level 95% CI contains zero.")
+    print(f"    Amendment 02 pass: every path-level CI contains zero at "
+          f"family-wise 95% (z={core.bonferroni_z(len(core.REGISTRY)):.4f}).")
     print("    If this fails, no market data is read.")
     print("=" * 96)
 
@@ -135,8 +136,9 @@ def run_p1(b5: D.Bars) -> tuple[bool, list]:
         skill = float(w.mean())
         se = float(w.std(ddof=1) / np.sqrt(len(w)))
         t = skill / se if se > 0 else float("nan")
-        lo, hi = skill - 1.96 * se, skill + 1.96 * se
-        ok_mag = lo <= 0 <= hi          # Amendment 01 replaces the 0.02R bound
+        z = core.bonferroni_z(len(core.REGISTRY))   # Amendment 02
+        lo, hi = skill - z * se, skill + z * se
+        ok_mag = lo <= 0 <= hi
         ok_t = abs(t) < 2
         ok = ok_mag
         mag_fail += not ok_mag
@@ -148,7 +150,7 @@ def run_p1(b5: D.Bars) -> tuple[bool, list]:
         rows.append(dict(id=name, n=s["n"], walks=len(w), skill=skill, se=se, t=t,
                          ok_mag=bool(ok_mag), ok_t=bool(ok_t), ok=bool(ok)))
     print("    " + "-" * 82)
-    print(f"    CI contains zero (Amendment 01) : {18 - mag_fail}/18 pass")
+    print(f"    CI contains zero (Amendment 02) : {18 - mag_fail}/18 pass")
     print(f"    t arm         |t| < 2          : {18 - t_fail}/18 pass")
     print(f"    P1 {'PASS' if all_ok else 'FAIL'}\n")
     return all_ok, rows

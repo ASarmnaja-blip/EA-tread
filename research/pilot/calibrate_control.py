@@ -112,13 +112,19 @@ def sweep(b5, sigma, gen, configs, controls, walks, seed0, label):
     return acc
 
 
-def ci(x):
+# Amendment 02: the 95% covers all 18 intervals together, not one at a time.
+Z_FAMILY = core.bonferroni_z(18)
+Z_PER_TEST = core.bonferroni_z(1)      # 1.96, kept for A2 which is unchanged
+
+
+def ci(x, z=None):
     a = np.asarray(x, dtype=float)
     if len(a) < 3:
         return float("nan"), float("nan"), float("nan"), float("nan")
     m = float(a.mean())
     se = float(a.std(ddof=1) / np.sqrt(len(a)))
-    return m, se, m - 1.96 * se, m + 1.96 * se
+    zz = Z_FAMILY if z is None else z
+    return m, se, m - zz * se, m + zz * se
 
 
 def table(acc, key, title, limit_report=True):
@@ -154,6 +160,7 @@ def main():
 
     print("=" * 84)
     print("AMENDMENT 01 CALIBRATION - circular time-shift control")
+    print(f"    criterion: family-wise 95% over 18 tests, z={Z_FAMILY:.4f} (Amendment 02)")
     print(f"    offsets +/-{core.SHIFT_MIN_DAYS}..{core.SHIFT_MAX_DAYS} days, "
           f"{SHIFTS} shifts, whole days, wrapped")
     print(f"    synthetic sigma ${sigma:.3f} per 5m bar, real bar calendar")
@@ -182,7 +189,7 @@ def main():
             blk = x[b * FPR_BLOCK:(b + 1) * FPR_BLOCK]
             if len(blk) < 3:
                 continue
-            m, se, lo, hi = ci(blk)
+            m, se, lo, hi = ci(blk, Z_PER_TEST)   # A2 unchanged by Amendment 02
             tests += 1
             excl += not (lo <= 0 <= hi)
     fpr = excl / tests if tests else float("nan")

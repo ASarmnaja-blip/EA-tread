@@ -533,3 +533,30 @@ def drop_rate(stats: dict) -> float:
     if tot == 0:
         return float("nan")
     return (stats["no_bar"] + stats["ineligible"] + stats["bad_spec"]) / tot
+
+
+# ------------------------------------------------- Amendment 02: family-wise
+def bonferroni_z(n_tests: int, family_alpha: float = 0.05) -> float:
+    """Two-sided z such that `n_tests` intervals together carry `family_alpha`.
+
+    Amendment 02. "All 18 intervals must contain zero" was always a statement
+    about the family, but it was being evaluated with a per-test level, so a
+    correct instrument failed it 60% of the time. This puts the 95% where the
+    sentence always meant it.
+
+    Computed rather than hardcoded, so it follows the test count instead of
+    silently going stale when the registry changes size.
+    """
+    import math
+    target = family_alpha / max(1, n_tests) / 2.0
+    lo, hi = 0.0, 12.0
+    for _ in range(200):
+        mid = (lo + hi) / 2.0
+        if 0.5 * math.erfc(mid / math.sqrt(2.0)) > target:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2.0
+
+
+Z_FAMILY_18 = bonferroni_z(18)

@@ -50,3 +50,31 @@ file back. The CSVs stay with you.
 
 **It places no order.** It calls `copy_rates_range` and `symbol_info_tick` and
 nothing else that touches an account.
+
+---
+
+## Status: export blocked — 2026-09-20
+
+**No MT5 terminal is reachable from this environment, so the export has not
+run.** Requirements 1–7 above are the specific list of what is missing.
+
+### Substitution is not permitted
+
+User decision of 2026-09-20: the engine is to be measured on **real XAUUSD M1
+and M5 from the broker's own MetaTrader 5 terminal, and nothing else.**
+
+| Candidate stand-in | Ruling |
+|---|---|
+| `GC=F` COMEX gold futures | **not a substitute** — different instrument, different microstructure, no bid/ask |
+| `MGC=F`, `GLD` | **not a substitute**, same reasons |
+| Synthetic or simulated prices | **not a substitute** for any market claim |
+
+Synthetic series keep exactly one job, unchanged: **calibrating the
+instrument** on data whose true answer is known to be zero. That is not a
+market measurement and is never reported as one.
+
+The consequence is recorded plainly: **until the export lands, nothing in this
+project may state anything about XAUUSD.** Work continues on the parts that can
+be built and tested without it — the news layer, the regime score and the
+decision assembler — none of which needs a price to be tested, because every
+case they are tested on has a known answer.
