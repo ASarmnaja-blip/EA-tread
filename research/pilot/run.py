@@ -120,7 +120,7 @@ def run_p1(b5: D.Bars) -> tuple[bool, list]:
     print(" " * 40, end="\r")
 
     print(f"    {'id':6s} {'trades':>7s} {'walks':>6s} {'skill':>9s} {'se_path':>8s} "
-          f"{'t_path':>7s} {'|skill|<=.02':>12s} {'|t|<2':>6s}  verdict")
+          f"{'t_path':>7s} {'CI holds 0':>12s} {'|t|<2':>6s}  verdict")
     print("    " + "-" * 82)
     rows, all_ok = [], True
     mag_fail = t_fail = 0
