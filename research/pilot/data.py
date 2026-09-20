@@ -25,9 +25,9 @@ SEC = {"1m": 60, "5m": 300, "15m": 900, "1h": 3600, "1d": 86400}
 class Bars:
     """OHLCV with epoch-second timestamps, UTC throughout, nulls dropped."""
 
-    __slots__ = ("t", "o", "h", "l", "c", "v", "step", "symbol")
+    __slots__ = ("t", "o", "h", "l", "c", "v", "step", "symbol", "sp")
 
-    def __init__(self, t, o, h, l, c, v, step, symbol):
+    def __init__(self, t, o, h, l, c, v, step, symbol, sp=None):
         self.t = np.asarray(t, dtype=np.int64)
         self.o = np.asarray(o, dtype=float)
         self.h = np.asarray(h, dtype=float)
@@ -36,13 +36,17 @@ class Bars:
         self.v = np.asarray(v, dtype=float)
         self.step = step
         self.symbol = symbol
+        # Per-bar spread in PRICE units, when the source recorded one.
+        # None means the cost has to be assumed instead of measured.
+        self.sp = None if sp is None else np.asarray(sp, dtype=float)
 
     def __len__(self):
         return len(self.t)
 
     def slice(self, i, j):
         return Bars(self.t[i:j], self.o[i:j], self.h[i:j], self.l[i:j],
-                    self.c[i:j], self.v[i:j], self.step, self.symbol)
+                    self.c[i:j], self.v[i:j], self.step, self.symbol,
+                    None if self.sp is None else self.sp[i:j])
 
 
 def _fetch(symbol: str, rng: str, interval: str) -> dict:
@@ -131,3 +135,66 @@ def describe(b: Bars, name: str) -> str:
     gaps = int(np.sum(np.diff(b.t) > b.step * 1.5))
     return (f"{name:10s} n={len(b):6d} step={b.step:5d}s gaps={gaps:4d} "
             f"{lo:%Y-%m-%d %H:%M}..{hi:%Y-%m-%d %H:%M} UTC")
+
+
+# --------------------------------------------------------------- MT5 CSV
+def load_csv(path, meta_path=None, server_offset_hours=None) -> Bars:
+    """Load a file written by tools/export_mt5_data.py.
+
+    TIMEZONE. `mt5.copy_rates_range` returns BROKER SERVER TIME, encoded as an
+    epoch, and the exporter writes it through unchanged. The meta file does not
+    record the server's offset, so it must be supplied. Getting this wrong
+    silently shifts every session bucket, which is the kind of error that is
+    invisible in a summary statistic and fatal in a session-split result -
+    so a missing offset is an error here rather than a default.
+
+    SPREAD. The export carries MT5's own per-bar spread in points. With `point`
+    from the meta file it becomes price units, and the cost side stops being an
+    assumption. A file without that column loads with `sp = None`, and anything
+    downstream must then say out loud that its cost is assumed.
+    """
+    import csv as _csv
+    import datetime as _dt
+
+    path = Path(path)
+    if server_offset_hours is None:
+        raise ValueError(
+            "server_offset_hours is required: MT5 bar times are broker server "
+            "time, not UTC. Run the offset snippet in docs/MT5_RUNBOOK.md.")
+
+    point = None
+    if meta_path is None:
+        cand = path.with_suffix(".meta.json")
+        meta_path = cand if cand.exists() else None
+    if meta_path is not None:
+        meta = json.loads(Path(meta_path).read_text())
+        point = float(meta.get("point") or 0.0) or None
+
+    ts, o, h, l, c, v, sp = [], [], [], [], [], [], []
+    with path.open(newline="") as fh:
+        for row in _csv.DictReader(fh):
+            raw = row["time"]
+            d = _dt.datetime.fromisoformat(raw) if "-" in raw or ":" in raw \
+                else _dt.datetime.utcfromtimestamp(float(raw))
+            epoch = int(d.replace(tzinfo=_dt.timezone.utc).timestamp())
+            ts.append(epoch - int(round(server_offset_hours * 3600)))
+            o.append(float(row["open"])); h.append(float(row["high"]))
+            l.append(float(row["low"]));  c.append(float(row["close"]))
+            v.append(float(row.get("tick_volume") or 0))
+            if point is not None and row.get("spread") not in (None, ""):
+                sp.append(float(row["spread"]) * point)
+
+    if len(sp) != len(ts):
+        sp = None
+    step = int(np.median(np.diff(ts))) if len(ts) > 2 else 0
+    return Bars(ts, o, h, l, c, v, step, path.stem, sp)
+
+
+def spread_summary(b: Bars) -> str:
+    if b.sp is None:
+        return "no per-bar spread in this file - cost must be assumed"
+    s = b.sp[np.isfinite(b.sp) & (b.sp > 0)]
+    if len(s) == 0:
+        return "spread column present but empty"
+    return (f"spread $/unit: mean {s.mean():.4f} median {np.median(s):.4f} "
+            f"p90 {np.percentile(s, 90):.4f} max {s.max():.4f}  n={len(s)}")
