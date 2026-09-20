@@ -350,6 +350,7 @@ bool CollectSignal(const datetime now,TradeSignal &best)
 
    // --- audit only. Reading these back anywhere would be a bug. ------
    g_audit.evaluationRan   = true;
+   g_audit.state           = CAND_EVALUATED_NO_SIGNAL;  // upgraded below
    g_audit.enabled[SETUP_A]= InpEnableSetupA;
    g_audit.enabled[SETUP_B]= InpEnableSetupB;
    g_audit.enabled[SETUP_C]= InpEnableSetupC;
@@ -413,6 +414,7 @@ void TryEnter(const datetime now)
    TradeSignal sig;
    if(!CollectSignal(now,sig)) { g_blockReason="no qualifying setup"; return; }
    g_barCandidate=sig;          // audit copy: survives a later rejection
+   g_audit.state=CAND_CANDIDATE_SIGNAL;
    g_signalsSeen++;
 
    // The signal was formed on the closed bar; size against the price we
@@ -473,8 +475,10 @@ void TryEnter(const datetime now)
    g_lastSignal       = sig;
    g_barCandidate     = sig;    // audit copy with the live entry and targets
 
+   g_audit.state=CAND_ORDER_ATTEMPTED;
    if(g_tm.OpenSetup(sig,sz.lot,sz.positions,InpMagicBase))
      {
+      g_audit.state=CAND_ORDER_ACCEPTED;
       g_lastEntryBarTime=g_lastBarTime;
       g_daily.tradesToday++;
       PrintFormat("[ENTRY] %s %s %s | entry %.2f SL %.2f (%.2f) | %d x %.2f lot | risk %.3f%% | %s",
@@ -486,7 +490,10 @@ void TryEnter(const datetime now)
       g_blockReason="";
      }
    else
+     {
+      g_audit.state=CAND_ORDER_REJECTED;
       g_blockReason="order rejected: "+g_broker.lastError;
+     }
   }
 
 //+------------------------------------------------------------------+

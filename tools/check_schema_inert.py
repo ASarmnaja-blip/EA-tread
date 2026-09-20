@@ -98,10 +98,20 @@ def test_zerosignal_covers_every_field():
         notes.append(f"ZeroSignal clears all {len(fields)} TradeSignal fields")
 
 
+# The commit immediately before Track 1.1 began. The invariant is that the
+# TRADING PATH has not changed since then - not that nothing has changed at
+# all. DecisionLog.mqh is observability code added by Track 1.2 and is
+# expected to keep evolving; it is covered by the order-call test instead.
+BASELINE = "a373bcd"
+TRADING_PATH = ["MQL5/Experts",
+                "MQL5/Include/XAUM15/Setups.mqh",
+                "MQL5/Include/XAUM15/Config.mqh"]
+
+
 def test_only_expected_lines_were_removed():
     """The decisive test. Behaviour can only change if an existing line was
     removed or modified. Every other change is pure addition."""
-    diff = subprocess.run(["git", "diff", "-U0", "--", "MQL5/"],
+    diff = subprocess.run(["git", "diff", "-U0", BASELINE, "--"] + TRADING_PATH,
                           cwd=ROOT, capture_output=True, text=True).stdout
     removed = [l[1:].strip() for l in diff.splitlines()
                if l.startswith("-") and not l.startswith("---") and l[1:].strip()]

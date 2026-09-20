@@ -24,9 +24,43 @@
 #define XAUM15_DECISIONLOG_MQH
 #include "Config.mqh"
 
+//--- how far this bar got down the pipeline -------------------------
+//    Each value is set at the point it becomes PROVABLE. Nothing is
+//    inferred: a state is recorded because the code reached the line that
+//    establishes it, never because a later state seemed likely.
+enum ENUM_CANDIDATE_STATE
+  {
+   CAND_NOT_EVALUATED=0,      // veto chain stopped the bar; no setup ran
+   CAND_EVALUATED_NO_SIGNAL,  // setups ran, none produced a candidate
+   CAND_CANDIDATE_SIGNAL,     // candidate produced; no order attempted
+   CAND_ORDER_ATTEMPTED,      // OpenSetup called, outcome not yet known
+   CAND_ORDER_ACCEPTED,       // OpenSetup returned true
+   CAND_ORDER_REJECTED,       // OpenSetup returned false
+   // NOT OBSERVABLE IN TRACK 1.2, and therefore never set. Proving a
+   // position exists means querying broker state at a later moment; that
+   // is a different measurement, not a stronger reading of this one.
+   CAND_POSITION_OPENED
+  };
+
+string CandidateStateName(const ENUM_CANDIDATE_STATE st)
+  {
+   switch(st)
+     {
+      case CAND_NOT_EVALUATED:     return "NOT_EVALUATED";
+      case CAND_EVALUATED_NO_SIGNAL:return "EVALUATED_NO_SIGNAL";
+      case CAND_CANDIDATE_SIGNAL:  return "CANDIDATE_SIGNAL";
+      case CAND_ORDER_ATTEMPTED:   return "ORDER_ATTEMPTED";
+      case CAND_ORDER_ACCEPTED:    return "ORDER_ACCEPTED";
+      case CAND_ORDER_REJECTED:    return "ORDER_REJECTED";
+      case CAND_POSITION_OPENED:   return "POSITION_OPENED";
+     }
+   return "UNKNOWN";
+  }
+
 //--- what the candidate sweep actually did on this bar ---------------
 struct CandidateAudit
   {
+   ENUM_CANDIDATE_STATE state;
    bool  evaluationRan;      // false = gates blocked before any evaluation
    bool  enabled[5];         // index by ENUM_SETUP_ID
    int   produced[5];        // candidates produced (both directions)
@@ -35,6 +69,7 @@ struct CandidateAudit
 
    void Reset(void)
      {
+      state=CAND_NOT_EVALUATED;
       evaluationRan=false;
       totalProduced=0;
       for(int i=0;i<5;i++) { enabled[i]=false; produced[i]=0; qualityAllowed[i]=0; }
@@ -81,7 +116,7 @@ public:
          FileWrite(m_h,
             "date","time","symbol","timeframe",
             "regime","regime_score","atr","spread",
-            "evaluation_ran","gate_passed","gate_reason",
+            "candidate_state","evaluation_ran","gate_passed","gate_reason",
             "candidates_produced","candidate_detail",
             "decision","decision_reason",
             "setup","direction","entry","sl","invalidation","invalidation_rule",
@@ -92,6 +127,28 @@ public:
 
    void Close(void)
      { if(m_h!=INVALID_HANDLE) { FileClose(m_h); m_h=INVALID_HANDLE; } }
+
+   //--- RFC 4180 field quoting ---------------------------------------
+   //    MQL5's FileWrite joins its arguments with the separator and
+   //    escapes nothing. A comma inside a reason string therefore shifts
+   //    every column after it, and a newline splits one record across two
+   //    lines - which is exactly what the reason strings in Setups.mqh do
+   //    ("premise is dead, regardless of the stop").
+   //
+   //    Newlines are folded to a space rather than quoted. RFC 4180 allows
+   //    a quoted newline, but a log that is read with grep, tail or a
+   //    line-per-record parser should stay one record per line.
+   static string CsvEscape(const string value)
+     {
+      string s=value;
+      StringReplace(s,"\r\n"," ");
+      StringReplace(s,"\r"," ");
+      StringReplace(s,"\n"," ");
+      bool needQuotes=(StringFind(s,",")>=0 || StringFind(s,"\"")>=0);
+      if(StringFind(s,"\"")>=0) StringReplace(s,"\"","\"\"");
+      if(needQuotes) s="\""+s+"\"";
+      return s;
+     }
 
    long Rows(void)    const { return m_rows; }
    long NoTrades(void) const { return m_noTrade; }
@@ -122,32 +179,33 @@ public:
       FileWrite(m_h,
          TimeToString(when,TIME_DATE),
          TimeToString(when,TIME_MINUTES),
-         (sig.symbol==""?_Symbol:sig.symbol),
+         CsvEscape(sig.symbol==""?_Symbol:sig.symbol),
          EnumToString((ENUM_TIMEFRAMES)_Period),
-         regimeName,
+         CsvEscape(regimeName),
          DoubleToString(regimeScore,3),
          DoubleToString(atr,3),
          DoubleToString(spread,3),
+         CandidateStateName(audit.state),
          (audit.evaluationRan?"1":"0"),
          (gatePassed?"1":"0"),
-         gateReason,
+         CsvEscape(gateReason),
          IntegerToString(audit.totalProduced),
-         audit.Summary(),
-         sig.decision,
-         sig.decisionReason,
-         setupName,
-         dir,
+         CsvEscape(audit.Summary()),
+         CsvEscape(sig.decision),
+         CsvEscape(sig.decisionReason),
+         CsvEscape(setupName),
+         CsvEscape(dir),
          DoubleToString(sig.entry,2),
          DoubleToString(sig.sl,2),
          DoubleToString(sig.invalidation,2),
-         sig.invalidationRule,
+         CsvEscape(sig.invalidationRule),
          DoubleToString(sig.riskR,2),
          DoubleToString(sig.confidence,3),   // -1 = not calibrated
          IntegerToString(sig.expiryBars),    // -1 = no policy selected
          (sig.expiryTime>0?TimeToString(sig.expiryTime,TIME_DATE|TIME_MINUTES):""),
-         sig.evidence,
-         sig.pricedIn,
-         sig.newsRisk);
+         CsvEscape(sig.evidence),
+         CsvEscape(sig.pricedIn),
+         CsvEscape(sig.newsRisk));
       FileFlush(m_h);
      }
 
