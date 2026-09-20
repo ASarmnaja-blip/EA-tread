@@ -468,3 +468,68 @@ def skill_ci(setup_x: np.ndarray, ctl_x: np.ndarray, block: int = 12,
     diff = boot(setup_x) - boot(ctl_x)
     return (float(np.percentile(diff, 100 * alpha / 2)),
             float(np.percentile(diff, 100 * (1 - alpha / 2))))
+
+
+# ------------------------------------------- circular time-shift control
+# Amendment 01. Replaces the random-entry control, which could not bound
+# reference-anchored rules: re-entering at a random time lands at a typical
+# distance from the extreme or the VWAP band, not the extreme distance that
+# fired the signal, and it spreads trades evenly where the setups cluster.
+SHIFT_MIN_DAYS = 5      # clears the longest lookback (200-bar ATR window)
+SHIFT_MAX_DAYS = 40     # beyond this the wrap returns near the original time
+
+
+def circular_shift_control(c: Ctx, signals, exec_nxt: np.ndarray, shifts: int,
+                           rng: np.random.Generator,
+                           min_days: int = SHIFT_MIN_DAYS,
+                           max_days: int = SHIFT_MAX_DAYS):
+    """Shift every signal time of one configuration together by a single
+    whole-day offset, wrapped within the span.
+
+    Whole days keep the time of day, so session and the intraday volatility
+    profile survive. Shifting all signals together keeps their spacing, so
+    clustering survives. What does not survive is the alignment between the
+    signal and the price configuration that produced it, which is the point.
+
+    Returns (control_signals, drop_stats).
+    """
+    stats = {"total": 0, "no_bar": 0, "ineligible": 0, "bad_spec": 0}
+    if not signals:
+        return [], stats
+    t = c.b.t
+    t0 = int(t[0])
+    span = max(1, int(round((int(t[-1]) - t0) / 86400.0))) * 86400
+    offsets = [k for k in range(-max_days, max_days + 1) if abs(k) >= min_days]
+
+    out = []
+    for _ in range(shifts):
+        k = int(offsets[rng.integers(len(offsets))])
+        for (i, d, stop, tmode, tval) in signals:
+            stats["total"] += 1
+            a = c.atr[i]
+            ref = c.b.c[i]
+            if a <= 0 or abs(ref - stop) <= 0:
+                stats["bad_spec"] += 1
+                continue
+            risk_atr = abs(ref - stop) / a
+            tR = tval if tmode == "R" else abs(tval - ref) / abs(ref - stop)
+            if not np.isfinite(tR) or tR <= 0:
+                stats["bad_spec"] += 1
+                continue
+            tt = t0 + ((int(t[i]) - t0 + k * 86400) % span)
+            j = int(np.searchsorted(t, tt))
+            if j >= len(t) or int(t[j]) != tt:
+                stats["no_bar"] += 1          # weekend, break, or a data hole
+                continue
+            if j < c.warm or exec_nxt[j] < 0 or c.atr[j] <= 0:
+                stats["ineligible"] += 1
+                continue
+            out.append((j, d, c.b.c[j] - d * risk_atr * c.atr[j], "R", tR))
+    return out, stats
+
+
+def drop_rate(stats: dict) -> float:
+    tot = stats.get("total", 0)
+    if tot == 0:
+        return float("nan")
+    return (stats["no_bar"] + stats["ineligible"] + stats["bad_spec"]) / tot
