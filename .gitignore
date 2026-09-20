@@ -10,3 +10,5 @@ tests/build/Config.mqh
 tests/build/DecisionLog.mqh
 tests/build/setups_extract.h
 tests/build/ea_extract.h
+research/pilot/cache/
+research/pilot/results/
