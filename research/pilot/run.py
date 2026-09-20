@@ -7,7 +7,9 @@ Pilot runner. Order is fixed by the pre-registration:
     market run (18 registered configurations)
     P5 exit-resolution bias on the 1m overlap
 
-Everything is COMEX gold futures (GC=F). None of it is XAUUSD spot.
+By default everything is COMEX gold futures (GC=F) and none of it is XAUUSD
+spot. With `--csv5` (and optionally `--csv1`) the series come instead from the
+MT5 export, which IS the broker's XAUUSD — see AMENDMENT_03 section 3.
 """
 from __future__ import annotations
 
@@ -302,16 +304,82 @@ def run_p5(c: core.Ctx, b5: D.Bars, nxt5: np.ndarray, b1: D.Bars) -> list[dict]:
 
 
 # ------------------------------------------------------------------ main
+def _arg(flag: str) -> str | None:
+    """Value after `flag` on the command line, or None. Matches the existing
+    sys.argv style in this file rather than introducing argparse."""
+    if flag in sys.argv:
+        i = sys.argv.index(flag)
+        if i + 1 < len(sys.argv):
+            return sys.argv[i + 1]
+    return None
+
+
+def load_series() -> tuple[D.Bars, D.Bars | None, str]:
+    """The two execution series and a label naming what they actually are.
+
+    Default: the Yahoo GC=F futures proxy, as the pilot was built on.
+    `--csv5 PATH [--csv1 PATH]`: the MT5 export. AMENDMENT_03 section 3.
+
+    The offset is not defaulted anywhere here. `data.load_csv` raises when the
+    meta file does not carry one, and that error is left to propagate: a run on
+    silently mis-shifted session buckets is worse than no run.
+    """
+    csv5 = _arg("--csv5")
+    if csv5 is None:
+        return D.load(D.SYMBOL, "60d", "5m"), D.load(D.SYMBOL, "7d", "1m"), \
+            D.INSTRUMENT_LABEL
+    b5 = D.load_csv(csv5)
+    csv1 = _arg("--csv1")
+    b1 = D.load_csv(csv1) if csv1 else None
+    return b5, b1, f"MT5 export: {Path(csv5).name} (broker XAUUSD)"
+
+
+def apply_measured_cost(b5: D.Bars) -> None:
+    """Replace the ASSUMED cost with the broker's own recorded spread.
+
+    ENGINE_PROTOCOL section 2, Tier A item 4: costs come from measured spread,
+    not an assumed figure. The pilot's $0.48 was an assumption carried over from
+    OANDA. When the loaded file has MT5's per-bar spread column, the median of
+    it is the spread this run charges, and the substitution is printed so no
+    result is ever read against the wrong cost by accident.
+
+    Slippage stays an assumption - it cannot be measured from history, only
+    from live fills - and is labelled as one.
+    """
+    if b5.sp is None:
+        print("    cost: no spread column in this file - the ASSUMED "
+              f"${core.COST_ROUND_TURN:.2f} round turn stands")
+        return
+    s = b5.sp[np.isfinite(b5.sp) & (b5.sp > 0)]
+    if len(s) == 0:
+        print("    cost: spread column present but empty - assumption stands")
+        return
+    measured = float(np.median(s))
+    before = core.COST_ROUND_TURN
+    core.SPREAD = measured
+    core.COST_ROUND_TURN = measured + 2 * core.SLIPPAGE
+    print(f"    cost: spread ${measured:.4f} MEASURED (median of "
+          f"{len(s):,} bars) + 2 x ${core.SLIPPAGE:.2f} slippage (still "
+          f"assumed) = ${core.COST_ROUND_TURN:.4f} round turn")
+    print(f"          replaces the assumed ${before:.2f}. "
+          f"p90 spread ${float(np.percentile(s, 90)):.4f}, "
+          f"max ${float(s.max()):.4f}")
+
+
 def main() -> int:
     OUT.mkdir(exist_ok=True)
-    print(f"\ninstrument: {D.INSTRUMENT_LABEL}\n")
-    b5 = D.load(D.SYMBOL, "60d", "5m")
-    b1 = D.load(D.SYMBOL, "7d", "1m")
+    b5, b1, label = load_series()
+    print(f"\ninstrument: {label}\n")
+    apply_measured_cost(b5)
+    print()
     b15, nxt_from_build = D.to_15m(b5)
     nxt = map_next(b15, b5)
     assert np.array_equal(nxt, nxt_from_build), "next-bar mapping disagrees"
     print("   ", D.describe(b5, "5m exec"))
-    print("   ", D.describe(b1, "1m exec"))
+    if b1 is not None:
+        print("   ", D.describe(b1, "1m exec"))
+    else:
+        print("    1m exec   not supplied - P5 exit-resolution bias cannot run")
     print("   ", D.describe(b15, "15m sig"))
     print()
 
@@ -333,11 +401,19 @@ def main() -> int:
     checks = run_p2_p4(c, b5, nxt)
     rows = run_market(c, b5, nxt)
     split_report(rows)
-    p5 = run_p5(c, b5, nxt, b1)
+    if b1 is not None:
+        p5 = run_p5(c, b5, nxt, b1)
+    else:
+        p5 = []
+        print("\nP5 SKIPPED: no 1m series. Exit-resolution bias is the single "
+              "most dangerous shortcut in this program (RESEARCH_FINDINGS: "
+              "resolving on the signal bar was worth +0.5R of fiction), so a "
+              "run without it is RESEARCH WATCH at best.")
 
     slim = [{k: v for k, v in r.items() if k != "trades"} for r in rows]
     (OUT / "pilot.json").write_text(json.dumps(
-        dict(instrument=D.INSTRUMENT_LABEL, p1=p1_rows, checks=checks,
+        dict(instrument=label, cost_round_turn=core.COST_ROUND_TURN,
+             spread=core.SPREAD, p1=p1_rows, checks=checks,
              market=slim, p5=p5), indent=2, default=float))
     print(f"\nwritten: {OUT / 'pilot.json'}")
     print("\nCeiling for every result above: RESEARCH WATCH. Not a trade signal,")
