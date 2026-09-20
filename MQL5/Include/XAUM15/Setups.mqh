@@ -41,6 +41,35 @@ void ZeroSignal(TradeSignal &s)
    s.tp[0]=0; s.tp[1]=0; s.tp[2]=0;
    s.atr=0; s.vwap=0; s.poc=0; s.vah=0; s.val=0; s.liqLevel=0; s.spread=0;
    s.sweepType=SWEEP_NONE; s.mss=false; s.displacement=false;
+   //--- schema v2 (record only) --------------------------------------
+   s.symbol=""; s.timeframe=PERIOD_CURRENT; s.regime=REG_NONE; s.regimeScore=0.0;
+   s.confidence=-1.0;                 // -1 = not calibrated
+   s.invalidation=0.0; s.invalidationRule="";
+   s.expiryBars=-1; s.expiryTime=0;   // -1 = no expiry policy selected
+   s.formedAt=0; s.riskR=0.0;
+   s.evidence=""; s.pricedIn=""; s.newsRisk="";
+   s.decision=""; s.decisionReason="";
+  }
+
+//--- Stamp the descriptive half of schema v2 onto a signal that has -----
+//    ALREADY been accepted. Called after sig.valid=true so it can never
+//    sit on an early-return path and can never change an accept/reject.
+//    Everything it writes is inert by construction.
+void StampSignalContext(TradeSignal &s,CMarketContext &ctx,const int bar=1)
+  {
+   s.symbol      = _Symbol;
+   s.timeframe   = (ENUM_TIMEFRAMES)_Period;
+   s.regime      = ctx.regime;
+   s.regimeScore = ctx.TrendZoneScore(bar);
+   s.formedAt    = (bar>=0 && bar<ctx.bars) ? ctx.rates[bar].time : 0;
+   s.riskR       = 1.0;               // R is the unit; one setup risks 1R
+   s.confidence  = -1.0;              // not calibrated - see protocol v2 s.3
+   s.expiryBars  = -1;                // no expiry policy adopted yet - s.7
+   s.expiryTime  = 0;
+   // The news engine does not exist yet (Track 2.4). Saying "none" would
+   // be a claim; saying so plainly is not.
+   s.pricedIn    = "not assessed: no positioning/consensus feed";
+   s.newsRisk    = "not assessed: calendar actual/consensus not wired";
   }
 
 //====================================================================
@@ -103,6 +132,12 @@ public:
       sig.poc=vp.valid?vp.poc:0.0; sig.vah=vp.valid?vp.vah:0.0; sig.val=vp.valid?vp.val:0.0;
       sig.reason=StringFormat("A:sweep %s @%.2f + MSS + displacement",
                               CLiquidityMap::TypeName(ev.liqType),ev.level);
+      StampSignalContext(sig,ctx);
+      sig.invalidation     = ev.extreme;
+      sig.invalidationRule = "price re-takes the swept extreme: the reversal "
+                             "premise is dead, regardless of the stop";
+      sig.evidence         = StringFormat("sweep of %s at %.2f, MSS, displacement",
+                                          CLiquidityMap::TypeName(ev.liqType),ev.level);
       return true;
      }
   };
@@ -188,6 +223,12 @@ public:
       sig.vwap=vwap.valid?vwap.value:0.0;
       sig.poc=vp.valid?vp.poc:0.0; sig.vah=vp.valid?vp.vah:0.0; sig.val=vp.valid?vp.val:0.0;
       sig.reason="B:value acceptance + trend continuation";
+      StampSignalContext(sig,ctx);
+      sig.invalidation     = mss.brokenLevel;
+      sig.invalidationRule = "price closes back through the broken structure "
+                             "level: continuation premise gone";
+      sig.evidence         = "value acceptance in trend direction, structure "
+                             "break, displacement";
       return true;
      }
   };
@@ -291,6 +332,12 @@ public:
       sig.vwap=vwap.valid?vwap.value:0.0;
       sig.poc=vp.valid?vp.poc:0.0; sig.vah=vp.valid?vp.vah:0.0; sig.val=vp.valid?vp.val:0.0;
       sig.reason=StringFormat("C:OR breakout %.2f + retest",level);
+      StampSignalContext(sig,ctx);
+      sig.invalidation     = level;
+      sig.invalidationRule = "price closes back inside the opening range: the "
+                             "breakout failed";
+      sig.evidence         = StringFormat("opening-range break of %.2f with "
+                                          "expansion and retest",level);
       return true;
      }
   };
@@ -353,6 +400,21 @@ public:
       sig.vwap=vwap.valid?vwap.value:0.0;
       sig.poc=vp.valid?vp.poc:0.0; sig.vah=vp.valid?vp.vah:0.0; sig.val=vp.valid?vp.val:0.0;
       sig.reason=StringFormat("D:trend zone z=%.2f",lastScore);
+      StampSignalContext(sig,ctx);
+      // The premise is "z is inside the tested zone". It stops being true
+      // at the price where z crosses the near edge.
+      double smaNow = (1<ArraySize(ctx.sma)) ? ctx.sma[1] : 0.0;
+      if(smaNow>0.0)
+        {
+         sig.invalidation = tryLong ? smaNow + InpTrendZoneMin*a
+                                    : smaNow - InpTrendZoneMin*a;
+         sig.invalidationRule = StringFormat(
+            "z leaves the zone at the near edge (z=%.2f)",InpTrendZoneMin);
+        }
+      sig.evidence = StringFormat("(Close-SMA%d)/ATR = %.2f, inside tested "
+                                  "zone [%.2f, %.2f]",
+                                  InpTrendSmaPeriod,lastScore,
+                                  InpTrendZoneMin,InpTrendZoneMax);
       return true;
      }
   };

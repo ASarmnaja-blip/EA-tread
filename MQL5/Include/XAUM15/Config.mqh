@@ -325,6 +325,10 @@ input int    InpDashY              = 22;
 input int    InpDashFontSize       = 9;
 input bool   InpWriteTradeLog      = true;
 input string InpTradeLogFile       = "XAUM15_trades.csv";
+// Decision log (Track 1.2). Observability only - writing a CSV cannot
+// change which trades are taken. Set false to switch the file off.
+input bool   InpWriteDecisionLog   = true;
+input string InpDecisionLogFile    = "XAUM15_decisions.csv";
 input bool   InpPrintStatsOnDeinit = true;
 
 //====================================================================
@@ -387,6 +391,47 @@ struct TradeSignal
    double         atr, vwap, poc, vah, val, liqLevel, spread;
    ENUM_SWEEP_SIDE sweepType;
    bool           mss, displacement;
+
+   //=================================================================
+   // SCHEMA v2 - CLAUDE.md section 6.
+   //
+   // RECORD ONLY. Nothing below is read by any decision path: not by a
+   // setup evaluator, not by the veto chain, not by sizing, not by the
+   // trade manager. They are written, logged, and otherwise inert.
+   // tools/check_schema_inert.py fails the build if that stops being
+   // true. Enforcing any of them would change trading behaviour, which
+   // Track 1 is not permitted to do.
+   //=================================================================
+   string         symbol;          // which instrument produced this
+   ENUM_TIMEFRAMES timeframe;      // which timeframe it was formed on
+   ENUM_REGIME    regime;          // regime class at signal time
+   double         regimeScore;     // (Close-SMA200)/ATR snapshot, descriptive
+
+   // -1.0 = NOT CALIBRATED. A confidence number is only meaningful once
+   // it has been fitted to realised outcomes; inventing one before that
+   // would be the fabrication CLAUDE.md section 8 forbids.
+   double         confidence;
+
+   // Premise invalidation: the level at which the REASON for the signal
+   // stops being true. This is not the stop loss. The stop is where the
+   // trade is closed; this is where the hypothesis is wrong.
+   double         invalidation;
+   string         invalidationRule;
+
+   // Expiry inputs are recorded; no expiry POLICY is applied. Protocol
+   // v2 section 7 requires any adaptive expiry rule to be benchmarked
+   // against fixed / EWMA / change-point baselines before adoption, so
+   // expiryBars stays -1 (no policy selected) and expiryTime stays 0.
+   int            expiryBars;
+   datetime       expiryTime;
+   datetime       formedAt;        // close time of the bar that formed it
+
+   double         riskR;           // 1.0 by construction - R is the unit
+   string         evidence;        // what supports it
+   string         pricedIn;        // what the market has likely already discounted
+   string         newsRisk;        // scheduled events that could void the premise
+   string         decision;        // "TRADE" | "NO_TRADE"
+   string         decisionReason;  // why traded, or why not
   };
 
 #endif // XAUM15_CONFIG_MQH

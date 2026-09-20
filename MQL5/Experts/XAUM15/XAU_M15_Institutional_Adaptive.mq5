@@ -41,6 +41,7 @@
 #include <XAUM15/TradeManager.mqh>
 #include <XAUM15/Statistics.mqh>
 #include <XAUM15/Logger.mqh>
+#include <XAUM15/DecisionLog.mqh>
 #include <XAUM15/Dashboard.mqh>
 #include <XAUM15/SpreadMonitor.mqh>
 
@@ -67,6 +68,7 @@ CQualityGrader  g_quality;
 CTradeManager   g_tm;
 CStatistics     g_stats;
 CTradeLogger    g_logger;
+CDecisionLog    g_decisions;
 CDashboard      g_dash;
 CSpreadMonitor  g_spread;
 
@@ -85,10 +87,14 @@ int      g_skipUnaffordable  = 0;
 int      g_skipOtherSizing   = 0;
 int      g_signalsSeen       = 0;
 double   g_worstMinLotPct    = 0.0;
+// Track 1.2 observability. Written, logged, never read by a decision.
+CandidateAudit g_audit;
+TradeSignal    g_barCandidate;
 
 //--- forward declarations ------------------------------------------
 void ReportCapitalAdequacy(const double equity);
 void PrintSignalAccounting(void);
+void LogBarDecision(const datetime now,const bool gatePassed,const string gateReason);
 
 //+------------------------------------------------------------------+
 int OnInit(void)
@@ -111,6 +117,9 @@ int OnInit(void)
    g_stats.Init(eq);
    g_logger.Init(InpTradeLogFile);
    ZeroSignal(g_lastSignal);
+   ZeroSignal(g_barCandidate);
+   g_audit.Reset();
+   g_decisions.Init(InpDecisionLogFile);
 
    PrintFormat("[INIT] %s | digits=%d point=%.5f tickVal=%.5f lotMin=%.2f step=%.2f stops=%d",
                _Symbol,g_broker.digits,g_broker.point,g_broker.tickValue,
@@ -125,6 +134,9 @@ int OnInit(void)
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
+   g_decisions.PrintReport();
+   g_decisions.Close();
+
    if(InpPrintStatsOnDeinit)
      {
       g_stats.PrintReport();
@@ -336,6 +348,13 @@ bool CollectSignal(const datetime now,TradeSignal &best)
    double spread=g_broker.Spread();
    bool found=false;
 
+   // --- audit only. Reading these back anywhere would be a bug. ------
+   g_audit.evaluationRan   = true;
+   g_audit.enabled[SETUP_A]= InpEnableSetupA;
+   g_audit.enabled[SETUP_B]= InpEnableSetupB;
+   g_audit.enabled[SETUP_C]= InpEnableSetupC;
+   g_audit.enabled[SETUP_D]= InpEnableSetupD;
+
    for(int dir=0;dir<2;dir++)
      {
       bool isLong=(dir==0);
@@ -343,7 +362,9 @@ bool CollectSignal(const datetime now,TradeSignal &best)
       if(g_setupA.Evaluate(g_ctx,g_structure,g_liquidity,g_sweep,g_disp,
                            g_vp,g_vwap,g_amd,g_risk,isLong,cand))
         {
+         g_audit.produced[SETUP_A]++; g_audit.totalProduced++;
          cand.quality=g_quality.Grade(g_ctx,g_vp,g_vwap,g_amd,g_session,now,spread,cand);
+         if(g_quality.Allowed(cand.quality)) g_audit.qualityAllowed[SETUP_A]++;
          cand.spread=spread;
          if(g_quality.Allowed(cand.quality) && (!found || cand.quality>best.quality))
            { best=cand; found=true; }
@@ -351,7 +372,9 @@ bool CollectSignal(const datetime now,TradeSignal &best)
 
       if(g_setupB.Evaluate(g_ctx,g_structure,g_disp,g_vp,g_vwap,g_risk,isLong,cand))
         {
+         g_audit.produced[SETUP_B]++; g_audit.totalProduced++;
          cand.quality=g_quality.Grade(g_ctx,g_vp,g_vwap,g_amd,g_session,now,spread,cand);
+         if(g_quality.Allowed(cand.quality)) g_audit.qualityAllowed[SETUP_B]++;
          cand.spread=spread;
          if(g_quality.Allowed(cand.quality) && (!found || cand.quality>best.quality))
            { best=cand; found=true; }
@@ -360,7 +383,9 @@ bool CollectSignal(const datetime now,TradeSignal &best)
       if(g_setupC.Evaluate(g_ctx,g_structure,g_disp,g_vp,g_vwap,g_risk,
                            g_session,now,isLong,cand))
         {
+         g_audit.produced[SETUP_C]++; g_audit.totalProduced++;
          cand.quality=g_quality.Grade(g_ctx,g_vp,g_vwap,g_amd,g_session,now,spread,cand);
+         if(g_quality.Allowed(cand.quality)) g_audit.qualityAllowed[SETUP_C]++;
          cand.spread=spread;
          if(g_quality.Allowed(cand.quality) && (!found || cand.quality>best.quality))
            { best=cand; found=true; }
@@ -372,6 +397,8 @@ bool CollectSignal(const datetime now,TradeSignal &best)
       // exactly the selection the evidence rejected.
       if(g_setupD.Evaluate(g_ctx,g_vwap,g_vp,g_risk,isLong,cand))
         {
+         g_audit.produced[SETUP_D]++; g_audit.totalProduced++;
+         g_audit.qualityAllowed[SETUP_D]++;   // D bypasses the grader by design
          cand.quality=Q_APLUS;
          cand.spread=spread;
          if(!found) { best=cand; found=true; }
@@ -385,6 +412,7 @@ void TryEnter(const datetime now)
   {
    TradeSignal sig;
    if(!CollectSignal(now,sig)) { g_blockReason="no qualifying setup"; return; }
+   g_barCandidate=sig;          // audit copy: survives a later rejection
    g_signalsSeen++;
 
    // The signal was formed on the closed bar; size against the price we
@@ -443,6 +471,7 @@ void TryEnter(const datetime now)
    g_setupOpenTime    = now;
    g_setupOpenSession = g_session.Name(now);
    g_lastSignal       = sig;
+   g_barCandidate     = sig;    // audit copy with the live entry and targets
 
    if(g_tm.OpenSetup(sig,sz.lot,sz.positions,InpMagicBase))
      {
@@ -556,6 +585,39 @@ void PrintSignalAccounting(void)
   }
 
 //+------------------------------------------------------------------+
+//| One row per evaluated bar, traded or not (Track 1.2).              |
+//|                                                                    |
+//| Called AFTER the decision is complete. It reads state and writes a |
+//| file; it never feeds anything back into the decision.              |
+//+------------------------------------------------------------------+
+void LogBarDecision(const datetime now,const bool gatePassed,const string gateReason)
+  {
+   bool traded = (g_lastEntryBarTime==g_lastBarTime);
+
+   g_barCandidate.decision = traded ? "TRADE" : "NO_TRADE";
+
+   if(traded)
+      g_barCandidate.decisionReason = g_barCandidate.reason;
+   else if(!gatePassed)
+      // The veto chain stopped this bar before any setup ran. Say that,
+      // rather than implying the candidates were considered and refused.
+      g_barCandidate.decisionReason = "gate_blocked_before_evaluation: "+gateReason;
+   else
+      g_barCandidate.decisionReason = (g_blockReason=="" ? "no qualifying setup"
+                                                         : g_blockReason);
+
+   g_decisions.Write(now,
+                     g_ctx.RegimeName(),
+                     g_ctx.TrendZoneScore(1),
+                     g_ctx.ATR(1),
+                     g_broker.Spread(),
+                     g_audit,
+                     gatePassed,
+                     gateReason,
+                     g_barCandidate);
+  }
+
+//+------------------------------------------------------------------+
 void OnTick(void)
   {
    datetime now=TimeCurrent();
@@ -586,9 +648,17 @@ void OnTick(void)
      {
       RefreshContext(now);
 
+      // Audit state is cleared per bar, before the decision, so the row
+      // written below describes THIS bar and nothing carried over.
+      g_audit.Reset();
+      ZeroSignal(g_barCandidate);
+
       string why="";
-      if(EntryGatesPass(now,why)) TryEnter(now);
-      else                        g_blockReason=why;
+      bool gatePassed=EntryGatesPass(now,why);
+      if(gatePassed) TryEnter(now);
+      else           g_blockReason=why;
+
+      LogBarDecision(now,gatePassed,why);
      }
 
    UpdateDashboard(now);
