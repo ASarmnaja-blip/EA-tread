@@ -158,7 +158,121 @@ expected to behave differently on an instrument without a 42 %-per-year drift,
 and the measurement tooling to check that now exists. Whether to spend the next
 run on that is a separate decision and is not pre-authorised here.
 
-## 6. Status while this runs
+## 6. Addendum — peer review, incorporated before either run
+
+Codex reviewed sections 1–5 before they were executed and raised three
+objections that are accepted in full. They make the tests stricter, not looser,
+and they are recorded here rather than applied silently.
+
+### 6.1 DerSimonian–Laird is the wrong estimator at k = 4
+
+Accepted. With four effects, `tau2` is unstable, DL can understate
+heterogeneity, and the assets share USD and macro shocks so they are not
+independent studies. The corrected replication therefore uses:
+
+- **Paule–Mandel** for `tau2` in place of DerSimonian–Laird
+- **Hartung–Knapp–Sidik–Jonkman** for the interval around the pooled mean,
+  **with the safeguard** that prevents HK from returning a NARROWER interval
+  than the uncorrected one when its scale factor falls below 1
+- a **prediction interval** alongside the confidence interval
+- the **number of independent calendar-day clusters per asset**, reported
+
+### 6.2 Per-asset day clustering does not capture cross-asset dependence
+
+Accepted, and this is the more serious of the two statistical objections.
+Clustering each instrument's own trades by its own days says nothing about the
+fact that a single macro release moves all six at once.
+
+Replaced by a **synchronised day-block bootstrap**: resample calendar days,
+keep **every asset's observations from each selected day together**, recompute
+each asset's estimate, recompute `tau2` and the pooled estimate inside every
+draw. XAGUSD's leave-one-day-out sensitivity is reported, because its +0.84 R on
+22 trades supplies most of the positive numerator even at only 14 % of the
+weight.
+
+None of this can turn the run into a successful replication — criteria 1 and 2
+already fail — and it must not be used to try. It improves the failure report.
+
+### 6.3 The threshold must be per-trade, not an average
+
+Accepted. `−0.092 R` was derived from an average cost divided by an average R,
+and risk distances vary trade by trade. A single averaged threshold is unsafe
+once commission is charged per trade.
+
+**Replaced by a two-part requirement, both of which must hold:**
+
+1. the candidate **underperforms its direction-matched control** by a
+   significant margin after multiplicity correction, and
+2. the **explicitly simulated mirror** has positive net expectancy per trade
+   after all measured costs charged per trade
+
+A negative excess does not by itself mean the mirror can pay its own costs, and
+the second condition is what actually decides whether the idea is tradeable.
+The +0.05 R minimum worthwhile edge now attaches to the mirror's **net**, where
+it belongs, instead of to a gross threshold standing in for it.
+
+### 6.4 Multiplicity, and what this run can and cannot claim
+
+Accepted, and it is the most important point Codex made. Bonferroni over the
+re-scored family controls that family **only if** all 24 candidates are re-run,
+excess is the single frozen primary statistic, and the matching variables,
+placebo draw count, seed and threshold are all fixed before running — in
+particular, **it is forbidden to screen down to the three raw losers first.**
+
+But choosing to score on excess **after** inspecting the raw outcome creates
+program-level multiplicity that no per-family correction erases. Therefore:
+
+> **This run is an EXPLORATORY DIAGNOSTIC, not a confirmatory test.** It cannot
+> establish an edge on this sample no matter what it returns. A confirmatory
+> claim requires forward data that does not exist yet.
+
+Two further changes follow:
+
+- a **permutation maxT statistic across all 24** is reported in addition to
+  Bonferroni, because the candidates are correlated and separate Bonferroni
+  tests are the wrong shape for correlated tests. N is accounted at **48** for
+  Bonferroni, which is more conservative than either the 24 Codex allows or a
+  maxT alone.
+- **no new matching definition may be tried after the result is seen.** One
+  run, one definition, fixed below.
+
+### 6.5 The matched control's strata, fixed now
+
+Codex's list is adopted. A placebo entry for a given candidate entry is drawn
+from bars matching it on:
+
+- **direction** — the same side
+- **holding horizon and exit mechanics** — the identical engine, stop, target
+  and 72-bar time stop
+- **calendar block** — the same quarter
+- **session** — asia / london / ny by the same boundaries
+- **volatility state** — the same ATR tercile, computed on prior bars
+- **news state** — both inside or both outside 30 minutes of a USD HIGH release
+- **cost environment** — the same hourly spread bucket
+- **overlap restrictions** — one position at a time, as the candidate has
+
+Placebo draws per candidate entry: **20**. Seed: **20260922**. Both fixed here.
+
+Where a stratum has too few eligible bars to draw from, that entry is reported
+as unmatched and excluded from the excess, with the excluded count printed. It
+is not quietly matched on fewer variables.
+
+### 6.6 On whether a reliable losing tail should exist at all
+
+Codex's answer to the question was **no**, and it is worth recording because it
+is the part that most constrains how this result should be read. A strategy can
+lose from instrument drift, from costs, from random timing, from slight barrier
+asymmetry, or from genuine negative timing information — **and only the last is
+invertible.** Nothing in market theory says a search over weak patterns must
+contain a useful anti-signal.
+
+All three observed facts point at drift rather than timing information: every
+reliable loser is a short, longs are broadly positive, and 25 % of circular
+shifts beat the real timing. If the diagnostic returns what section 4 predicts,
+the honest record is **"closed for these 24 candidates, this sample and this
+execution model"** — that exact scope, and no broader claim.
+
+## 7. Status while this runs
 
 Unchanged. `ORDERLY_TREND v2` is a rare shadow candidate with a failed
 cross-asset replication against it. The engine's answer is **NO TRADE**. No
