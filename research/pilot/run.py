@@ -335,35 +335,79 @@ def load_series() -> tuple[D.Bars, D.Bars | None, str]:
 
 
 def apply_measured_cost(b5: D.Bars) -> None:
-    """Replace the ASSUMED cost with the broker's own recorded spread.
+    """Fix the spread this run charges, and refuse to guess it.
 
     ENGINE_PROTOCOL section 2, Tier A item 4: costs come from measured spread,
-    not an assumed figure. The pilot's $0.48 was an assumption carried over from
-    OANDA. When the loaded file has MT5's per-bar spread column, the median of
-    it is the spread this run charges, and the substitution is printed so no
-    result is ever read against the wrong cost by accident.
+    not an assumed figure. The trap this function exists to close is narrower
+    than that and was found the hard way: **an export taken on a demo or trial
+    account carries that server's spread, which is not what the live account
+    pays.** On this broker the demo file records a flat 90 points while the live
+    account charges 270 - a three-fold understatement that no summary statistic
+    would reveal, and that would have made every downstream result look better
+    than it can be.
 
-    Slippage stays an assumption - it cannot be measured from history, only
-    from live fills - and is labelled as one.
+    So the spread is never taken from the file silently:
+
+      --spread X                 charge X $/oz. This is the declared figure and
+                                 it is what a live account's number goes in as.
+      --trust-file-spread        charge the median of the file's own column.
+                                 Correct only when the export came from the
+                                 account that will actually be traded.
+
+    With a spread column present and neither flag given, the run stops. That
+    mirrors `data.load_csv` refusing a missing server offset: an invisible
+    wrong answer is worse than a loud refusal.
+
+    Slippage stays an assumption - history cannot measure it, only live fills
+    can - and is labelled as one everywhere it appears.
     """
-    if b5.sp is None:
+    declared = _arg("--spread")
+    have_col = b5.sp is not None and bool(
+        np.count_nonzero(np.isfinite(b5.sp) & (b5.sp > 0)))
+    s = (b5.sp[np.isfinite(b5.sp) & (b5.sp > 0)] if have_col else None)
+
+    if declared is not None:
+        spread = float(declared)
+        core.SPREAD = spread
+        core.COST_ROUND_TURN = spread + 2 * core.SLIPPAGE
+        print(f"    cost: spread ${spread:.4f} DECLARED on the command line "
+              f"+ 2 x ${core.SLIPPAGE:.2f} slippage (assumed) "
+              f"= ${core.COST_ROUND_TURN:.4f} round turn")
+        if have_col:
+            fm = float(np.median(s))
+            print(f"          the file's own column says ${fm:.4f} "
+                  f"({'higher' if fm > spread else 'lower'} than declared by "
+                  f"{abs(fm - spread) / spread * 100:.0f}%); the declared "
+                  f"figure is used")
+        return
+
+    if not have_col:
         print("    cost: no spread column in this file - the ASSUMED "
               f"${core.COST_ROUND_TURN:.2f} round turn stands")
         return
-    s = b5.sp[np.isfinite(b5.sp) & (b5.sp > 0)]
-    if len(s) == 0:
-        print("    cost: spread column present but empty - assumption stands")
-        return
+
+    if "--trust-file-spread" not in sys.argv:
+        raise SystemExit(
+            "\n    STOP: this file carries a per-bar spread column, and I will "
+            "not charge it\n"
+            "    without being told to. A demo or trial export records the demo "
+            "server's\n"
+            "    spread, not the one the live account pays - measured here at "
+            f"${float(np.median(s)):.4f}\n"
+            "    against a live figure that can be several times larger.\n\n"
+            "    Pass ONE of:\n"
+            "      --spread 0.270           charge the live account's spread\n"
+            "      --trust-file-spread      charge this file's own median\n")
+
     measured = float(np.median(s))
     before = core.COST_ROUND_TURN
     core.SPREAD = measured
     core.COST_ROUND_TURN = measured + 2 * core.SLIPPAGE
-    print(f"    cost: spread ${measured:.4f} MEASURED (median of "
-          f"{len(s):,} bars) + 2 x ${core.SLIPPAGE:.2f} slippage (still "
-          f"assumed) = ${core.COST_ROUND_TURN:.4f} round turn")
+    print(f"    cost: spread ${measured:.4f} from THIS FILE (median of "
+          f"{len(s):,} bars, --trust-file-spread) + 2 x ${core.SLIPPAGE:.2f} "
+          f"slippage (assumed) = ${core.COST_ROUND_TURN:.4f} round turn")
     print(f"          replaces the assumed ${before:.2f}. "
-          f"p90 spread ${float(np.percentile(s, 90)):.4f}, "
-          f"max ${float(s.max()):.4f}")
+          f"p90 ${float(np.percentile(s, 90)):.4f}, max ${float(s.max()):.4f}")
 
 
 def main() -> int:

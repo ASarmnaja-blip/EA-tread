@@ -401,3 +401,79 @@ A portfolio announced on window one, at these sample sizes, would be noise
 wearing a table. The instruction to judge on the current market is followed
 exactly — and the arithmetic of the current market is what says how long that
 judgement takes.
+
+---
+
+## 12. The export landed, and the demo spread is not the traded spread
+
+*Added 2026-09-21 07:50, after the export succeeded and before any setup was
+evaluated on it. Still no result at the time of writing.*
+
+### What arrived
+
+| | |
+|---|---|
+| symbol | `XAUUSD`, digits 3, point 0.001, contract 100, min lot 0.01 |
+| account | `434191008` on `Exness-MT5Trial7`, **DEMO** |
+| **server offset** | **+0.00 h — measured, not assumed.** This server runs on UTC |
+| M1 | **100,000 bars, 2026-06-09 → 2026-09-21, 103 days**, 58 intraday gaps |
+| M5 | **101,038 bars, 2025-04-17 → 2026-09-21, 522 days**, 294 intraday gaps |
+| ATR measured | **M5 $4.705, M15 $8.495** (replaces the $11.35 carried in `RESEARCH_FINDINGS.md`) |
+
+A single three-year `copy_rates_range` returns `(-2, 'Invalid params')`, as does
+`copy_rates_from_pos` at 100,000 bars, while a seven-day range returns cleanly.
+The export therefore walks backwards in chunks — 5 days for M1, 20 for M5 — and
+stops after three consecutive empty answers. What it reaches is the history the
+terminal holds, not a limit of the request.
+
+**M1 covers 103 days, which contains the whole evaluation window.** Exit
+resolution at minute granularity is therefore available for every signal in the
+window, and P5 can run. `RESEARCH_FINDINGS.md` measures resolving on the signal
+bar at roughly +0.5 R of fiction, so this is the difference between a result and
+a story.
+
+### The spread, and the trap under it
+
+The export's own column reads **$0.037 median over 522 days**, and **$0.090 over
+the last 30**, where median and p90 are the same number — a flat, constant
+value, which is what a demo server records rather than what a market charges.
+
+**The live account on this broker charges 270 points = $0.270** (operator,
+2026-09-21). The demo file understates the traded cost **three-fold**.
+
+Nothing about that is visible in a summary statistic, and every downstream
+expectancy would have been flattered by it. `run.apply_measured_cost` therefore
+no longer takes a spread from a file silently. With a spread column present it
+requires one of:
+
+| flag | meaning |
+|---|---|
+| `--spread 0.270` | charge the declared live figure |
+| `--trust-file-spread` | charge the file's own median — correct **only** when the export came from the account that will be traded |
+
+With neither, **the run stops**, exactly as `data.load_csv` stops on a missing
+server offset. An invisible wrong answer is worse than a loud refusal.
+
+### What the real spread does to §11
+
+Recomputed on the measured ATR, at the live $0.270 and $0.10 slippage per fill:
+
+| TF | MWE at demo $0.090 | **MWE at live $0.270** | n required | **% of bars, 1 month** |
+|---|---|---|---|---|
+| M5 | 0.0822 R | **0.1332 R** | 1,671 → **636** | 27.5 % → **10.5 %** |
+| M15 | 0.0500 R | **0.0738 R** | 4,516 → **2,074** | 223 % → **102.5 %** |
+
+**The dearer spread makes the test easier to run, not harder** — the prediction
+in §11 holds in the direction that helps. A more expensive broker raises MWE
+above the 0.05 R floor, and a bigger effect needs less data to see.
+
+The conclusions of §11 survive with one softened:
+
+1. **M15 is still ruled out** for a single window — 102.5 % of all bars.
+2. **M5 over a full month is viable for a setup firing on ~10 % of bars**, down
+   from the 26.6 % the demo spread implied. Ten percent is demanding but it is
+   no longer out of reach, and the firing rate of each of the eighteen is now a
+   measurable fact rather than an estimate.
+3. Slippage remains assumed at $0.10 per fill. At the live spread it is 43 % of
+   the round turn, so it is now the largest *unmeasured* term in the cost model
+   and the next thing Job 2's SpreadMonitor should settle.
