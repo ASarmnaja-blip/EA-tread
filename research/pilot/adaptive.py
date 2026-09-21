@@ -58,7 +58,16 @@ CONTEXT_D = 45            # [DEF] 30-60 day band, midpoint
 REGIME_D = 15             # [DEF] 10-20 day band, midpoint
 HEALTH_D = 4              # [DEF] 3-5 day band, midpoint
 SPREAD_LIVE = 0.260       # measured on the account that will be traded
-SLIP_GRID = (0.05, 0.10, 0.20)   # assumption, reported as a sensitivity
+# 0.0165 is MEASURED, not assumed: ten demo round trips on 2026-09-21 gave a
+# median entry slippage of exactly 0.0000 and a mean of +0.0273, with a mean
+# of +0.0056 on the exit - 0.0329 for both sides, so 0.0165 per fill. Nine of
+# the ten fills had zero slippage and one slipped 0.2730, which is the shape
+# to expect: usually nothing, occasionally a lot.
+#
+# It is a DEMO figure and demo servers fill at the quote more readily than
+# live ones, so it is a floor rather than an estimate. The larger values stay
+# in the grid because the true number is somewhere between them.
+SLIP_GRID = (0.0165, 0.05, 0.10, 0.20)
 SWAP_LONG = 0.5493        # measured, per ounce per night, longs only
 ROLLOVER_H = 21           # measured from where the bar count collapses
 
@@ -316,7 +325,13 @@ def main() -> int:
     print("\n" + "=" * 100)
     print("เครื่องมือแต่ละตัว ในสภาวะของตัวเองเท่านั้น")
     print("=" * 100)
-    results = {}
+    # Every slippage scenario is kept. An earlier version stored only the
+    # 0.10 run and then printed its holdout beside a development figure
+    # computed at the measured 0.0165 - two numbers from different cost
+    # assumptions sitting in one table, which is how a comparison lies without
+    # any single number being wrong. Development and holdout are now always
+    # read from the SAME run.
+    results: dict[tuple[str, float], dict] = {}
     for regime_name, tool in TOOL_FOR_REGIME.items():
         allow = (reg["regime"].to_numpy() == regime_name)
         sig = tool_signals(tool, b15, reg, allow)
@@ -324,30 +339,43 @@ def main() -> int:
             print(f"\n{tool} ({regime_name}): ไม่มีสัญญาณเลย")
             continue
         print(f"\n{tool}  ใช้เฉพาะ {regime_name}   สัญญาณ {len(sig):,}")
+        print(f"   {'slippage':>10s}{'n dev':>7s}{'ชนะ%':>7s}{'dev E':>10s}"
+              f"{'dev CI':>22s}{'n ho':>6s}{'holdout E':>11s}")
         for slip in SLIP_GRID:
             costs = cost_series(b15, prof, slip)
             tr, acc = run_with_costs(c15, sig, b5, nxt, costs, slip)
             dev = [x for x in tr if x.t < cut]
+            ho = [x for x in tr if x.t >= cut]
             s = clustered_stats(dev)
+            hs = clustered_stats(ho)
+            results[(tool, slip)] = dict(regime=regime_name, trades=tr,
+                                         dev=s, ho=hs, slip=slip)
             if s["n"] < 30:
-                print(f"   slippage ${slip:.2f}: ไม้ช่วงพัฒนา {s['n']} น้อยเกินไป")
+                print(f"   ${slip:9.4f}: ไม้ช่วงพัฒนา {s['n']} น้อยเกินไป")
                 continue
-            print(f"   slippage ${slip:.2f}: ช่วงพัฒนา n={s['n']:5d} "
-                  f"ชนะ {s['win']:4.1f}%  ได้ {s['E']:+.4f} R  "
-                  f"ช่วงเชื่อมั่นแบบจับกลุ่ม [{s['lo']:+.4f}, {s['hi']:+.4f}]")
-            if slip == 0.10:
-                results[tool] = dict(regime=regime_name, trades=tr, dev=s)
+            print(f"   ${slip:9.4f}{s['n']:7d}{s['win']:7.1f}{s['E']:10.4f}"
+                  f"  [{s['lo']:+.4f},{s['hi']:+.4f}]{hs['n']:6d}"
+                  f"{hs['E']:11.4f}")
+            g = np.array([x.gross_R for x in dev])
+            n_ = np.array([x.net_R for x in dev])
+            if slip == SLIP_GRID[0]:
+                print(f"      แยกต้นทุน: gross {g.mean():+.4f} R  "
+                      f"ต้นทุนรวม {(g-n_).mean():.4f} R  net {n_.mean():+.4f} R")
 
     print("\n" + "=" * 100)
     print("CHAMPION / CHALLENGER")
     print("=" * 100)
-    ok = {k: v for k, v in results.items()
-          if v["dev"]["n"] >= 30 and np.isfinite(v["dev"]["E"])}
+    REF_SLIP = SLIP_GRID[0]     # the measured one; everything below uses it
+    print(f"ทุกตัวเลขข้างล่างใช้ slippage ${REF_SLIP:.4f} (ค่าที่วัดได้) "
+          f"ทั้งช่วงพัฒนาและ holdout จาก run เดียวกัน")
+    ok = {k[0]: v for k, v in results.items()
+          if k[1] == REF_SLIP and v["dev"]["n"] >= 30
+          and np.isfinite(v["dev"]["E"])}
     if not ok:
         print("ไม่มีเครื่องมือไหนมีไม้พอจะจัดอันดับ -> NO TRADE")
         return 0
     order = sorted(ok.items(), key=lambda kv: kv[1]["dev"]["E"], reverse=True)
-    print("จัดอันดับจากช่วงพัฒนาเท่านั้น (holdout ไม่มีส่วนร่วม):")
+    print("จัดอันดับจากช่วงพัฒนาเท่านั้น (holdout ไม่มีส่วนร่วมในการเลือก):")
     for name, v in order:
         s = v["dev"]
         pos_ci = s["lo"] > 0
@@ -356,17 +384,23 @@ def main() -> int:
               f"{'ทั้งช่วงเป็นบวก' if pos_ci else 'คร่อมศูนย์'}")
 
     champ_name, champ = order[0]
-    chall_name, chall = (order[1] if len(order) > 1 else (None, None))
+    chall_name = order[1][0] if len(order) > 1 else None
     print(f"\nผู้ท้าชิงอันดับ 1: {champ_name}  (อันดับ 2 เป็น shadow: {chall_name})")
     print("อนุญาตสูงสุด 1 champion + 1 shadow ตาม Amendment 04 ข้อ 4.1")
 
-    s = champ["dev"]
-    ho = [x for x in champ["trades"] if x.t >= cut]
-    hs = clustered_stats(ho)
-    print(f"\n{champ_name}")
+    s, hs = champ["dev"], champ["ho"]
+    print(f"\n{champ_name} ที่ slippage ${REF_SLIP:.4f} เท่ากันทั้งสองช่วง")
     print(f"  ช่วงพัฒนา n={s['n']:5d}  ได้ {s['E']:+.4f} R  [{s['lo']:+.4f}, {s['hi']:+.4f}]")
     print(f"  holdout   n={hs['n']:5d}  ได้ {hs['E']:+.4f} R  "
           f"[{hs['lo']:+.4f}, {hs['hi']:+.4f}]   <- อ่านครั้งเดียว")
+    print(f"\n  holdout ที่ทุกระดับต้นทุน (ดูว่าต้นทุนอธิบายการพลิกได้ไหม):")
+    for slip in SLIP_GRID:
+        r = results.get((champ_name, slip))
+        if r and r["ho"]["n"] >= 10:
+            print(f"    slippage ${slip:.4f}: dev {r['dev']['E']:+.4f} R  "
+                  f"holdout {r['ho']['E']:+.4f} R  "
+                  f"ต่าง {r['ho']['E']-r['dev']['E']:+.4f}")
+    print("  ถ้าช่องว่างแทบไม่ขยับตามต้นทุน แปลว่าการพลิกไม่ได้มาจากต้นทุน")
 
     promoted = (np.isfinite(s["lo"]) and s["lo"] > 0
                 and np.isfinite(hs["E"]) and hs["E"] > 0)

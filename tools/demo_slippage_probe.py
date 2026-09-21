@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Measure what execution ACTUALLY costs, on the demo account only.
 
@@ -39,7 +39,9 @@ VOLUME = 0.01
 DEVIATION = 100          # points of price tolerance, so the order fills and
                          # the slippage can be MEASURED rather than rejected
 MAGIC = 20260921
-HOLD_SECONDS = 3         # just long enough to be a real round trip
+HOLD_SECONDS = 1         # long enough to be a real round trip, short enough
+                         # that drift does not swamp the cost being measured
+GAP_SECONDS = 5          # spacing between samples, so they are not one moment
 LOG = Path("data/execution_probe_log.json")
 
 
@@ -49,8 +51,62 @@ def abort(mt5, msg: str) -> None:
     raise SystemExit(1)
 
 
+def one_probe(mt5, info, n_label: str) -> dict | None:
+    """One open-and-close round trip. Returns the record, or None if it could
+    not be completed cleanly."""
+    q0 = mt5.symbol_info_tick(SYMBOL)
+    if q0 is None or not q0.time:
+        print(f"  {n_label}: ไม่มีราคา ข้าม")
+        return None
+    spread0 = q0.ask - q0.bid
+    sl = q0.bid - 2.0
+    req = dict(action=mt5.TRADE_ACTION_DEAL, symbol=SYMBOL, volume=VOLUME,
+               type=mt5.ORDER_TYPE_BUY, price=q0.ask, sl=sl,
+               deviation=DEVIATION, magic=MAGIC, comment="EXEC_TEST_ONLY",
+               type_time=mt5.ORDER_TIME_GTC, type_filling=mt5.ORDER_FILLING_IOC)
+    t0 = time.time()
+    res = mt5.order_send(req)
+    t1 = time.time()
+    if res is None or res.retcode != mt5.TRADE_RETCODE_DONE:
+        print(f"  {n_label}: เปิดไม่สำเร็จ {res.retcode if res else None}")
+        return None
+    entry, slip_in = res.price, res.price - q0.ask
+
+    time.sleep(HOLD_SECONDS)
+    q1 = mt5.symbol_info_tick(SYMBOL)
+    pos = mt5.positions_get(symbol=SYMBOL)
+    if not pos:
+        print(f"  {n_label}: หาสถานะไม่เจอ")
+        return None
+    p = pos[0]
+    creq = dict(action=mt5.TRADE_ACTION_DEAL, symbol=SYMBOL, volume=p.volume,
+                type=mt5.ORDER_TYPE_SELL, position=p.ticket, price=q1.bid,
+                deviation=DEVIATION, magic=MAGIC, comment="EXEC_TEST_ONLY_CLOSE",
+                type_time=mt5.ORDER_TIME_GTC, type_filling=mt5.ORDER_FILLING_IOC)
+    t2 = time.time()
+    cres = mt5.order_send(creq)
+    t3 = time.time()
+    if cres is None or cres.retcode != mt5.TRADE_RETCODE_DONE:
+        print(f"  {n_label}: !! ปิดไม่สำเร็จ มีสถานะค้าง ต้องปิดด้วยมือ")
+        return None
+    exit_fill, slip_out = cres.price, q1.bid - cres.price
+    print(f"  {n_label}: spread {spread0:.4f}  ขาเข้า {slip_in:+.4f}  "
+          f"ขาออก {slip_out:+.4f}  ไป-กลับ {entry-exit_fill:+.4f}  "
+          f"({1000*(t1-t0):.0f}/{1000*(t3-t2):.0f} ms)")
+    return dict(when_utc=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                label="EXECUTION TEST ONLY - not strategy performance",
+                bid=q0.bid, ask=q0.ask, spread=spread0,
+                entry_fill=entry, slip_in=slip_in,
+                exit_fill=exit_fill, slip_out=slip_out,
+                round_trip=entry - exit_fill,
+                ms_in=round(1000*(t1-t0)), ms_out=round(1000*(t3-t2)))
+
+
 def main() -> int:
     import MetaTrader5 as mt5
+    samples = 1
+    if "--samples" in sys.argv:
+        samples = int(sys.argv[sys.argv.index("--samples") + 1])
     if not mt5.initialize():
         print("ต่อ MT5 ไม่ได้:", mt5.last_error())
         return 1
@@ -75,6 +131,46 @@ def main() -> int:
     info = mt5.symbol_info(SYMBOL)
     if info.trade_mode == mt5.SYMBOL_TRADE_MODE_DISABLED:
         abort(mt5, "สัญลักษณ์นี้ปิดการเทรดอยู่")
+
+    if samples > 1:
+        print(f"\nเก็บ {samples} ตัวอย่าง เว้นระยะ {GAP_SECONDS}s "
+              f"(เครื่องมือวัดการกระจาย ไม่ใช่การเทรด)")
+        recs = []
+        for k in range(1, samples + 1):
+            if mt5.positions_total():
+                print(f"  ครั้งที่ {k}: มีสถานะค้างอยู่ หยุดทันที")
+                break
+            r = one_probe(mt5, info, f"ครั้งที่ {k}")
+            if r:
+                recs.append(r)
+            if k < samples:
+                time.sleep(GAP_SECONDS)
+        if recs:
+            import statistics as st
+            si = [r["slip_in"] for r in recs]
+            so = [r["slip_out"] for r in recs]
+            rt = [r["round_trip"] for r in recs]
+            sp = [r["spread"] for r in recs]
+            print("\n" + "-" * 84)
+            print(f"สรุปจาก {len(recs)} ตัวอย่าง (หน่วย $/oz)")
+            print(f"  spread ที่เห็น   กลาง {st.median(sp):.4f}  "
+                  f"ต่ำสุด {min(sp):.4f}  สูงสุด {max(sp):.4f}")
+            print(f"  ส่วนต่างขาเข้า  กลาง {st.median(si):+.4f}  เฉลี่ย {st.mean(si):+.4f}  "
+                  f"ต่ำสุด {min(si):+.4f}  สูงสุด {max(si):+.4f}")
+            print(f"  ส่วนต่างขาออก   กลาง {st.median(so):+.4f}  เฉลี่ย {st.mean(so):+.4f}")
+            print(f"  ไป-กลับจริง     กลาง {st.median(rt):+.4f}  เฉลี่ย {st.mean(rt):+.4f}")
+            tot = st.mean(si) + st.mean(so)
+            print(f"\n  slippage รวมสองข้างเฉลี่ย {tot:+.4f} เทียบสมมติฐาน 0.2000")
+            print(f"  ต้นทุนจริงบนบัญชี Standard (spread 0.260) จะเป็น "
+                  f"{0.260 + tot:.4f} เทียบสมมติฐานเดิม 0.4600")
+            hist = json.loads(LOG.read_text()) if LOG.exists() else []
+            hist.extend(recs)
+            LOG.parent.mkdir(parents=True, exist_ok=True)
+            LOG.write_text(json.dumps(hist, indent=2))
+            print(f"  บันทึกรวม {len(hist)} ครั้งที่ {LOG}")
+        print(f"\nสถานะเปิดคงเหลือ: {mt5.positions_total()}  (ต้องเป็น 0)")
+        mt5.shutdown()
+        return 0
 
     q0 = mt5.symbol_info_tick(SYMBOL)
     if q0 is None or not q0.time:
