@@ -357,22 +357,43 @@ def main() -> int:
     failure_report(slice_trades(results[0]["trades"], cut, 1 << 62))
 
     print("\n" + "=" * 96)
-    best = max((r for r in results if r["n"] > 30),
-               key=lambda r: r["skill_t"] if np.isfinite(r["skill_t"]) else -9,
-               default=None)
+    # SELECTION USES THE DEVELOPMENT PERIOD ONLY.
+    # The first version of this block chose `best` by the skill t of the WHOLE
+    # sample, holdout included. That silently made the holdout part of the
+    # choice, which is the one thing a holdout exists to prevent: whichever
+    # variant the recent window happened to favour would have been picked and
+    # then "confirmed" on the same window. Selection now sees development data
+    # only, and the holdout is read once, afterwards, and never fed back.
+    def dev_stats(r):
+        d = slice_trades(r["trades"], 0, cut)
+        if len(d) < 30:
+            return None
+        x = np.array([t.net_R for t in d])
+        se = x.std(ddof=1) / np.sqrt(len(x))
+        return dict(n=len(x), E=float(x.mean()), t=float(x.mean() / se))
+
+    ranked = [(r, dev_stats(r)) for r in results]
+    ranked = [(r, s) for r, s in ranked if s is not None]
     bar = core.bonferroni_z(len(results))
-    if best is None:
+    if not ranked:
         print("สรุป: ไม่มีตัวไหนมีไม้พอจะตัดสิน -> NO TRADE")
     else:
+        ranked.sort(key=lambda p: p[1]["E"], reverse=True)
+        best, ds = ranked[0]
+        print(f"เลือกจาก **ช่วงพัฒนาเท่านั้น** (holdout ไม่มีส่วนในการเลือก)")
+        for r, s in ranked:
+            print(f"  {r['name']:30s} ช่วงพัฒนา n={s['n']:5d} "
+                  f"ได้เฉลี่ย {s['E']:+.4f} R  t={s['t']:+.2f}")
         ho = slice_trades(best["trades"], cut, 1 << 62)
         ho_e = np.mean([x.net_R for x in ho]) if len(ho) > 1 else np.nan
-        print(f"ตัวที่ดีที่สุด: {best['name']}")
-        print(f"  ทั้งช่วง  ได้เฉลี่ย {best['E']:+.4f} R  "
-              f"เทียบ control {best['skill']:+.4f}  ความมั่นใจ {best['skill_t']:+.2f} "
-              f"(ต้องเกิน {bar:.2f})")
-        print(f"  holdout   ได้เฉลี่ย {ho_e:+.4f} R จาก {len(ho)} ไม้")
-        passed = (np.isfinite(best["skill_t"]) and best["skill_t"] >= bar
-                  and best["E"] > 0 and np.isfinite(ho_e) and ho_e > 0)
+        print(f"\nตัวที่ถูกเลือก: {best['name']}")
+        print(f"  ช่วงพัฒนา ได้เฉลี่ย {ds['E']:+.4f} R จาก {ds['n']} ไม้  t={ds['t']:+.2f}")
+        print(f"  เทียบ control ทั้งช่วง {best['skill']:+.4f} "
+              f"ความมั่นใจ {best['skill_t']:+.2f} (ต้องเกิน {bar:.2f})")
+        print(f"  holdout   ได้เฉลี่ย {ho_e:+.4f} R จาก {len(ho)} ไม้ "
+              f"<- อ่านครั้งเดียว ไม่ย้อนกลับไปเลือกใหม่")
+        passed = (ds["E"] > 0 and np.isfinite(best["skill_t"])
+                  and best["skill_t"] >= bar and np.isfinite(ho_e) and ho_e > 0)
         print()
         if passed:
             print("สรุป: ผ่านเกณฑ์ -> เลื่อนเป็น champion ได้ แต่ยังต้องรันแบบ shadow ก่อน")
@@ -380,6 +401,9 @@ def main() -> int:
             print("สรุป: NO TRADE")
             print("  ไม่มี edge สุทธิที่ผ่านเกณฑ์หลังหักต้นทุนจริง")
             print("  ตัวที่เหลือทั้งหมดยังเป็น challenger แบบ shadow ไม่มีตัวไหนได้เป็น champion")
+            if ds["E"] <= 0:
+                print(f"  เหตุผลหลัก: ช่วงพัฒนาขาดทุน {ds['E']:+.4f} R "
+                      f"-> holdout ที่เป็นบวกไม่ถูกนับเป็นหลักฐาน")
     print("\nไม่มีการส่งคำสั่งใด ๆ ทั้งสิ้น และไม่มีฟังก์ชันส่งออเดอร์อยู่ในไฟล์นี้")
     return 0
 
