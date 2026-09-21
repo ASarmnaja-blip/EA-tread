@@ -222,11 +222,15 @@ def stressed(trades, mult: float) -> dict:
     return dict(n=len(x), E=float(x.mean()))
 
 
-def run_market(c: core.Ctx, b5: D.Bars, nxt: np.ndarray) -> list[dict]:
+def run_market(c: core.Ctx, b5: D.Bars, nxt: np.ndarray,
+               label: str = D.INSTRUMENT_LABEL,
+               spread_declared: bool = False) -> list[dict]:
     print("=" * 96)
-    print("MARKET RUN - COMEX gold futures GC=F.  THIS IS NOT XAUUSD SPOT.")
-    print(f"    cost: spread ${core.SPREAD:.2f} + 2 x slippage ${core.SLIPPAGE:.2f} "
-          f"= ${core.COST_ROUND_TURN:.2f} per round turn (ASSUMED, not measured)")
+    print(f"MARKET RUN - {label}")
+    src = "DECLARED from the live account" if spread_declared else "ASSUMED"
+    print(f"    cost: spread ${core.SPREAD:.3f} ({src}) + 2 x slippage "
+          f"${core.SLIPPAGE:.2f} (ASSUMED - history cannot measure it) "
+          f"= ${core.COST_ROUND_TURN:.3f} per round turn")
     print("=" * 96)
     rng = np.random.default_rng(RNG_MASTER + 999)
     print(f"    {'id':6s} {'n':>5s} {'E_gross':>9s} {'E_net':>9s} {'net@1.5x':>9s} "
@@ -448,7 +452,7 @@ def main() -> int:
 
     c = core.Ctx(b15, nxt)
     checks = run_p2_p4(c, b5, nxt)
-    rows = run_market(c, b5, nxt)
+    rows = run_market(c, b5, nxt, label, _arg("--spread") is not None)
     split_report(rows)
     if b1 is not None:
         p5 = run_p5(c, b5, nxt, b1)
@@ -465,8 +469,10 @@ def main() -> int:
              spread=core.SPREAD, p1=p1_rows, checks=checks,
              market=slim, p5=p5), indent=2, default=float))
     print(f"\nwritten: {OUT / 'pilot.json'}")
-    print("\nCeiling for every result above: RESEARCH WATCH. Not a trade signal,")
-    print("not a shadow candidate, and not a statement about XAUUSD spot.")
+    print("\nCeiling for every result above: RESEARCH WATCH. Not a trade signal")
+    print("and not a shadow candidate. The regime and session splits are")
+    print("subgroups of one sample with no multiplicity control, so they are")
+    print("hypotheses for a held-out test, never findings on their own.")
     return 0
 
 
