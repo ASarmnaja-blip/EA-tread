@@ -126,17 +126,27 @@ def main() -> int:
     pos = calendar_feed.positioning_series(cal)
     # M1 where it reaches, because a 1-minute reaction cannot be read off M5
     xau = D.load_csv("data/XAUUSD_M1.csv")
-    try:
-        dxy = D.load_csv("data/DXY_M5.csv")
-    except Exception:
-        dxy = None
+    # DXY must be M1 here. An earlier version loaded DXY_M5 and then asked it
+    # for a ONE-MINUTE reaction, which five-minute bars cannot resolve: every
+    # dxy_1m figure was a five-minute move wearing a one-minute label. The
+    # correlation at one minute moved from -0.808 to -0.892 once this was
+    # fixed, on 438 events instead of 137.
+    dxy, dxy_note = None, "ไม่มี"
+    for path, note in (("data/DXY_M1.csv", "M1"),
+                       ("data/DXY_M5.csv", "M5 - ปฏิกิริยา 1 นาทีแยกไม่ได้")):
+        try:
+            dxy = D.load_csv(path)
+            dxy_note = note
+            break
+        except Exception:
+            continue
 
     t = pd.to_datetime(xau.t, unit="s", utc=True)
     print("=" * 98)
     print("NEWS DESK - ข่าวตั้งสมมติฐาน ราคาตัดสิน")
     print("=" * 98)
     print(f"ราคา M1 {len(xau):,} แท่ง {t[0]:%Y-%m-%d} ถึง {t[-1]:%Y-%m-%d}")
-    print(f"DXY {'มี (M5)' if dxy is not None else 'ไม่มี'} | "
+    print(f"DXY {dxy_note} | "
           f"US yields: ไม่มีบนบัญชีนี้ -> NOT ASSESSED")
 
     df = assess_all(cal, xau, dxy, pos)

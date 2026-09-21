@@ -123,6 +123,10 @@ def main() -> int:
         p = (c["sign"] * c[f"res_{h}"]).to_numpy()
         se = p.std(ddof=1) / np.sqrt(len(p))
         print(f"  ถือต่อ {h:2d} นาที: ได้เฉลี่ย {p.mean():+.4f} $/oz  t={p.mean()/se:+.2f}")
+    print("  หมายเหตุสำคัญ: ตัวเลขบวกในบรรทัดข้างบนนี้ถูกทดสอบแล้วและตกไปแล้ว")
+    print("  ดู minute_momentum.py - บน 41,615 ตัวอย่างที่ไม่ทับกัน เหลือ +0.008 $/oz")
+    print("  ต่อต้นทุน 0.460 และไม่มีชั่วโมงไหนใน 24 ชั่วโมงที่เป็นบวก")
+    print("  มันคือเสียงรบกวนของตัวอย่าง 466 ครั้ง ห้ามหยิบไปอ้างอีก")
 
     print(f"\nต้นทุนไป-กลับที่ต้องจ่าย: ${COST_ROUND_TURN:.3f}/oz")
     best = max(HORIZONS, key=lambda h: (df["sign"] * df[f"res_{h}"]).mean())
