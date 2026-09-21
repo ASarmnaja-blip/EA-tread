@@ -34,7 +34,17 @@ COST_OVER_ATR_MAX = 0.08                    # [DEF] Amendment 05 section 3
 SLIP = adaptive.SLIP_GRID[0]
 
 
-def build_regime_v2(b15: D.Bars, news_ep: np.ndarray | None) -> pd.DataFrame:
+def build_regime_v2(b15: D.Bars, news_ep: np.ndarray | None,
+                    spread: float | None = None) -> pd.DataFrame:
+    """`spread` is the asset's own, in its own price units.
+
+    It defaults to gold's for backward compatibility, and passing the wrong
+    one is not a small error: the cost gate is (spread + slippage) / ATR, so
+    charging gold's $0.260 against EURUSD's ATR of 0.0005 gives a ratio of 520
+    against a limit of 0.08, and every single bar is classified TOO_EXPENSIVE.
+    That is how the first cross-asset run produced zero signals on four of six
+    assets and looked like a finding instead of a bug.
+    """
     c, h, l, o = b15.c, b15.h, b15.l, b15.o
     n = len(b15)
     atr = core.atr(b15, 14)
@@ -67,9 +77,10 @@ def build_regime_v2(b15: D.Bars, news_ep: np.ndarray | None) -> pd.DataFrame:
     out["slope_agree"] = ((s[0] == s[1]) & (s[1] == s[2]) & (s[0] != 0))
     out["slope_dir"] = s[0]
 
+    sp = adaptive.SPREAD_LIVE if spread is None else float(spread)
+    slip = SLIP if spread is None else 0.003507 * np.nanmedian(atr)
     with np.errstate(divide="ignore", invalid="ignore"):
-        out["cost_over_atr"] = (adaptive.SPREAD_LIVE + 2 * SLIP) / np.where(
-            atr > 0, atr, np.nan)
+        out["cost_over_atr"] = (sp + 2 * slip) / np.where(atr > 0, atr, np.nan)
 
     def q(col, p):
         return pd.Series(out[col]).rolling(CTX, min_periods=CTX // 3) \

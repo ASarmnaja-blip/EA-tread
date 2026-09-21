@@ -231,11 +231,28 @@ def tool_signals(name: str, b15: D.Bars, reg: pd.DataFrame,
 
 # ------------------------------------------------------------ evaluation
 def run_with_costs(c15: core.Ctx, sig, b5: D.Bars, nxt: np.ndarray,
-                   costs: np.ndarray, slip: float):
+                   costs: np.ndarray, slip: float,
+                   swap: float | None = SWAP_LONG, out: dict | None = None):
     """core.run_signals charges one scalar cost; this charges the per-bar
-    figure and then the swap, so the hour a trade opens in matters."""
+    figure and then the swap, so the hour a trade opens in matters.
+
+    `swap` is the overnight financing charge per unit per night, in the SAME
+    price units as the series, for long positions only. It defaults to gold's
+    measured 0.5493 per ounce. Passing gold's figure to another instrument is
+    not a rounding error: it is divided by that instrument's risk, so on a
+    GBPUSD stop of 0.0012 it charges 458 R per night and produced a mean of
+    -65.95 R against a gross of +0.18. Swap is an interest-rate differential,
+    not a volatility quantity, so unlike slippage it cannot be carried across
+    instruments as a fraction of ATR. Where it has not been measured, pass
+    None: nothing is charged and the caller must report it as NOT MEASURED.
+
+    `out`, if given, receives diagnostics - including the share of trades held
+    across a rollover, which is what an unmeasured swap would have hit.
+    """
     trades = []
     accepted = []
+    n_overnight = 0
+    tot_nights = 0
     for (i, d, stop, tmode, tval) in sig:
         k = nxt[i]
         if k < 0:
@@ -257,10 +274,19 @@ def run_with_costs(c15: core.Ctx, sig, b5: D.Bars, nxt: np.ndarray,
             while cur <= t1:
                 nights += 1
                 cur += 86400
-            net -= nights * SWAP_LONG / risk
+            if nights:
+                n_overnight += 1
+                tot_nights += nights
+            if swap is not None:
+                net -= nights * swap / risk
         trades.append(core.Trade(int(b5.t[k]), d, risk, g, net,
                                  c15.session[i], c15.regime[i], why, nb))
         accepted.append((i, d, stop, tmode, tval))
+    if out is not None:
+        out["n_overnight"] = n_overnight
+        out["tot_nights"] = tot_nights
+        out["swap_charged"] = swap
+        out["overnight_share"] = (n_overnight / len(trades)) if trades else np.nan
     return trades, accepted
 
 
