@@ -74,15 +74,35 @@ def export(mt5, pd, symbol: str, tf_name: str, years: float, offset: float,
         die(f"unknown timeframe {tf_name}")
     end = datetime.now(timezone.utc)
     start = end - timedelta(days=int(years * 365.25))
-    rates = mt5.copy_rates_range(symbol, tf, start, end)
-    if rates is None or len(rates) == 0:
+
+    # Some terminals reject large copy_rates_range requests even when the same
+    # history is available in smaller ranges. Fetch fixed-size windows and join
+    # them so the default three-year export works across those builds.
+    chunk_days = 30
+    frames = []
+    cursor = start
+    while cursor < end:
+        chunk_end = min(cursor + timedelta(days=chunk_days), end)
+        rates = mt5.copy_rates_range(symbol, tf, cursor, chunk_end)
+        if rates is None:
+            say(f"  {tf_name}: DOWNLOAD FAILED for {cursor.date()} .. "
+                f"{chunk_end.date()} ({mt5.last_error()})")
+            return None
+        if len(rates):
+            frames.append(pd.DataFrame(rates))
+        cursor = chunk_end
+
+    if not frames:
         say(f"  {tf_name}: NO BARS RETURNED ({mt5.last_error()}). "
             f"Open a {symbol} {tf_name} chart, press Home, scroll back to force "
             f"a download, then re-run.")
         return None
 
     info = mt5.symbol_info(symbol)
-    df = pd.DataFrame(rates)
+    df = (pd.concat(frames, ignore_index=True)
+            .drop_duplicates(subset="time")
+            .sort_values("time")
+            .reset_index(drop=True))
     df["time"] = pd.to_datetime(df["time"], unit="s")     # broker server time
 
     outdir.mkdir(parents=True, exist_ok=True)
@@ -183,7 +203,8 @@ def main() -> int:
         say("")
         say("SPREAD BY HOUR (broker server time, from the M5 file)")
         m5 = outdir / f"{symbol}_M5.csv"
-        if m5.exists():
+        m5_exported = any(r["timeframe"] == "M5" for r in results)
+        if m5_exported:
             df = pd.read_csv(m5, parse_dates=["time"])
             if "spread" in df.columns:
                 sp = df["spread"] * info.point
