@@ -104,7 +104,13 @@ def run_p1(b5: D.Bars) -> tuple[bool, list]:
     # and understates the error by 1.1x to 3.3x - which is what produced four
     # false failures on the first attempt.
     per_walk: dict[str, list] = {name: [] for name, _, _ in core.REGISTRY}
-    pooled: dict[str, dict] = {name: {"tr": [], "ctl": []} for name, _, _ in core.REGISTRY}
+    # Only the trade COUNT is ever read back (the `n` column below), and the
+    # control arm's trades were never read at all. Keeping every Trade object
+    # from 400 walks x 18 configurations cost 1.9 GB and was climbing on the
+    # real series - 101,038 five-minute bars against the 60-day proxy this was
+    # written on - and the run would have died before finishing. Counting is
+    # arithmetically identical to storing and then measuring the length.
+    pooled_n: dict[str, int] = {name: 0 for name, _, _ in core.REGISTRY}
     for seed in range(P1_SEEDS):
         rng = np.random.default_rng(RNG_MASTER + seed)
         sb5 = synth_walk(b5, sigma_step, rng)
@@ -115,11 +121,10 @@ def run_p1(b5: D.Bars) -> tuple[bool, list]:
             sig = fn(sc)
             res = evaluate(sc, sig, sb5, snxt, core.COST_ROUND_TURN,
                            core.TIME_STOP_5M, rng)
-            pooled[name]["tr"].extend(res["trades"])
-            pooled[name]["ctl"].extend(res["ctl"])
+            pooled_n[name] += len(res["trades"])
             if len(res["trades"]) >= 2 and len(res["ctl"]) >= 2:
                 per_walk[name].append(res["net"]["E"] - res["ctlstat"]["E"])
-        print(f"    walk {seed + 1}/{P1_SEEDS} done", end="\r")
+        print(f"    walk {seed + 1}/{P1_SEEDS} done", end="\r", flush=True)
     print(" " * 40, end="\r")
 
     print(f"    {'id':6s} {'trades':>7s} {'walks':>6s} {'skill':>9s} {'se_path':>8s} "
@@ -129,10 +134,10 @@ def run_p1(b5: D.Bars) -> tuple[bool, list]:
     mag_fail = t_fail = 0
     for name, _desc, _fn in core.REGISTRY:
         w = np.array(per_walk[name], dtype=float)
-        s = core.summarise(pooled[name]["tr"], "net_R")
+        n_trades = pooled_n[name]
         if len(w) < 3:
-            print(f"    {name:6s} {s['n']:7d} {len(w):6d}   too few walks to calibrate")
-            rows.append(dict(id=name, n=s["n"], ok=False, why="too few walks"))
+            print(f"    {name:6s} {n_trades:7d} {len(w):6d}   too few walks to calibrate")
+            rows.append(dict(id=name, n=n_trades, ok=False, why="too few walks"))
             all_ok = False
             continue
         skill = float(w.mean())
@@ -146,10 +151,10 @@ def run_p1(b5: D.Bars) -> tuple[bool, list]:
         mag_fail += not ok_mag
         t_fail += not ok_t
         all_ok &= ok
-        print(f"    {name:6s} {s['n']:7d} {len(w):6d} {fmt(skill,9)} {fmt(se,8)} "
+        print(f"    {name:6s} {n_trades:7d} {len(w):6d} {fmt(skill,9)} {fmt(se,8)} "
               f"{fmt(t,7,2)} {('pass' if ok_mag else 'FAIL'):>12s} "
               f"{('pass' if ok_t else 'FAIL'):>6s}  {'ok' if ok else 'FAIL'}")
-        rows.append(dict(id=name, n=s["n"], walks=len(w), skill=skill, se=se, t=t,
+        rows.append(dict(id=name, n=n_trades, walks=len(w), skill=skill, se=se, t=t,
                          ok_mag=bool(ok_mag), ok_t=bool(ok_t), ok=bool(ok)))
     print("    " + "-" * 82)
     print(f"    CI contains zero (Amendment 02) : {18 - mag_fail}/18 pass")
