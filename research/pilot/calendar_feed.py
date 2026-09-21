@@ -120,7 +120,21 @@ def load_calendar(path="data/calendar.csv") -> pd.DataFrame:
     df = pd.read_csv(io.StringIO(txt))
     df["time"] = pd.to_datetime(df["time"], format="mixed")
     df = df.sort_values("time").reset_index(drop=True)
-    df["epoch"] = (df["time"].astype("int64") // 10**9).astype("int64")
+    # Cast to second resolution FIRST, then to int. `astype("int64") // 10**9`
+    # assumes nanoseconds, and pandas 3 parses these strings as
+    # datetime64[us] - which made every epoch 1000x too small and put the whole
+    # calendar in January 1970. It raised no error and matched no bar; the only
+    # symptom was that nothing was ever "at news".
+    df["epoch"] = df["time"].astype("datetime64[s]").astype("int64")
+
+    # A timestamp that silently lands in the wrong millennium matches no bar
+    # and reports no error, so it is checked rather than trusted.
+    lo, hi = int(df["epoch"].min()), int(df["epoch"].max())
+    if not (1_000_000_000 < lo < 4_000_000_000 and lo <= hi < 4_000_000_000):
+        raise ValueError(
+            f"calendar epochs are not plausible seconds since 1970: "
+            f"{lo}..{hi}. Check the datetime resolution - pandas 3 parses "
+            f"these as datetime64[us], not [ns].")
     return df
 
 
