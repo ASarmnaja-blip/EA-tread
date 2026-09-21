@@ -44,6 +44,21 @@ SLIP_PER_ATR = 0.0165 / 4.705          # measured on XAU, carried as a ratio
 COST_MULTIPLIERS = (1.0, 1.5, 3.0, 7.0)
 MIN_TRADES = 20                         # below this an asset is reported, not used
 
+# The measured cost model, built read-only from the broker by
+# tools/build_cost_model.py. Loaded rather than hardcoded so the numbers in the
+# code are always the ones that were actually measured.
+def _load_cost_model() -> dict:
+    import json
+    p = Path("data/cost_model.json")
+    if not p.exists():
+        print("เตือน: ไม่พบ data/cost_model.json -> ต้นทุนจะถูกประมาณ ไม่ใช่วัด")
+        print("      รัน tools/build_cost_model.py ก่อนเพื่อให้ผลเชื่อถือได้")
+        return {}
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+COST_MODEL = _load_cost_model()
+
 
 def day_clustered(trades) -> tuple[float, float, int, int]:
     """Mean and a standard error that treats one calendar day as one
@@ -61,25 +76,147 @@ def day_clustered(trades) -> tuple[float, float, int, int]:
     return mu, se, n, len(g)
 
 
-def random_effects(mus: np.ndarray, ses: np.ndarray):
-    """DerSimonian-Laird. Lets the true effect differ by asset rather than
-    assuming one number fits all, which is the honest model when the markets
-    are not the same market."""
+def _paule_mandel(y: np.ndarray, s: np.ndarray, iters: int = 200) -> float:
+    """tau2 by Paule-Mandel: the value at which the weighted residual sum of
+    squares equals its own degrees of freedom.
+
+    Replaces DerSimonian-Laird, which Amendment 08 section 6.1 records as the
+    wrong estimator at k = 4: tau2 is unstable there and DL can understate
+    heterogeneity, and six instruments sharing USD and macro shocks are not
+    independent studies. PM solves the estimating equation directly instead of
+    using DL's one-step moment approximation.
+    """
+    k = len(y)
+    if k < 2:
+        return 0.0
+    lo, hi = 0.0, max(1e-12, float(np.var(y, ddof=1)) * 10.0 + 1.0)
+
+    def F(t2):
+        w = 1.0 / (s ** 2 + t2)
+        mu = (w * y).sum() / w.sum()
+        return float((w * (y - mu) ** 2).sum()) - (k - 1)
+
+    if F(0.0) <= 0:
+        return 0.0
+    for _ in range(iters):
+        mid = 0.5 * (lo + hi)
+        if F(mid) > 0:
+            lo = mid
+        else:
+            hi = mid
+    return 0.5 * (lo + hi)
+
+
+def random_effects(mus: np.ndarray, ses: np.ndarray, hk: bool = True):
+    """Random-effects pooling with Paule-Mandel tau2 and a Hartung-Knapp
+    interval, per Amendment 08 section 6.1.
+
+    HK replaces the normal critical value with a t quantile on k-1 degrees of
+    freedom and rescales the variance by the observed weighted dispersion, which
+    is what makes it usable at k = 4. It carries the standard safeguard: when
+    its scale factor falls below 1 it would REPORT A NARROWER INTERVAL than the
+    uncorrected one, which is the opposite of the point, so the factor is
+    floored at 1.
+    """
     ok = np.isfinite(mus) & np.isfinite(ses) & (ses > 0)
     y, s = mus[ok], ses[ok]
-    if len(y) < 2:
-        return dict(pooled=np.nan, se=np.nan, tau2=np.nan, k=len(y),
-                    weights=np.array([]))
-    w = 1.0 / s ** 2
-    fixed = float((w * y).sum() / w.sum())
-    Q = float((w * (y - fixed) ** 2).sum())
-    c = float(w.sum() - (w ** 2).sum() / w.sum())
-    tau2 = max(0.0, (Q - (len(y) - 1)) / c) if c > 0 else 0.0
+    k = len(y)
+    if k < 2:
+        return dict(pooled=np.nan, se=np.nan, tau2=np.nan, k=k,
+                    weights=np.array([]), lo=np.nan, hi=np.nan,
+                    pi_lo=np.nan, pi_hi=np.nan, hk_scale=np.nan)
+    tau2 = _paule_mandel(y, s)
     wr = 1.0 / (s ** 2 + tau2)
     pooled = float((wr * y).sum() / wr.sum())
-    se = float(np.sqrt(1.0 / wr.sum()))
-    return dict(pooled=pooled, se=se, tau2=tau2, k=len(y),
-                weights=wr / wr.sum(), Q=Q)
+    se_re = float(np.sqrt(1.0 / wr.sum()))
+    Q = float((1.0 / s ** 2 * (y - (y / s ** 2).sum() / (1 / s ** 2).sum()) ** 2).sum())
+
+    if hk:
+        scale = float((wr * (y - pooled) ** 2).sum() / (k - 1))
+        scale = max(1.0, scale)          # the safeguard; never narrow the CI
+        se = se_re * np.sqrt(scale)
+        crit = _t_quantile(k - 1)
+    else:
+        scale, se, crit = 1.0, se_re, 1.96
+    lo, hi = pooled - crit * se, pooled + crit * se
+    # prediction interval: where a NEW asset's true effect would be expected,
+    # which is the quantity that matters for "does the mechanism exist"
+    se_pi = float(np.sqrt(se ** 2 + tau2))
+    return dict(pooled=pooled, se=se, se_re=se_re, tau2=tau2, k=k,
+                weights=wr / wr.sum(), Q=Q, lo=lo, hi=hi, crit=crit,
+                hk_scale=scale, pi_lo=pooled - crit * se_pi,
+                pi_hi=pooled + crit * se_pi)
+
+
+def _t_quantile(df: int, p: float = 0.975) -> float:
+    """Two-sided 95 % t quantile. Small table plus a normal tail, because
+    scipy is not a dependency of this pilot."""
+    tbl = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447,
+           7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228, 12: 2.179, 15: 2.131,
+           20: 2.086, 30: 2.042, 60: 2.000}
+    if df in tbl:
+        return tbl[df]
+    keys = sorted(tbl)
+    if df < keys[0]:
+        return tbl[keys[0]]
+    if df > keys[-1]:
+        return 1.96
+    for a, b in zip(keys, keys[1:]):
+        if a < df < b:
+            f = (df - a) / (b - a)
+            return tbl[a] + f * (tbl[b] - tbl[a])
+    return 1.96
+
+
+def synchronised_day_bootstrap(per_asset: dict[str, list], n_draws: int = 2000,
+                               seed: int = 20260922) -> dict:
+    """Resample CALENDAR DAYS and keep every asset's trades from a selected day
+    together, per Amendment 08 section 6.2.
+
+    Clustering each instrument by its own days, which is what the first run did,
+    says nothing about one macro release moving all six at once. This is the
+    dependence that matters: if a CPI print drives gold, silver and the majors
+    on the same afternoon, those are one observation about the mechanism, not
+    six. tau2 and the pooled estimate are recomputed INSIDE every draw, so the
+    heterogeneity is resampled too rather than held fixed.
+
+    `per_asset` maps a symbol to a list of (day, net_R) pairs.
+    """
+    rng = np.random.default_rng(seed)
+    days = sorted({d for rows in per_asset.values() for (d, _) in rows})
+    if len(days) < 20:
+        return dict(lo=np.nan, hi=np.nan, n=0, days=len(days))
+    idx: dict[int, dict[str, list[float]]] = {d: {} for d in days}
+    for sym, rows in per_asset.items():
+        for (d, x) in rows:
+            idx[d].setdefault(sym, []).append(x)
+    darr = np.array(days)
+    pooled = []
+    for _ in range(n_draws):
+        pick = rng.choice(darr, size=len(darr), replace=True)
+        acc: dict[str, list[float]] = {}
+        for d in pick:
+            for sym, xs in idx[int(d)].items():
+                acc.setdefault(sym, []).extend(xs)
+        mus, ses = [], []
+        for sym, xs in acc.items():
+            if len(xs) < MIN_TRADES:
+                continue
+            a = np.asarray(xs, dtype=float)
+            mus.append(float(a.mean()))
+            ses.append(float(a.std(ddof=1) / np.sqrt(len(a))))
+        if len(mus) < 2:
+            continue
+        r = random_effects(np.array(mus), np.array(ses), hk=False)
+        if np.isfinite(r["pooled"]):
+            pooled.append(r["pooled"])
+    if len(pooled) < 100:
+        return dict(lo=np.nan, hi=np.nan, n=len(pooled), days=len(days))
+    p = np.array(pooled)
+    return dict(lo=float(np.percentile(p, 2.5)),
+                hi=float(np.percentile(p, 97.5)),
+                med=float(np.median(p)), n=len(p), days=len(days),
+                share_positive=float(np.mean(p > 0)))
 
 
 def run_asset(sym: str, mult: float) -> dict | None:
@@ -98,19 +235,28 @@ def run_asset(sym: str, mult: float) -> dict | None:
                    pos, -1)
     c15 = core.Ctx(b15, nxt)
 
-    # the asset's own spread has to be known BEFORE the regime is built,
-    # because the cost gate inside it divides by that asset's ATR
-    if b5.sp is not None and np.isfinite(b5.sp).any():
-        sp_med = float(np.nanmedian(b5.sp[np.isfinite(b5.sp) & (b5.sp > 0)]))
-    else:
-        sp_med = np.nan
-    if not np.isfinite(sp_med) or sp_med <= 0:
-        # no spread column: fall back to the symbol's own median range/50,
-        # flagged so it cannot be mistaken for a measurement
-        sp_med = float(np.nanmedian(b15.h - b15.l)) / 50.0
-        measured = False
-    else:
+    # the asset's own cost has to be known BEFORE the regime is built, because
+    # the cost gate inside it divides by that asset's ATR
+    #
+    # The first run estimated the spread from the export's per-bar column while
+    # DROPPING every bar whose spread was zero. On this account 94.1 percent of
+    # EURUSD bars and 92.2 percent of USDJPY bars record zero, and a live
+    # measurement confirms the zeros are REAL - it is a commission account that
+    # genuinely quotes those pairs at zero spread. Dropping them left the median
+    # of the widest few percent, which is what classified 99 percent of EURUSD's
+    # bars TOO_EXPENSIVE and produced zero signals. The cost now comes from the
+    # measured model instead, and commission is charged - it never was before,
+    # anywhere, and on a zero-spread pair it is the entire cost.
+    cm = COST_MODEL.get(sym)
+    if cm:
+        sp_med = float(cm["spread_live"]) + float(cm["commission_price_round_turn"])
+        swap = (float(-cm["swap_long_price_per_night"]),
+                float(-cm["swap_short_price_per_night"]))
         measured = True
+    else:
+        sp_med = float(np.nanmedian(b15.h - b15.l)) / 50.0
+        swap = None
+        measured = False
 
     # no calendar is used for ANY asset here, including XAU, so the rule is
     # identical everywhere as Amendment 06 section 4 requires
@@ -128,16 +274,11 @@ def run_asset(sym: str, mult: float) -> dict | None:
     atr = reg["atr"].to_numpy()
     costs = mult * (sp_med + 2.0 * SLIP_PER_ATR * atr)
 
-    # SWAP. Measured for XAUUSD only: -0.5493 per ounce per night on longs.
-    # It is NOT transferred to the other five. Unlike slippage, swap is an
-    # interest-rate differential and has no fixed relation to volatility, so
-    # scaling it by ATR would be an invented number, and the standing rule is
-    # to report NOT MEASURED rather than guess. The consequence is stated
-    # plainly in the output: XAU carries a financing charge the other five do
-    # not, so the other five are OPTIMISTIC by an unknown amount, and the
-    # share of their trades held across a rollover is printed so the size of
-    # the omission is visible instead of hidden.
-    swap = adaptive.SWAP_LONG if sym == "XAUUSD" else None
+    # SWAP is now measured for all six, read-only from symbol_info, so the
+    # NOT MEASURED caveat the first run carried is removed rather than papered
+    # over. It never needed transferring across instruments: it is an
+    # interest-rate differential, and the broker publishes it. GBPUSD charges
+    # both sides, which is why it is passed as a (long, short) pair.
     diag: dict = {}
     tr, _ = adaptive.run_with_costs(c15, sig, b5, nxt, costs, 0.0,
                                     swap=swap, out=diag)
@@ -147,7 +288,8 @@ def run_asset(sym: str, mult: float) -> dict | None:
                 n_sig=len(sig), spread=sp_med, measured=measured,
                 atr=float(np.nanmedian(atr)), comp=comp,
                 n_orderly=int(allow.sum()), bars=len(b15),
-                swap=swap, on_share=diag.get("overnight_share", np.nan))
+                swap=swap, on_share=diag.get("overnight_share", np.nan),
+                rows=[(int(t.t) // 86400, float(t.net_R)) for t in tr])
 
 
 def main() -> int:
@@ -189,7 +331,12 @@ def main() -> int:
             print("\n  swap (ค่าถือข้ามคืน) และสัดส่วนไม้ที่ถือข้ามคืน")
             for r in rows:
                 s = r.get("swap")
-                lab = f"วัดได้ {s:.4f}/คืน" if s is not None else "NOT MEASURED (คิด 0)"
+                if s is None:
+                    lab = "NOT MEASURED (คิด 0)"
+                elif isinstance(s, (tuple, list)):
+                    lab = f"วัดได้ L {s[0]:.6f} / S {s[1]:.6f}"
+                else:
+                    lab = f"วัดได้ {s:.6f}/คืน"
                 on = r.get("on_share")
                 on_s = f"{100*on:.0f}%" if on is not None and np.isfinite(on) else "-"
                 print(f"      {r['sym']:9s} {lab:26s} ไม้ที่ถือข้ามคืน {on_s}")
@@ -203,15 +350,47 @@ def main() -> int:
         mus = np.array([r["mu"] for r in use])
         ses = np.array([r["se"] for r in use])
         re_ = random_effects(mus, ses)
-        lo = re_["pooled"] - 1.96 * re_["se"]
-        hi = re_["pooled"] + 1.96 * re_["se"]
+        lo, hi = re_["lo"], re_["hi"]
         pos = sum(1 for r in use if r["mu"] > 0)
         wmax = float(re_["weights"].max()) if len(re_["weights"]) else np.nan
-        print(f"  รวมแบบ random-effects: {re_['pooled']:+.4f} R  "
-              f"[{lo:+.4f}, {hi:+.4f}]  tau2={re_['tau2']:.5f}  k={re_['k']}")
+        print(f"  รวมแบบ random-effects (Paule-Mandel + Hartung-Knapp):")
+        print(f"      {re_['pooled']:+.4f} R  ช่วงความเชื่อมั่น "
+              f"[{lo:+.4f}, {hi:+.4f}]  tau2={re_['tau2']:.5f}  k={re_['k']}  "
+              f"ตัวคูณ HK {re_['hk_scale']:.2f}  t({re_['k']-1}) {re_['crit']:.3f}")
+        print(f"      ช่วงทำนายสินค้าตัวใหม่ [{re_['pi_lo']:+.4f}, "
+              f"{re_['pi_hi']:+.4f}]  <- ตัวนี้ตอบว่ากลไกมีจริงหรือไม่")
         print(f"  บวก {pos}/{len(use)} สินค้า | น้ำหนักสูงสุดของสินค้าเดียว "
               f"{100*wmax:.0f}%")
         if mult == 1.0:
+            print("  จำนวนวันที่เป็นกลุ่มอิสระของแต่ละสินค้า: " + "  ".join(
+                f"{r['sym']} {r['days']}" for r in use))
+            boot = synchronised_day_bootstrap(
+                {r["sym"]: r["rows"] for r in use})
+            if np.isfinite(boot.get("lo", np.nan)):
+                print(f"  bootstrap สุ่มวันพร้อมกันทุกสินค้า "
+                      f"({boot['n']} รอบ จาก {boot['days']} วัน):")
+                print(f"      ค่ากลาง {boot['med']:+.4f} R  "
+                      f"[{boot['lo']:+.4f}, {boot['hi']:+.4f}]  "
+                      f"รอบที่เป็นบวก {100*boot['share_positive']:.0f}%")
+                print("      นี่คือช่วงที่นับว่าข่าวหนึ่งตัวขยับทุกสินค้าพร้อมกัน"
+                      " = หนึ่งข้อสังเกต")
+            xag = next((r for r in use if r["sym"] == "XAGUSD"), None)
+            if xag and xag["rows"]:
+                by_day: dict[int, list[float]] = {}
+                for (d, x) in xag["rows"]:
+                    by_day.setdefault(d, []).append(x)
+                worst_lo, worst_hi, worst_d = np.inf, -np.inf, None
+                for d in by_day:
+                    kept = [x for (dd, x) in xag["rows"] if dd != d]
+                    if len(kept) < 5:
+                        continue
+                    m = float(np.mean(kept))
+                    if m < worst_lo:
+                        worst_lo, worst_d = m, d
+                    worst_hi = max(worst_hi, m)
+                print(f"  XAGUSD ตัดออกทีละวัน: ค่าเฉลี่ยแกว่งอยู่ระหว่าง "
+                      f"{worst_lo:+.4f} ถึง {worst_hi:+.4f} R "
+                      f"(เดิม {xag['mu']:+.4f})")
             for r, w in zip(use, re_["weights"]):
                 print(f"      {r['sym']:9s} น้ำหนัก {100*w:5.1f}%  "
                       f"spread {'วัดได้' if r['measured'] else 'ประมาณ'} "
@@ -221,8 +400,7 @@ def main() -> int:
                 keep = [i for i in range(len(use)) if i != j]
                 sub = random_effects(mus[keep], ses[keep])
                 print(f"      ตัด {r['sym']:9s} ออก -> {sub['pooled']:+.4f} R "
-                      f"[{sub['pooled']-1.96*sub['se']:+.4f}, "
-                      f"{sub['pooled']+1.96*sub['se']:+.4f}]")
+                      f"[{sub['lo']:+.4f}, {sub['hi']:+.4f}]")
         print()
 
     print("=" * 98)
@@ -235,7 +413,7 @@ def main() -> int:
         return 0
     mus = np.array([r["mu"] for r in base]); ses = np.array([r["se"] for r in base])
     re_ = random_effects(mus, ses)
-    lo = re_["pooled"] - 1.96 * re_["se"]
+    lo = re_["lo"]
     pos = sum(1 for r in base if r["mu"] > 0)
     wmax = float(re_["weights"].max())
     loo_ok = all(random_effects(np.delete(mus, j), np.delete(ses, j))["pooled"] > 0

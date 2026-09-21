@@ -237,8 +237,12 @@ def run_with_costs(c15: core.Ctx, sig, b5: D.Bars, nxt: np.ndarray,
     figure and then the swap, so the hour a trade opens in matters.
 
     `swap` is the overnight financing charge per unit per night, in the SAME
-    price units as the series, for long positions only. It defaults to gold's
-    measured 0.5493 per ounce. Passing gold's figure to another instrument is
+    price units as the series, as a POSITIVE cost. A float charges longs only,
+    which is right for gold, where the measured short swap is zero. A
+    (long, short) pair charges both sides, which GBPUSD needs: its measured
+    figures are 0.000021 long and 0.000006 short, so a long-only model
+    undercharges every short it takes. It defaults to gold's measured 0.5493
+    per ounce. Passing gold's figure to another instrument is
     not a rounding error: it is divided by that instrument's risk, so on a
     GBPUSD stop of 0.0012 it charges 458 R per night and produced a mean of
     -65.95 R against a gross of +0.18. Swap is an interest-rate differential,
@@ -266,7 +270,13 @@ def run_with_costs(c15: core.Ctx, sig, b5: D.Bars, nxt: np.ndarray,
         g = d * (px - entry) / risk
         cost = costs[i]
         net = g - cost / risk
-        if d > 0:
+        sw = None
+        if swap is not None:
+            if isinstance(swap, (tuple, list)):
+                sw = float(swap[0] if d > 0 else swap[1])
+            else:
+                sw = float(swap) if d > 0 else 0.0
+        if sw is not None or d > 0:
             t0 = int(b5.t[k]); t1 = t0 + nb * b5.step
             h0 = (t0 // 3600) % 24
             cur = t0 - (t0 % 3600) + ((ROLLOVER_H - h0) % 24) * 3600
@@ -277,8 +287,8 @@ def run_with_costs(c15: core.Ctx, sig, b5: D.Bars, nxt: np.ndarray,
             if nights:
                 n_overnight += 1
                 tot_nights += nights
-            if swap is not None:
-                net -= nights * swap / risk
+            if sw:
+                net -= nights * sw / risk
         trades.append(core.Trade(int(b5.t[k]), d, risk, g, net,
                                  c15.session[i], c15.regime[i], why, nb))
         accepted.append((i, d, stop, tmode, tval))
