@@ -24,6 +24,12 @@ Amendment 19 now answers a different, explicitly tactical question: what works
 in the latest 90 days, including both FOLLOW winners and independently simulated
 FLIP losers. It makes no persistence or out-of-sample claim.
 
+Amendment 20 tested that missing persistence claim as an annual expanding
+walk-forward replay from the first continuous broker history (2021). The leading
+arm changed at every yearly selection; the 2023--2025 forward years lost, and
+2026 is only marginally positive to date. It is evidence **against** expecting a
+current winner to survive a future regime, not a rescue of the tactical result.
+
 **The five closures are not five independent replications.** They reuse the same
 data and overlapping candidate families. The weight sits on Amendment 10, because
 it was powered, and on Amendment 11, which removed the one fixed parameter that
