@@ -205,11 +205,115 @@ def _lead_table(arms, now):
               f"hit_pct={100.0 * np.mean(np.asarray(vals) > 0):.2f}")
 
 
+def _last90_walk(arms, now):
+    print("\n[last90_walk_forward]")
+    start = now - 90 * DAY
+    policies = ("current", "fast", "accel", "flip_pressure")
+    horizons = (10, 20, 30)
+    aggregate = {(p, h): [] for p in policies for h in horizons}
+    pick_counts = {(p, h): [] for p in policies for h in horizons}
+    trace_rows = []
+
+    t = start
+    while t <= now - 10 * DAY:
+        label = ce.datetime.fromtimestamp(t, ce.timezone.utc).strftime("%Y-%m-%d")
+        states = [_state(arms, key, t) for key in arms]
+        print(f"\ncheckpoint={label}")
+        for horizon in horizons:
+            if t + horizon * DAY > now:
+                continue
+            best = None
+            for policy in policies:
+                selected = _select(states, policy)
+                bucket = []
+                for s in selected:
+                    bucket.extend(_future_trades(arms, s, t, horizon))
+                    future = [r.net for r in _future_trades(arms, s, t, horizon)]
+                    if len(future) >= 2:
+                        trace_rows.append((s, horizon, float(np.mean(future))))
+                trades = bt._chosen_from_bucket(bucket)
+                vals = [r.net for r in trades]
+                aggregate[(policy, horizon)].extend(vals)
+                pick_counts[(policy, horizon)].append(len(selected))
+                if not vals:
+                    mean = -999.0
+                    net = 0.0
+                    win = 0.0
+                    n = 0
+                else:
+                    mean = float(np.mean(vals))
+                    net = float(np.sum(vals))
+                    win = 100.0 * float(np.mean(np.asarray(vals) > 0))
+                    n = len(vals)
+                row = (mean, net, win, n, policy)
+                if best is None or row > best:
+                    best = row
+            if best is not None:
+                mean, net, win, n, policy = best
+                print(f"  next{horizon}d best_policy={policy} trades={n} "
+                      f"net_R={net:+.4f} mean_R={mean:+.4f} win={win:.2f}%")
+        t += 10 * DAY
+
+    print("\n[last90_policy_aggregate]")
+    for horizon in horizons:
+        for policy in policies:
+            vals = aggregate[(policy, horizon)]
+            if not vals:
+                continue
+            m = bt._metrics(vals)
+            avg_picks = float(np.mean(pick_counts[(policy, horizon)]))
+            print(f"horizon={horizon}d policy={policy} avg_picks={avg_picks:.2f} "
+                  f"trades={m['trades']} net_R={m['net_R']:+.4f} "
+                  f"mean_R={m['mean_R']:+.4f} win={m['win_pct']:.2f}% "
+                  f"pf={m['profit_factor']:.3f} max_dd_R={m['max_dd_R']:+.4f} "
+                  f"max_L={m['max_loss_streak']}")
+
+    print("\n[last90_lead_condition_future]")
+    checks = [
+        ("current", lambda s: s.ready_current),
+        ("fast_10_20_30", lambda s: s.ready_fast),
+        ("accel_10_gt_30_gt_60", lambda s: s.ready_accel),
+        ("flip_pressure", lambda s: s.ready_flip_pressure),
+        ("flip_follow_losing_30_60", lambda s: (
+            s.mode == "FLIP"
+            and s.follow_m30 is not None and s.follow_m60 is not None
+            and s.follow_m30 < 0 and s.follow_m60 < 0)),
+        ("m10_pos_m30_pos", lambda s: (
+            s.m10 is not None and s.m30 is not None and s.m10 > 0 and s.m30 > 0)),
+        ("m10_gt_m30_gt_m60", lambda s: (
+            s.m10 is not None and s.m30 is not None and s.m60 is not None
+            and s.m10 > s.m30 and s.m30 > s.m60)),
+    ]
+    for horizon in horizons:
+        print(f"horizon={horizon}d")
+        for name, fn in checks:
+            vals = [v for s, h, v in trace_rows if h == horizon and fn(s)]
+            if not vals:
+                print(f"  {name}: samples=0")
+                continue
+            print(f"  {name}: samples={len(vals)} future_mean_R={np.mean(vals):+.4f} "
+                  f"hit={100.0 * np.mean(np.asarray(vals) > 0):.2f}%")
+
+    print("\n[last90_family_forward_mean]")
+    fam_rows = {}
+    for s, horizon, v in trace_rows:
+        if horizon != 20:
+            continue
+        fam_rows.setdefault((s.family, s.mode), []).append(v)
+    ranked = []
+    for key, vals in fam_rows.items():
+        if len(vals) >= 2:
+            ranked.append((float(np.mean(vals)), len(vals), key))
+    for mean, n, (family, mode) in sorted(ranked, reverse=True)[:12]:
+        print(f"{family} [{mode}] samples={n} future20_mean_R={mean:+.4f}")
+
+
 def run():
     arms, now, source = _load_arms()
     print(f"source={source}")
     print(f"arms={len(arms)}")
     _lead_table(arms, now)
+    _last90_walk(arms, now)
     print("\n[rebalance_backtests]")
     for step in (10, 20, 30):
         for policy in ("current", "fast", "accel", "flip_pressure"):
