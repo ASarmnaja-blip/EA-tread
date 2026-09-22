@@ -215,7 +215,86 @@ Any of these is recorded as a failed search. None is a reason to add a tool,
 widen the grid, raise K, move a slice boundary, relax a threshold, or reveal a
 blinded name.
 
-## 11. Status while this runs
+## 11. Addendum — second review, and the two-tier split it forces
+
+Codex reviewed the corrected design as well, and raised two things that change it
+again. Both are accepted, and both make the exercise narrower.
+
+### 11.1 The measured power, from this project's own numbers
+
+The standard error is not hypothetical; two earlier results give it directly:
+
+```
+breakout_into_level/short/ldn-ny   0.1848 / 1.79  =>  se ~ 0.103 R
+gap_continuation/short            0.3483 / 3.18  =>  se ~ 0.110 R
+```
+
+At a maxT critical value of 4.0–4.5, 80 % power needs roughly
+`(crit + 0.84) x se`:
+
+| se | effect needed for 80 % power |
+|---|---|
+| 0.110 R | **0.53 – 0.59 R** |
+| 0.100 R | 0.48 – 0.53 R |
+| 0.050 R | 0.24 – 0.27 R |
+
+And CONFIRM is worse, not better: 245 days against 730 inflates the standard
+error by about `sqrt(730/245) = 1.73`.
+
+**So this design can detect only very large effects.** An edge of the size this
+project has been hunting — 0.05 to 0.15 R — is invisible to it at
+candidate level. That is recorded here, before the run, as the honest
+expectation rather than discovered afterwards as an excuse.
+
+What the design **can** answer is the global question: does this indicator
+family, as a whole, depart from the matched null. That is why the global
+statistics in section 5 are the primary result and not a garnish.
+
+### 11.2 The pairs cannot generate named candidates
+
+No mechanistic hypothesis about any specific pair was declared before the pair
+results existed. Amendment 09 tried a general one — that a stack firing on its
+own components' disagreement fires where stops pile up — and it was **not
+established**. Carrying a pair forward now, chosen because it came out extreme
+among 6,240, would be discovery and confirmation in the same breath.
+
+**The family therefore splits into two tiers, and the tiers have different
+rights:**
+
+| tier | what it is | may name a candidate | may reach CONFIRM |
+|---|---|---|---|
+| **A** | the **240 singles** — 40 tools x 3 settings x 2 directions | yes, blinded until it passes | yes, K = 5 per tail |
+| **B** | the **6,240 stacked pairs** | **no, ever** | **no** |
+
+Tier B is reported as an **anonymous global diagnostic only**: its distribution,
+its quantiles, and its two permutation statistics. No pair is named, ranked into
+a shortlist, or carried anywhere, whatever it returns. If tier B's global test
+fires, the correct next step is a **new amendment declaring a mechanistic pair
+hypothesis in advance** — not a shortlist drawn from this run.
+
+### 11.3 Stack semantics, frozen
+
+The reviews differed on the count because the semantics were not pinned down.
+They are pinned down now:
+
+> A stacked candidate is **anchored**. The anchor tool is the one that FIRES and
+> supplies the direction; the other tool supplies only its STATE. So
+> `A!B` and `B!A` are different candidates, and so are `A&B` and `B&A`.
+
+Under that definition both modes are ordered and the count is:
+
+```
+singles       40 x 3 x 2                              =   240   (tier A)
+agreement     780 pairs x 2 anchors x 2 directions    = 3,120   (tier B)
+contradiction 780 pairs x 2 anchors x 2 directions    = 3,120   (tier B)
+                                                    N = 6,480
+```
+
+This is larger than either review's arithmetic because both treated agreement as
+symmetric. Under the anchored definition it is not, and the larger count is the
+one the code actually builds.
+
+## 12. Status while this runs
 
 Unchanged. The engine's answer is **NO TRADE**. No real-money order has been
 sent, no position is open, and no pull request is opened.
