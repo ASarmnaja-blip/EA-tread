@@ -124,6 +124,31 @@ Recorded so nothing here is re-searched by accident. Full detail in
 
 ---
 
+## D2. Paused by the operator, 2026-09-22
+
+**Amendments 15 and 16 — the walk-forward evaluation — are PAUSED at the
+operator's instruction.** They are not abandoned and not failed.
+
+Where they stopped: Amendment 14's grid and engine are built and verified (35
+checks, all passing, including a mutated-engine look-ahead trap and a fast
+resolver agreeing with `core.resolve` on 10,000 cases with zero differences).
+Amendment 15 declared the walk-forward design. Codex reviewed it before execution,
+**declined to run it**, and found ten protocol defects. All ten are accepted and
+recorded as Amendment 16. **The code implementing those eleven corrections was not
+written.**
+
+Anyone resuming this should start from Amendment 16's numbered list, not from
+Amendment 15, and should expect the corrected design to leave roughly **15 largely
+independent six-roll blocks** from ~90 rolls — which may not be enough power to
+answer the question at all. Amendment 16 section 13 requires the roll-level minimum
+detectable effect to be reported before any null result is interpreted, precisely
+so that outcome is reported as a finding rather than dressed up as one.
+
+The correction in Amendment 15 section 1 stands regardless and applies to
+everything above: the five closures were fitted to 2023–2024 and tested on 2025, so
+they say "this did not work then", not "this does not work now". **W1 is the
+exception**, being mechanical and unfitted to any window.
+
 ## E. The standing rules that shape this list
 
 - **No more widening of the indicator grid.** Amendments 10 and 11 closed it. B2
