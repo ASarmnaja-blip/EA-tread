@@ -259,3 +259,52 @@ after this amendment's standalone commit.
 
 Unchanged. The engine's answer is **NO TRADE**. No real-money order is authorised,
 no position is open, and no pull request is opened.
+
+---
+
+## 13. Result — run after the standalone protocol and implementation commits
+
+The verification suite passed all seven required look-ahead/boundary checks plus
+one additional swap-calendar check. The shared multi-timeframe engine also passed
+its existing 35 checks. The protected final 120 days were physically removed
+before levels, paths or control pools were constructed.
+
+The sample was adequate for the declared question: **7,665 matched events over
+681 active days**. The 80% minimum detectable common slope was `0.03503 R` per
+touch step. The observed profile was:
+
+| touch | matched n | active days | matched excess | net at 1x | net at 1.5x |
+|---|---:|---:|---:|---:|---:|
+| first | 2,212 | 678 | −0.0158 R | −0.0716 R | −0.0960 R |
+| second | 1,621 | 648 | −0.0032 R | −0.0516 R | −0.0740 R |
+| third-or-later | 3,832 | 611 | −0.0157 R | −0.0727 R | −0.0930 R |
+
+The common ordinal slope was **+0.00008 R per touch step**, clustered SE
+`0.01408`, t `+0.01`, with one-sided wild-cluster `p = 0.4990`. The observed
+means were not in the declared monotone order. Counts cleared the assessment
+gate, so this is not an underpowered or missing-data verdict:
+
+> **The hypothesis that effect declines monotonically with touch count is not
+> established for the pre-registered Asia, pre-London and prior-day levels.**
+
+The pooled first-touch policy also fails independently: matched excess `−0.0158
+R`, net `−0.0716 R` at 1x cost, 95% lower bound `−0.1160 R`, and net `−0.0960 R`
+at 1.5x. It earns **no candidate and no shadow status**.
+
+Some descriptive rows were positive, most visibly Asia second-touch and pooled
+acceptance, but section 9 forbids selecting a subgroup from this table. They are
+not candidates and no follow-up is authorised from their rank.
+
+### Cost-accounting correction made before the recorded run
+
+The first readout exposed that the new code counted a swap on every elapsed
+calendar-day boundary, including closed weekends. The terminal's read-only
+`symbol_info` reports `swap_rollover3days = 3` (Wednesday). The implementation
+was corrected and committed before the recorded rerun to skip Saturday/Sunday
+and charge three units on Wednesday. This changed first-touch 1x net from
+`−0.0711` to `−0.0716 R`; it could not affect the gross matched-excess primary,
+whose slope and p-value were identical before and after the correction.
+
+Full output: `data/session_acceptance_run.txt`.
+
+Status remains **NO TRADE**.

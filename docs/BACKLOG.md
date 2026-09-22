@@ -13,16 +13,16 @@ Last rebuilt 2026-09-22.
 
 | # | item | blocked on | when |
 |---|---|---|---|
-| A1 | **W1 rollover slippage** — the number that decides whether W1 is real | it can only be measured at 21:52–22:03 UTC, the hour W1 trades | scheduled, ~20 h |
+| A1 | **W1 rollover slippage** — the number that decides whether W1 is real | it can only be measured at 21:52–22:03 UTC, the hour W1 trades | not yet measured; the order-sending task was removed, so run manually only in that UTC window |
 | A2 | **W1 forward shadow** — 26 weeks or 30 events, whichever comes second | W1 fires ~25 times a year | first event due within ~2 weeks; full run ~6 months minimum |
 
 Nothing else in this file is blocked. Everything below can run today.
 
 ---
 
-## B. Designed and argued for, not yet run
+## B. Designed and argued for — completion status inline
 
-### B1 — Geometry-neutral path diagnostic  ← **the highest-value item**
+### B1 — Geometry-neutral path diagnostic — **COMPLETED, Amendment 13**
 
 **What it tests.** Every search so far fixed RR at 1:1 and the stop at 1.5 ATR.
 A setup with real directional information but the wrong barrier geometry looks
@@ -51,7 +51,7 @@ simultaneous day-block permutation band across horizons.
 the stop was too tight, five closures need re-reading. If it says the paths are
 flat, five closures become much harder to argue with.
 
-### B2 — Session-level acceptance and rejection
+### B2 — Session-level acceptance and rejection — **COMPLETED, Amendment 17**
 
 **What it tests.** Whether price behaves differently at a *fresh* structural
 level than at a *used* one. Everything tested so far is a transformation of OHLC
@@ -76,6 +76,13 @@ interaction consumes resting liquidity that a fifth cannot.
 profile across touch counts says the level is not the variable.
 
 **Cost.** One run on existing M5 and M15 data.
+
+**Result.** Adequately measured and negative for the registered mechanism:
+7,665 matched events over 681 days, common ordinal slope `+0.00008 R` per touch
+step (SE `0.01408`, one-sided p `0.4990`; 80% MDE `0.03503 R`). The touch means
+were not monotone. First touch itself had excess `−0.0158 R` and net `−0.0716 R`
+at 1x cost. **No candidate and no shadow status.** Positive descriptive subgroups
+may not be selected from the table.
 
 ### B3 — VWAP and value-area interaction
 

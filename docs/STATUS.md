@@ -9,12 +9,14 @@ the detail.
 ## The honest headline
 
 > **No persistent edge of economically useful size has been demonstrated in the
-> tested XAUUSD M15 indicator-state space at this account's execution cost.**
+> tested XAUUSD M15 indicator-state space or in the bounded session-level
+> acceptance/rejection experiment at this account's execution cost.**
 
-That is narrower than "gold has no edge". It applies to OHLC-derived indicator
-states, the tested entry definitions, M15 signal construction, next-bar
-execution, the measured cost model, and holding horizons from one hour to two
-days.
+That is narrower than "gold has no edge". The indicator results apply to the
+tested entry definitions, M15 signal construction, next-bar execution, measured
+cost model, and holding horizons from one hour to two days. Amendment 17 adds one
+bounded M5-close experiment at three families of visible session levels; it does
+not turn that result into a claim about all price structure.
 
 **The five closures are not five independent replications.** They reuse the same
 data and overlapping candidate families. The weight sits on Amendment 10, because
@@ -32,6 +34,7 @@ could have hidden a time scale.
 | 09 | junk-tool inversion, 150 configurations | median excess −0.0026, best p(maxT) 0.799. **CLOSED**. Two survivors went to the watchlist |
 | 10 | wide two-tailed screen, 6,480 configurations, 40 tools | tier A max\|t\| 2.425 vs critical 3.697 (p 0.854), Berk–Jones p 0.900, nominal discoveries 0.60x chance. Tier B 0.62x chance. CONFIRM 0 of 10, and **all five winners flipped sign**. **CLOSED**, and powered: detectable effect 0.092 R at the 25th-percentile SE |
 | 11 | holding horizon, 12 → 576 M5 bars | no horizon shows family-level signal (max\|t\| p 0.58–0.85 against Bonferroni α 0.0071). Closure strengthens to **nothing at any horizon from 1 h to 48 h**. Horizon mismatch is real but small (ρ +0.10, p 0.015 under a tool-clustered null) and **does not** explain the two watchlist entries it was written for |
+| 17 | session-level acceptance/rejection at Asia, pre-London and prior-day levels | 7,665 matched events, 681 days. Ordinal touch slope **+0.00008 R** (SE 0.01408, one-sided p 0.4990; MDE 0.03503), and the touch means are not monotone. First touch excess −0.0158 R, net −0.0716 R at 1x. **MECHANISM NOT ESTABLISHED; NO CANDIDATE** |
 
 ## 2. Open — the watchlist
 
@@ -48,11 +51,14 @@ W1 is the only thing in this project that ever cleared a family-wise threshold.
 Tested: round numbers (5/10/50), Donchian extremes (10/20/55), Bill Williams
 fractals (2/3/5), prior-day high/low inside one Amendment 07 pattern.
 
-**Never tested:** session ranges (Asia box, pre-London), the **first-touch versus
-repeated-touch** distinction, acceptance versus rejection of a level, VWAP and
-value-area bands (`core.s5_vwap` exists and was in none of the three searches),
-volume-profile levels, weekly and monthly levels, classic floor pivots,
-Camarilla, Fibonacci retracements.
+**Now tested and closed as one bounded pooled mechanism:** session ranges (Asia
+box, pre-London), prior-day levels, the **first-touch versus repeated-touch**
+distinction, and acceptance versus rejection. Amendment 17 did not establish the
+declared monotone decline and found no tradeable first-touch policy.
+
+**Never tested:** VWAP and value-area bands (`core.s5_vwap` exists and was in none
+of the three searches), volume-profile levels, weekly and monthly levels, classic
+floor pivots, Camarilla, Fibonacci retracements.
 
 Codex's ranking: **session-derived fresh levels first**, because the mechanism is
 nameable — orders and stops accumulate at visible session extremes, participation
@@ -93,13 +99,11 @@ varied how long a position is held, which is a different thing.
    separates *no information* from *information at the wrong geometry* without a
    combinatorial RR-by-stop sweep, and it tells us whether a stop is too tight or
    a target wrong.
-3. **One bounded session-level experiment**: Asia and pre-London and prior-day
-   levels, with **touch count as an ordinal variable** rather than dozens of
-   separate candidates, and the pre-registered hypothesis that the effect
-   declines monotonically with touch count.
-4. **Stop if step 3 is also a powered global negative.** Moving to H1/H4 state
-   construction or another instrument is then a separate research programme, not
-   a rescue.
+3. **Completed: the bounded session-level experiment is a powered global
+   negative.** Do not rescue it by selecting the best descriptive subgroup.
+4. **Stop this research line.** VWAP is the next distinct untested channel on the
+   backlog. Moving to H1/H4 state construction or another instrument is a
+   separate research programme, not a rescue.
 
 ## 5. What this program will not do
 
@@ -116,5 +120,5 @@ varied how long a position is held, which is a different thing.
 
 ## 6. Standing state
 
-96 commits. 14 amendments. No real-money order has ever been sent. No position is
-open. No pull request is open. The engine's answer is **NO TRADE**.
+17 amendments. No real-money order has ever been sent. No position is open. No
+pull request is open. The engine's answer is **NO TRADE**.
