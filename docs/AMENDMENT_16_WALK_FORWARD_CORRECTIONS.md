@@ -193,6 +193,50 @@ sentence above goes in the result whatever the result is.
 None of these licenses changing the selector, the window lengths, the gate, or the
 number of cells carried forward.
 
+## 15. Addendum — the primary statistic needs no placebo, and the power limit is accepted
+
+**Written before the corrected run, at the operator's instruction to use whatever
+data exists rather than decline on grounds of power.**
+
+### 15.1 The placebo drops out of the primary statistic
+
+`D_r = mean(Top5 forward) - mean(Bottom5 forward)` is a **difference between two
+groups measured on the same roll, over the same calendar window, in the same
+market**. Whatever drift, volatility regime or session mix that window contained is
+present in both terms and **cancels in the subtraction**.
+
+So the primary statistic is computed on **raw forward means**, not on matched
+excess. This is not a weakening. It removes the one component that would otherwise
+need a stratified placebo table per (timeframe, entry mode, stop, target,
+direction) - 2,750 tables over ~60,000 bars each - which is what made the design
+intractable, and it removes it without giving up the drift control that mattered.
+
+- **PRIMARY:** `D_r` on raw forward means. Drift-neutral by construction.
+- **SECONDARY:** `U_r` and `L_r` against the central five, also on raw means, with
+  the joint max-statistic adjustment of section 6. Also drift-neutral, being
+  differences within a roll.
+- **TERTIARY, where computable:** the matched-placebo absolute check, which is the
+  only quantity that answers "is there an edge at all" rather than "did ranking
+  help". It is reported as NOT ASSESSED wherever the placebo table is not built.
+
+Sections 1-14 are otherwise unchanged and all eleven corrections stand.
+
+### 15.2 The power limit is accepted in advance
+
+Roughly 90 rolls collapsing to about **15 independent six-roll blocks** is a small
+sample for a permutation test, and the operator has been told so and has instructed
+the run to proceed on the data that exists.
+
+**The roll-level minimum detectable effect is therefore reported FIRST, before any
+result**, exactly as section 13 requires. If the MDE lands far above any plausible
+effect, the recorded finding is **"this sample cannot answer the question"** - which
+is a finding, and is not presented as a null.
+
+What is forbidden is the other thing: reading a non-significant result from an
+underpowered test as evidence that the ranking does not transfer. The two are
+distinguished by the MDE, which is why it is printed above the numbers rather than
+below them.
+
 ## 14. Status while this runs
 
 Unchanged. The engine's answer is **NO TRADE**. No real-money order has been sent,

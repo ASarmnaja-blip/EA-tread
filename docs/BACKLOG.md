@@ -124,10 +124,11 @@ Recorded so nothing here is re-searched by accident. Full detail in
 
 ---
 
-## D2. Paused by the operator, 2026-09-22
+## D2. Walk-forward — running, with the power limit accepted
 
-**Amendments 15 and 16 — the walk-forward evaluation — are PAUSED at the
-operator's instruction.** They are not abandoned and not failed.
+**Corrected 2026-09-22.** An earlier note here said this line was paused. That was
+a misreading of the operator, who said to run it with whatever data exists rather
+than decline on grounds of low power. It is running.
 
 Where they stopped: Amendment 14's grid and engine are built and verified (35
 checks, all passing, including a mutated-engine look-ahead trap and a fast
