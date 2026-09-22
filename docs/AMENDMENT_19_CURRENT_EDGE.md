@@ -174,20 +174,25 @@ python research/pilot/current_edge_ops.py --mode weekend
 The Wednesday report is produced by `research/pilot/current_edge_ops.py` and
 writes the normal live snapshot through `research/pilot/current_edge.py`. The
 weekend checklist calls the current-ready basket attribution in
-`research/pilot/current_edge_backtest.py` and the 10/20/30-day lead-trace
+`research/pilot/current_edge_backtest.py` and the weekly weekend lead-trace
 diagnostics in `research/pilot/current_edge_lead_traces.py`.
 
 The first lead-trace audit found that simple recent-performance momentum is not
-a reliable selector: the fast 10/20/30-day rule and the 10>30>60 acceleration
-rule both underperformed in walk-forward checks. Operationally, this means:
+a reliable selector. The audit now walks from weekend to weekend rather than in
+10-day jumps, because rule changes are intended to happen while the market is
+closed. Operationally, this means:
 
 - keep `post_news_chase/FOLLOW` as a core arm only while both 30-day and 60-day
   means remain positive;
 - treat `breakout_into_level/FLIP` as tactical, because its useful clue is
   crowded FOLLOW behaviour rather than a clean prior FLIP equity curve;
-- cap `late_extension/FLIP` unless both 10-day and 30-day windows remain
+- cap `late_extension/FLIP` unless both recent and 30-day windows remain
   positive; and
 - downsize or cut families that are detractors in the latest 0-30 day attribution.
+
+All operational diagnostics charge the traded account cost. The Standard-account
+spread is fixed as `260` points on a 3-decimal XAUUSD quote, i.e. `0.260` price
+units, before commission, slippage and swap.
 
 Risk sizing should be recalculated from the current 90-day drawdown. In the
 2026-09-22 diagnostic, the current-ready basket's 90-day drawdown was

@@ -19,6 +19,9 @@ import current_edge_lead_traces as lt
 
 DAY = 86400
 RISK_LEVELS = (0.02, 0.023, 0.03)
+COST_NOTE = ("cost=live Standard spread 260 points at 3 decimals = 0.260 "
+             "price units; commission 0.140 round turn; slippage 0.0165 "
+             "per fill; long swap 0.5493/night")
 
 
 def _as_outcomes(rows):
@@ -143,7 +146,8 @@ def _print_period_drivers(arms, ready, now):
 def _lead_snapshot(arms, now):
     first_t = min(r.t for rows in arms.values() for r in rows)
     rows = []
-    for t in range(first_t + 90 * DAY, now - 30 * DAY, 10 * DAY):
+    start = lt._next_weekend_anchor(first_t + 90 * DAY)
+    for t in range(start, now - 30 * DAY, lt.WEEK):
         for key in arms:
             s = lt._state(arms, key, t)
             future = [r.net for r in lt._future_trades(arms, s, t, 30)]
@@ -151,8 +155,8 @@ def _lead_snapshot(arms, now):
                 rows.append((s, float(np.mean(future))))
     checks = [
         ("current gate", lambda s: s.ready_current),
-        ("fast 10/20/30", lambda s: s.ready_fast),
-        ("accel 10>30>60", lambda s: s.ready_accel),
+        ("fast recent-window", lambda s: s.ready_fast),
+        ("accel recent>medium>long", lambda s: s.ready_accel),
         ("flip pressure", lambda s: s.ready_flip_pressure),
     ]
     print("\nLEAD TRACE CHECK")
@@ -173,6 +177,7 @@ def _wednesday():
     print("WEDNESDAY OBSERVATION REPORT")
     print(f"generated={datetime.fromtimestamp(now, timezone.utc).isoformat()}")
     print(f"source={source}")
+    print(COST_NOTE)
     print(f"decision={result['decision']} reason={result['reason']}")
     print(f"latest_m5={result['data']['latest_closed_m5_utc']} "
           f"age_min={result['data']['age_minutes']:.1f} "
@@ -192,6 +197,7 @@ def _weekend():
     print("WEEKEND REBUILD CHECKLIST")
     print(f"generated={datetime.fromtimestamp(now, timezone.utc).isoformat()}")
     print(f"source={source}")
+    print(COST_NOTE)
     print(f"ready_arms={len(ready)}")
     _print_ready_table(ready, states)
     _print_basket_summary(arms, ready, now)
@@ -200,7 +206,7 @@ def _weekend():
     print("\nACTIONS TO REVIEW")
     print("- Keep post_news_chase FOLLOW as core only while 30d/60d remain positive.")
     print("- Treat breakout_into_level FLIP as tactical; inspect FOLLOW crowding before size-up.")
-    print("- Cap late_extension FLIP unless it is positive in both 10d and 30d windows.")
+    print("- Cap late_extension FLIP unless it is positive in both recent and 30d windows.")
     print("- Cut or downsize families that are negative in 0-30d and also detractors by family.")
     print("- Recompute risk so 90d max DD maps to the 30%-40% target band.")
 

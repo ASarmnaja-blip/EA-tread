@@ -13,6 +13,8 @@ import current_edge_backtest as bt
 
 
 DAY = 86400
+WEEK = 7 * DAY
+WEEKEND_ANCHOR_UTC_WEEKDAY = 5  # Saturday; Python Monday=0.
 
 
 @dataclass
@@ -45,6 +47,13 @@ def _window(rows, now, days):
     if not vals:
         return 0, None
     return len(vals), float(np.mean(vals))
+
+
+def _next_weekend_anchor(t):
+    dt = ce.datetime.fromtimestamp(t, ce.timezone.utc)
+    days = (WEEKEND_ANCHOR_UTC_WEEKDAY - dt.weekday()) % 7
+    anchor = ce.datetime(dt.year, dt.month, dt.day, tzinfo=ce.timezone.utc)
+    return int(anchor.timestamp()) + days * DAY
 
 
 def _load_arms():
@@ -180,14 +189,15 @@ def _fmt_metrics(trades):
 def _lead_table(arms, now):
     rows = []
     first_t = min(r.t for xs in arms.values() for r in xs)
-    for t in range(first_t + 90 * DAY, now - 30 * DAY, 10 * DAY):
+    start = _next_weekend_anchor(first_t + 90 * DAY)
+    for t in range(start, now - 30 * DAY, WEEK):
         for key in arms:
             s = _state(arms, key, t)
             future = [r.net for r in _future_trades(arms, s, t, 30)]
             if len(future) < 2:
                 continue
             rows.append((s, float(np.mean(future)), len(future)))
-    print("\n[lead_trace_30d_future_by_condition]")
+    print("\n[weekend_lead_trace_30d_future_by_condition]")
     checks = [
         ("current", lambda s: s.ready_current),
         ("fast_10_20_30", lambda s: s.ready_fast),
@@ -206,19 +216,19 @@ def _lead_table(arms, now):
 
 
 def _last90_walk(arms, now):
-    print("\n[last90_walk_forward]")
-    start = now - 90 * DAY
+    print("\n[last90_weekend_walk_forward]")
+    start = _next_weekend_anchor(now - 90 * DAY)
     policies = ("current", "fast", "accel", "flip_pressure")
-    horizons = (10, 20, 30)
+    horizons = (7, 14, 28)
     aggregate = {(p, h): [] for p in policies for h in horizons}
     pick_counts = {(p, h): [] for p in policies for h in horizons}
     trace_rows = []
 
     t = start
-    while t <= now - 10 * DAY:
+    while t <= now - WEEK:
         label = ce.datetime.fromtimestamp(t, ce.timezone.utc).strftime("%Y-%m-%d")
         states = [_state(arms, key, t) for key in arms]
-        print(f"\ncheckpoint={label}")
+        print(f"\nweekend_checkpoint={label}")
         for horizon in horizons:
             if t + horizon * DAY > now:
                 continue
@@ -252,9 +262,9 @@ def _last90_walk(arms, now):
                 mean, net, win, n, policy = best
                 print(f"  next{horizon}d best_policy={policy} trades={n} "
                       f"net_R={net:+.4f} mean_R={mean:+.4f} win={win:.2f}%")
-        t += 10 * DAY
+        t += WEEK
 
-    print("\n[last90_policy_aggregate]")
+    print("\n[last90_weekend_policy_aggregate]")
     for horizon in horizons:
         for policy in policies:
             vals = aggregate[(policy, horizon)]
@@ -268,7 +278,7 @@ def _last90_walk(arms, now):
                   f"pf={m['profit_factor']:.3f} max_dd_R={m['max_dd_R']:+.4f} "
                   f"max_L={m['max_loss_streak']}")
 
-    print("\n[last90_lead_condition_future]")
+    print("\n[last90_weekend_lead_condition_future]")
     checks = [
         ("current", lambda s: s.ready_current),
         ("fast_10_20_30", lambda s: s.ready_fast),
@@ -294,10 +304,10 @@ def _last90_walk(arms, now):
             print(f"  {name}: samples={len(vals)} future_mean_R={np.mean(vals):+.4f} "
                   f"hit={100.0 * np.mean(np.asarray(vals) > 0):.2f}%")
 
-    print("\n[last90_family_forward_mean]")
+    print("\n[last90_weekend_family_forward_mean]")
     fam_rows = {}
     for s, horizon, v in trace_rows:
-        if horizon != 20:
+        if horizon != 14:
             continue
         fam_rows.setdefault((s.family, s.mode), []).append(v)
     ranked = []
@@ -305,17 +315,19 @@ def _last90_walk(arms, now):
         if len(vals) >= 2:
             ranked.append((float(np.mean(vals)), len(vals), key))
     for mean, n, (family, mode) in sorted(ranked, reverse=True)[:12]:
-        print(f"{family} [{mode}] samples={n} future20_mean_R={mean:+.4f}")
+        print(f"{family} [{mode}] samples={n} future14_mean_R={mean:+.4f}")
 
 
 def run():
     arms, now, source = _load_arms()
     print(f"source={source}")
     print(f"arms={len(arms)}")
+    print("cost=live Standard spread 260 points at 3 decimals = 0.260 price units; "
+          "commission 0.140 round turn; slippage 0.0165 per fill; long swap 0.5493/night")
     _lead_table(arms, now)
     _last90_walk(arms, now)
-    print("\n[rebalance_backtests]")
-    for step in (10, 20, 30):
+    print("\n[weekend_rebalance_backtests]")
+    for step in (7, 14, 28):
         for policy in ("current", "fast", "accel", "flip_pressure"):
             trades, picks = _simulate(arms, now, step, step, policy)
             avg_picks = float(np.mean(picks)) if picks else 0.0
