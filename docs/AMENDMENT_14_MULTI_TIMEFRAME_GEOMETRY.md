@@ -149,6 +149,74 @@ The operator required the work be checked for errors before it is handed over.
 **The test output is part of the handover.** If any test fails, the search is not
 run and the failure is reported instead.
 
+## 6a. Addendum — a defect found by the verification, and the corrected grid
+
+**The verification required by section 6 did its job and killed the first design.**
+Recorded here before the search runs, because this is precisely what the check was
+for.
+
+### The defect
+
+Section 2 defined an expiry of N bars as a limit **at the signal bar's close**. The
+test suite's expiry check passed on synthetic data, but with a suspicious reading:
+the expiry rate was 0 % at every N. Measured on real XAUUSD M5:
+
+```
+breakout / M15    e=5      e=8     e=10     e=12     e=15
+trades          2590     2591     2591     2592     2592
+expired           1%       1%       1%       1%       1%
+```
+
+A limit at the signal bar's close sits a hair from the next bar's open, so price
+trades back through it almost immediately. **The five expiry values produced
+identical cells.** The declared grid of 4,500 was really 750 distinct cells with
+six near-copies of each, and `N = 4,500` would have been a fiction — a larger
+multiplicity penalty applied to a search that had not actually been made larger.
+
+### The measurement that fixed it
+
+The limit has to sit a meaningful distance away for waiting to mean anything.
+Measured, on the same setup and timeframe:
+
+```
+limit offset      e=5      e=8     e=10     e=12     e=15
+  0.00 ATR      1% exp   1%       1%       1%       1%      <- degenerate
+  0.10 ATR      5%       5%       4%       4%       4%
+  0.25 ATR     12%      10%       9%       8%       8%
+  0.50 ATR     24%      20%      19%      17%      16%      <- discriminates
+  1.00 ATR     48%      41%      37%      35%      32%      <- discriminates
+```
+
+### The corrected entry dimension, and the corrected count
+
+The entry dimension is **(limit offset, expiry)**, not expiry alone:
+
+```
+market                                    1 mode
+offset 0.50 ATR x expiry {5,8,10,12,15}  5 modes
+offset 1.00 ATR x expiry {5,8,10,12,15}  5 modes
+                                     = 11 entry modes
+```
+
+```
+6 setups x 5 timeframes x 5 stops x 5 targets x 11 entry modes = 8,250 cells
+```
+
+**N = 8,250 replaces N = 4,500**, and the offsets {0.50, 1.00} are fixed here
+before any result. A deeper limit is a real strategy: it asks for a better price
+and pays by missing 24 % to 48 % of the signals outright, which is now a measured
+cost rather than an invisible one.
+
+**The expiry rate is reported per cell.** A cell whose signals expire most of the
+time is reported as such rather than presented as though it traded a full sample.
+
+### What did not change
+
+Every gate, split, statistic, blinding and failure definition in section 5 and
+sections 7 and 8 stands. Raising N raises the permutation critical value slightly,
+which is the honest consequence of a larger search and is not compensated for
+anywhere.
+
 ## 7. What this amendment may not do
 
 - may not name a candidate that has not passed CONFIRM
