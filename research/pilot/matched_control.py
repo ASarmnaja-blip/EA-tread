@@ -191,6 +191,8 @@ def matched_excess(entries, st: Strata, b5: D.Bars, nxt: np.ndarray,
     days are returned so the caller can cluster by day.
     """
     rng = np.random.default_rng(seed)
+    if runner is None:
+        runner = make_runner(b5, nxt, atr, stop_atr, rr, time_stop)
     ex, days, own, ctl = [], [], [], []
     unmatched = 0
     busy_until = -1
@@ -204,7 +206,7 @@ def matched_excess(entries, st: Strata, b5: D.Bars, nxt: np.ndarray,
             unmatched += 1
             continue
         d = -d0 if invert else d0
-        g, nb = run_once(b5, k, d, stop_atr * a, rr, time_stop)
+        g, nb = runner(i, d)
         if g is None:
             unmatched += 1
             continue
@@ -212,10 +214,7 @@ def matched_excess(entries, st: Strata, b5: D.Bars, nxt: np.ndarray,
                            replace=False)
         vals = []
         for j in picks:
-            aj = atr[int(j)]
-            if not np.isfinite(aj) or aj <= 0:
-                continue
-            gj, _ = run_once(b5, nxt[int(j)], d, stop_atr * aj, rr, time_stop)
+            gj, _ = runner(int(j), d)
             if gj is not None:
                 vals.append(gj)
         if len(vals) < 5:
@@ -264,18 +263,27 @@ def maxt_permutation(per_candidate: dict, draws: int = 2000,
     for k in names:
         v = per_candidate[k]
         obs[k] = abs(v["t"]) if np.isfinite(v["t"]) else 0.0
+
+    # np.bincount rather than a pandas groupby inside the loop: with 150
+    # candidates and 2000 draws that is 300,000 regroupings, and the groupby
+    # version turns a two-minute job into an hour-long one. The day index is
+    # precomputed once per candidate and reused for every draw.
+    nd = len(all_days)
+    prep = [(np.asarray(per_candidate[k]["per_trade"], float), pos[k],
+             len(per_candidate[k]["per_trade"])) for k in names]
     nulls = []
     for _ in range(draws):
-        flip = rng.choice([-1.0, 1.0], size=len(all_days))
+        flip = rng.choice([-1.0, 1.0], size=nd)
         best = 0.0
-        for k in names:
-            v = per_candidate[k]
-            e = v["per_trade"] * flip[pos[k]]
-            mu = float(e.mean())
-            grp = pd.Series(e - mu).groupby(v["days"]).sum().to_numpy()
-            se = float(np.sqrt((grp ** 2).sum())) / len(e)
+        for (e0, ix, n) in prep:
+            e = e0 * flip[ix]
+            mu = e.mean()
+            sums = np.bincount(ix, weights=e - mu, minlength=nd)
+            se = np.sqrt((sums ** 2).sum()) / n
             if se > 0:
-                best = max(best, abs(mu / se))
+                v = abs(mu / se)
+                if v > best:
+                    best = v
         nulls.append(best)
     nu = np.asarray(nulls)
     return dict(names=names, observed=obs,
