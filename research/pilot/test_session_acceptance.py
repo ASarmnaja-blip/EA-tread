@@ -107,6 +107,17 @@ def test_boundary_path():
        f"last ok={np.flatnonzero(out.ok)[-1]}")
 
 
+def test_swap_calendar():
+    # Epoch day 4 is Monday 1970-01-05. Mon/Tue/Thu charge one, Wednesday
+    # charges three; Saturday and Sunday charge zero.
+    mon = 4 * 86400
+    week = S._swap_units(mon + 20 * 3600, mon + 3 * 86400 + 22 * 3600)
+    fri = mon + 4 * 86400
+    weekend = S._swap_units(fri + 20 * 3600, mon + 7 * 86400 + 22 * 3600)
+    ok("8 swap calendar skips weekends and triples Wednesday",
+       week == 6 and weekend == 2, f"Mon-Thu={week} Fri-Mon={weekend}")
+
+
 def main() -> int:
     print("Amendment 17 verification")
     test_level_no_future()
@@ -115,7 +126,8 @@ def main() -> int:
     test_leave_day_out()
     test_atr_is_closed()
     test_boundary_path()
-    print(f"\n{7-len(FAIL)}/7 passed")
+    test_swap_calendar()
+    print(f"\n{8-len(FAIL)}/8 passed")
     return 1 if FAIL else 0
 
 

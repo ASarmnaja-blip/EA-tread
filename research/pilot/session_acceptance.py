@@ -214,15 +214,23 @@ def build_events(b5: D.Bars, levels: list[Level]) -> tuple[list[Event], int]:
     return out, episodes
 
 
-def _rollover_count(t0: int, t1: int) -> int:
-    """Number of 21:00 UTC boundaries strictly after entry and before exit."""
+def _swap_units(t0: int, t1: int) -> int:
+    """Swap units at live 21:00 UTC boundaries (Wednesday is triple).
+
+    MT5 reports ``swap_rollover3days == 3`` for this symbol: ENUM_DAY_OF_WEEK 3
+    is Wednesday.  Closed Saturday/Sunday boundaries charge nothing.  Counting
+    every elapsed calendar day would overcharge paths spanning a weekend.
+    """
     d0 = t0 // 86400
     cur = d0 * 86400 + ROLLOVER_HOUR * 3600
     if cur <= t0:
         cur += 86400
     n = 0
     while cur < t1:
-        n += 1
+        day = cur // 86400
+        dow = (day + 3) % 7       # 1970-01-01 was Thursday; Monday=0
+        if dow < 5:
+            n += 3 if dow == 2 else 1
         cur += 86400
     return n
 
@@ -254,7 +262,7 @@ def precompute_outcomes(b5: D.Bars, atr_known: np.ndarray) -> Outcomes:
             held[d][k] = nb
             exit_i[d][k] = k + nb
             exit_close = int(b5.t[k + nb]) + 300
-            nights[d][k] = _rollover_count(int(b5.t[k]), exit_close)
+            nights[d][k] = _swap_units(int(b5.t[k]), exit_close)
 
     net: dict[float, dict[int, np.ndarray]] = {}
     for mult in COST_MULTIPLIERS:
@@ -512,7 +520,8 @@ def main() -> int:
     dup = int(df.duplicated(["entry_i", "direction", "response"], keep=False).sum())
     print("\nDEPENDENCE / EXECUTION DIAGNOSTICS")
     print(f"rows sharing entry+direction+response {dup:,}")
-    print(f"swap crossings {int(df.nights.sum()):,} across {int((df.nights>0).sum()):,} events")
+    print(f"swap units {int(df.nights.sum()):,} across {int((df.nights>0).sum()):,} events "
+          f"(Wednesday=3, weekend=0)")
     print("directions " + "  ".join(f"{int(k):+d}:{v:,}" for k, v in df.direction.value_counts().items()))
     pol = one_position(matched)
     pnet = clustered_mean(pol["net_1"].to_numpy(), pol.day.to_numpy())[0]
