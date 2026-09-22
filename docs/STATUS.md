@@ -20,6 +20,10 @@ add bounded M5-close/M15-decision experiments at visible session levels and
 session VWAP/value-area state; they do not turn that result into a claim about all
 price structure.
 
+Amendment 19 now answers a different, explicitly tactical question: what works
+in the latest 90 days, including both FOLLOW winners and independently simulated
+FLIP losers. It makes no persistence or out-of-sample claim.
+
 **The five closures are not five independent replications.** They reuse the same
 data and overlapping candidate families. The weight sits on Amendment 10, because
 it was powered, and on Amendment 11, which removed the one fixed parameter that
@@ -39,7 +43,21 @@ could have hidden a time scale.
 | 17 | session-level acceptance/rejection at Asia, pre-London and prior-day levels | 7,665 matched events, 681 days. Ordinal touch slope **+0.00008 R** (SE 0.01408, one-sided p 0.4990; MDE 0.03503), and the touch means are not monotone. First touch excess −0.0158 R, net −0.0716 R at 1x. **MECHANISM NOT ESTABLISHED; NO CANDIDATE** |
 | 18 | VWAP reversion and value-area continuation | 11,540 matched events, 681 days. VWAP reversion excess **−0.0241 R**, Holm p 0.8937, net −0.0801 R. Value-area continuation excess **+0.0284 R**, Holm p 0.1312, net −0.0251 R. **MECHANISMS NOT ESTABLISHED; NO CANDIDATE** |
 
-## 2. Archived watchlist
+## 2. Current tactical scanner
+
+The Current Edge scanner uses a 90-day operational window, a 21-day half-life,
+30/60-day consistency gates, shrunken ranking, actual FOLLOW and FLIP path
+resolution, the account cost model, and a 1.5x execution-cost stress. It cannot
+send an order.
+
+First run on 2026-09-22: **48 arms evaluated, 10 READY**. The strongest were
+`post_news_chase/FOLLOW` (score +0.2487 R),
+`breakout_into_level/FLIP` (+0.1903 R), and
+`VWAP reversion 2.5sd/FLIP` (+0.1786 R). None fired on the latest closed M15
+bar, so the current decision was **NO_TRADE**. This means “wait for an event,”
+not “no current edge exists.”
+
+## 3. Archived watchlist
 
 | id | what | why it is not a candidate |
 |---|---|---|
@@ -49,7 +67,7 @@ could have hidden a time scale.
 W1 was the only thing in this project that ever cleared a family-wise threshold,
 but it is no longer an active work item.
 
-## 3. Not tested
+## 4. Not tested
 
 ### Structure and levels — the real gap
 Tested: round numbers (5/10/50), Donchian extremes (10/20/55), Bill Williams
@@ -85,7 +103,7 @@ varied how long a position is held, which is a different thing.
 
 ---
 
-## 4. The next four steps, in this order
+## 5. The next four steps, in this order
 
 1. **A geometry-neutral path diagnostic**, for W2 and the strongest closed
    families. For each entry, measure the signed return at fixed horizons plus
@@ -103,7 +121,7 @@ varied how long a position is held, which is a different thing.
    construction or another instrument is a separate research programme, not a
    rescue.
 
-## 5. What this program will not do
+## 6. What this program will not do
 
 - **No more widening of the indicator grid.** Amendments 10 and 11 close it.
   Adding oscillators, pairs or parameter variants now has a poor prior and only
@@ -116,7 +134,8 @@ varied how long a position is held, which is a different thing.
 - **No position sizing scheme, ever, as a substitute for edge.** Sizing cannot
   create or destroy per-trade expectancy. Grid and Martingale stay prohibited.
 
-## 6. Standing state
+## 7. Standing state
 
-17 amendments. No real-money order has ever been sent. No position is open. No
-pull request is open. The engine's answer is **NO TRADE**.
+19 amendments. No real-money order has ever been sent. No position is open. No
+pull request is open. The Current Edge scanner has 10 READY arms but none fired
+on the latest closed bar; its present answer is **NO TRADE**.

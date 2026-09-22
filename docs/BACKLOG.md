@@ -102,6 +102,20 @@ Value-area continuation had a small positive gross excess `+0.0284 R`, but Holm
 p `0.1312` and net `-0.0251 R`; it earns no candidate and no shadow status. The
 best descriptive side row may not be selected.
 
+### B4 — Current FOLLOW/FLIP edge scanner — **COMPLETED, Amendment 19**
+
+This is an operational selector, not another permanent-edge claim. It re-scores
+the 18 registered setups and six crowded-entry patterns in both their stated and
+independently simulated opposite directions using only the latest 90 days. A
+FLIP is eligible only when its FOLLOW source is currently losing. Recent-window,
+shrinkage, real-cost, cost-stress, freshness and current-event gates are fixed in
+Amendment 19.
+
+**First result:** 48 arms evaluated and 10 READY. No READY event fired on the
+latest closed M15 bar, so the actionable output was **NO_TRADE**. The scanner is
+implemented in `research/pilot/current_edge.py`; this item is complete and is now
+an operational tool rather than pending research.
+
 ---
 
 ## C. Never touched at all

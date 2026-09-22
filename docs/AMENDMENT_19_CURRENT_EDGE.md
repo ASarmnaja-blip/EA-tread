@@ -127,3 +127,25 @@ expected to change its mind as the current market changes.
 
 This amendment does not authorize real-money or demo orders. Any order remains a
 separate operator decision.
+
+## 8. First operational run — 2026-09-22
+
+The first run used 40,000 live M5 bars from `Exness-MT5Trial7`. The newest closed
+M5 bar was 1.9 minutes old. The scanner evaluated 48 arms and found 10 READY.
+No READY event fired on the latest closed M15 bar, so the decision was
+**NO_TRADE**.
+
+This is not a negative research result. It means the scanner has healthy arms on
+its watchlist but no current entry event. The top three READY arms were:
+
+1. `crowded:post_news_chase / FOLLOW`, score `+0.2487 R`;
+2. `crowded:breakout_into_level / FLIP`, score `+0.1903 R`;
+3. `core:S5V1:VWAP reversion 2.5sd / FLIP`, score `+0.1786 R`.
+
+All eligibility gates, including the 1.5x execution-cost stress, were applied.
+The live snapshot is written to the ignored file `data/current_edge_signal.json`.
+Run the scanner again with:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'; python research/pilot/current_edge.py
+```
