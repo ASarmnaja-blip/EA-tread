@@ -234,4 +234,35 @@ authorised, no position is open, and no pull request is opened.
 
 ## 12. Result
 
-Not run yet. This amendment is the protocol freeze.
+The verification suite passed all eight required look-ahead, reset, value-area,
+control and boundary checks. Amendment 17's shared verification suite also still
+passed. The protected final 120 days were physically removed before features,
+paths or control pools were constructed.
+
+The run used data from **2023-09-22 through 2026-05-22 20:55 UTC**. The protected
+holdout begins at **2026-05-24 08:35 UTC** and was not opened. The event counts
+were adequate for both primary questions: **12,248 events**, **11,586 scored**,
+**11,540 matched**, with **46 unmatched**.
+
+| family | matched n | active days | matched excess | SE | 80% MDE | one-sided p | Holm p | net 1x | net 1.5x |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| VWAP reversion | 7,185 | 672 | -0.0241 R | 0.0192 | 0.0479 | 0.8937 | 0.8937 | -0.0801 R | -0.1036 R |
+| value-area continuation | 4,355 | 681 | +0.0284 R | 0.0187 | 0.0464 | 0.0656 | 0.1312 | -0.0251 R | -0.0485 R |
+
+Both primary families fail the registered gates. VWAP reversion has negative
+matched excess and negative net expectancy. Value-area continuation has a small
+positive gross matched excess, but it fails the Holm-adjusted p-value gate and
+also fails the net-expectancy gates at both 1.0x and 1.5x cost. Its 95% lower
+bound on 1.0x net R is `-0.0621 R`.
+
+Descriptive side rows are not candidates. The short value-area continuation row
+was the best descriptive gross row (`+0.0588 R` matched excess), but section 8
+forbids selecting side, session, distance bucket or any other subgroup from this
+run.
+
+Secondary one-position policy: **5,484 trades over 681 days**, net at 1x
+`-0.0474 R`.
+
+Full output: `data/vwap_value_area_run.txt`.
+
+Status remains **NO TRADE**.
