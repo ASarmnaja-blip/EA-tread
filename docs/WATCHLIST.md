@@ -83,9 +83,43 @@ the rule. Two of the other three carried forward flipped sign outright on the
 same slice, which is what the minimum of 139 draws does on fresh data, and there
 is no reason to assume these two are different in kind rather than in luck.
 
-The plausible mechanism for both is **horizon mismatch** — a 40-period RSI and a
+The plausible mechanism for both was **horizon mismatch** — a 40-period RSI and a
 200-period EMA speak to moves longer than a 72-bar time stop can hold — and
 horizon mismatch is a reason to lose that does not invert.
+
+**That mechanism has now been tested and REJECTED for these two.** Amendment 11
+prediction P3 said their excess would move toward zero at a horizon matched to
+their own lookback. It did not:
+
+```
+rsi:40/short      excess by horizon (M5 bars)
+  12: -0.1040   24: -0.0975   48: -0.1950   72: -0.2389
+ 144: -0.2383  288: -0.2592  576: -0.2589
+  at the matched horizon 144 it retains 99.7% of its magnitude, and it gets MORE
+  negative with more time, which is the OPPOSITE of the prediction
+
+emax:50-200/long  excess by horizon
+  12: -0.1282   24: -0.1344   48: -0.1531   72: -0.1520
+ 144: -0.1593  288: -0.1506  576: -0.1506
+  99.1% retained at the matched horizon 576; the whole profile spans only
+  -0.128 to -0.159, i.e. it is essentially horizon-invariant
+```
+
+So one leg of the original dismissal is gone: their negative excess is **not**
+explained by the non-invertible cause that was assumed. Their loss remains
+unexplained, which makes the mechanism question genuinely open rather than
+settled against them.
+
+**It changes nothing about the evidence.** Both still fail on trade count (33 and
+47 against a required 50) and on step-down maxT p values of 0.961 and 0.899,
+which means the data is fully compatible with there being nothing there. A
+mechanism becoming more plausible is not evidence.
+
+**A temptation declined, recorded.** `rsi:40/short` reaches its most negative
+excess at horizons 288 and 576 (-0.2592, t = -2.56), not at the incumbent 72.
+Picking that cell would be selecting the best of 7 horizons x 233 tools after
+seeing the table, and Amendment 11 section 5 forbids this file naming a
+candidate. The horizon is not changed for it.
 
 **What would move them off this list.** Forward data. Not a longer CONFIRM
 window, not a lower trade-count threshold, and not a different time stop.
