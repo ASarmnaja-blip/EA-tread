@@ -60,6 +60,47 @@ gap definition and threshold, the geometry, the cost charged per trade, an
 untouched slice, and a required number of forward events. Until then it is an
 observation.
 
+### Update 2026-09-22 — W1 passed its cost test (Amendment 12)
+
+All six pre-registered criteria pass. This is the first pre-registered pass in
+the project.
+
+```
+cost mult    net R      se     t    95% lower   >= +0.05
+    1.0     0.2573  0.1090  2.36      0.0437      yes
+    1.5     0.2346  0.1089  2.15      0.0212      yes
+    3.0     0.1665  0.1088  1.53     -0.0468      yes
+    7.0    -0.0152  0.1101 -0.14     -0.2309      NO
+```
+
+matched excess under the corrected leave-one-day-out control: **+0.3505 R,
+t +3.16**, against +0.3483 at discovery — the control was not contaminated.
+Holdout, caveated and not confirmation: 10 events, net +0.3797 R, 70 % wins.
+
+**The feared killer did not fire.** The spread at W1's own entries has a median
+of **0.0370** against 0.0520 for all bars — 0.71x, i.e. tighter than typical. The
+cost model's 0.090 was penalising it.
+
+**But a worse problem appeared, which the amendment did not anticipate.** W1 is
+not a general gap trade:
+
+```
+hour UTC:  19:00 x1   22:00 x50 (66%)   23:00 x25 (33%)
+weekday:   Mon 47  Tue 9  Wed 7  Thu 6  Fri 7
+75 of 76 entries follow a time gap longer than four hours
+76 distinct days across 66 distinct weeks - well spread in time
+```
+
+It is a **rollover-gap continuation trade**, and the slippage floor of 0.0165 per
+fill that the whole project charges **was measured during liquid hours**. W1 dies
+at 7x cost, and a rollover fill is plausibly in that range. Its pass is therefore
+conditional on a slippage figure taken at the wrong time of day.
+
+**Status: forward shadow started** (`research/pilot/w1_shadow.py`, stopping rule
+frozen in `data/w1_shadow_protocol.json` — 26 weeks or 30 events, whichever comes
+second). **Blocked on one measurement**: slippage at 21:52–22:03 UTC, scheduled.
+No shadow result settles W1 until that number exists.
+
 ---
 
 ## W2 — two junk configurations kept their sign on the untouched slice
