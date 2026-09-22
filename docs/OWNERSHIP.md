@@ -1,49 +1,58 @@
-# Who owns what — updated 2026-09-22
+# Who owns what — updated 2026-09-22 (third revision)
 
-**Codex owns everything, including W1.** The operator handed the whole project over
-and will bring Claude back next Saturday to continue from wherever Codex has got
-to. An earlier version of this file split W1 off to Claude; that split is
-withdrawn.
+**Claude owns W1. Codex owns everything else.**
+
+Set by the operator after Codex completed Amendment 17; he is telling Codex
+directly to leave W1 alone. An earlier revision handed W1 to Codex and is
+withdrawn. The revision history is left visible rather than tidied away, because
+two agents reading a cleaned-up file would not know which way it had last moved.
 
 ---
 
-## The one thing Claude left running, and why
+## Claude's two running tasks
 
 | task | state |
 |---|---|
-| `w1-rollover-cost-probe` — sends demo orders | **DELETED** |
-| `w1-shadow-logger` — read-only, logs signals | **still running, 5x daily** |
+| `w1-rollover-cost-probe` — sends demo orders | **re-armed, fires 2026-09-22 21:52 UTC** (04:52 Thai, 23 Sep) |
+| `w1-shadow-logger` — read-only, logs signals | running 5x daily, **0 signals so far** |
 
-**The probe was deleted deliberately.** It sends demo orders in a one-hour window,
-and two agents doing that in the same window is a real collision. Running it is now
-Codex's call. Its prompt is recoverable at
-`C:\Users\66985\.claude\scheduled-tasks\w1-rollover-cost-probe\SKILL.md`, and the
-script is `tools/rollover_cost_probe.py`.
+**Codex: please do not run `tools/rollover_cost_probe.py`, do not judge W1, and do
+not edit W1's entry on `docs/WATCHLIST.md`.** Two agents sending demo orders into
+the same one-hour window, or writing conflicting verdicts on the same candidate, is
+the specific failure this file exists to prevent. Everything else in the repo is
+yours.
 
-**The logger was kept because a missed signal cannot be recovered.** W1 fires about
-25 times a year and the forward-shadow clock is already running; a signal that
-passes unlogged is gone. It never sends an order, it only appends to
-`data/w1_shadow_log.json`, which Codex can read freely. If Codex would rather own
-that too, delete the `w1-shadow-logger` scheduled task and run
-`research/pilot/w1_shadow.py` on whatever cadence suits.
+The probe's task carries a **step 0 that aborts unless the current UTC hour is 21
+or 22**. The app scheduler fires a missed one-time task on next launch, which would
+be the wrong hour, and a slippage figure from the wrong hour is worse than none
+because it would read as evidence.
+
+### Checked after Amendment 17: W1's numbers are unaffected
+
+Codex's commit `50fb43b "Correct Amendment 17 swap calendar accounting"` is exactly
+the kind of shared-code fix that could have moved W1's cost arithmetic. It did not:
+the diff touches only `session_acceptance.py` and its test, and none of
+`adaptive.py`, `core.py`, `data.py`, `matched_control.py` or `wide_engine.py`, which
+are what `w1_cost_test.py` imports.
+
+Re-ran it to confirm rather than assume: **net +0.2573 R at 1x, 95 % lower bound
++0.0437** — identical to before. Nothing to re-derive.
 
 ---
 
-## W1, handed to Codex — everything needed to finish it
+## W1 — what remains to finish it
 
-**The blocking measurement.** Run
-`tools/rollover_cost_probe.py --seconds 600 --probes 4 --orders`
-**only inside 21:52–22:03 UTC.** W1 trades at 22:00 UTC (66 % of its entries) and
-23:00 UTC (33 %). The slippage floor of 0.0165 per fill that the whole cost model
-uses was measured in liquid hours. A figure from any other hour is not the
-measurement, and the window recurs daily, so a missed night costs nothing but a day.
+**The blocking measurement.** `tools/rollover_cost_probe.py --seconds 600
+--probes 4 --orders`, **only inside 21:52–22:03 UTC**. W1 takes 66 % of its entries
+at 22:00 UTC and 33 % at 23:00. The slippage floor of 0.0165 per fill that the
+whole cost model uses was measured in liquid hours. The window recurs daily, so a
+missed night costs a day and nothing else.
 
-**The trap in the data.** `data/rollover_cost.json` already holds one record and it
-is **a smoke test, not a measurement**. It carries a `NOT_A_MEASUREMENT` field
-stating so: taken at 01:26 UTC in liquid hours, `--orders` not passed so **zero
-probes were sent**, and its 0.090 spread is the liquid-hours figure the cost model
-already assumed. Judging W1 from that record would conclude W1 survives on a
-measurement that was never taken.
+**The trap in the data.** `data/rollover_cost.json` holds one record that is a
+**smoke test, not a measurement**, and carries a `NOT_A_MEASUREMENT` field saying
+so: 01:26 UTC, liquid hours, `--orders` not passed so **zero probes sent**, and its
+0.090 spread is the liquid-hours figure the cost model already assumed. Judging W1
+from it would conclude W1 survives on a measurement that was never taken.
 
 **The verdict arithmetic, fixed in advance and not adjustable:**
 
@@ -51,26 +60,30 @@ measurement that was never taken.
 net = 0.3027 - (measured round-turn cost / R),    R = 1.5 x ATR
 ```
 
-Below **+0.05 R** W1 is dead and gets recorded dead on `docs/WATCHLIST.md`.
-`AMENDMENT_12` section 7 forbids moving the gap threshold, the stop, the target or
-the time stop to save it.
+Below **+0.05 R**, W1 is dead and is recorded dead. `AMENDMENT_12` section 7 forbids
+moving the gap threshold, the stop, the target or the time stop to save it.
 
-**The shadow's stopping rule is frozen** in `data/w1_shadow_protocol.json`: 26 weeks
-from the first forward signal **or** 30 events, whichever comes **second**. It does
-not stop early on a favourable result and does not extend on an unfavourable one.
+**Surviving is a prerequisite, not confirmation.** The shadow's stopping rule is
+frozen in `data/w1_shadow_protocol.json`: 26 weeks from the first forward signal
+**or** 30 events, whichever comes **second**. It does not stop early on a favourable
+result and does not extend on an unfavourable one.
 
 ---
 
-## The rest, as Codex agreed in `docs/HANDOVER_TO_CODEX.md`
+## Codex — everything else
 
-1. Session acceptance/rejection — Asia, pre-London and prior-day high/low, with
-   **touch count as an ordinal variable** and one pre-registered hypothesis that the
-   effect declines monotonically with touch count
-2. VWAP — `core.s5_vwap` has existed since early on and appears in no search at all
-3. The M1 series beyond DXY news timing
-4. Both tails reported; the holdout never read for promotion
+Amendment 17 is complete and is Codex's result: ordinal touch slope **+0.00008 R**,
+one-sided p **0.4990** against an MDE of 0.03503, touch means not monotone, net
+negative at every ordinal after cost. **Mechanism not established, no candidate**,
+and the document correctly warns against mining a subgroup out of it.
 
-Not recommended: more indicator grid. Amendments 10, 11 and 13 closed it.
+Next on the backlog, per `docs/HANDOVER_TO_CODEX.md` and Codex's own proposal:
+**Amendment 18, a small pre-registered VWAP / value-area experiment.** `core.s5_vwap`
+has existed since early in the project and appears in no search at all.
+
+Standing caution from Codex's own status note: the research line is a run of
+negatives, so the move is to a **distinct untested channel** rather than a twist on
+a closed one.
 
 ---
 
