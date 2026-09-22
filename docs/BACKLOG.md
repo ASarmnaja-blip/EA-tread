@@ -116,6 +116,12 @@ latest closed M15 bar, so the actionable output was **NO_TRADE**. The scanner is
 implemented in `research/pilot/current_edge.py`; this item is complete and is now
 an operational tool rather than pending research.
 
+Operational reports are implemented in `research/pilot/current_edge_ops.py`.
+Run `--mode wednesday` for midweek observation and `--mode weekend` for
+market-closed rebuild review. Supporting diagnostics live in
+`research/pilot/current_edge_backtest.py` and
+`research/pilot/current_edge_lead_traces.py`.
+
 ---
 
 ## C. Never touched at all

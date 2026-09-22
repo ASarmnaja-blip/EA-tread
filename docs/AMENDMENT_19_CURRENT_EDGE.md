@@ -149,3 +149,48 @@ Run the scanner again with:
 ```powershell
 $env:PYTHONIOENCODING='utf-8'; python research/pilot/current_edge.py
 ```
+
+## 9. Operating cadence — observe midweek, rebuild on weekend
+
+The tactical scanner is not a once-and-for-all backtest. The intended operating
+cadence is:
+
+- Wednesday, midweek: observe only. Run the live scanner and operational report,
+  inspect drift, drawdown, streaks, and which READY arms are carrying the latest
+  30-day basket. Do not change rules unless data freshness, spread, or risk
+  limits are broken.
+- Saturday or Sunday, while the market is closed: review and rebuild. Attribute
+  the 0-30, 30-60, and 60-90 day baskets by family and mode, inspect the lead
+  traces, then change gates or sizing only after rerunning the diagnostics.
+
+Commands:
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python research/pilot/current_edge_ops.py --mode wednesday
+python research/pilot/current_edge_ops.py --mode weekend
+```
+
+The Wednesday report is produced by `research/pilot/current_edge_ops.py` and
+writes the normal live snapshot through `research/pilot/current_edge.py`. The
+weekend checklist calls the current-ready basket attribution in
+`research/pilot/current_edge_backtest.py` and the 10/20/30-day lead-trace
+diagnostics in `research/pilot/current_edge_lead_traces.py`.
+
+The first lead-trace audit found that simple recent-performance momentum is not
+a reliable selector: the fast 10/20/30-day rule and the 10>30>60 acceleration
+rule both underperformed in walk-forward checks. Operationally, this means:
+
+- keep `post_news_chase/FOLLOW` as a core arm only while both 30-day and 60-day
+  means remain positive;
+- treat `breakout_into_level/FLIP` as tactical, because its useful clue is
+  crowded FOLLOW behaviour rather than a clean prior FLIP equity curve;
+- cap `late_extension/FLIP` unless both 10-day and 30-day windows remain
+  positive; and
+- downsize or cut families that are detractors in the latest 0-30 day attribution.
+
+Risk sizing should be recalculated from the current 90-day drawdown. In the
+2026-09-22 diagnostic, the current-ready basket's 90-day drawdown was
+`-17.2165 R`, mapping roughly to `-34.43%` at 2.0% risk per trade and `-39.60%`
+at 2.3% risk per trade. A 3.0% risk setting would have exceeded the stated
+30-40% drawdown tolerance.

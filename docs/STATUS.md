@@ -57,6 +57,16 @@ First run on 2026-09-22: **48 arms evaluated, 10 READY**. The strongest were
 bar, so the current decision was **NO_TRADE**. This means “wait for an event,”
 not “no current edge exists.”
 
+Operational cadence is now explicit. Wednesday is an observation run:
+`python research/pilot/current_edge_ops.py --mode wednesday`. Weekend market
+closure is the rebuild window:
+`python research/pilot/current_edge_ops.py --mode weekend`. The reports combine
+the live scanner, current-ready basket attribution, risk mapping, and 10/20/30
+day lead-trace diagnostics. The first diagnostic did not validate simple
+performance momentum as a selector; sizing should be recalculated from the
+current 90-day drawdown, with 2.0-2.3% risk per trade matching the stated
+30-40% drawdown tolerance on the 2026-09-22 snapshot.
+
 ## 3. Archived watchlist
 
 | id | what | why it is not a candidate |
