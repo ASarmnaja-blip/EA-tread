@@ -9,12 +9,12 @@ Last rebuilt 2026-09-22.
 
 ---
 
-## A. Waiting on the clock — nothing to do but wait
+## A. Archived by operator decision
 
 | # | item | blocked on | when |
 |---|---|---|---|
-| A1 | **W1 rollover slippage** — the number that decides whether W1 is real | it can only be measured at 21:52–22:03 UTC, the hour W1 trades | not yet measured; the order-sending task was removed, so run manually only in that UTC window |
-| A2 | **W1 forward shadow** — 26 weeks or 30 events, whichever comes second | W1 fires ~25 times a year | first event due within ~2 weeks; full run ~6 months minimum |
+| A1 | **W1 rollover slippage** | no longer active | operator decision on 2026-09-22: do not measure W1 rollover cost |
+| A2 | **W1 forward shadow** | no longer active | operator decision on 2026-09-22: do not run W1 shadow |
 
 Nothing else in this file is blocked. Everything below can run today.
 
@@ -84,7 +84,7 @@ were not monotone. First touch itself had excess `−0.0158 R` and net `−0.071
 at 1x cost. **No candidate and no shadow status.** Positive descriptive subgroups
 may not be selected from the table.
 
-### B3 — VWAP and value-area interaction
+### B3 — VWAP and value-area interaction — **NEXT**
 
 `core.s5_vwap` and `core.session_vwap` have existed since early in the project
 and appear in **no search at all**. VWAP has a nameable mechanism (an execution

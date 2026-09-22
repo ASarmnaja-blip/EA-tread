@@ -36,14 +36,15 @@ could have hidden a time scale.
 | 11 | holding horizon, 12 → 576 M5 bars | no horizon shows family-level signal (max\|t\| p 0.58–0.85 against Bonferroni α 0.0071). Closure strengthens to **nothing at any horizon from 1 h to 48 h**. Horizon mismatch is real but small (ρ +0.10, p 0.015 under a tool-clustered null) and **does not** explain the two watchlist entries it was written for |
 | 17 | session-level acceptance/rejection at Asia, pre-London and prior-day levels | 7,665 matched events, 681 days. Ordinal touch slope **+0.00008 R** (SE 0.01408, one-sided p 0.4990; MDE 0.03503), and the touch means are not monotone. First touch excess −0.0158 R, net −0.0716 R at 1x. **MECHANISM NOT ESTABLISHED; NO CANDIDATE** |
 
-## 2. Open — the watchlist
+## 2. Archived watchlist
 
 | id | what | why it is not a candidate |
 |---|---|---|
-| **W1** | `gap_continuation/short` — excess **+0.3483 R** over a stratum-matched placebo, n=75, t +3.18, p(maxT) 0.0330 | found in a run pre-registered as exploratory; **never cost-tested**; 25 events a year; the p value does not correct for being a second look |
+| **W1** | `gap_continuation/short` — excess **+0.3483 R** over a stratum-matched placebo, n=75, t +3.18, p(maxT) 0.0330 | found in a run pre-registered as exploratory; operator decision on 2026-09-22: **do not pursue W1 further**. No rollover measurement, no forward shadow, no promotion |
 | **W2** | `rsi:40/short`, `emax:50-200/long` — mirror nets +0.1838 and +0.1424 R alive to 7x cost | fail at n=33 and n=47 against 50, and step-down maxT p 0.961 and 0.899. Their loss is now **unexplained** — Amendment 11 rejected horizon mismatch for both |
 
-W1 is the only thing in this project that ever cleared a family-wise threshold.
+W1 was the only thing in this project that ever cleared a family-wise threshold,
+but it is no longer an active work item.
 
 ## 3. Not tested
 
@@ -86,12 +87,7 @@ varied how long a position is held, which is a different thing.
 
 ## 4. The next four steps, in this order
 
-1. **W1's cost and prospective protocol.** Freeze the rule, charge the measured
-   cost, report the spread distribution at its own signal times, repeat the
-   matched placebo and clustered inference, require active days as well as n, and
-   **do not reuse its discovery p-value as confirmation**. A cost test can close
-   it immediately; surviving is a prerequisite, not proof.
-2. **A geometry-neutral path diagnostic**, for W1, W2 and the strongest closed
+1. **A geometry-neutral path diagnostic**, for W2 and the strongest closed
    families. For each entry, measure the signed return at fixed horizons plus
    maximum favourable excursion, maximum adverse excursion, time to MFE, and the
    probability the favourable barrier is reached first — each against the same
@@ -99,11 +95,14 @@ varied how long a position is held, which is a different thing.
    separates *no information* from *information at the wrong geometry* without a
    combinatorial RR-by-stop sweep, and it tells us whether a stop is too tight or
    a target wrong.
-3. **Completed: the bounded session-level experiment is a powered global
+2. **Completed: the bounded session-level experiment is a powered global
    negative.** Do not rescue it by selecting the best descriptive subgroup.
-4. **Stop this research line.** VWAP is the next distinct untested channel on the
-   backlog. Moving to H1/H4 state construction or another instrument is a
-   separate research programme, not a rescue.
+3. **Start the next distinct untested channel: VWAP/value-area interaction.**
+   This needs its own amendment before any run, with thresholds, multiplicity
+   accounting and failure definitions frozen in advance.
+4. **Stop the old indicator/state rescue loop.** Moving to H1/H4 state
+   construction or another instrument is a separate research programme, not a
+   rescue.
 
 ## 5. What this program will not do
 
