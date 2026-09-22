@@ -84,7 +84,10 @@ Touches are counted as **episodes**, not as every bar that remains near a level:
   below the level; a low-side episode mirrors this and requires the preceding
   close above the level
 - after an episode, another touch is counted only after at least one completed
-  contiguous M5 bar has closed back on the interior side
+  contiguous M5 bar is wholly clear of the level on the interior side (its high
+  is below a high level, or its low is above a low level). The rejection bar
+  itself does not reset the episode, so consecutive touching bars cannot inflate
+  the count
 - the count is maintained separately for every `(UTC day, level family, side)`
 - the ordinal value is `0, 1, 2` for first, second and third-or-later. No fourth,
   fifth or other category is created after seeing the counts
