@@ -81,6 +81,18 @@ def _cost_abs(b5: D.Bars, k: int, profile: np.ndarray,
     return stress * execution
 
 
+def _entry_is_actionable(now: int, b5: D.Bars, k: int) -> bool:
+    """A next-M5-open signal expires when that M5 bar closes.
+
+    Backtests enter precisely at ``b5.o[k]``.  A scanner invoked after that
+    bar has closed must not turn the old decision into a late market entry.
+    """
+    if k < 0 or k >= len(b5):
+        return False
+    opened = int(b5.t[k])
+    return opened <= now < opened + b5.step
+
+
 def evaluate_arm(events: list[tuple[int, int]], flip: bool, b15: D.Bars,
                  b5: D.Bars, nxt: np.ndarray, atr: np.ndarray,
                  profile: np.ndarray, resolved_through: int) -> list[Outcome]:
@@ -303,6 +315,9 @@ def scan(write: bool = True) -> dict:
         k = int(nxt[latest_i])
         if k < 0:
             result["reason"] = "latest event has no next M5 entry bar"
+        elif not _entry_is_actionable(now, b5_all, k):
+            result["reason"] = ("latest event entry window has expired; "
+                                "do not replace the next-M5-open entry with a late fill")
         else:
             hour = int((int(b5_all.t[k]) // 3600) % 24)
             model_spread = SPREAD_STANDARD * float(profile[hour])

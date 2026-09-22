@@ -56,6 +56,15 @@ def test_rollover_count_is_inclusive_of_crossing():
     assert CE._nights(before, day + 20 * 3600 + 59 * 60 + 30) == 0
 
 
+def test_signal_cannot_enter_after_its_next_m5_bar_closes():
+    b5 = bars([100, 100], [100, 100])
+    k = 1
+    opened = int(b5.t[k])
+    assert CE._entry_is_actionable(opened, b5, k)
+    assert CE._entry_is_actionable(opened + 299, b5, k)
+    assert not CE._entry_is_actionable(opened + 300, b5, k)
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for fn in tests:
