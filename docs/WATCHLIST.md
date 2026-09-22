@@ -89,3 +89,44 @@ horizon mismatch is a reason to lose that does not invert.
 
 **What would move them off this list.** Forward data. Not a longer CONFIRM
 window, not a lower trade-count threshold, and not a different time stop.
+
+---
+
+## Disclosure note, 2026-09-22
+
+The operator asked for the names behind the Amendment 10 blinded shortlist. They
+were given. The blinding rule in Amendment 10 section 6 is a discipline on the
+RESEARCH PROCESS - it stops a shortlist drawn from 6,480 configurations from
+becoming a candidate list - and it was never secrecy from the operator, who owns
+the work. The names travel with their failures attached, and none of the ten is a
+candidate.
+
+For the record, the five winning-tail IDs all flipped sign on CONFIRM:
+
+```
+W1 ultosc:14/long      SELECT +0.1568  ->  CONFIRM -0.0112
+W2 stochrsi:5/short    SELECT +0.0334  ->  CONFIRM -0.0124
+W3 force:50/short      SELECT +0.0695  ->  CONFIRM -0.0377
+W4 rvi:10/short        SELECT +0.0325  ->  CONFIRM -0.0182
+W5 crsi:30/short       SELECT +0.0720  ->  CONFIRM -0.1223
+```
+
+and the losing-tail IDs were `L1 rsi:40/short`, `L2 mass:60/long`,
+`L3 emax:50-200/long`, `L4 wpr:7/long`, `L5 chaikvol:40/short`. L1 and L3 are the
+two already recorded above as W2 on this list.
+
+## Correction to W2, added 2026-09-22
+
+The mirror net figures quoted for W2 are **not** drift-adjusted. Only the matched
+excess is. Set against the measured random-entry baselines at the same geometry
+(random long +0.0656 R, random short -0.0507 R):
+
+- `rsi:40/short` mirrors into a **long**, so its +0.1838 R contains roughly
+  +0.07 R of drift.
+- `emax:50-200/long` mirrors into a **short**, so its +0.1424 R sits about
+  +0.19 R above what a random short earned. On this adjustment it is the
+  stronger of the two.
+
+This does not change their status. Both still fail on trade count and on
+step-down maxT p values of 0.961 and 0.899, which means the data is fully
+compatible with there being nothing there.
