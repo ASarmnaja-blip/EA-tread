@@ -1,71 +1,80 @@
-# Who owns what — 2026-09-22
+# Who owns what — updated 2026-09-22
 
-Set by the operator: **Claude watches W1. Codex takes everything else.**
-
-This file exists so two agents do not act on the same thing. Neither should
-silently take work from the other's column.
+**Codex owns everything, including W1.** The operator handed the whole project over
+and will bring Claude back next Saturday to continue from wherever Codex has got
+to. An earlier version of this file split W1 off to Claude; that split is
+withdrawn.
 
 ---
 
-## Claude — the W1 track only
+## The one thing Claude left running, and why
 
-| item | state |
+| task | state |
 |---|---|
-| the **rollover cost measurement**, the one number that decides W1 | scheduled, fires **2026-09-22 21:52 UTC** (04:52 Thai, 23 Sep), jitter 0 |
-| the **W1 forward shadow** logger | running 5x daily, read-only, never sends an order |
-| judging W1 against `docs/AMENDMENT_12` section 4 | mine |
-| recording W1 alive or dead on `docs/WATCHLIST.md` | mine |
+| `w1-rollover-cost-probe` — sends demo orders | **DELETED** |
+| `w1-shadow-logger` — read-only, logs signals | **still running, 5x daily** |
 
-**Codex: please do not run `tools/rollover_cost_probe.py`, do not judge W1, and do
-not edit W1's entry on the watchlist.** Two agents sending demo orders into the
-same one-hour window, or writing conflicting verdicts, is the specific failure this
-file prevents.
+**The probe was deleted deliberately.** It sends demo orders in a one-hour window,
+and two agents doing that in the same window is a real collision. Running it is now
+Codex's call. Its prompt is recoverable at
+`C:\Users\66985\.claude\scheduled-tasks\w1-rollover-cost-probe\SKILL.md`, and the
+script is `tools/rollover_cost_probe.py`.
 
-### A trap in the data, flagged
+**The logger was kept because a missed signal cannot be recovered.** W1 fires about
+25 times a year and the forward-shadow clock is already running; a signal that
+passes unlogged is gone. It never sends an order, it only appends to
+`data/w1_shadow_log.json`, which Codex can read freely. If Codex would rather own
+that too, delete the `w1-shadow-logger` scheduled task and run
+`research/pilot/w1_shadow.py` on whatever cadence suits.
 
-`data/rollover_cost.json` already holds one record. **It is a smoke test, not a
-measurement**, and it now carries a `NOT_A_MEASUREMENT` field saying so:
+---
 
-- taken at **01:26 UTC**, which is liquid hours. W1 trades at 22:00–23:00 UTC.
-- `--orders` was not passed, so **zero probes were sent** and no fill was measured
-- its 0.090 spread is the liquid-hours figure the cost model already used
+## W1, handed to Codex — everything needed to finish it
 
-Judging W1 from that record would conclude W1 survives on the strength of a
+**The blocking measurement.** Run
+`tools/rollover_cost_probe.py --seconds 600 --probes 4 --orders`
+**only inside 21:52–22:03 UTC.** W1 trades at 22:00 UTC (66 % of its entries) and
+23:00 UTC (33 %). The slippage floor of 0.0165 per fill that the whole cost model
+uses was measured in liquid hours. A figure from any other hour is not the
+measurement, and the window recurs daily, so a missed night costs nothing but a day.
+
+**The trap in the data.** `data/rollover_cost.json` already holds one record and it
+is **a smoke test, not a measurement**. It carries a `NOT_A_MEASUREMENT` field
+stating so: taken at 01:26 UTC in liquid hours, `--orders` not passed so **zero
+probes were sent**, and its 0.090 spread is the liquid-hours figure the cost model
+already assumed. Judging W1 from that record would conclude W1 survives on a
 measurement that was never taken.
 
-### The verdict arithmetic, fixed in advance
+**The verdict arithmetic, fixed in advance and not adjustable:**
 
 ```
-net = 0.3027 - (measured round-turn cost / R),   R = 1.5 x ATR
+net = 0.3027 - (measured round-turn cost / R),    R = 1.5 x ATR
 ```
 
-Below +0.05 R, W1 is dead and gets recorded dead. `AMENDMENT_12` section 7 forbids
-moving the gap threshold, stop, target or time stop to save it.
+Below **+0.05 R** W1 is dead and gets recorded dead on `docs/WATCHLIST.md`.
+`AMENDMENT_12` section 7 forbids moving the gap threshold, the stop, the target or
+the time stop to save it.
 
-### If the window is missed
-
-If the app is closed at 21:52 UTC the task fires on next launch, which will be the
-**wrong hour**. A slippage figure from any other hour is not the measurement.
-**Wait for the next 21:52–22:03 UTC window. Do not substitute another hour.**
+**The shadow's stopping rule is frozen** in `data/w1_shadow_protocol.json`: 26 weeks
+from the first forward signal **or** 30 events, whichever comes **second**. It does
+not stop early on a favourable result and does not extend on an unfavourable one.
 
 ---
 
-## Codex — everything else
-
-Per `docs/HANDOVER_TO_CODEX.md`, in the order it agreed:
+## The rest, as Codex agreed in `docs/HANDOVER_TO_CODEX.md`
 
 1. Session acceptance/rejection — Asia, pre-London and prior-day high/low, with
-   **touch count as an ordinal variable** and one pre-registered hypothesis that
-   the effect declines monotonically with touch count
-2. VWAP — `core.s5_vwap` has existed since early on and appears in no search
+   **touch count as an ordinal variable** and one pre-registered hypothesis that the
+   effect declines monotonically with touch count
+2. VWAP — `core.s5_vwap` has existed since early on and appears in no search at all
 3. The M1 series beyond DXY news timing
-4. Both tails reported, holdout never read for promotion
+4. Both tails reported; the holdout never read for promotion
 
 Not recommended: more indicator grid. Amendments 10, 11 and 13 closed it.
 
 ---
 
-## Shared, and not negotiable by either of us
+## Not negotiable by any agent
 
 - no real-money order, ever, without the operator's explicit confirmation
 - demo orders only under `data/DEMO_ORDER_PERMISSION.md`, verified at runtime
@@ -74,3 +83,5 @@ Not recommended: more indicator grid. Amendments 10, 11 and 13 closed it.
 - NOT ASSESSED rather than a guess
 - every search gets its own amendment, written before it runs
 - the 120-day holdout may be used for diagnosis and never for promotion
+
+The engine's answer remains **NO TRADE**.
