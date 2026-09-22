@@ -84,7 +84,7 @@ were not monotone. First touch itself had excess `−0.0158 R` and net `−0.071
 at 1x cost. **No candidate and no shadow status.** Positive descriptive subgroups
 may not be selected from the table.
 
-### B3 — VWAP and value-area interaction — **NEXT**
+### B3 — VWAP and value-area interaction — **DESIGNED, Amendment 18**
 
 `core.s5_vwap` and `core.session_vwap` have existed since early in the project
 and appear in **no search at all**. VWAP has a nameable mechanism (an execution
@@ -95,6 +95,10 @@ a decentralised market, so a value-area result would be about this broker's feed
 as much as about gold. VWAP itself is less exposed to that than the value area is.
 
 **Cost.** Low — the code exists.
+
+**Status.** Protocol frozen in `docs/AMENDMENT_18_VWAP_VALUE_AREA.md`; not run
+yet. Next step is implementation plus the required look-ahead and boundary
+tests.
 
 ---
 

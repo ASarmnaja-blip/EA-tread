@@ -97,9 +97,8 @@ varied how long a position is held, which is a different thing.
    a target wrong.
 2. **Completed: the bounded session-level experiment is a powered global
    negative.** Do not rescue it by selecting the best descriptive subgroup.
-3. **Start the next distinct untested channel: VWAP/value-area interaction.**
-   This needs its own amendment before any run, with thresholds, multiplicity
-   accounting and failure definitions frozen in advance.
+3. **Run Amendment 18: VWAP/value-area interaction.** The protocol is frozen;
+   the next work is implementation, verification tests and then the first run.
 4. **Stop the old indicator/state rescue loop.** Moving to H1/H4 state
    construction or another instrument is a separate research programme, not a
    rescue.
