@@ -48,11 +48,11 @@ def _score_universe(uni: dict, lo: int, cut: int) -> tuple[dict, dict, int]:
     """Lower-confidence-bound score using only outcomes resolved before cut."""
     out, signature, purged = {}, {}, 0
     for tag, a in uni.items():
-        entered = (a["t_in"] >= lo) & (a["t_in"] < cut)
+        entered = (a["t_order"] >= lo) & (a["t_order"] < cut)
         complete = entered & (a["t_out"] < cut)
         purged += int(entered.sum() - complete.sum())
         x = a["net"][complete]
-        if len(x) < MIN_TRADES or len(np.unique(a["t_in"][complete] // DAY)) < MIN_DAYS:
+        if len(x) < MIN_TRADES or len(np.unique(a["t_order"][complete] // DAY)) < MIN_DAYS:
             continue
         score = float(x.mean() - SHRINK_SE * x.std(ddof=1) / np.sqrt(len(x)))
         out[tag] = score
@@ -78,7 +78,11 @@ def _unique_ranking(scores: dict, signature: dict) -> tuple[list[str], int]:
 
 
 def _forward(a: dict, cut: int, end: int) -> list[float]:
-    return a["net"][(a["t_in"] >= cut) & (a["t_in"] < end)].tolist()
+    # Pending orders are cancelled at the next weekly rebuild.  A newly chosen
+    # tool cannot inherit an order created by the previous week's policy.
+    m = ((a["t_order"] >= cut) & (a["t_order"] < end)
+         & (a["t_in"] < end))
+    return a["net"][m].tolist()
 
 
 def run() -> int:

@@ -160,12 +160,21 @@ def test_limit_expiry():
     lo2 = lo.copy(); lo2[0] = 98.5
     b2 = D.Bars(t, o2, hi, lo2, c, np.ones(10), 300, "S", np.full(10, 0.03))
     ok("3e ถ้าเปิดทะลุ limit ไปแล้ว -> ได้ราคาเปิด ไม่ใช่ราคา limit",
-       E.entry_fill(b2, 0, 1, 100.0, 6) == (0, 99.0),
+       E.entry_fill(b2, 0, 1, 100.0, 6) == (0, 99.09),
        f"ได้ {E.entry_fill(b2, 0, 1, 100.0, 6)}")
     # short side mirrors
     ok("3f ฝั่ง short ทำงานกลับด้านถูกต้อง",
        E.entry_fill(b, 0, -1, 101.5, 6) == (0, 101.5),
        f"ได้ {E.entry_fill(b, 0, -1, 101.5, 6)}")
+
+    # A pending order may survive a session break. A later gap through the
+    # limit receives the later open, not the stale limit price.
+    o3 = o.copy(); o3[4] = 99.0
+    lo3 = lo.copy(); lo3[4] = 98.5
+    b3 = D.Bars(t, o3, hi, lo3, c, np.ones(10), 300, "S", np.full(10, 0.03))
+    ok("3g gap ผ่าน limit ในแท่งถัดไป -> ใช้ราคาเปิดของแท่งนั้น",
+       E.entry_fill(b3, 0, 1, 100.0, 6) == (4, 99.09),
+       f"ได้ {E.entry_fill(b3, 0, 1, 100.0, 6)}")
 
     # expiry must reduce the trade count and raise the expiry rate monotonically
     b5 = synth_bars(6000)
@@ -177,11 +186,11 @@ def test_limit_expiry():
         res = E.run_cell(bs, nxt, atr_s, sig, b5, 1.5, 1.0, (0.50, ex), 3)
         counts.append(len(res["rows"]))
         rates.append(res["expiry_rate"])
-    ok("3g อายุยาวขึ้น -> สัดส่วนที่หมดอายุลดลงแบบไม่สลับทาง",
+    ok("3h อายุยาวขึ้น -> สัดส่วนที่หมดอายุลดลงแบบไม่สลับทาง",
        all(rates[i] >= rates[i + 1] - 1e-12 for i in range(len(rates) - 1)),
        "สัดส่วนหมดอายุ " + " ".join(f"{100*x:.0f}%" for x in rates))
     mk = E.run_cell(bs, nxt, atr_s, sig, b5, 1.5, 1.0, (0.0, 0), 3)
-    ok("3h การเข้าแบบตลาดไม่มีการหมดอายุเลย",
+    ok("3i การเข้าแบบตลาดไม่มีการหมดอายุเลย",
        mk["n_expired"] == 0 and len(mk["rows"]) >= max(counts),
        f"ไม้แบบตลาด {len(mk['rows'])} vs แบบ limit สูงสุด {max(counts)}")
 
@@ -204,6 +213,19 @@ def test_worst_case():
     ok("4c จึงกลับด้านแล้วไม่ได้กำไรจากความกำกวม",
        why_l == "stop" and why_s == "stop")
 
+    # The high can precede a long limit fill at 100. With OHLC alone its order
+    # is unknowable, so an intrabar fill must not inherit that high as a TP.
+    hi2 = np.array([101.5, 100.2, 100.2, 100.2, 100.2])
+    lo2 = np.array([99.5, 99.8, 99.8, 99.8, 99.8])
+    b2 = D.Bars(t, o, hi2, lo2, c, np.ones(5), 300, "S", np.full(5, 0.03))
+    normal = E.resolve_plane(b2, 0, 1, 100.0, 1.0, (1.0,), (1.0,), 5)
+    conservative = E.resolve_plane(
+        b2, 0, 1, 100.0, 1.0, (1.0,), (1.0,), 5,
+        allow_entry_bar_target=False)
+    ok("4d limit ที่เข้าในแท่ง ห้ามใช้ high ก่อนเข้าเป็น TP",
+       normal[(1.0, 1.0)][1] == "target"
+       and conservative[(1.0, 1.0)][1] != "target")
+
 
 # ---------------------------------------------------------------- 5. costs
 def test_costs():
@@ -222,11 +244,10 @@ def test_costs():
 
     r1 = E.run_cell(bs, nxt, atr_s, sig, b5, 1.5, 1.0, (0.0, 0), 3, cost_mult=1.0)
     row = r1["rows"][0]
-    sp = (float(b5.sp[row["k"]]) if b5.sp is not None else E.SPREAD_FALLBACK)
-    expect = sp + E.COMMISSION_RT + 2 * E.SLIP_PER_FILL
-    # the long side also pays swap, so compare the cost-only part
+    expect = E.COMMISSION_RT + 2 * E.SLIP_PER_FILL
+    # Spread is embedded in the Ask path; this difference is explicit fees.
     charged = row["g"] - row["net"]
-    ok("5b ค่าใช้จ่ายต่อไม้ >= spread + คอมมิชชั่น + slippage",
+    ok("5b หักคอมมิชชั่นและ slippage โดย spread อยู่ใน Ask แล้ว",
        charged >= expect / row["risk"] - 1e-12,
        f"หักไป {charged:.5f} R, ขั้นต่ำที่ควรหัก {expect/row['risk']:.5f} R")
 
@@ -372,14 +393,22 @@ def test_fast_resolver():
     for _ in range(400):
         k = int(rng.integers(100, len(b5) - E.TIME_STOP_M5 - 2))
         d = int(rng.choice([1, -1]))
-        entry = float(b5.o[k])
+        entry = float(b5.o[k] + (E.spread_at(b5, k) if d > 0 else 0.0))
         a = float(abs(rng.normal(0.4, 0.15))) + 0.05
         plane = E.resolve_plane(b5, k, d, entry, a, E.STOPS, E.TARGETS,
                                E.TIME_STOP_M5)
+        if d > 0:
+            ref_bars = b5
+        else:
+            spreads = np.maximum(b5.sp, E.SPREAD_FALLBACK)
+            ref_bars = D.Bars(b5.t, b5.o + spreads, b5.h + spreads,
+                              b5.l + spreads, b5.c + spreads, b5.v,
+                              b5.step, b5.symbol, b5.sp)
         for st in E.STOPS:
             risk = st * a
             for tg in E.TARGETS:
-                px, why, nb = core.resolve(b5, k, d, entry, entry - d * risk,
+                px, why, nb = core.resolve(ref_bars, k, d, entry,
+                                           entry - d * risk,
                                            entry + d * tg * risk,
                                            E.TIME_STOP_M5)
                 g_ref = d * (px - entry) / risk

@@ -93,6 +93,12 @@ def n_cells() -> int:
             * len(ENTRY_MODES))
 
 
+def spread_at(b5: D.Bars, k: int) -> float:
+    if b5.sp is not None and np.isfinite(b5.sp[k]) and b5.sp[k] > 0:
+        return max(float(b5.sp[k]), SPREAD_FALLBACK)
+    return SPREAD_FALLBACK
+
+
 # ================================================================ resampling
 def resample(b5: D.Bars, mult: int) -> tuple[D.Bars, np.ndarray]:
     """Build bars of `mult` x 5 minutes from M5, and the index of the first M5
@@ -160,30 +166,40 @@ def setup_signals(name: str, c: core.Ctx) -> list[tuple[int, int]]:
 
 
 # ================================================================ execution
+def entry_fill_detail(b5: D.Bars, k0: int, d: int, limit: float,
+                      bars_m5: int):
+    """Return ``(bar, price, filled_at_open)`` for a limit order.
+
+    The open-through check is required on every eligible bar, not only the
+    first one: a session gap can occur while a pending order is still alive.
+    """
+    end = min(k0 + bars_m5, len(b5))
+    for k in range(k0, end):
+        if d > 0:
+            # MT5 FX/metals bars are Bid bars; a buy order fills on Ask.
+            sp = spread_at(b5, k)
+            if b5.o[k] + sp <= limit:
+                return k, float(b5.o[k] + sp), True
+            if b5.l[k] + sp <= limit:
+                return k, float(limit), False
+        else:
+            if b5.o[k] >= limit:
+                return k, float(b5.o[k]), True
+            if b5.h[k] >= limit:
+                return k, float(limit), False
+    return None
+
+
 def entry_fill(b5: D.Bars, k0: int, d: int, limit: float, bars_m5: int):
     """Where a limit at `limit` fills within `bars_m5` M5 bars from k0, or None.
 
     A long fills when price trades DOWN to the limit, a short when it trades UP
-    to it. The fill price is the limit itself, except when the window's first bar
-    opens through it, in which case the open is the honest fill - a limit cannot
+    to it. The fill price is the limit itself, except when an eligible bar opens
+    through it, in which case the open is the honest fill - a limit cannot
     fill better than the market gives.
     """
-    end = min(k0 + bars_m5, len(b5))
-    if k0 >= end:
-        return None
-    if d > 0:
-        if b5.o[k0] <= limit:
-            return k0, float(b5.o[k0])
-        for k in range(k0, end):
-            if b5.l[k] <= limit:
-                return k, float(limit)
-    else:
-        if b5.o[k0] >= limit:
-            return k0, float(b5.o[k0])
-        for k in range(k0, end):
-            if b5.h[k] >= limit:
-                return k, float(limit)
-    return None
+    got = entry_fill_detail(b5, k0, d, limit, bars_m5)
+    return None if got is None else got[:2]
 
 
 def run_cell(bs: D.Bars, nxt: np.ndarray, atr_s: np.ndarray,
@@ -204,25 +220,29 @@ def run_cell(bs: D.Bars, nxt: np.ndarray, atr_s: np.ndarray,
         risk = stop_atr * float(a)
         offset, expiry_bars = entry_mode
         if expiry_bars == 0:
-            k, entry = k0, float(b5.o[k0])
+            k = k0
+            entry = float(b5.o[k0] + (spread_at(b5, k0) if d > 0 else 0.0))
+            at_open = True
         else:
             # the limit sits `offset` ATR in the trader's favour: below the close
             # for a long, above it for a short
             limit = float(bs.c[i]) - d * offset * float(a)
-            got = entry_fill(b5, k0, d, limit, expiry_bars * mult)
+            got = entry_fill_detail(b5, k0, d, limit, expiry_bars * mult)
             if got is None:
                 n_expired += 1
                 continue
-            k, entry = got
+            k, entry, at_open = got
         if k <= busy_until_m5:
             continue
-        stop = entry - d * risk
-        target = entry + d * target_r * risk
-        px, why, nb = core.resolve(b5, k, d, entry, stop, target, TIME_STOP_M5)
-        g = d * (px - entry) / risk
-        sp = (float(b5.sp[k]) if b5.sp is not None and np.isfinite(b5.sp[k])
-              and b5.sp[k] > 0 else SPREAD_FALLBACK)
-        cost = cost_mult * (sp + COMMISSION_RT + 2.0 * SLIP_PER_FILL)
+        # With M5 OHLC alone, the high preceding an intrabar limit fill cannot
+        # be distinguished from a high after it.  Never credit a target on that
+        # entry bar.  A stop remains valid: moving from the open through the
+        # limit and then beyond the stop necessarily crosses both in that order.
+        g, why, nb = resolve_plane(
+            b5, k, d, entry, float(a), (stop_atr,), (target_r,), TIME_STOP_M5,
+            allow_entry_bar_target=at_open)[(stop_atr, target_r)]
+        # Spread is embedded in the Ask entry/exit path.
+        cost = cost_mult * (COMMISSION_RT + 2.0 * SLIP_PER_FILL)
         net = g - cost / risk
         t0 = int(b5.t[k])
         sw = SWAP_LONG if d > 0 else SWAP_SHORT
@@ -232,8 +252,9 @@ def run_cell(bs: D.Bars, nxt: np.ndarray, atr_s: np.ndarray,
             t1 = int(b5.t[min(k + nb, len(b5) - 1)])
             nights = rollover_nights(t0, t1)
             net -= nights * sw / risk
-        rows.append(dict(i=i, k=k, t=t0, d=d, g=g, net=net, why=why, nb=nb,
-                         day=t0 // 86400, risk=risk))
+        rows.append(dict(i=i, k=k, t=t0, order_k=k0,
+                         order_t=int(b5.t[k0]), d=d, g=g, net=net, why=why,
+                         nb=nb, day=t0 // 86400, risk=risk))
         busy_until_m5 = k + nb
     return dict(rows=rows, n_expired=n_expired, n_tried=n_tried,
                 expiry_rate=(n_expired / n_tried) if n_tried else float("nan"),
@@ -275,7 +296,8 @@ def first_cross(cummax: np.ndarray, thresholds: np.ndarray) -> np.ndarray:
 
 
 def resolve_plane(b5: D.Bars, k: int, d: int, entry: float, atr_unit: float,
-                  stops: tuple, targets: tuple, time_stop: int):
+                  stops: tuple, targets: tuple, time_stop: int,
+                  allow_entry_bar_target: bool = True):
     """Gross R and exit reason for every (stop, target) pair, from one pass.
 
     Returns dict[(stop, target)] = (gross_R, why, bars_held).
@@ -288,13 +310,23 @@ def resolve_plane(b5: D.Bars, k: int, d: int, entry: float, atr_unit: float,
     if d > 0:
         fav = (hi - entry) / atr_unit
         adv = (entry - lo) / atr_unit
+        last_c = float(b5.c[end - 1])
     else:
-        fav = (entry - lo) / atr_unit
-        adv = (hi - entry) / atr_unit
+        if b5.sp is None:
+            spreads = np.full(end - k, SPREAD_FALLBACK)
+        else:
+            spreads = np.maximum(b5.sp[k:end], SPREAD_FALLBACK)
+        ask_hi = hi + spreads
+        ask_lo = lo + spreads
+        fav = (entry - ask_lo) / atr_unit
+        adv = (ask_hi - entry) / atr_unit
+        last_c = float(b5.c[end - 1] + spreads[-1])
+    if not allow_entry_bar_target and len(fav):
+        fav = fav.copy()
+        fav[0] = -np.inf
     fav_c = np.maximum.accumulate(fav)
     adv_c = np.maximum.accumulate(adv)
     nb_last = end - k - 1
-    last_c = float(b5.c[end - 1])
     out = {}
     for st in stops:
         j_stop = int(first_cross(adv_c, np.array([st]))[0])

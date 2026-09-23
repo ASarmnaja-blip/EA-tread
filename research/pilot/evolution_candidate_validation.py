@@ -61,9 +61,9 @@ def truncation_audit(b5, uni: dict, meta: dict, rankings: list[tuple]) -> None:
                    if r["k"] + r["nb"] <= len(truncated) - 1
                    and (r["k"] + r["nb"] < len(truncated) - 1
                         or r["why"] != "time")
-                   and cut - 56 * DAY <= int(r["t"]) < cut}
+                   and cut - 56 * DAY <= int(r["order_t"]) < cut}
             a = uni[tag]
-            mask = ((a["t_in"] >= cut - 56 * DAY) & (a["t_in"] < cut)
+            mask = ((a["t_order"] >= cut - 56 * DAY) & (a["t_order"] < cut)
                     & (a["t_out"] < cut))
             want = {int(k): float(v) for k, v in zip(a["sigk"][mask],
                                                      a["net"][mask])}
@@ -93,7 +93,8 @@ def ranking_control(uni: dict, meta: dict, rankings: list[tuple]) -> None:
             middle = same[len(same) // 2]
             for dest, cell in ((top_vals, tag), (mid_vals, middle)):
                 a = uni[cell]
-                mask = (a["t_in"] >= cut) & (a["t_in"] < end)
+                mask = ((a["t_order"] >= cut) & (a["t_order"] < end)
+                        & (a["t_in"] < end))
                 dest.append(float(np.mean(a["net"][mask])) if mask.any() else 0.0)
         top_week.append(float(np.mean(top_vals)) if top_vals else 0.0)
         middle_week.append(float(np.mean(mid_vals)) if mid_vals else 0.0)

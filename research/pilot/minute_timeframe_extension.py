@@ -19,7 +19,7 @@ import mtf_engine as E
 import walk_forward as wf
 
 
-CACHE = Path("data/weekly_evolution_m1_v2.pkl")
+CACHE = Path("data/weekly_evolution_m1_v3.pkl")
 
 
 def load_m1_universe():
@@ -32,7 +32,7 @@ def load_m1_universe():
               else np.full(len(raw), E.SPREAD_FALLBACK))
     base = D.Bars(raw.t, raw.o, raw.h, raw.l, raw.c, raw.v, 300,
                   raw.symbol, spread)
-    stamp = (int(base.t[0]), int(base.t[-1]), len(base))
+    stamp = audit.canonical.bars_digest(base)
     if CACHE.exists():
         with CACHE.open("rb") as fh:
             old_stamp, uni, meta = pickle.load(fh)

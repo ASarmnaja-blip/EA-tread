@@ -97,38 +97,42 @@ def build_universe(b5: D.Bars, t_end: int):
                     if k0 < 0 or not np.isfinite(a) or a <= 0:
                         continue
                     if exp == 0:
-                        k, entry = k0, float(b5.o[k0])
+                        k = k0
+                        entry = float(b5.o[k0] + (E.spread_at(b5, k0)
+                                                   if d > 0 else 0.0))
                     else:
                         lim = float(bs.c[i]) - d * off * float(a)
-                        got = E.entry_fill(b5, k0, d, lim, exp * mult)
+                        got = E.entry_fill_detail(b5, k0, d, lim, exp * mult)
                         if got is None:
                             continue
-                        k, entry = got
-                    fills.append((k, d, entry, float(a)))
+                        k, entry, at_open = got
+                    if exp == 0:
+                        at_open = True
+                    fills.append((k, d, entry, float(a), at_open, k0))
                 if len(fills) < MIN_TRADES_SEL:
                     continue
                 planes = []
-                for (k, d, entry, a) in fills:
+                for (k, d, entry, a, at_open, _order_k) in fills:
                     planes.append(E.resolve_plane(b5, k, d, entry, a, E.STOPS,
-                                                  E.TARGETS, E.TIME_STOP_M5))
+                                                  E.TARGETS, E.TIME_STOP_M5,
+                                                  allow_entry_bar_target=at_open))
                 for st in E.STOPS:
                     for tg in E.TARGETS:
                         tag = (f"{setup}/{tfname}/s{st:g}/t{tg:g}"
                                f"/o{off:g}e{exp}")
-                        t_in, t_out, net, sigk = [], [], [], []
+                        t_order, t_in, t_out, net, sigk = [], [], [], [], []
                         risks, directions, dollars = [], [], []
                         entries, exit_indices = [], []
                         busy = -1
-                        for j, (k, d, entry, a) in enumerate(fills):
+                        for j, (k, d, entry, a, _at_open, order_k) in enumerate(fills):
                             if k <= busy:
                                 continue
                             g, why, nb = planes[j][(st, tg)]
                             risk = st * a
                             kx = min(k + nb, len(b5) - 1)
-                            sp = (float(b5.sp[k]) if b5.sp is not None
-                                  and np.isfinite(b5.sp[k]) and b5.sp[k] > 0
-                                  else E.SPREAD_FALLBACK)
-                            cost = sp + E.COMMISSION_RT + 2 * E.SLIP_PER_FILL
+                            # Bid/Ask spread is embedded in entry and exit
+                            # geometry; deduct only fees and slippage here.
+                            cost = E.COMMISSION_RT + 2 * E.SLIP_PER_FILL
                             nt = g - cost / risk
                             if d > 0 and E.SWAP_LONG:
                                 t0 = int(b5.t[k])
@@ -137,6 +141,7 @@ def build_universe(b5: D.Bars, t_end: int):
                                 t1 = int(b5.t[kx])
                                 nights = E.rollover_nights(t0, t1)
                                 nt -= nights * E.SWAP_LONG / risk
+                            t_order.append(int(b5.t[order_k]))
                             t_in.append(int(b5.t[k]))
                             t_out.append(int(b5.t[kx]))
                             net.append(nt)
@@ -154,6 +159,7 @@ def build_universe(b5: D.Bars, t_end: int):
                             busy = k + nb
                         if len(t_in) >= MIN_TRADES_SEL:
                             out[tag] = dict(
+                                t_order=np.array(t_order, np.int64),
                                 t_in=np.array(t_in, np.int64),
                                 t_out=np.array(t_out, np.int64),
                                 net=np.array(net, float),
@@ -178,14 +184,14 @@ def roll_scores(uni: dict, sel_lo: int, sel_hi: int, fwd_hi: int):
     sel, fwd, n_sel, d_sel, sig = {}, {}, {}, {}, {}
     purged = 0
     for tag, a in uni.items():
-        m_sig = (a["t_in"] >= sel_lo) & (a["t_in"] < sel_hi)
+        m_sig = (a["t_order"] >= sel_lo) & (a["t_order"] < sel_hi)
         if not m_sig.any():
             continue
         m_res = m_sig & (a["t_out"] < sel_hi)
         purged += int(m_sig.sum() - m_res.sum())
         if m_res.sum() < MIN_TRADES_SEL:
             continue
-        days = np.unique(a["t_in"][m_res] // DAY)
+        days = np.unique(a["t_order"][m_res] // DAY)
         if len(days) < MIN_DAYS_SEL:
             continue
         sel[tag] = float(a["net"][m_res].mean())
@@ -193,7 +199,8 @@ def roll_scores(uni: dict, sel_lo: int, sel_hi: int, fwd_hi: int):
         d_sel[tag] = len(days)
         # correction 7: the realised trade set inside this window is the identity
         sig[tag] = a["sigk"][m_res].tobytes()
-        mf = (a["t_in"] >= sel_hi) & (a["t_in"] < fwd_hi)
+        mf = ((a["t_order"] >= sel_hi) & (a["t_order"] < fwd_hi)
+              & (a["t_in"] < fwd_hi))
         # correction 8: no forward trade contributes ZERO, not missing
         fwd[tag] = float(a["net"][mf].mean()) if mf.any() else 0.0
     return sel, fwd, n_sel, d_sel, sig, purged
@@ -292,13 +299,17 @@ def main() -> int:
         nbot.append(np.mean([n_sel[t] for t in bot]))
         for h in DECAY_DAYS:
             hi = s + h * DAY
-            vt = [float(uni[t]["net"][(uni[t]["t_in"] >= s)
+            vt = [float(uni[t]["net"][(uni[t]["t_order"] >= s)
+                                     & (uni[t]["t_order"] < hi)
                                      & (uni[t]["t_in"] < hi)].mean())
-                  if ((uni[t]["t_in"] >= s) & (uni[t]["t_in"] < hi)).any()
+                  if ((uni[t]["t_order"] >= s) & (uni[t]["t_order"] < hi)
+                      & (uni[t]["t_in"] < hi)).any()
                   else 0.0 for t in top]
-            vb = [float(uni[t]["net"][(uni[t]["t_in"] >= s)
+            vb = [float(uni[t]["net"][(uni[t]["t_order"] >= s)
+                                     & (uni[t]["t_order"] < hi)
                                      & (uni[t]["t_in"] < hi)].mean())
-                  if ((uni[t]["t_in"] >= s) & (uni[t]["t_in"] < hi)).any()
+                  if ((uni[t]["t_order"] >= s) & (uni[t]["t_order"] < hi)
+                      & (uni[t]["t_in"] < hi)).any()
                   else 0.0 for t in bot]
             decay[h].append(float(np.mean(vt) - np.mean(vb)))
 

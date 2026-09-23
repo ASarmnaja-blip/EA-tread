@@ -19,6 +19,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adaptive
+import canonical_history as canonical
 import current_edge as ce
 import current_edge_backtest as bt
 import data as D
@@ -28,6 +29,7 @@ SYMBOL = "XAUUSD"
 START_YEAR = 2021
 FIRST_ANCHOR_YEAR = 2022
 RAW_SPREAD_FLOOR = 0.090       # active Demo account: 90 points at 3 decimals
+CANONICAL_M5 = Path("data/canonical_XAUUSD_M5.npz")
 
 
 def _epoch(year: int) -> int:
@@ -69,7 +71,8 @@ def _fetch_pre_csv(csv_start: int) -> D.Bars:
         mt5.shutdown()
 
 
-def load_history() -> D.Bars:
+def load_mutable_history() -> D.Bars:
+    """Fetch and combine sources once; never use this directly for an audit."""
     recent = D.load_csv("data/XAUUSD_M5.csv")
     old = _fetch_pre_csv(int(recent.t[0]))
     t = np.r_[old.t, recent.t]
@@ -82,6 +85,15 @@ def load_history() -> D.Bars:
     sp_new = recent.sp if recent.sp is not None else np.full(len(recent), RAW_SPREAD_FLOOR)
     sp = np.maximum(np.r_[sp_old, sp_new], RAW_SPREAD_FLOOR)
     return D.Bars(t, o, h, l, c, v, 300, SYMBOL, sp)
+
+
+def load_history() -> D.Bars:
+    """Load the immutable research snapshot when present."""
+    if CANONICAL_M5.exists():
+        bars = canonical.load(CANONICAL_M5)
+        print(f"canonical_history=VERIFIED sha256={canonical.bars_digest(bars)}")
+        return bars
+    return load_mutable_history()
 
 
 def _last_closed_index(b5: D.Bars, at: int) -> int:

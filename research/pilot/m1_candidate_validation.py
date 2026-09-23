@@ -47,9 +47,9 @@ def truncation(b1, uni, meta, rankings):
                    if r["k"] + r["nb"] <= len(truncated) - 1
                    and (r["k"] + r["nb"] < len(truncated) - 1
                         or r["why"] != "time")
-                   and cut - 56 * DAY <= int(r["t"]) < cut}
+                   and cut - 56 * DAY <= int(r["order_t"]) < cut}
             a = uni[tag]
-            mask = ((a["t_in"] >= cut - 56 * DAY) & (a["t_in"] < cut)
+            mask = ((a["t_order"] >= cut - 56 * DAY) & (a["t_order"] < cut)
                     & (a["t_out"] < cut))
             want = {int(k): float(v) for k, v in zip(a["sigk"][mask],
                                                      a["net"][mask])}

@@ -118,7 +118,8 @@ def family_week_rows(b5, uni, meta, rankings):
                 week[setup] = []
                 continue
             a = uni[tag]
-            mask = (a["t_in"] >= cut) & (a["t_in"] < end)
+            mask = ((a["t_order"] >= cut) & (a["t_order"] < end)
+                    & (a["t_in"] < end))
             z = []
             for j in np.flatnonzero(mask):
                 bar = int(a["sigk"][j])

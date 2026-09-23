@@ -11,6 +11,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import math
+import hashlib
 import pickle
 from pathlib import Path
 import sys
@@ -19,6 +20,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adaptive
+import canonical_history as canonical
 import current_edge as ce
 import data as D
 import historical_regime_walkforward as hist
@@ -28,7 +30,6 @@ import walk_forward as wf
 
 
 DAY = 86400
-CACHE = Path("data/weekly_evolution_universe_v5.pkl")
 ACCOUNT_USD = 995.52
 
 
@@ -100,12 +101,15 @@ def mark_to_market(trades: list[Trade], bars: D.Bars) -> dict:
         realised_delta[k1] += r.dollars
         if k1 <= k0:
             continue
-        sp = (float(bars.sp[k0]) if bars.sp is not None
-              and np.isfinite(bars.sp[k0]) and bars.sp[k0] > 0
-              else wf.E.SPREAD_FALLBACK)
-        execution = (max(sp, wf.E.SPREAD_FALLBACK) + wf.E.COMMISSION_RT
-                     + 2 * wf.E.SLIP_PER_FILL)
-        path = r.direction * (bars.c[k0:k1] - r.entry) - execution
+        fee = wf.E.COMMISSION_RT + 2 * wf.E.SLIP_PER_FILL
+        if r.direction > 0:
+            path = bars.c[k0:k1] - r.entry - fee
+        else:
+            if bars.sp is None:
+                spreads = np.full(k1 - k0, wf.E.SPREAD_FALLBACK)
+            else:
+                spreads = np.maximum(bars.sp[k0:k1], wf.E.SPREAD_FALLBACK)
+            path = r.entry - (bars.c[k0:k1] + spreads) - fee
         if r.direction > 0:
             t0 = int(bars.t[k0])
             t1 = int(bars.t[k1 - 1])
@@ -203,18 +207,18 @@ def fixed_demo_trades(b5: D.Bars) -> tuple[list[Trade], list[Trade]]:
                 continue
             d = -event_dir if sleeve.flip else event_dir
             risk = sleeve.stop_atr * a
-            entry = float(b5.o[k])
-            stop = entry - d * risk
-            target = entry + d * sleeve.target_r * risk
-            px, _why, bars = ce.core.resolve(
-                b5, k, d, entry, stop, target, sleeve.time_bars)
+            entry = float(b5.o[k] + (wf.E.spread_at(b5, k) if d > 0 else 0.0))
+            gross, _why, bars = wf.E.resolve_plane(
+                b5, k, d, entry, float(a), (sleeve.stop_atr,),
+                (sleeve.target_r,), sleeve.time_bars)[
+                    (sleeve.stop_atr, sleeve.target_r)]
             xk = min(k + bars, len(b5) - 1)
-            gross = d * (float(px) - entry) / risk
             swap = (ce._nights(int(b5.t[k]), int(b5.t[xk])) * ce.SWAP_LONG
                     if d > 0 else 0.0)
-            base = ce._cost_abs(b5, k, profile, 1.0) + swap
-            stress = gross - (ce._cost_abs(b5, k, profile, ce.STRESS_MULT)
-                              + swap) / risk
+            fee = wf.E.COMMISSION_RT + 2 * wf.E.SLIP_PER_FILL
+            base = fee + swap
+            stress_extra = 0.5 * (wf.E.spread_at(b5, k) + fee)
+            stress = gross - (base + stress_extra) / risk
             net = gross - base / risk
             row = Trade(int(b5.t[k]), int(b5.t[xk]), net, net * risk,
                         risk, sleeve.name, stress, entry, k, xk, int(d))
@@ -232,18 +236,49 @@ def fixed_demo_trades(b5: D.Bars) -> tuple[list[Trade], list[Trade]]:
     return out, gated
 
 
+def _universe_stamp(b5: D.Bars) -> dict:
+    code = hashlib.sha256()
+    for module in (Path(wf.__file__), Path(wf.E.__file__)):
+        code.update(module.name.encode())
+        code.update(module.read_bytes())
+    return {
+        "data_sha256": canonical.bars_digest(b5),
+        "code_sha256": code.hexdigest(),
+        "spread_floor": wf.E.SPREAD_FALLBACK,
+        "commission_rt": wf.E.COMMISSION_RT,
+        "slip_per_fill": wf.E.SLIP_PER_FILL,
+        "swap_long": wf.E.SWAP_LONG,
+        "swap_short": wf.E.SWAP_SHORT,
+        "rollover_h": wf.E.ROLLOVER_H,
+        "time_stop": wf.E.TIME_STOP_M5,
+        "timeframes": wf.E.TIMEFRAMES,
+        "stops": wf.E.STOPS,
+        "targets": wf.E.TARGETS,
+        "entry_modes": wf.E.ENTRY_MODES,
+    }
+
+
+def _cache_path() -> Path:
+    sp = int(round(1000 * wf.E.SPREAD_FALLBACK))
+    co = int(round(1000 * wf.E.COMMISSION_RT))
+    return Path(f"data/weekly_evolution_universe_v10_sp{sp:03d}_co{co:03d}.pkl")
+
+
 def load_universe(b5: D.Bars) -> tuple[dict, dict]:
-    stamp = (int(b5.t[0]), int(b5.t[-1]), len(b5))
-    if CACHE.exists():
-        with CACHE.open("rb") as fh:
+    # Timestamp/length stamps are insufficient: MT5 has revised OHLC values
+    # without changing either.  The entire input is now part of the cache key.
+    stamp = _universe_stamp(b5)
+    cache = _cache_path()
+    if cache.exists():
+        with cache.open("rb") as fh:
             got_stamp, uni, meta = pickle.load(fh)
         if got_stamp == stamp and all("entry" in a for a in uni.values()):
             print(f"universe_cache=HIT cells={len(uni):,}")
             return uni, meta
     print("universe_cache=MISS building 8,250 declared cells...")
     uni, meta = wf.build_universe(b5, int(b5.t[-1] + b5.step))
-    CACHE.parent.mkdir(parents=True, exist_ok=True)
-    with CACHE.open("wb") as fh:
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    with cache.open("wb") as fh:
         pickle.dump((stamp, uni, meta), fh, protocol=pickle.HIGHEST_PROTOCOL)
     return uni, meta
 
@@ -293,14 +328,12 @@ def weekly_portfolio(b5: D.Bars, uni: dict, meta: dict, rankings: list[tuple],
         prior = now_choice
         for tag in chosen:
             a = uni[tag]
-            mask = (a["t_in"] >= cut) & (a["t_in"] < end)
+            mask = ((a["t_order"] >= cut) & (a["t_order"] < end)
+                    & (a["t_in"] < end))
             for j in np.flatnonzero(mask):
                 bar = int(a["sigk"][j])
-                sp = (float(b5.sp[bar]) if b5.sp is not None
-                      and np.isfinite(b5.sp[bar]) and b5.sp[bar] > 0
-                      else wf.E.SPREAD_FALLBACK)
-                execution = (max(sp, wf.E.SPREAD_FALLBACK)
-                             + wf.E.COMMISSION_RT + 2 * wf.E.SLIP_PER_FILL)
+                execution = (wf.E.spread_at(b5, bar) + wf.E.COMMISSION_RT
+                             + 2 * wf.E.SLIP_PER_FILL)
                 stress_r = float(a["net"][j] - 0.5 * execution / a["risk"][j])
                 out.append(Trade(int(a["t_in"][j]), int(a["t_out"][j]),
                                  float(a["net"][j]), float(a["dollars"][j]),
