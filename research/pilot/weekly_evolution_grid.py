@@ -59,7 +59,10 @@ def _score_universe(uni: dict, lo: int, cut: int) -> tuple[dict, dict, int]:
         # Parameterisations that acted on the same entries get one seat in the
         # weekly ranking.  Otherwise a setup with many barrier variants receives
         # more lottery tickets than a genuinely distinct setup.
-        signature[tag] = hash(a["sigk"][complete].tobytes())
+        # Keep the bytes themselves: Python's salted hash is process-specific
+        # and, while collisions are unlikely, a collision must not silently
+        # delete a genuinely distinct strategy from the ranking.
+        signature[tag] = a["sigk"][complete].tobytes()
     return out, signature, purged
 
 

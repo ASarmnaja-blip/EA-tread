@@ -75,6 +75,19 @@ SWAP_SHORT = 0.0
 ROLLOVER_H = 21
 
 
+def rollover_nights(t0: int, t1: int) -> int:
+    """Count 21:00 UTC rollover instants in the real interval [t0, t1]."""
+    day0 = t0 - (t0 % 86400)
+    cur = day0 + ROLLOVER_H * 3600
+    if cur < t0:
+        cur += 86400
+    nights = 0
+    while cur <= t1:
+        nights += 1
+        cur += 86400
+    return nights
+
+
 def n_cells() -> int:
     return (len(SETUPS) * len(TIMEFRAMES) * len(STOPS) * len(TARGETS)
             * len(ENTRY_MODES))
@@ -214,13 +227,10 @@ def run_cell(bs: D.Bars, nxt: np.ndarray, atr_s: np.ndarray,
         t0 = int(b5.t[k])
         sw = SWAP_LONG if d > 0 else SWAP_SHORT
         if sw:
-            t1 = t0 + nb * b5.step
-            h0 = (t0 // 3600) % 24
-            cur = t0 - (t0 % 3600) + ((ROLLOVER_H - h0) % 24) * 3600
-            nights = 0
-            while cur <= t1:
-                nights += 1
-                cur += 86400
+            # Bar counts are not elapsed wall time across a weekend/session
+            # break.  Rollover is charged by actual timestamps.
+            t1 = int(b5.t[min(k + nb, len(b5) - 1)])
+            nights = rollover_nights(t0, t1)
             net -= nights * sw / risk
         rows.append(dict(i=i, k=k, t=t0, d=d, g=g, net=net, why=why, nb=nb,
                          day=t0 // 86400, risk=risk))

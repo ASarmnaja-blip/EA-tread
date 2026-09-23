@@ -116,6 +116,8 @@ def build_universe(b5: D.Bars, t_end: int):
                         tag = (f"{setup}/{tfname}/s{st:g}/t{tg:g}"
                                f"/o{off:g}e{exp}")
                         t_in, t_out, net, sigk = [], [], [], []
+                        risks, directions, dollars = [], [], []
+                        entries, exit_indices = [], []
                         busy = -1
                         for j, (k, d, entry, a) in enumerate(fills):
                             if k <= busy:
@@ -130,26 +132,37 @@ def build_universe(b5: D.Bars, t_end: int):
                             nt = g - cost / risk
                             if d > 0 and E.SWAP_LONG:
                                 t0 = int(b5.t[k])
-                                t1 = t0 + nb * 300
-                                h0 = (t0 // 3600) % 24
-                                cur = (t0 - (t0 % 3600)
-                                       + ((E.ROLLOVER_H - h0) % 24) * 3600)
-                                nights = 0
-                                while cur <= t1:
-                                    nights += 1
-                                    cur += DAY
+                                # Use the actual exit timestamp.  `nb * 300`
+                                # silently skips weekend rollover charges.
+                                t1 = int(b5.t[kx])
+                                nights = E.rollover_nights(t0, t1)
                                 nt -= nights * E.SWAP_LONG / risk
                             t_in.append(int(b5.t[k]))
                             t_out.append(int(b5.t[kx]))
                             net.append(nt)
                             sigk.append(k)
+                            risks.append(risk)
+                            directions.append(d)
+                            # XAUUSD contract size is 100 oz and the Demo
+                            # minimum is 0.01 lot, hence one price unit is
+                            # one USD.  Keeping this alongside R lets later
+                            # portfolio audits report the actual minimum-lot
+                            # finance result without reconstructing fills.
+                            dollars.append(nt * risk)
+                            entries.append(entry)
+                            exit_indices.append(kx)
                             busy = k + nb
                         if len(t_in) >= MIN_TRADES_SEL:
                             out[tag] = dict(
                                 t_in=np.array(t_in, np.int64),
                                 t_out=np.array(t_out, np.int64),
                                 net=np.array(net, float),
-                                sigk=np.array(sigk, np.int64))
+                                sigk=np.array(sigk, np.int64),
+                                risk=np.array(risks, float),
+                                direction=np.array(directions, np.int8),
+                                dollars=np.array(dollars, float),
+                                entry=np.array(entries, float),
+                                exit_k=np.array(exit_indices, np.int64))
                             meta[tag] = dict(setup=setup, tf=tfname, stop=st,
                                              target=tg, off=off, exp=exp)
     return out, meta
@@ -179,7 +192,7 @@ def roll_scores(uni: dict, sel_lo: int, sel_hi: int, fwd_hi: int):
         n_sel[tag] = int(m_res.sum())
         d_sel[tag] = len(days)
         # correction 7: the realised trade set inside this window is the identity
-        sig[tag] = hash(a["sigk"][m_res].tobytes())
+        sig[tag] = a["sigk"][m_res].tobytes()
         mf = (a["t_in"] >= sel_hi) & (a["t_in"] < fwd_hi)
         # correction 8: no forward trade contributes ZERO, not missing
         fwd[tag] = float(a["net"][mf].mean()) if mf.any() else 0.0

@@ -169,7 +169,33 @@ def main() -> int:
         print("ไม่ได้ราคาเลย — ตลาดอาจปิด")
 
     if do_orders:
-        if not is_demo:
+        # HOUR GUARD, inside the script rather than only in the caller's prompt.
+        #
+        # The scheduled run on 2026-09-22 fired correctly at 21:52 UTC and then
+        # stalled for hours waiting on a permission prompt. Approving that prompt
+        # later would have sent orders at the wrong hour and written a record
+        # indistinguishable from the real measurement. The hour IS the whole point
+        # - 66 % of W1's entries are at 22:00 UTC and 33 % at 23:00 - so the
+        # refusal belongs somewhere a late approval cannot bypass.
+        #
+        # I then demonstrated the need for it twice over by running this script
+        # myself at 00:0x UTC while testing a patch that had silently failed to
+        # apply, writing two junk records in the process. All junk records carry
+        # NOT_A_MEASUREMENT.
+        hr = now_utc().hour
+        ti = mt5.terminal_info()
+        auto_ok = bool(ti and ti.trade_allowed)
+        if hr not in (21, 22, 23) and "--force-hour" not in sys.argv:
+            print(f"\nชั่วโมง UTC ปัจจุบัน {hr:02d} ไม่ใช่หน้าต่างของ W1")
+            print("W1 เทรด 22:00 UTC (66%) และ 23:00 UTC (33%)")
+            print("-> ไม่ส่งคำสั่ง การวัดผิดชั่วโมงแย่กว่าไม่วัดเลย "
+                  "เพราะมันจะถูกอ่านว่าเป็นหลักฐาน")
+        elif not auto_ok:
+            print("\n*** AutoTrading ถูกปิดอยู่ในโปรแกรม MT5 ***")
+            print("    ทุกคำสั่งจะถูกปฏิเสธด้วย retcode 10027")
+            print("    ต้องกดปุ่ม AutoTrading ในแถบเครื่องมือ MT5 ให้เป็นสีเขียวก่อน")
+            print("-> ไม่ส่งคำสั่ง")
+        elif not is_demo:
             print("\nไม่ใช่บัญชีทดลอง -> ไม่ส่งคำสั่งเด็ดขาด")
         elif mt5.positions_total():
             print(f"\nมีสถานะเปิดอยู่ {mt5.positions_total()} -> ไม่ส่งคำสั่ง")
@@ -200,6 +226,16 @@ def main() -> int:
         print("\n(ไม่ได้ส่ง --orders จึงไม่มีการส่งคำสั่งใด ๆ)")
 
     print(f"\nสถานะเปิดคงเหลือ {mt5.positions_total()} (ต้องเป็น 0)")
+    # Label the record at the source. A file of ambiguous records is how a
+    # measurement that was never taken gets read as evidence later.
+    _hr = now_utc().hour
+    if _hr not in (21, 22, 23):
+        rec["NOT_A_MEASUREMENT"] = (
+            f"Run at {_hr:02d}:xx UTC, outside W1's trading hours of 22:00 and "
+            "23:00 UTC. Not the rollover measurement. Do not use for W1.")
+    if not rec.get("probes"):
+        rec.setdefault("NO_FILLS", "no order filled, so no slippage was measured "
+                                   "whatever the spread column shows")
     hist = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else []
     hist.append(rec)
     OUT.parent.mkdir(parents=True, exist_ok=True)

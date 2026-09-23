@@ -319,13 +319,28 @@ def test_grid():
        f"ระยะที่มี {sorted({c['offset'] for c in built})}")
 
 
+def test_rollover_clock():
+    print("\n[10] rollover ใช้เวลาจริง ไม่ใช้จำนวนแท่ง")
+    day = 2_000_000_000 - (2_000_000_000 % 86400)
+    before = day + 20 * 3600 + 55 * 60
+    after = day + 21 * 3600 + 5 * 60
+    monday = day + 3 * 86400 + 22 * 3600
+    ok("10a เข้าก่อน 21:00 แล้วถือผ่าน 21:00 นับหนึ่งคืน",
+       E.rollover_nights(before, day + 21 * 3600 + 5 * 60) == 1)
+    ok("10b เข้าหลัง 21:00 ไม่นับ rollover ที่ผ่านไปแล้ว",
+       E.rollover_nights(after, day + 22 * 3600) == 0)
+    ok("10c ช่วงข้าม weekend นับจาก timestamp จริง",
+       E.rollover_nights(before, monday) == 4)
+
+
 def main() -> int:
     print("=" * 92)
     print("ตรวจสอบเครื่องยนต์ก่อนส่งมอบ (Amendment 14 ข้อ 6)")
     print("=" * 92)
     for fn in (test_no_lookahead, test_resample, test_limit_expiry,
                test_worst_case, test_costs, test_loo_control,
-               test_permutation_exact, test_grid, test_fast_resolver):
+               test_permutation_exact, test_grid, test_fast_resolver,
+               test_rollover_clock):
         try:
             fn()
         except Exception as exc:  # a crash is a failure, not a skip
