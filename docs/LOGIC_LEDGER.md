@@ -140,6 +140,32 @@ smoother-looking buckets.
 
 ---
 
+## Part 5 — single-tool reselection at fine geometry (2026-09-26)
+
+`research/pilot/fine_grid_walk.py`: six families × five timeframes × 15 stops ×
+20 targets = 9,000 geometries, market entry, real Demo cost. Each month the
+single best geometry of the prior three months was carried forward.
+
+| layer | result |
+|---|---|
+| in-sample ceiling (best geometry of each month, with hindsight) | +2.09 R/month average. Many winners had only 3–10 trades, so this is inflated by small samples |
+| walk-forward (prior three months → next month, no look-ahead) | first run printed −0.1207 R/month over the 56 months that traded. Counting the 9 zero-trade months as 0 gives **about −0.10 R/month, about 34% of months positive** |
+
+**Why:** the best single tool of the recent past did not carry into the next
+month. This is the third time the project has measured this, after Amendment 20
+(annual) and Amendment 10 (6,480 fixed cells).
+
+**Operator's decision after this result:** do not fix on a single tool. Run a
+basket and size it to a 35–40% maximum drawdown. That work moves to Codex-led
+co-development (`docs/OWNERSHIP.md`, fifth revision).
+
+The corrected rerun, which counted zero-trade months and added a
+≥10-trade ceiling, was stopped before it finished when the operator changed
+direction. The −0.10 figure above is arithmetic on the first run's printed
+output, not a completed rerun.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,

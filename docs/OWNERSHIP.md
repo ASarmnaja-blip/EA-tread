@@ -1,42 +1,41 @@
-# Who owns what — updated 2026-09-26 (fourth revision)
+# Who owns what — updated 2026-09-26 (fifth revision)
 
-**Codex is PAUSED entirely. Claude runs everything from here**, at the
-operator's direct instruction. Do not resume any Codex automation, scheduled
-task, or in-progress thread until the operator says otherwise. The revision
-history below is left visible rather than tidied away, so the sequence of
-authority is auditable.
+**Codex resumes from Sunday 2026-09-27 12:30 Asia/Bangkok. Claude and Codex
+develop the project together**, at the operator's direct instruction. The
+fourth revision (Codex paused, Claude runs everything) is superseded.
 
-Prior revisions, in order: (1) Claude=W1 / Codex=rest, (2) Codex=everything
-including W1, (3) reverted to Claude=W1 / Codex=rest. This revision supersedes
-all of them: **Claude=everything, Codex=paused.**
+Revision history, kept visible: (1) Claude=W1 / Codex=rest, (2) Codex=all,
+(3) Claude=W1 / Codex=rest, (4) Claude=all / Codex paused, (5) this one.
 
-## What is actually paused
+## The operator's target for this phase
 
-- the `current-edge-wednesday-observation` automation
-  (`target_thread_id 01a0c7ca-a090-7023-b04c-58cd07c14178`) — do not trigger its
-  Wednesday or Saturday steps; Claude produces those reports manually until told
-  otherwise (see `docs/WEEKEND_REBUILD_2026-09-26.md` as the template)
-- `payoff_demo_autotrader.py` — do not start or restart it
-- any further work on `weekly_evolution_grid.py`, `compound_bar_replay.py`,
-  `evolution_portfolio_audit.py`, or the other uncommitted files from
-  2026-09-22/23 — these stay exactly as found until the operator's current
-  question is answered
+1. **Not fixed to one tool.** Run a basket of several tools at once, chosen
+   and re-weighted at each Weekend Rebuild. Selecting a single best tool per
+   period is explicitly not what is wanted.
+2. **Size the basket so its maximum drawdown lands at 35–40%.**
+3. Stay inside the nine rules (Amendment 22 and its addendum).
 
-## Standing rules, unchanged by this revision
+## Split
 
-- no real-money order, ever, without the operator's explicit confirmation on
-  that specific order
-- Demo orders only under `data/DEMO_ORDER_PERMISSION.md`, verified at runtime
-- no Grid, no Martingale, no averaging
-- no PR until there is evidence ready to inspect
-- NOT ASSESSED rather than a guess, always
-- the 120-day holdout, wherever one still exists, may be used for diagnosis
-  and never for promotion
-- every amendment's standing prohibitions carry forward unchanged
+| area | lead | the other agent's role |
+|---|---|---|
+| multi-tool basket engine (`current_edge*`, `payoff_*`, `weekly_evolution_grid.py`, `evolution_portfolio_audit.py`, `compound_bar_replay.py`) | **Codex** | Claude reviews each build before its result is reported: look-ahead, cost profile, zero-trade handling, tests |
+| DD 35–40% sizing and the bar-by-bar portfolio replay | **Codex** | Claude independently re-checks the drawdown figures |
+| Wednesday Report / Weekend Rebuild data collection (calendar, CFTC, DXY/XAU, sources) | **Claude** | Codex supplies the basket's own section |
+| W1 | **Claude** | none |
+| `docs/LOGIC_LEDGER.md` (the rule 9 guideline library) | both append, neither deletes | |
 
-## W1
+One owner edits a file at a time. Whoever did not write a result reviews it
+before it goes to the operator.
 
-Unaffected by this revision; still Claude's, still waiting on the rollover
-measurement scheduled for the next weekday window (Monday 2026-09-28 21:52 UTC).
+## Standing rules, unchanged
+
+- no real-money order without the operator's confirmation on that order
+- Demo orders only under `data/DEMO_ORDER_PERMISSION.md`
+- no Grid, Martingale or averaging
+- no PR until evidence is ready to inspect
+- NOT ASSESSED rather than a guess
+- a change to Demo execution needs a verified walk-forward result
+  (Amendment 22 §3.2)
 
 The engine's answer remains **NO TRADE**.

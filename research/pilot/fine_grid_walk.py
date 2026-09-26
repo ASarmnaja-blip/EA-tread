@@ -239,8 +239,18 @@ def main() -> int:
               f"{mean_net:9.4f}{n:6d}")
 
     ceil_vals = np.array([r[2] for r in ceiling_rows])
+    n_trades_ceil = np.array([r[3] for r in ceiling_rows])
     print(f"\nเพดานมองย้อนหลังเฉลี่ยทุกเดือน: {ceil_vals.mean():+.4f} R  "
           f"(สูงสุด {ceil_vals.max():+.4f}  ต่ำสุด {ceil_vals.min():+.4f})")
+    print(f"จำนวนไม้ของช่องที่ถูกเลือกเป็น 'ดีที่สุด': ค่ากลาง {np.median(n_trades_ceil):.0f}  "
+          f"เฉลี่ย {n_trades_ceil.mean():.1f}  ({100*np.mean(n_trades_ceil<10):.0f}% ของเดือนมีไม้ต่ำกว่า 10)")
+    print("คำเตือน: เกณฑ์ขั้นต่ำที่ใช้คือ 3 ไม้/เดือน ซึ่งต่ำมาก — ช่องที่มีไม้น้อย")
+    print("มีโอกาสสูงที่จะติดอันดับ 'ดีที่สุด' เพราะความแปรปรวนสูง ไม่ใช่เพราะมีข้อมูลจริง")
+    print("(นี่คือปัญหาเดียวกับที่ Amendment 16 ข้อ 9 เตือนไว้ว่าเป็น 'การล่าความแปรปรวน')")
+    only_10 = np.array([r[2] for r in ceiling_rows if r[3] >= 10])
+    if len(only_10):
+        print(f"ถ้าบังคับขั้นต่ำ 10 ไม้/เดือน (เหลือ {len(only_10)} จาก {len(ceiling_rows)} เดือน): "
+              f"เฉลี่ย {only_10.mean():+.4f} R  <- ตัวเลขนี้เชื่อถือได้มากกว่า")
     print("นี่คือ 'สิ่งที่ตลาดเดือนนั้นให้รางวัลมากที่สุด' ถ้ารู้คำตอบล่วงหน้า")
     print("ไม่ใช่สิ่งที่คาดว่าจะได้จริงในเดือนถัดไป — ดูข้อ (2) ต่อ")
 
@@ -275,9 +285,15 @@ def main() -> int:
             continue
         (setup, tfname, st, tg), score, n_sel = best
         cur = monthly_mean[(setup, tfname, st, tg)].get((y, m))
+        # POLICY RETURN, per Amendment 16 correction 8: a period where the
+        # selected combo fires zero times contributes ZERO, because capital
+        # sat idle - it is not silently dropped from the average. Dropping it
+        # would survivor-bias the figure toward months where the (often
+        # niche) selected combo happened to fire at all.
         if cur is None:
+            fwd_rows.append((y, m, 0.0, 0))
             print(f"{y}-{m:02d}    {setup+'/'+tfname:30s}{st:6.2f}{tg:7.2f}"
-                  f"{score:16.4f}{'ไม้หมด':>18s}")
+                  f"{score:16.4f}{'0 (ไม้หมด)':>18s}")
             continue
         fwd_rows.append((y, m, cur[0], cur[1]))
         print(f"{y}-{m:02d}    {setup+'/'+tfname:30s}{st:6.2f}{tg:7.2f}"
