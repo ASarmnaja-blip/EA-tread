@@ -282,6 +282,33 @@ step is forward observation of a frozen A24.
 
 ---
 
+## Part 10 — regime stand-aside helps but does not flip the 44-month verdict (2026-09-27)
+
+Amendment 28 (Claude, ownership sixth revision): stand aside for the week
+whenever the trailing-20-day H1 ATR sits below the 40th percentile of the
+trailing year, computed causally at each Weekend Rebuild. Everything else is
+A24 on the causal chain (Part 9), unchanged.
+
+| window | A24 baseline, base/1.5x | A28 stand-aside, base/1.5x |
+|---|---:|---:|
+| 44 months | −80.4 / −109.1 R | **−69.5 / −93.4 R** |
+| trailing 12m | +31.6 / +18.0 R | +31.6 / +18.0 R (identical — 0% stand-aside) |
+
+Stood aside 19.1% of 44-month weeks, 0% of trailing-12-month weeks — almost
+exactly where the hypothesis predicted, with no threshold sweep (0.40 frozen
+before running).
+
+**Guideline:** removing the quietest 40% of weeks recovers real R without
+touching the working window, but the 44-month verdict is still negative at
+1.5x cost. The edge-to-cost ratio in that regime is thin even after removing
+its calmest weeks — this is a per-trade problem (e.g. volatility-scaled
+targets), not just a which-weeks-to-trade problem. Untried; a candidate for a
+future amendment.
+
+Does not change Amendment 27's frozen forward policy.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
