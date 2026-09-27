@@ -250,6 +250,38 @@ The details and the required fix are in `docs/AMENDMENT_25_REVIEW_CLAUDE.md`.
 
 ---
 
+## Part 9 — clean re-measurement: nothing survives the full history (2026-09-27)
+
+Amendment 26 (Codex) and Claude's recheck reran the earlier policies on the
+**current engine with the causal chain**. Clean figures:
+
+| policy | 44 months | last 12 months |
+|---|---:|---:|
+| A21 weekly single champion | −34.1 R | +3.5 R |
+| A23 decay-weighted basket, base / 1.5x | −121.8 / −175.0 R | +5.3 / −13.5 R |
+| A24 basket with friction gate, base / 1.5x | −80.4 / −109.1 R | **+31.6 / +18.0 R** |
+
+**Why the old numbers were high.** They stacked two separate optimistic
+biases:
+
+1. The signal-order chain looked ahead (Part 8).
+2. The pre-correction engine credited same-bar targets after an intrabar
+   limit fill, and filled buy limits on the Bid instead of the Ask.
+
+A21's +248.785 R lost about 338 R to the engine corrections and about 56 R to
+the chain.
+
+**Guideline:** a result is evidence only when it comes from the current engine
+with the causal chain. Anything built on the legacy chain or on the old
+engine is contaminated until it is re-run.
+
+**Current-market reading (rule 1):** A24 is the only candidate that is
+positive at both base and 1.5x cost in the last 12 months. It loses over the
+44 months, and its last-12-month figure is development data. The honest next
+step is forward observation of a frozen A24.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
