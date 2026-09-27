@@ -309,6 +309,45 @@ Does not change Amendment 27's frozen forward policy.
 
 ---
 
+## Part 11 — an independent sibling research program reaches the same verdict (found 2026-09-27)
+
+Branch `claude/order-position-choch-gab-im08db` diverged from the same
+ancestor as this branch (`33d7453`, 2026-09-10) and ran an entirely separate,
+much larger research program: 1,677 hypotheses across a 9-14 market FX panel
+(not gold-specific, `research/` not `research/pilot/`). Its last commit is
+2026-09-19 — stopped mid-run, not an active concurrent session.
+
+**Its final verdict:** "the information is real and worth 12% of what it
+costs" — a genuine, reproducible short-horizon reversal (51.71% direction hit
+rate, 9 of 9 panel markets) that transaction cost swallows 88-93% of. This
+independently reproduces tonight's headline finding (Part 6: cost ate 90% of
+gross edge in XAUUSD's low-volatility regime) from a completely different
+method, on different markets. Convergent evidence the "real-but-cost-
+dominated" pattern is not a XAUUSD-specific or method-specific artifact.
+
+**A methodological warning that applies to every amendment tonight (23-29):**
+that project found "R through a stop-and-target bracket is a neutral way to
+measure directional information" was a false assumption throughout its own
+first 837 hypotheses. R divides by an ATR-derived stop distance; a family
+that fires preferentially on high-ATR bars gets a larger denominator for the
+same price move, which can shrink or inflate R independent of real skill. A
+claimed +0.0171R edge fell to +0.0026-0.0066 (negative for one family) once
+the comparison control's geometry was matched properly.
+
+**Every amendment in this project's basket work (23, 24, 26, 27, 28, 29) uses
+exactly this same R-through-ATR-bracket measure, and none of them has tested
+whether the six declared families fire preferentially on high-ATR bars.**
+This is flagged as an open audit item, not yet checked. If it turns out our
+families do skew toward high-ATR conditions, the whole cost-vs-volatility
+story in Part 6/10 needs re-examination: some of what looked like "cost eats
+more when volatility is low" could partly be this geometry effect running
+the other way.
+
+Not yet acted on tonight; recorded for the next amendment to address before
+trusting the R-based figures further.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
