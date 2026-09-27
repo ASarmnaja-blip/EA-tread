@@ -348,6 +348,32 @@ trusting the R-based figures further.
 
 ---
 
+## Part 12 — the frozen A24 mechanism does not generalize to GBPUSD (2026-09-27)
+
+Amendment 29 (Claude-led): the exact frozen Amendment 24/26 mechanism
+(unchanged: six families, causal chain, 1/12 friction gate, decay/LCB
+basket), applied to GBPUSD - genuinely new data, never inspected before -
+with GBPUSD's own measured spread/commission/swap and two labelled slippage
+scenarios (unmeasured).
+
+**Negative everywhere, no exception:** full period −53.4/−97.8 R
+(base/1.5x) at zero slippage, −49.1/−92.2 R at spread-equal slippage. Active
+80.7–100% of weeks, so not an idleness artifact.
+
+**Guideline:** this is consistent with, not contradicted by, Part 11's
+independent finding that real cross-market structure can still lose money
+after cost. It weakens rather than strengthens any case for skipping
+XAUUSD's forward wait (Amendment 27): if the mechanism doesn't transfer to a
+second market, that lowers confidence the XAUUSD result is a general
+phenomenon rather than an XAUUSD-specific accident. Per the pre-registration,
+no new design is registered tonight in reaction to this - repeatedly
+adjusting after each unfavourable result on one fixed historical dataset is
+the exact failure mode Amendment 10 already demonstrated.
+
+Does not change Amendment 27's frozen forward policy or clock.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
