@@ -185,7 +185,7 @@ there, but too small relative to cost at that volatility. Details are in
 
 ---
 
-## Part 7 — late same-direction re-signals lose (2026-09-27)
+## Part 7 — late same-direction re-signals lose (2026-09-27) — **WITHDRAWN, see Part 8**
 
 Found while reviewing Amendment 24 (`research/pilot/resignal_test.py`,
 covering all 8,250 cells and about 47 million raw signals).
@@ -211,6 +211,42 @@ This also explains Amendment 24: its "fidelity fix" removed exactly this
 filter, which turned the Amendment 23 replay from +62 R into −251 R over the
 44 months. Claude's review is what recommended that fix; the correction is
 in `docs/AMENDMENT_24_RESULT_REVIEW_CLAUDE.md`.
+
+---
+
+## Part 8 — look-ahead in the signal-order chain (2026-09-27)
+
+**Part 7's guideline is withdrawn.** Most of it came from a look-ahead in the
+per-cell chain used by `mtf_engine.run_cell`, `walk_forward.build_universe`
+and `basket_gate._cell_history`.
+
+**What goes wrong:** in limit-entry modes, the chain walks fills in *signal*
+order. An earlier signal's limit order can fill *after* a later signal's fill.
+The chain then rejects that later fill, although no position was open when it
+happened. It rejects it only because it already knows the earlier order will
+fill later. That later fill usually means price kept moving against the
+trade, so the rejected fill tends to be a loser. The chain was removing
+future losers.
+
+| | n | gross R |
+|---|---:|---:|
+| fills rejected out of order (only possible with limit entry) | 3.34M | **−0.331** |
+| market entry, same-direction re-signal | 2.88M | −0.026 |
+| market entry, fresh signal | 2.78M | −0.051 |
+
+With market entry, where out-of-order fills cannot happen, a same-direction
+re-signal is **not worse** than a fresh signal. A smaller penalty remains on
+in-order re-signals in limit modes (−0.060 against −0.005 R). Whether that
+part is real is NOT ASSESSED.
+
+**Contaminated until re-run on a causal chain (size of the effect unknown):**
+Amendments 14, 15/16, 21 (+248.785 R), 23 (+62.070 R and its cost
+decomposition), `compound_bar_replay.py`, Amendment 24's candidate
+histories, and Parts 3 and 6 of this ledger.
+
+**Not affected:** Part 5 (market entry only) and W1.
+
+The details and the required fix are in `docs/AMENDMENT_25_REVIEW_CLAUDE.md`.
 
 ---
 

@@ -75,15 +75,23 @@ def main() -> int:
             held = held_all[:, p]
             net = gross - fee / risk
             fam, tf = m["setup"], m["tf"]
-            busy_until, busy_dir = -1, 0
+            mode = "market" if m["exp"] == 0 else "limit"
+            busy_until, busy_dir, busy_start = -1, 0, -1
             for q in range(len(ek)):
                 k = ek[q]
                 if k <= busy_until:
-                    label = "RE_SAME" if dirs[q] == busy_dir else "RE_OPPOSE"
+                    if k < busy_start:
+                        # blocked by a shadow trade that had NOT yet filled at
+                        # this fill's bar: only knowable from the future
+                        label = "OUT_OF_ORDER"
+                    else:
+                        label = "RE_SAME" if dirs[q] == busy_dir else "RE_OPPOSE"
                 else:
                     label = "FREE"
                     busy_until = k + held[q]
                     busy_dir = dirs[q]
+                    busy_start = k
+                add(label, "mode:" + mode, float(gross[q]), float(net[q]))
                 period = ("44m" if START <= t_in[q] < SPLIT else
                           "12m" if t_in[q] >= SPLIT else "2021")
                 g, n = float(gross[q]), float(net[q])
@@ -93,7 +101,7 @@ def main() -> int:
                 add(label, "tf:" + tf, g, n)
 
     def show(group):
-        cells = [(lab, acc[(lab, group)]) for lab in ("FREE", "RE_SAME", "RE_OPPOSE")]
+        cells = [(lab, acc[(lab, group)]) for lab in ("FREE", "RE_SAME", "RE_OPPOSE", "OUT_OF_ORDER")]
         parts = []
         for lab, a in cells:
             if a[0]:
@@ -103,7 +111,7 @@ def main() -> int:
 
     print("Per-signal means over all 8,250 cells (unweighted, whole history).")
     print("FREE = the cell's chain is flat; RE_* = an earlier trade is still open.\n")
-    for grp in ["ALL", "period:2021", "period:44m", "period:12m"]:
+    for grp in ["ALL", "mode:market", "mode:limit", "period:2021", "period:44m", "period:12m"]:
         show(grp)
     print()
     for fam in E.SETUPS:
