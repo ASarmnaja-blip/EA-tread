@@ -185,6 +185,35 @@ there, but too small relative to cost at that volatility. Details are in
 
 ---
 
+## Part 7 — late same-direction re-signals lose (2026-09-27)
+
+Found while reviewing Amendment 24 (`research/pilot/resignal_test.py`,
+covering all 8,250 cells and about 47 million raw signals).
+
+When a tool's trade is still open and the same tool fires **again in the same
+direction**, that second signal is a late entry into a move already under
+way.
+
+| | gross R per signal | win rate |
+|---|---:|---:|
+| signal from a flat tool | −0.011 | 44.8% |
+| same-direction re-signal while a trade is open | **−0.098** | 38.3% |
+
+The penalty is about −0.08 to −0.09 R in 2021, in the 44 months and in the
+last 12 months, in every timeframe, and in five of six families. It is
+largest for breakout (+0.047 → −0.238 R). Sweep is the one exception.
+
+**Guideline:** skip a tool's same-direction signal while that tool's
+shadow position is still open. Track that shadow position whether or not
+the tool is in the basket. This rule is causal and can run live.
+
+This also explains Amendment 24: its "fidelity fix" removed exactly this
+filter, which turned the Amendment 23 replay from +62 R into −251 R over the
+44 months. Claude's review is what recommended that fix; the correction is
+in `docs/AMENDMENT_24_RESULT_REVIEW_CLAUDE.md`.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
