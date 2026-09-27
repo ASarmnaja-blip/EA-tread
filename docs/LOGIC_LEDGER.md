@@ -166,6 +166,25 @@ output, not a completed rerun.
 
 ---
 
+## Part 6 — the multi-tool basket (Amendment 23, 2026-09-27)
+
+Codex's decay-weighted basket of 3–5 tools, reselected every Weekend Rebuild.
+It **fails** the pre-registered test: the 44-month window turns −80.991 R at
+1.5x cost. Claude's recheck matches every figure.
+
+| window | gross edge / trade | cost share of that edge | median stop |
+|---|---:|---:|---:|
+| 2022-01 → 2025-09 | +0.1308 R | 90.0% | $2.60 |
+| last 12 months | +0.1686 R | 32.7% | $5.11 |
+
+**Why it lost:** the selector found a gross edge in both periods. In the lower
+volatility of 2022–2025, the roughly fixed dollar cost ate 90% of it.
+**This revises Part 3's "the scope could not read that market"**: the edge was
+there, but too small relative to cost at that volatility. Details are in
+`docs/AMENDMENT_23_RESULT.md` and `docs/AMENDMENT_23_RESULT_REVIEW_CLAUDE.md`.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
