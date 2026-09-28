@@ -169,3 +169,27 @@ data never looked at: broker XAUUSD H1 from **2016-08-09 to 2021-12-31**
   size-permutation p < 0.05, AND the excess stays positive after removing
   its best 3 weeks. Both required.
 - Each test runs once. Whatever it shows is recorded as the answer.
+
+### Amendment 3 result — H1 run (data coverage failure disclosed)
+
+`research/wpwb_live/oos_2016.py`. Broker H1 history before 2020-12 is NOT
+intraday: only 7,864 H1 bars exist for 2016-08..2022-01 (vs ~30,000
+expected), so only 9 of 43 FOMC dates had a statement-hour bar. All 9
+verified (statement-hour range 3.1x-9.9x the same hour on ordinary
+Wednesdays — the hand-entered dates are correct where checkable). The
+weekly test therefore covered only 2020-12-04..2021-12-24 (56 weeks, 9
+FOMC weeks). **Test F: FAIL** (FOMC weeks −20.8 bp vs −21.3 bp other,
+losing 44% vs 51%, p 0.485). **Test V: FAIL** (excess −60 bp, size-
+permutation p 0.858). Underpowered, but neither rule shows the expected
+sign.
+
+## Amendment 4 — D1 run for the part H1 could not cover (after seeing the H1 result)
+
+Decided AFTER the H1 result above, disclosed as such: the pre-registered
+window was 2016-08..2021-12; H1 could only cover 2020-12 onward. Broker D1
+bars exist for the whole window and suffice for weekly Sunday-open ->
+Friday-close returns and daily sigma. Same Tests F and V, same pass rules,
+on D1 for **2016-08-09 .. 2020-11-27** (disjoint from the H1 run). FOMC
+dates verified on D1 instead (statement-day range above the median range
+of non-FOMC Wednesdays of the same year). Swap = one night per Mon-Thu
+daily bar in the week. Runs once; both runs are reported together.
