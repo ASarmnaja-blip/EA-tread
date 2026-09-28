@@ -237,3 +237,26 @@ Eras: A = 2021-07..2023-12, B = 2024-01..2026-09 (W2: 2023-09..2024-12 vs
 its Spearman correlation with the rest-of-week return has the **same sign
 in both eras and p < 0.01 in both** (Bonferroni over 5). W4-vs-|move| is
 reported separately (magnitude, not direction). Runs once.
+
+### Amendment 5 result (`research/wpwb_live/h1_traces.py`)
+
+**0 of 5 Wednesday features pass.** W1 +0.03/−0.14, W3 +0.05/−0.08, W4
++0.03/−0.00, W5 +0.01/−0.03 (all p > 0.08). W2 (DXY so far) was
+significant in both sub-eras but with OPPOSITE signs (−0.26, p 0.035; +0.23,
+p 0.029) — not a stable trace. Hindsight library (era B): losing weeks were
+broad-based (all three sessions negative, medians −49/−39/−49 bp), spread
+evenly over weekdays, not concentrated in news hours (~1% of absolute
+movement) or in a few jumps (top-3 H1 bars ~13%), with the dollar up
+(median +0.21% vs −0.11%) and **an H1 close below the prior week's low in
+51% of losing weeks vs 16% of winning weeks.**
+
+## Amendment 6 — prior-week level break as an in-week trace (before running)
+
+Nominated by the hindsight 51% vs 16% (disclosed). Question: after gold's
+**first** H1 close beyond the prior week's range (below its low = BPL, or
+above its high = BPH), occurring Monday-Thursday, does price CONTINUE for
+the rest of the week? Signal d = −1 at BPL, +1 at BPH (first break of the
+week only). Outcome = d x (Friday close / break-bar close − 1), bp, before
+costs (costs reported separately). Pass: mean > 0 in BOTH eras (2021-07..
+2023-12 and 2024-01..2026-09) with one-sided sign-flip permutation p < 0.05
+in both, and the BPL half alone also mean > 0 in both eras. Runs once.
