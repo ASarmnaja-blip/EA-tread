@@ -740,6 +740,44 @@ finding even if the GUI step were done manually.
 
 ---
 
+## Part 21 — Current market (as of 2026-09-21) is flat, not trending; scope check (2026-09-28)
+
+**Source:** ad-hoc trailing-window efficiency check (same ratio as
+`find_flat_period.py`), against the canonical M5 history's latest bar.
+
+User asked whether Parts 18-20's setup could be used now on the premise
+that "gold isn't flat right now" (unlike the May-June 2025 test window).
+Checked directly instead of assuming:
+
+| trailing window (from 2026-09-21) | net move | efficiency ratio |
+|---:|---:|---:|
+| 14d | −59.4 (−11.7 ATR) | 0.009 |
+| 30d | −254.0 (−47.8 ATR) | 0.017 |
+| 60d | +264.3 (+53.2 ATR) | 0.009 |
+| 90d | +253.7 (+50.9 ATR) | 0.006 |
+| 180d | −207.1 (−37.8 ATR) | **0.002** |
+
+Direction flips sign across windows (down 14d, down 30d, up 60-90d, down
+180d) - chop, not a sustained trend. The 180-day efficiency (0.002) equals
+Part 20's flat test window (0.0020) almost exactly. **The premise was
+false: the current market is at least as flat as the window already shown
+to give Parts 18-20's setup no edge.** Even setting that aside, "trending
+implies usable" was never a valid inference from Part 19 either way - Part
+19 showed random entries matched or beat the real setup inside a genuine
+trend, meaning a trend being present doesn't make the *setup* useful; it
+would only make being-long-with-a-wide-target-of-any-kind look profitable,
+which is a directional bet on trend persistence, not a validated edge.
+
+**Scope note:** this whole RR-sweep / fake-edge detour (Parts 13-21) was a
+deep-dive on one narrow question (why does flipping one RR=1:1 bucket lose
+more, and is the resulting RR-sweep result real) that grew well past the
+original question. Per the user's instruction, work returns to the CLAUDE.md
+mission (section 9: read what the market currently rewards, build the
+Adaptive Current-Regime Signal Engine, per section 5's recent-data
+windowing) rather than continuing to extend this detour further.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
