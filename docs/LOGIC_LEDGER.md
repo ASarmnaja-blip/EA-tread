@@ -948,6 +948,43 @@ next step is necessary, not a replacement for it.
 
 ---
 
+## Part 25 — existing news acceptance/rejection test also fails at development (2026-09-28)
+
+**Source:** `research/pilot/news_acceptance_edge.py` + `research/pilot/
+results/news_assessments.csv` - pre-existing code, not written tonight.
+User asked for a genuinely new setup family (not a re-test of the six dead
+ones); this one already exists in the repo, already pre-registered with a
+70/30 dev/holdout split on event epoch, already using a non-circular
+design (only information available 1 minute after a USD HIGH release: XAU's
+first-minute reaction, DXY's first-minute reaction, surprise z-score - no
+5/15/60-minute hindsight value as an input).
+
+**Ran it as-is, no changes:**
+
+```
+M1 NEWS REACTION - NON-CIRCULAR  events=150  holdout starts 2025-10-16
+accept dev   n=80  E=-0.0026R  win=46.2%  CI=[-0.2588, +0.2517]
+reject dev   n=25  E=-0.0722R  win=44.0%  CI=[-0.5277, +0.3982]
+DECISION FAIL: neither mechanism passes development (needs n>=20 and
+  95% bootstrap CI lower bound > 0)
+```
+
+Neither the "acceptance" (price continues the hypothesized direction) nor
+"rejection" (price reverses it) mechanism clears its own pre-registered
+development bar - both CIs straddle zero widely. **Reported as a clean
+failure, not modified or re-tuned to pass** - changing this design post-hoc
+to search for a positive result would be exactly the pattern this project
+prohibits (Amendment 10). If a news-based setup is still wanted, it needs a
+genuinely different, freshly pre-registered mechanism, not a parameter
+tweak on this one.
+
+**Standing count:** `sweep`, `expansion`, `vwap`, `failed`, `breakout`,
+`pullback` (Parts 18-22) and now `news acceptance/rejection` (this Part) -
+**7 of 7 setup ideas tested against a real pre-registered bar in this
+project have failed.** CLAUDE.md item 8 updated.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,

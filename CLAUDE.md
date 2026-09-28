@@ -290,7 +290,13 @@ docs/                        RESEARCH_FINDINGS.md, BACKTEST.md,
    ไหนเอาชนะไม้สุ่มได้จริง** ตอนนี้ทั้ง 6 ตระกูล setup ในระบบวิจัย (sweep,
    expansion, vwap, failed, breakout, pullback) ยังไม่มีตัวไหนผ่านการตรวจ
    fake-edge เลยแม้แต่ตัวเดียว — ต้องหา setup ใหม่หรือเงื่อนไข/regime filter
-   ที่ต่างจากที่ลองไปแล้วทั้งหมด
+   ที่ต่างจากที่ลองไปแล้วทั้งหมด — **(2026-09-28) news acceptance/rejection
+   ก็ทดสอบแล้วด้วย (`research/pilot/news_acceptance_edge.py` โค้ดที่มีอยู่
+   เดิม ไม่ใช่ของใหม่คืนนี้, มี dev/holdout split 70/30 ในตัว) ผลคือ
+   DECISION FAIL ทั้งสองแบบตั้งแต่ขั้น development (LOGIC_LEDGER.md Part 25)
+   — ตอนนี้ setup 7 จาก 7 ที่ลองมาทั้งหมด (sweep, expansion, vwap, failed,
+   breakout, pullback, news accept/reject) ตกทุกตัว** ยังต้องหา setup ที่
+   ต่างจากทั้งหมดนี้จริงๆ ไม่ใช่ปรับพารามิเตอร์ของเดิม
 9. **ข้อเตือนจากงานวิจัยเดิมที่ต้องไม่ลืม**: liquidity-sweep reversal ถูกทดสอบที่
    n=43,353 แล้วได้ −0.202R และ inversion test ก็ยังลบ → ไม่มีข้อมูลทิศทางเหลือ
    ส่วน trend zone `(Close−SMA200)/ATR ∈ [1.08, 7.21]` ยัง**ไม่ผ่าน**
