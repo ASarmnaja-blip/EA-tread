@@ -167,6 +167,7 @@ def build_regime(b15: D.Bars, news_epochs: np.ndarray | None) -> pd.DataFrame:
     de_hi = pd.Series(de).rolling(CONTEXT_D * M15_PER_DAY).quantile(0.70).to_numpy()
     de_lo = pd.Series(de).rolling(CONTEXT_D * M15_PER_DAY).quantile(0.30).to_numpy()
     ex_hi = pd.Series(ex).rolling(CONTEXT_D * M15_PER_DAY).quantile(0.80).to_numpy()
+    st_med = pd.Series(st).rolling(CONTEXT_D * M15_PER_DAY).median().to_numpy()
 
     regime = np.full(n, "UNDEFINED", dtype=object)
     with np.errstate(invalid="ignore"):
@@ -174,7 +175,7 @@ def build_regime(b15: D.Bars, news_epochs: np.ndarray | None) -> pd.DataFrame:
         regime = np.where((regime == "UNDEFINED") & (ex >= ex_hi) & (ap >= 60),
                           "VOL_EXPANSION", regime)
         regime = np.where((regime == "UNDEFINED") & (de >= de_hi)
-                          & (st >= np.nanmedian(st)), "STABLE_TREND", regime)
+                          & (st >= st_med), "STABLE_TREND", regime)
         regime = np.where((regime == "UNDEFINED") & (de <= de_lo) & (ap <= 60),
                           "BALANCED_RANGE", regime)
     out["regime"] = regime

@@ -1600,3 +1600,48 @@ in all three windows (+5, +102 and, in the already-examined 2016-20 data,
 Hygiene note: Codex force-added ~100k lines of raw external data (incl.
 ~12 MB of CFTC zips) under the gitignored `data/` directory. Local branch
 only; not removed here without the operator's say-so.
+
+---
+
+## Part 40 — Codex's review of Claude's measurement methodology, and what Claude verified (2026-09-28)
+
+Operator asked Codex to review Claude's measurement methods. Codex ran
+(`codex exec`, workspace-write, no network) but wrote no file and made no
+commit; its full review is its final message, kept verbatim in
+`data/codex_method_review_report.md` (gitignored) and summarised here. Most
+of it examined the EARLY pilot engine (`research/pilot/core.py`, `run.py`,
+`adaptive.py`, `flip_diagnosis.py`, `docs/ENGINE_PROTOCOL.md`, Amendments
+03-08), not the WPWB work of Parts 29-39.
+
+**Codex's verdict:** conservative at the decision layer (NO TRADE, forward
+shadow, cost stress) but too loose in several measurements feeding it;
+"the repository does not prove there is no edge — no edge has survived a
+trustworthy validation yet." Claims: (1) ENGINE_PROTOCOL's posterior /
+e-process / confidence-sequence machinery was never implemented; (2)
+`adaptive.py` STABLE_TREND used a full-series median — look-ahead; (3) early
+`core.py` subtracted scalar cost after resolving the path; (4) early MDE
+tables used 2.8 x sd/sqrt(n) while requiring a Bonferroni critical value of
+2.99 (consistent coefficient 3.83, ~1.87x more observations) and assumed
+independent trades; (5) the circular-shift control pooled 20 replicas as
+independent, understating uncertainty (Amendment 04 "timing skill" t=3.48
+untrustworthy); (6) multiplicity is reset per amendment while the same
+history is reused; (7) some conjunctive gates (Amendment 06) are
+uncalibrated and too strict.
+
+**Claude verified:** (2) is **correct** — `research/pilot/adaptive.py`
+line 177 compared `st` to `np.nanmedian(st)` over the whole series while
+every other threshold in the function is a rolling CONTEXT-window quantile.
+**Fixed** to a rolling median over the same window. It is used by
+`regime_v2.py`, `flip_diagnosis.py`, `current_signal.py` and Amendment 05;
+results computed with it are contaminated and are NOT rerun here. **None of
+the WPWB scripts (`research/wpwb_search/`, `research/wpwb_live/`) use it.**
+(6) applies to today's WPWB work too: rounds and amendments reused 2021-2026
+— it biases toward FALSE edges, and no edge was accepted, so it does not
+overturn the negative WPWB conclusions; it does mean the per-test p-values
+understate the true search. Claims (1), (3), (4), (5), (7) concern early
+work superseded before WPWB; not re-verified line by line here.
+
+**Not answered by Codex** (asked, skipped): the power of today's
+significance rule on 130-142 weeks, and whether the "must hold in both eras"
+requirement structurally rejects the regime-specific edges WPWB is built
+for. Sent back to Codex as a follow-up.
