@@ -1110,6 +1110,72 @@ shrink=3.0/4.65, and (c) only then, if still positive, applying the same
 Part 19/22-style random-baseline check to the specific chosen shrink level
 rather than to the uncorrected selector.
 
+**Addendum - the three-way split (a) has now run**, at the current
+uncorrected (shrink=0.75) selector:
+
+| | trades | mean_R | vs its OWN matched random |
+|---|---:|---:|---:|
+| champion (top-ranked) | 1,223 | −0.0264 | **+0.0534** |
+| median-ranked cell | 4,730 | −0.1006 | **+0.0270** |
+| champion − median (trade-weighted, pooled) | | +0.0742 | |
+
+Both champion and median beat their own matched random baseline - grid
+membership alone carries some of Parts 19/22's drift-artifact advantage,
+confirming the concern was not unfounded. But champion's edge over random
+(+0.0534) is roughly **2x** median's edge over random (+0.0270): the
+LCB-based weekly selection appears to add something beyond mere grid
+membership, not nothing - though not enough to make the champion itself
+net positive at the current, uncorrected threshold. This trade-weighted
+comparison (champion −0.0264 vs median −0.1006, gap +0.0742) differs from
+Part 24's week-weighted comparison (+0.0042, a coin flip) because the
+median cell fires roughly 4x as often per week as the champion cell
+(4,730 vs 1,223 total trades over the same 290 weeks) - a real
+methodological difference in aggregation, not a contradiction: Part 24
+answers "in a typical week, is champion an equally good bet as median";
+this answers "across all individual trades taken, does champion's trade
+stream outperform median's." Both are legitimate questions with different
+answers.
+
+**Reading so far: not clean fake edge, not clean real edge either** - a
+small, genuine-looking selection effect that is not yet large enough to be
+profitable at current settings, which would be consistent with why
+correcting for multiple comparisons (result 2 above) reveals more of it.
+Still pending before any conclusion: the time-distribution check (b).
+
+**Addendum - the time-distribution check (b) has now run
+(`research/pilot/check_shrink3_time_distribution.py`), and it resolves the
+question decisively: this is the same drift artifact, not a new finding.**
+
+| year | active weeks | approx weeks in year | approx pass rate |
+|---|---:|---:|---:|
+| 2021 | 17 | ~43 (partial, starts Jan 3) | ~40% |
+| 2022 | 22 | 52 | ~42% |
+| 2023 | 25 | 52 | ~48% |
+| 2024 | 33 | 52 | ~63% |
+| 2025 | 47 | 52 | ~90% |
+| 2026 (through Sep) | 38 | 38 | ~100% |
+
+The pass rate at shrink=3.0 climbs monotonically from ~40% in 2021 to
+~100% in 2026 - **not** a stable, time-independent rate that would support
+a genuine, regime-robust selection skill. It tracks gold's sustained
+uptrend through 2024-2026, the exact period Parts 18-22 already
+established makes almost any sufficiently-selected long-biased cell look
+falsely positive. 44.0% of all active weeks fall in just 2024-2025 (about
+35% of the calendar span), and adding the 2026 partial year pushes it
+higher still.
+
+**Verdict: Part 27's positive-looking results (both the champion-vs-random
+gap exceeding median's, and the multiple-comparisons-corrected net R
+turning sharply positive) are the same directional-drift artifact from
+Parts 18-22, reappearing through the weekly selector rather than through a
+single fixed setup.** The selector is not discovering skill when corrected
+for multiple comparisons - it is more reliably finding *whatever recently
+rode the prevailing trend*, which is abundant in 2025-2026 and scarce in
+2021-2022. This is consistent with, not a contradiction of, every prior
+finding tonight: **8 of 8 things tested in this entire session (7 setup
+families/mechanisms plus this multiple-comparisons-corrected selector) show
+no edge that survives a genuine trend-independence check.**
+
 ---
 
 ## Status
