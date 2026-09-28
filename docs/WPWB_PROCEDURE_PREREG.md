@@ -1,4 +1,9 @@
-# WPWB procedure test — pre-registration (DRAFT v2, under debate, NOT frozen)
+# WPWB procedure test — pre-registration (DRAFT v2 — CLOSED 2026-09-28 before outcome evaluation)
+
+> **Status:** H-WPWB-P1 abandoned before any real-data evaluation for
+> inadequate prospective power (debate Round 3). The real P, B' and d were
+> never computed. Alpha 0.025 returned unspent. Kept as the record of the
+> design and its harness.
 
 Written by Claude 2026-09-28. v0 → 17 Codex objections (Round 1); v1 → 9
 named edits (Round 2); v2 implements all nine. Debate record:
@@ -190,7 +195,18 @@ evaluated on the real matrix.
 Planted-family pick rate: 0.20 at +20, 0.40 at +50, 0.67 at +100, 0.81 at
 +200. Tool weekly SD: median 84 bp (14..239), median activity 0.49.
 
-**Reading:** the null is correctly centred (mean d −0.05 ± 0.24) and the
+**Correction (Round 3, Codex).** The rows above plant e per *traded* cell,
+i.e. roughly e × activity (0.4–0.5) per calendar week; the null mixes tool
+scales and set INNER := 1 while R kept VOLMAN's sizing; and c came from the
+same realisation used as "forward". These bias power down. Codex's
+identity-preserving sign-randomised harness with an independent 156-week
+forward and +e per *calendar* week gives: null screen 24.2%, +10 bp screen
+39.2% / forward 1.8%, +20 bp screen 57.4% / forward 12.2%
+(`codex_checks/round3_power.py`). The conclusion survives in narrower form:
+**this P1 is inadequately powered for 10–20 bp/week**, not "all weekly P&L
+ranking is incapable".
+
+**Original reading (superseded wording):** the null is correctly centred (mean d −0.05 ± 0.24) and the
 e-process never falsely confirms, so the machinery is valid. But the design
 is **powerless for plausible edges**: the screen passes 28% of exact nulls
 and only 35% with a persistent +20 bp/traded-week edge; forward confirmation

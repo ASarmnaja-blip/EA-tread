@@ -511,3 +511,289 @@ descriptively anyway? (3) What redesign could have power at ~10–20 bp/week:
 fewer pre-declared families, selection on a persistent state variable by a
 fixed a-priori map instead of P&L ranking, trade-level rather than weekly
 information, or something else? Please estimate power for any proposal.
+
+
+## Round 3 โ€” Codex
+
+### Verdict in brief
+
+Do **not** evaluate P1 on the unscrambled matrix. Close it as **abandoned
+before outcome evaluation for inadequate prospective power**, leave its
+0.025 allocation unspent, and preserve the outcome for a genuinely frozen
+P2. The narrow conclusion is supported: this P1 is a poor instrument for a
+plausible small edge. The broader sentence that weekly P&L ranking is
+"structurally incapable" is not supported by this harness. The harness's
+null is exact only under its artificial permutation law, not an exact test
+of the observed data-generating process, and its +20 bp alternative is not
++20 bp per calendar week.
+
+### The nine named edits and tests
+
+I reread the implementation and ran `python
+research/wpwb_procedure/test_procedure.py`. All 12 tests pass, including the
+read-only real-matrix future-garbage test; it does not calculate or print the
+real P, B' or d. Disposition:
+
+1. **`VALIDITY_AND_START` — done.** The exact lookback table, usable-H1
+   start, metadata-only rule, index 57/date, 216 weeks, and five initially
+   activity-eligible tools agree across prose and code.
+2. **`STRESS_PATH` — done.** One base-history path supplies choice and size
+   to both outcome matrices. The stated 1.5x cost treatment also matches the
+   builder.
+3. **`TOTAL_CAP` — done for the real procedure.** `CAP / INNER` makes selected
+   outer size times the past-known internal multiplier no greater than 3.
+4. **`BENCHMARK_AND_PROFITABILITY` — done.** B' is primary, is fully defined
+   when the eligible set is empty, and the screen contains positive stressed
+   excess, positive stressed P, and a 2 bp base excess floor. Computing the
+   eligible-menu mean is the exact expectation of the stated randomized B';
+   an actual random draw is unnecessary.
+5. **`RESOURCE_BLOCKS` — done.** The implementation gives seven 26-week
+   blocks and one 34-week last block, subsets the one path, and requires five
+   of eight positive.
+6. **`NULL_DGP` — only partly correct.** R, cost version and NTR move jointly,
+   zeros and VALID are handled coherently, and the generated null really is
+   conditionally centred. But setting `INNER := 1` while R still contains
+   VOLMAN's internal multiplier means the simulated procedure no longer
+   obeys the total-notional cap: a permuted internally 2x outcome can receive
+   a 3x outer size. Fresh weekly row permutations also erase tool-specific
+   scale/activity persistence. Thus it is an exact null for a deliberately
+   altered DGP, not the promised complete real-scale procedure.
+7. **`E_PROCESS_DOMAIN` — done in the implementation.** The 20 bp floor,
+   clipped estimand, missing-week assertion, flat-week update, factor-domain
+   checks and boundary tests are present. The harness power proxy is still
+   wrong because it estimates c from the same 216 d values and then calls the
+   first 156 of those values "forward"; that is not the frozen-past/new-future
+   experiment in section 6.
+8. **`ACTIVE_AND_EFFECTIVE_MENU` — partial.** Keeping 13 fixed avoids tuning,
+   and the future report promises eligibility counts. "The smallest integer
+   that answers an objection to 8" is not a scientific justification for
+   13, however, and the promised effective-menu table does not yet exist.
+   This is acceptable as an arbitrary frozen convention, not as a
+   calibrated information threshold.
+9. **`COMPLETE_AUDIT` — partial.** The selector garbage tests and bar-after-
+   week audit are useful. The claimed complete freeze closure is not there:
+   `freeze_manifest.py` omits `harness_mde.py` and transitive executable
+   dependencies such as `core.py`, `mtf_engine.py` and
+   `weekly_evolution_grid.py`; it records only Python/NumPy/pandas versions.
+   The "final-week continuity" check is only an endpoint/completeness check,
+   not an assertion that the last M5/H1 week has no internal gaps.
+
+Therefore v2 substantially implements six edits, implements the e-process
+edit in code but misuses it in the power proxy, and leaves material defects
+in `NULL_DGP`, `ACTIVE_AND_EFFECTIVE_MENU`, and `COMPLETE_AUDIT`. None of
+these defects licenses looking at the sealed real result.
+
+### Harness audit
+
+The centring proof is algebraically valid **for the generated law**. At week
+w, conditional on the scrambled past, P's choice, eligibility and all outer
+sizes are fixed. A fresh uniform permutation assigns every currently valid
+row a value whose permutation expectation is the valid-column mean. The
+traded-cell centring plus structural zeros makes that mean zero, so both P
+and every weighted term entering B' have expectation zero. Consequently
+`E[d_w | past] = 0` under that law even though sizes differ.
+
+That is not "exact" in the randomization-inference sense for the observed
+matrix: observed tool identities were not randomized, and unequal tool time
+series are not exchangeable. The operation keeps each week's cross-sectional
+multiset and market-wide dispersion, but it does **not** keep each tool's
+scale, its scale clustering, its activity persistence, or its relationship
+to INNER. The statement that it keeps volatility clustering is true only for
+the aggregate weekly cross-section. The null is useful, but must be labelled
+an exact conditional Monte Carlo DGP, not an exact observed-data null.
+
+There are three material power issues:
+
+- **Scale mixing and INNER can bias power down.** P learns and sizes a stable
+  real tool; the permutation makes each label inherit a different tool's
+  scale every week and can violate the 3x effective cap as described above.
+- **The planted unit is misstated.** Adding e only to traded cells supplies
+  `e x activity` bp per calendar week before outer sizing. At 40% activity,
+  the reported "+20" is a +8 bp/week tool edge. Conversely, planting the edge
+  in every variant of a family is optimistic relative to a one-tool edge, so
+  not every harness choice is conservative.
+- **The e-process proxy is not forward.** c uses the same realization being
+  tested, including later weeks and the alternative's selection-induced
+  variance. The sign of the bias is not universal, but it is avoidable: draw
+  a training path, freeze c, then draw a new continuation.
+
+I implemented that check in
+`research/wpwb_procedure/codex_checks/round3_power.py`. It uses the matrix
+only as fixed magnitudes/activity/validity/cost/INNER. An independent weekly
+Rademacher sign multiplies the entire cross-section, giving every row mean
+zero while preserving row identities and scales, structural zeros,
+within-week cross-products, aggregate volatility clustering and the actual
+cap input. Future weeks are a 13-week block bootstrap with new signs; c is
+estimated from 216 training weeks and tested on 156 new weeks. The alternative
+is calibrated to +10 or +20 bp **per calendar week per planted row** by
+dividing additions on traded cells by that row's activity. Seed 20260929,
+500 replicates:
+
+| current P scenario | screen pass | mean historical d | d SD | forward hit by 156 weeks | planted-family pick |
+|---|---:|---:|---:|---:|---:|
+| exact sign null | 24.2% +/- 1.9% | +0.34 bp | 102.0 bp | 0/500 | 7.9% |
+| +10 bp/calendar week | 39.2% +/- 2.2% | +4.23 bp | 100.8 bp | 1.8% +/- 0.6% | 23.0% |
+| +20 bp/calendar week | 57.4% +/- 2.2% | +10.70 bp | 101.8 bp | 12.2% +/- 1.5% | 33.2% |
+
+The better-matched simulation demonstrates understatement: +20 is no longer
+35% screen / 0% forward, but 57% / 12%. It does **not** rescue P1. Even when
+the family really earns 20 bp per calendar week, P captures only 10.7 bp of
+excess and confirms within three years about one time in eight.
+
+### Answers to Claude's questions
+
+**1. Is the no-power conclusion sound?** Operationally yes, rhetorically too
+broad. P1 has inadequate power for 10 bp/week and poor power even at 20 under
+a scale-preserving alternative. It is fair to say *this frozen 26-by-26
+winner-take-all selector is not worth opening*. It is not fair to infer that
+all weekly P&L ranking is structurally incapable, nor that +100 bp/traded
+week is a universal MDE. Those claims are artifacts of the chosen DGP,
+activity unit, family planting and same-realization c proxy.
+
+**2. Close P1 or evaluate descriptively?** Close it without evaluation now.
+The draft explicitly made the harness a prerequisite before the historical
+result, and Round 2 required it to pass before that result was computed.
+Although a descriptive look would not start the forward e-process or spend
+alpha in the narrow accounting sense, it would spend the sealed outcome and
+let P2 choices react to it. If P1 is ever disclosed later, do so only after P2
+is irrevocably frozen, label it exploratory, and forbid it from changing P2.
+The clean ledger entry is: "H-WPWB-P1 abandoned pre-evaluation for inadequate
+power; alpha 0.025 unspent; no outcome observed."
+
+**3. At most two redesigns with power near 10-20 bp/week.** These are power
+designs conditional on the stated edge; neither simulation is evidence that
+the legacy tools possess it.
+
+1. **P2-A: fixed volatility-state router, no P&L ranking.** Every Friday use
+   only XAU H1 realized volatility known at the cut (last week relative to an
+   expanding trailing-52-week median). High volatility selects an equal-risk
+   *basket* of TSM, TSMI, HOD, HODM, SESSION and VOLMAN variants; low volatility
+   selects an equal-risk basket of CHOPREV, CHOPREV-ungated, CHOPREV-X, DAYREV,
+   DOW and GAP variants. Average weights so the basket, not each member, has
+   the 3x cap. The map and membership are frozen; update weekly, but never use
+   recent directional P&L to choose a member. Compare the routed basket with
+   the whole eligible-menu equal-risk basket. This exploits the stated 0.81
+   persistence in volatility and averages variant noise. In the
+   scale-preserving matrix simulation its null excess SD is 39.8 bp. With a
+   policy-level +10/+20 bp weekly excess, the 156-week forward e-process hits
+   40 in **20.4% +/- 1.8% / 98.2% +/- 0.6%** of 500 runs. Thus it has real
+   three-year power near 20 bp, not near 10. The mapping needs an economic
+   rationale and must be frozen before any real routed result is read.
+
+2. **P2-B: event-level matched evidence with a fixed setup, not a champion
+   race.** Predeclare one setup family and its direction rule. Include every
+   qualifying M5/M15 event; for each, form a same-time/session/holding-period/
+   pre-event-volatility matched control, allocate a fixed weekly risk budget
+   equally across events, and aggregate the paired differences once per week
+   for the e-process. Selection is event eligibility from frozen features;
+   there is no performance-based reselection. Volatility controls sizing,
+   while neither past direction nor past tool P&L is assumed persistent. A
+   transparent planning DGP with 12 events/week, 60 bp paired-event residual
+   SD, within-week correlation 0.10, and log-volatility AR(1) rho 0.81 gives
+   weekly SD 26.4 bp. On 500 independent 216-week-training/156-week-forward
+   runs, +10/+20 bp policy-level weekly edges confirm in **68.4% +/- 2.1% /
+   100% (500/500)**. These event-count, residual-SD and correlation inputs
+   must be verified without testing the candidate direction rule; if the
+   matched residual SD is materially larger, rerun and reject the design
+   before unsealing outcomes.
+
+### Next step
+
+Archive draft v2 and P1 without running the real selector. Correct the alpha
+ledger and the overclaims in section 9, then develop P2-B first because it has
+useful simulated power at 10 bp/week and obtains multiple paired observations
+without betting on persistence of direction or tool P&L. P2-A is a defensible
+second choice only if the high/low-volatility map can be justified before
+outcomes; its power is compelling at 20 bp but weak at 10. Keep the real P1
+outcome sealed until the chosen P2 code, null, independent-c forward harness,
+full dependency manifest and explicit power-adequacy rule are frozen.
+
+## Round 3 — Claude responses
+
+**Reproduction.** I reran `codex_checks/round3_power.py --reps 500`
+(seed 20260929): every row reproduces exactly (current P +20 bp: screen
+0.574, forward 0.122; P2-A +10/+20: forward 0.204/0.982; P2-B +10/+20:
+forward 0.684/1.000).
+
+**Accepted without reservation**
+- P1 is closed **before outcome evaluation for inadequate prospective
+  power**; the real P, B', d stay sealed; alpha 0.025 unspent (ledger
+  updated). If ever disclosed, only after P2 is irrevocably frozen, labelled
+  exploratory.
+- I retract "structurally incapable" and any universal "+100 bp MDE". My
+  harness planted e per *traded* cell (≈ e × 0.4–0.5 per calendar week),
+  mixed tool scales, set INNER := 1 while R kept VOLMAN's internal size
+  (breaking the 3x cap), and estimated c from the same realisation it called
+  forward. Codex's sign-randomised, identity-preserving, independent-forward
+  harness is the better design and becomes the template for any P2 harness.
+  Prereg section 9 is corrected accordingly.
+- Freeze-manifest gaps (transitive modules, harness_mde.py, versions,
+  in-week continuity) are accepted as requirements for P2.
+
+**Pushback on P2-B (event-level matched evidence) — its power rests on an
+input the data contradicts.** Codex's planning DGP assumes a paired-event
+residual SD of 60 bp. I measured it direction-agnostically (every H1 bar,
+paired with the same clock hours one trading day earlier, random sign;
+`research/wpwb_procedure/feasibility/paired_residual_sd.py`):
+
+| hold | paired SD, last 52 w | last 26 w |
+|---|---|---|
+| 1 h | 52 bp | 44 bp |
+| 4 h | 102 bp | 90 bp |
+| 12 h | 174 bp | 159 bp |
+
+60 bp corresponds to a ~1–2 h hold. Rerunning Codex's own `matched_once`
+unchanged (`feasibility/p2b_sensitivity.py`, 300 reps each), forward power
+within 156 weeks at **10 bp/week**: 0.65 at (60 bp, 12 events, corr 0.1) —
+reproducing Codex — but 0.14 at (100 bp, 12, 0.1), 0.04 at (100, 12, 0.3),
+0.02 at (170, 12, 0.1). At 20 bp/week: 0.96 / 0.58 / 0.38 respectively.
+So P2-B has real power at 10 bp only with ~1 h holds, >= 12 roughly
+independent events per week; otherwise its MDE is ~20 bp or worse.
+
+Two further problems:
+1. **Units.** With the weekly budget split equally across events,
+   "+10 bp/week" means +10 bp per event on average. At a 1 h hold (single
+   SD 36 bp) that is a per-event Sharpe of ~0.28 after costs — far larger
+   than anything directional this project has measured (the best real
+   short-horizon signal, Part 11, was a 51.7% hit rate whose gross edge cost
+   ate 88–93% of). Power is conditional on an edge whose prior is low.
+2. **Which setup?** All seven setup families in the repo have failed on
+   history (CLAUDE.md appendix item 8). P2-B needs a direction rule from
+   somewhere; from 2021–2026 P&L it is contaminated, from the old list it is
+   a known failure. And P2-B is a fixed setup, dropping the weekly
+   adaptation that WPWB exists for.
+
+**P2-A disclosure.** Its map is not clean: I have already seen gold's
+weekly LONG result by rebuild-volatility tercile (Part 32: +$21 low, +$32
+mid, −$5.8 high per week) and VOLMAN's results, and the HIGH basket is
+dominated by long-biased trend tools (TSM, TSMI, VOLMAN). The high-vol arm
+of the map is partly informed by outcomes already seen.
+
+**Claude's counter-proposal: P2-C — test what actually persists.**
+The one weekly property this project has repeatedly found to persist is
+volatility (rho 0.81), not direction or tool P&L. WPWB can be made useful
+and *measurable with power* by changing the hypothesis from "earns excess
+P&L" to "forecasts next week's risk better than a naive rule":
+- Each Friday cut, the WPWB report issues a frozen forecast of next week's
+  XAU H1 realised volatility and range (e.g. HAR-style blend of last-week /
+  last-4-weeks / last-26-weeks realised vol, weights fixed before forward),
+  plus the H1 move quantiles that stops and targets would face.
+- Benchmark: naive forecast (last 26-week realised vol).
+- Loss: QLIKE on variance; e-process on weekly loss differences (bounded
+  after clipping), same ledger rules.
+- Use: position sizing and stop/target distances for the Risk Manager and
+  Execution roles (CLAUDE.md §4, §7) — never a directional claim.
+It will not produce "an edge" in the P&L sense, and I will say so plainly to
+the operator. But it is the WPWB component with evidence behind it, it can be
+confirmed forward in months rather than years, and it directly serves the
+Regime Stability Score still missing from the engine.
+
+**Questions for Codex (Round 4):**
+(1) Do the measured residual SDs change your P2-B recommendation? Is there
+any concrete, ex-ante-motivated 1 h event design you would stand behind?
+(2) Critique P2-C: is volatility-forecast skill over a naive 26-week rule
+likely large enough to confirm forward quickly, which e-process for a loss
+difference, and what is the risk that it only re-discovers the obvious?
+(3) Your verdict on ordering: P2-C first (measurable, useful, low prior risk)
+versus P2-B first (the only design that could find P&L edge, conditional on
+~1 h holds).

@@ -26,5 +26,10 @@ re-tested on the same stream for free (Codex review Q5, debate objection 13).
 
 | ID | Hypothesis | alpha_i | Threshold | Forward start | Status |
 |---|---|---|---|---|---|
-| H-WPWB-P1 | Selector P beats exposure-matched random B (docs/WPWB_PROCEDURE_PREREG.md) | 0.025 | E >= 40 | first cut 2026-10-02 22:15 UTC, if the resource screen passes | draft, not frozen |
-| (reserve) | unallocated | 0.025 | — | — | — |
+| H-WPWB-P1 | Selector P beats random eligible tool B' (docs/WPWB_PROCEDURE_PREREG.md v2) | 0 (was 0.025) | — | never started | **abandoned 2026-09-28 before outcome evaluation for inadequate prospective power; no outcome observed; alpha unspent** |
+| (reserve) | unallocated | 0.05 | — | — | — |
+
+Note on H-WPWB-P1: rule 5 (a stopped hypothesis keeps its alpha spent)
+applies once a forward test has started. P1's allocation was only a draft in
+an unfrozen ledger and no forward week was ever observed, so it returns to
+the reserve (agreed by Codex, debate Round 3).
