@@ -90,3 +90,32 @@ Multiple-comparison family = all 40, so threshold p < 0.025/40 = 0.000625
 vs every control, plus the same net-positive, evidence-floor (each tool's
 own floor from the closed search) and regime-half rules. Written before
 the run.
+
+## Amendment 1 result (`research/wpwb_live/run_live_all.py`)
+
+**0 of 34 pass; 0 of 40 overall.** All audits clean. Two patterns:
+
+- **Drift, not edge:** TSM (+32 to +53 bp/week) and META (+22 to +30) are
+  strongly profitable in the current era but do not beat always-long at
+  the same timing (t vs LONG −0.9 to +0.3). They are long gold, re-labelled.
+- **The one tool with real evidence: VOLMAN** (volatility-managed weekly
+  long). vs exposure-matched long: hl=13 t +1.87, p 0.0192; hl=4 t +1.72,
+  p 0.0564. Fails the 40-tool threshold (0.000625); roughly one raw p<0.025
+  is expected by chance among 40 tools, so this alone proves nothing.
+
+## Post-hoc checks on VOLMAN (disclosed: chosen because it was strongest)
+
+`research/wpwb_live/volman_checks.py`. Excess over exposure-matched long:
++7.3 bp/week (hl=13), +8.2 (hl=4). Positive in every year (hl=13: 2024
++2.3, 2025 +10.2, 2026 +10.3). Size-permutation test (same sizes, random
+weeks): p 0.013 / 0.023 — the timing of size matters. **But 73-80% of the
+total excess comes from 5 weeks** (high-vol weeks with sharp falls, where
+VOLMAN held less) and it is positive in only 58-62% of weeks. Gross breadth
+on the same era: XAU +8.2 (t 2.00), XAG +17.3 (t 1.03), DXY +1.1, US500
+−8.8, EURUSD −2.6, USDJPY −2.0 — precious metals yes, equities/FX no.
+
+**Reading:** a plausible, WPWB-native mechanism (volatility is the one trace
+that persists week to week, rho 0.81) with suggestive but not proven
+evidence. At the observed effect size a forward record needs ~162 weeks to
+reach t=2 and ~365 for t=3. **Status: best candidate for a frozen forward
+shadow arm, not a validated edge. Engine decision: NO TRADE.**

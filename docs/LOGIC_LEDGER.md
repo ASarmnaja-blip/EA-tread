@@ -1288,6 +1288,41 @@ all; forward accumulation under a frozen rule is the only path, and a
 
 ---
 
+## Part 31 — WPWB-live: current-era redo; what persists, and the one candidate (2026-09-28)
+
+**Source:** `docs/WPWB_LIVE_PREREG.md`, `research/wpwb_live/`. User rejected
+the closed search: WPWB means reading the *current* market each week, not
+judging tools on 2021-2023. Redone on current data (fresh MT5 M5 through
+2026-09-28 07:00, verified identical to the snapshot on 216,085 overlapping
+bars).
+
+**Two findings that change how WPWB should be built:**
+1. Round-trip cost as a share of the median H1 move fell from ~19% (2021-
+   2023) to 3.6% (2026) as gold went $1,800 -> $4,500 — the DEV era was the
+   worst era in which to judge intraday tools. The user's objection was
+   right on this point.
+2. Week-to-week persistence (next-week Spearman rho, 2024-2026): realised
+   volatility +0.81, XAU/DXY correlation +0.34, every direction/character
+   trace (session drifts, weekly return, intraday autocorrelation, variance
+   ratios) ~0. **What the market rewarded directionally last week does not
+   predict next week; how volatile it was does.** This is why every
+   direction-picking weekly selector tested (Part 24's grid, this search's
+   META) failed or matched random.
+
+**Current-era run of all 40 frozen tools (Bonferroni over 40): 0 pass.**
+Hour-of-day tools (0 of 6) lost their DEV-era information despite cheaper
+costs. TSM/META were very profitable but only as long gold (did not beat
+always-long). DXY->XAU M5 lead-lag: +0.09 bp follow-through vs ~1 bp cost.
+**One candidate: VOLMAN** (size the weekly long by trailing volatility):
++7.3 bp/week over exposure-matched long, positive every year, size-
+permutation p 0.013 — but fails the 40-tool correction, 73-80% of its
+excess comes from 5 weeks, and it works on XAU/XAG but not US500/FX. A
+forward record would need ~162 weeks to reach t=2 at this effect size.
+This week's rebuild value (cut 2026-09-25 22:15): daily sigma 142 bp,
+1-sd weekly move ~317 bp (~$136 at $4,286), VOLMAN size 1.15x.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
