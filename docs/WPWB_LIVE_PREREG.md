@@ -260,3 +260,113 @@ week only). Outcome = d x (Friday close / break-bar close − 1), bp, before
 costs (costs reported separately). Pass: mean > 0 in BOTH eras (2021-07..
 2023-12 and 2024-01..2026-09) with one-sided sign-flip permutation p < 0.05
 in both, and the BPL half alone also mean > 0 in both eras. Runs once.
+
+## Amendment 7 (Codex) — independent audit, external leading traces, and Fed-cycle FOMC test (before running)
+
+**Written by Codex on 2026-09-28 at repository commit
+`69d07613cad7be0823b8363ecd28ed01c8a8b08b`, before running any test below.**
+This amendment authorizes read-only analysis only. It does not authorize an
+order, an order-function call, a live/demo execution test, an EA change, or a
+PR. The tests run once after this amendment is committed. If an implementation
+bug is found, its fix and any changed/replacement test must be registered in a
+new amendment before the affected result is rerun.
+
+### A7.1 — independent audit tests
+
+Scope is limited to `research/wpwb_search/common.py`,
+`research/wpwb_search/test_common.py`, `research/wpwb_live/h1_traces.py`, and
+`research/wpwb_live/fetch_fresh.py`, plus the directly called resampling,
+rollover, week-boundary, event-loading, and fresh/canonical-combination helpers.
+Static review is followed by these frozen executable checks:
+
+1. run every existing test in `research/wpwb_search/test_common.py` once;
+2. independently reconstruct synthetic H1 OHLC bars, including a missing-M5
+   gap, and require exact timestamps/OHLC and no manufactured bar over the gap;
+3. hand-check long and short Bid/Ask P&L, 1.5x spread/fee stress, entry and exit
+   spread locations, and vector rollover counts against
+   `mtf_engine.rollover_nights` at boundary instants;
+4. require every included weekly H1 bar to start at/after its cut and end by
+   the next cut, with cuts exactly Friday 22:15 UTC;
+5. require calendar timestamps to be epoch seconds, the checkpoint to be
+   Wednesday 00:00 UTC, every W1/W3/W4/W5 input to end before that checkpoint,
+   and every three-hour W5 reaction to be fully known by it; and
+6. on the existing local fresh files (do not call MT5), require sorted unique
+   timestamps, measure XAU overlap agreement, require the chosen offset to be
+   zero, and require `combined_bars()` to append only timestamps strictly after
+   the canonical snapshot without duplicates.
+
+The audit passes only if all invariants pass. A discrepancy is reported even
+if it is conservative. The report classifies whether it can bias results
+toward “no trace”, toward a false trace, or only affect descriptive output.
+`fetch_fresh.py` is inspected but is not executed, so no MT5 function of any
+kind is called by this audit.
+
+### A7.2 — external data and ten pre-week traces
+
+Data are downloaded from first-party public sources and stored under
+`data/external/`, with raw files and a README recording exact URLs, retrieval
+date, fields, transformations, and hashes:
+
+- US Treasury daily nominal par curve: 2-year and 10-year yields;
+- US Treasury daily real par curve: 10-year TIPS yield;
+- Cboe daily GVZ close (gold implied volatility); and
+- CFTC annual disaggregated futures-only reports: COMEX gold managed-money
+  long and short positions.
+
+Window: complete WPWB weeks with cuts from 2021-07-02 through 2026-09-25,
+split without overlap into era A = 2021-07..2023-12 and era B =
+2024-01..2026-09. Causal alignment is deliberately conservative: at a Friday
+22:15 UTC rebuild, yield/GVZ observations must be dated no later than Thursday;
+CFTC observations use the latest report whose public release Friday is at or
+before the cut (the report's Tuesday `As of Date` alone is not treated as its
+availability date). Missing/stale observations are left missing, never filled
+from the future. Gold outcomes are the following complete week's gross return;
+costs are irrelevant to a correlation trace and are not subtracted.
+
+The ten frozen traces and directional alternatives are:
+
+- N1/N2: 2-year yield level and 13-week change, negative with next-week gold;
+- N3/N4: 10-year nominal yield level and 13-week change, negative;
+- R1/R2: 10-year real yield level and 13-week change, negative;
+- G1: GVZ divided by trailing-20-session realised gold volatility, positive
+  with next-week absolute gold return;
+- G2: 13-week GVZ change, positive with next-week absolute gold return;
+- C1: managed-money net position `(long-short)` percentile in its trailing
+  52 released reports, negative with next-week gold (crowding/reversal); and
+- C2: four-report change in managed-money net position, positive with
+  next-week gold (position momentum).
+
+For each trace and each era, report n, Spearman rho, and a one-sided empirical
+p-value from 20,000 seeded **random-timing controls** that circularly shift the
+outcome by a non-zero lag while keeping the trace's time order intact. The
+shared seed is 20260928. A trace passes only if it has its registered sign and
+`p < 0.05 / 10 = 0.005` in **both** eras. Family size remains ten even if a
+source is unavailable; an unavailable or insufficient trace is `NOT ASSESSED`,
+not silently removed from the correction. Report all ten, including failures.
+
+### A7.3 — FOMC direction from the Fed cycle
+
+One hypothesis only: on a week containing a scheduled FOMC decision, define
+the causal Fed-direction signal from the 2-year Treasury yield's 63-trading-day
+change available at the rebuild: falling/unchanged is dovish (`+1` gold),
+rising is hawkish (`-1` gold). The score is that signal times the complete
+FOMC-week gross gold return. FOMC dates come from the already-used verified
+2016-2021 list and the local calendar for 2022-2026; no event is chosen by its
+return.
+
+The confirmatory windows are the same two required eras A and B. In each era
+report event count, direction counts, mean/median score, hit rate, and two
+one-sided seeded controls (20,000 draws each): (a) random-direction sign flips
+on the actual FOMC weeks, and (b) the same number of random weeks from that era
+with the contemporaneous Fed-direction signal. The hypothesis passes only if
+mean score is positive, hit rate exceeds 50%, and both empirical p-values are
+below 0.05 in **both** eras. The 2016-08..2020-11 D1 period is reported only as
+explicitly non-confirmatory cycle context because its FOMC returns were
+already examined in Part 34.
+
+Power is reported from the actual FOMC event counts and, separately, the
+number of independent easing/tightening transitions. Event-week significance
+must not be described as confirmation across policy cycles: with roughly two
+cycles, cycle-level generalisation is `NOT ASSESSED` regardless of event-level
+results. Random controls and A7.2/A7.3 outcomes are generated by one new
+read-only script; it must contain no MetaTrader5 import or trading API call.
