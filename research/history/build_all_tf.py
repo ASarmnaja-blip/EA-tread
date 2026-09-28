@@ -2,8 +2,9 @@
 Exness broker feed, and extend the WPWB volatility log back to 2003.
 
 Outputs (data/history/):
-  dukascopy/XAUUSD_<TF>.npz for M5 M15 M30 H1 H4 D1 W1 MN1 (bid OHLC,
-      ask close, volume); W1 bars start Sunday 00:00 UTC, MN1 calendar months
+  dukascopy/XAUUSD_<TF>.npz for M5 M15 M30 H1 H4 D1 W1 MN1 (bid OHLC and
+      ask OHLC - both sides are needed for long and short stop touches,
+      Codex Round 6 - plus volume); W1 bars start Sunday 00:00 UTC, MN1 calendar months
   inventory_all.csv            coverage of every source x timeframe
   crosscheck_exness.txt        Dukascopy vs Exness on the overlap
   yearly_2003.xlsx             per-year behaviour + volatile weeks since 2003
@@ -59,6 +60,7 @@ def load_kind(kind):
         b, a2 = b[keep], a[idx[keep]]
         frames.append(pd.DataFrame({
             "o": b["o"] / 1000.0, "h": b["h"] / 1000.0, "l": b["l"] / 1000.0, "c": b["c"] / 1000.0,
+            "ao": a2["o"] / 1000.0, "ah": a2["h"] / 1000.0, "al": a2["l"] / 1000.0,
             "ac": a2["c"] / 1000.0, "v": b["v"].astype(float)}, index=pd.to_datetime(bt[keep], unit="s")))
     if not frames:
         return None
@@ -69,6 +71,7 @@ def load_kind(kind):
 def resample(df, rule):
     g = df.resample(rule, label="left", closed="left")
     out = pd.DataFrame({"o": g.o.first(), "h": g.h.max(), "l": g.l.min(), "c": g.c.last(),
+                        "ao": g.ao.first(), "ah": g.ah.max(), "al": g.al.min(),
                         "ac": g.ac.last(), "v": g.v.sum()}).dropna(subset=["o"])
     return out
 

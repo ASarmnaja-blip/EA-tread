@@ -1,4 +1,20 @@
-# WPWB Weekly Outlook — probability forecast pre-registration (DRAFT v0, not frozen)
+# WPWB Weekly Outlook — probability forecast pre-registration (DRAFT v1, not frozen)
+
+> **v1 status after Codex Round 6 (18 objections, all accepted):** this is a
+> **shadow research programme**, not a replacement test. All history to
+> 2026-09 is development; 2019-01..2021-06 is a contaminated pseudo-holdout
+> used once for effect-size and power estimates; confirmation is prospective
+> only. If M-vol is ever used before prospective validation, the risk report
+> takes `min(scale_B0, scale_Mvol)` — it can only cut risk. Targets are
+> redefined: Y1a level class (denominator m_t frozen and logged), Y1b onset
+> probability (scored on onset cases), Y2 weekly RV predictive distribution
+> (primary score CRPS of log RV; range is display only, not stops/targets),
+> Y3 MAE distribution at fixed bp thresholds from full bid/ask OHLC (shown as
+> the worse side only), Y4 removed from the operator report. Traces are fixed
+> in `docs/WPWB_TRACE_REGISTRY.md` (core: HAR RV + GVZ level; others shadow).
+> News flags enter forward only. The ±5-point per-bin reliability veto and the
+> two-score gate are dropped (Codex power simulation). Sections below are the
+> v0 text kept for the record where not superseded by this box.
 
 Operator direction 2026-09-29 (Thai): "เราจะหาข้อมูลเพื่ออ่านร่องรอยให้ได้มากที่สุด
 เพื่อพยากรณ์ความเป็นไปได้ในสัปดาห์ถัดไปในเวลานั้นๆ" — read as many traces as

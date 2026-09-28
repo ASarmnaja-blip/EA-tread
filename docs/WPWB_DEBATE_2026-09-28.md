@@ -1305,3 +1305,422 @@ P2-A: dropped, alpha 0, recorded in `docs/ALPHA_LEDGER.md`. Project verdict
 agreed by both reviewers: **NO TRADE on direction; WPWB = weekly risk report
 only**, until a genuinely new directional idea arrives with an exact, powered
 forward contract.
+
+## Round 6 โ€” Codex (Outlook draft v0)
+
+### Verdict
+
+Do not freeze draft v0. Forecasting a distribution of next-week magnitude is
+the right research direction, but the proposed confirmatory interpretation is
+not defensible. The 2019-01..2021-06 period is not clean for magnitude, Y3 changes
+its realised event with the model being scored, the onset claim is not the Y1
+target, the two-score-plus-reliability adoption gate is close to a veto at this
+sample size, and the report still contains two routes to a directional claim.
+No holdout or 2021-2026 model was fitted for this review.
+
+### Numbered objections
+
+1. **Severity: critical — The proposed holdout is not clean for magnitude.**
+
+   **Problem:** Parts 34 and 41 do not support the draft's statement that
+   2019-01..2021-06 was touched only for direction. Part 34 ran VOLMAN, a
+   volatility-sizing/magnitude hypothesis, on broker H1 from 2020-12 through
+   2021-12 and on D1 from 2016-08 through 2020-11. It inspected weekly ranges,
+   volatility and the relation between past volatility and subsequent risk.
+   The current `WPWB_HOLES.md` also chose the best onset traces after a
+   best-of-12 inspection and explicitly nominated 2009-2021 as the next test
+   era. The exact M-vol regression has not been fitted there, which is useful,
+   but the outcomes have already influenced the hypothesis family, traces and
+   intended use. That prevents a confirmatory 95% interpretation.
+
+   **Concrete proposed change:** Call 2019-01..2021-06 a contaminated
+   retrospective pseudo-holdout, not a holdout. Use it once for development
+   diagnostics and honest effect-size/power estimation only. Treat all
+   available history through 2026-09 as development/descriptive for ideas
+   chosen from Parts 31-44. Freeze the final procedure before the first new
+   cut and make prospectively logged weeks the only confirmation. Historical
+   rolling-origin replay may compare models, but cannot restore an unseen era.
+
+2. **Severity: critical — GVZ causal availability is asserted, not proved.**
+
+   **Problem:** The stored Cboe file has 4,279 complete daily rows from
+   2009-09-18 through 2026-09-25, but only `DATE,GVZ`. The manifest records one
+   retrieval at 2026-09-28 10:01 UTC; neither file records the original
+   publication timestamp, revisions, or what row existed at each historical
+   cut. The repository's first-party documentation establishes the source URL,
+   not Cboe's end-of-day publication SLA. At the cut, 22:15 UTC is 17:15 ET in
+   standard time and 18:15 ET in daylight time, so Friday's market observation
+   should already have occurred; that does **not** prove the retrospective
+   daily CSV row was publicly posted and final by 22:15 UTC. Thursday is a
+   sensible conservative lag, but “Thursday only, so no look-ahead” does not
+   solve vintage/revision provenance by itself.
+
+   **Concrete proposed change:** For historical work, freeze `GVZ_asof(t)` as
+   the latest value dated no later than Thursday and label its publication-time
+   causality **not verified from the local artifact**. For forward work, capture
+   the value, retrieval timestamp, source timestamp if supplied, URL and hash
+   before every cut. Friday GVZ may enter only after an authoritative Cboe
+   document establishes dissemination/publication before the cut and a forward
+   logger proves operational receipt; otherwise use Thursday. Specify DST,
+   holiday-Friday and missing-row fallbacks.
+
+3. **Severity: critical — Y1 does not actually test volatile-episode onset.**
+
+   **Problem:** A four-class next-week level score is dominated by persistence
+   and ordinary weeks. It can improve RPS while still missing the first HIGH or
+   EXTREME week of an episode—the operational hole documented in Part 43 and
+   `WPWB_HOLES.md`. Saying Y1 “includes” onset is therefore false. Onset is a
+   conditional transition event, not merely one subset of a well-powered level
+   score.
+
+   **Concrete proposed change:** Split the target into Y1a, the four-class
+   level, and Y1b, `P(next week HIGH/EXTREME | current week not HIGH/EXTREME)`.
+   Score Y1b separately with Brier/log loss and a predeclared alarm operating
+   point. Do not claim the onset hole improved unless Y1b beats B0 on onset
+   cases, with false alarms and uncertainty reported.
+
+4. **Severity: high — Moving class edges are usable, but the target is not yet
+   frozen precisely enough.**
+
+   **Problem:** Dynamic edges do not inherently make Y1 ill-defined. It is
+   well-defined if `m_t` is the median RV of exactly the 52 completed valid
+   weeks known at cut t and the realised label is based forever on
+   `RV_t / m_t`. The draft instead says “spec v2 edges”; spec v2 defines the
+   displayed level using the **forecast** divided by the past median, while the
+   draft's outcome text says realised RV. Recomputing medians after data
+   corrections could also relabel history. Relative classes additionally do
+   not express absolute dollar risk: an EXTREME week in a calm era can be
+   smaller than a NORMAL week in a turbulent era.
+
+   **Concrete proposed change:** Freeze and log `m_t`, its 52 source cut IDs,
+   validity mask and input hash at the cut. Define Y1 outcome explicitly as
+   `class(RV_t / m_t)` with edges 0.75/1.5/2.5; never recompute the denominator
+   for scoring. Keep Y2/absolute RV quantiles beside it so the operator cannot
+   mistake a relative class for an absolute risk budget.
+
+5. **Severity: critical — Y3's event changes with the forecast being scored.**
+
+   **Problem:** `P(MAE > 1 sigma_hat)` and `P(MAE > 2 sigma_hat)` do not define
+   fixed outcomes when sigma_hat comes from the candidate model. M-vol and B0
+   can assign different binary labels to the same realised path because their
+   thresholds differ. Their Brier scores would then compare forecasts of
+   different events. The proposed historical frequency of `MAE/sqrt(RV)` also
+   conditions the normaliser on realised future RV, then says it will be
+   “scaled by the forecast,” without a complete predictive mapping.
+
+   **Concrete proposed change:** Forecast the long- and short-side MAE
+   distribution or fixed quantiles in bp. Score both models against the same
+   realised MAE. Derive stop-touch probabilities only at fixed, predeclared bp
+   thresholds (or the same independently frozen stop schedule) known before
+   either forecast. Never let a model's own sigma define its scored event.
+
+6. **Severity: critical — H1 MAE is not a real stop-hit probability, and the
+   present Dukascopy build cannot measure both sides correctly.**
+
+   **Problem:** A long enters at Ask and its stop is touched by Bid low; a short
+   enters at Bid and its stop is touched by Ask high. The raw Dukascopy cache
+   contains BID and ASK OHLC, but `research/history/build_all_tf.py` retains
+   bid OHLC and only ask **close**. That cannot reconstruct short stop touches.
+   H1 extrema can establish that the quote crossed a fixed threshold if the
+   correct side is retained, but not the fill after a gap, spread spike or
+   slippage. The local hole register already shows spreads up to 11x at recent
+   USD HIGH releases and acknowledges that H1 understates tick/news risk.
+   “Opened at the first H1 bar” also leaves open whether entry is its open,
+   close, first executable quote, or a Sunday gap fill.
+
+   **Concrete proposed change:** Rename the historical quantity
+   **H1 quote-touch excursion**, not stop-hit probability. Rebuild this target
+   from full bid and ask OHLC: long entry Ask open versus later Bid lows; short
+   entry Bid open versus later Ask highs; include the weekend gap in the first
+   executable quote. Specify touch equality, missing bars, entry clock and bp
+   denominator. Estimate fill loss/slippage only from forward ticks and broker
+   logs; report H1 and tick-era sensitivity separately.
+
+7. **Severity: high — Y2 cannot set stops or targets as claimed.**
+
+   **Problem:** The full week's high-low range from its first close is an
+   unconditional path envelope. It does not say which side occurs first, how
+   far price moves adversely from a later M5/M15 entry, or whether a target is
+   reachable before a stop. Turning its quantiles directly into stop/target
+   distances repeats the barrier-geometry problem documented earlier in the
+   project.
+
+   **Concrete proposed change:** Describe Y2 as a weekly range/risk-budget
+   forecast only. Any stop/target use must be a separate entry-conditional path
+   study with side, entry time, spread, first-passage ordering and dollar-risk
+   sizing frozen. Until then it may guide chart scale and maximum permitted
+   exposure, not an order's stop or take-profit.
+
+8. **Severity: critical — M-vol is not an executable frozen model contract.**
+
+   **Problem:** The trace table calls `GVZ^2 / RV` a risk premium, but the
+   equation contains `log GVZ^2` rather than that ratio. “News flags” could
+   mean one count, three binaries, multiple releases or signed surprise
+   information. The short-week exchange calendar is unnamed for an OTC
+   XAUUSD week. Missing GVZ/holiday values, invalid price weeks, coefficient
+   rank deficiency, standardisation, residual degrees of freedom and the
+   first scored cut are unspecified. HAR's lag-1, lag-4 and lag-26 terms are
+   strongly related, and adding implied variance can make expanding OLS
+   unstable even without deliberate tuning.
+
+   **Concrete proposed change:** Write the exact feature vector and code-level
+   state transition: transformations, lags, calendar, release-name mapping,
+   missingness, minimum complete rows, rank/condition-number action, fitting
+   window, coefficient constraints or fixed shrinkage, residual estimator,
+   invalid-week handling and forecast timestamp. Choose either GVZ level or a
+   separately defined variance-risk-premium feature; do not describe one and
+   fit the other. Add future-garbage and missing-row invariance tests.
+
+9. **Severity: high — The lognormal distribution is assumed rather than
+   calibrated.**
+
+   **Problem:** The `v/2` correction makes a lognormal level mean unbiased
+   under a homoskedastic Gaussian residual assumption; it does not validate
+   tail probabilities, quantiles, PIT uniformity, coefficient uncertainty or
+   volatility-of-volatility. Those are exactly the properties Y1-Y3 require.
+   A few crisis weeks will dominate the 90th range and MAE quantiles.
+
+   **Concrete proposed change:** In development rolling-origin predictions,
+   compare the frozen parametric distribution with an expanding empirical or
+   conformal residual distribution using only past residuals. Freeze one
+   distributional method before the pseudo-holdout. Report PIT/rank histograms,
+   tail coverage and interval coverage with block uncertainty; do not use a
+   mean-bias correction as evidence of probability calibration.
+
+10. **Severity: critical — B0 and B1 are not defined at parity with M-vol.**
+
+   **Problem:** The operational report's B0 is a point EWMA plus heuristic
+   range translation; draft v0 silently upgrades it to “EWMA lognormal,
+   residual SD from EWMA errors.” It does not specify expanding residuals,
+   minimum history, mean correction, Y2 scale ratios or Y3 distributions.
+   B1 says “past-52 class frequencies / quantiles” without defining whether
+   all targets use 52 weeks or expanding history. A weak or inconsistently
+   constructed baseline can manufacture apparent improvement.
+
+   **Concrete proposed change:** Freeze target-by-target B0 and B1 algorithms
+   with the same cut, valid-week mask, probabilistic family, residual window,
+   warm-up and information set as M-vol wherever possible. Include simple
+   last-week RV and unconditional expanding empirical distributions as
+   diagnostics. Score only weeks on which every compared forecast was issued.
+
+11. **Severity: critical — The adoption rule is underpowered and its
+   reliability clause is an accidental near-veto.**
+
+   **Problem:** Jan-2019 through Jun-2021 contains 130 Friday cuts, not merely
+   “about 120,” before losses to warm-up/missing data. A model-free simulation
+   in `research/wpwb_weekly/codex_checks/outlook_power.py` used a circular
+   moving-block-8 percentile 95% interval on 130 paired weekly score
+   differences. For one metric, about 80% power required a mean improvement of
+   0.25 paired-score SD under iid differences, 0.35 SD at AR(1)=0.3 and 0.40 SD
+   at AR(1)=0.5. Requiring both RPS and pinball to pass, with score-stream
+   correlation about 0.6 and AR(1)=0.3, gave only 47.9% joint power at 0.25 SD,
+   78.4% at 0.35 SD and 95.0% at 0.45 SD. An illustrative perfectly calibrated
+   binary forecast passed a raw `<=5 percentage points in every bin` rule only
+   2.38% of the time with five equal bins and 0.0013% with ten. Multiclass Y1
+   creates still more cells. Absolute RPS MDE cannot be stated until the clean
+   paired difference SD is estimated; it is `roughly 0.35 x SD(d)` under the
+   moderate-dependence simulation, not a universal number.
+
+   **Concrete proposed change:** Before opening the pseudo-holdout, freeze the
+   block scheme/length, score aggregation and a simulation calibrated only
+   from development residuals. Replace the per-bin ±5-point veto with coverage
+   intervals or a prespecified aggregate calibration statistic whose sampling
+   error is acknowledged. Choose one primary loss aligned with the operational
+   decision; make the others secondary diagnostics. If the resulting MDE is
+   not operationally useful, do not use the retrospective period as a gate.
+
+12. **Severity: critical — The score family and replacement decision do not
+   match.**
+
+   **Problem:** The rule requires RPS and pinball but does not say how the three
+   Y2 pinball losses are weighted, which Y1 RPS convention is used, which
+   reliability table must pass, or why Y3 may fail without blocking adoption.
+   It also omits a proper score for the continuous RV distribution even though
+   the action is to replace B0's volatility forecast. This permits a model to
+   win relative classes/range while worsening the tail or point forecast used
+   for size.
+
+   **Concrete proposed change:** Name one primary estimand and score. A
+   defensible choice is a proper continuous-distribution score for RV or a
+   frozen asymmetric risk loss that penalises dangerous underforecasting;
+   QLIKE may remain a point-variance diagnostic. Predeclare weights for every
+   Y2 quantile and a hierarchy for onset, range and MAE. Tie replacement to the
+   exact quantity that drives `vol_scale`, with tail calibration as a safety
+   constraint rather than an arbitrary collection of victories.
+
+13. **Severity: critical — “No alpha” does not make a superiority claim free,
+   and replacement can increase risk relative to B0.**
+
+   **Problem:** A 95% interval excluding zero is an inferential superiority
+   claim even if the downstream use is risk rather than directional P&L.
+   Multiple targets, traces and two baselines still create selection error.
+   More importantly, if M-vol forecasts less variance than B0, replacing B0
+   raises the recommended lot size relative to the adopted risk report, even
+   though it remains below the default ceiling. That is not a purely
+   conservative overlay.
+
+   **Concrete proposed change:** Either (a) make no superiority claim, label
+   all history development, and use M-vol only as a logged shadow; or (b)
+   allocate a named forecast-validation error budget and freeze the hypothesis
+   family. Operationally, until prospective validation, use
+   `effective_scale = min(scale_B0, scale_Mvol)` (equivalently the more
+   conservative variance forecast) so the Outlook cannot relax current risk.
+   Promotion to two-sided replacement requires future evidence, not this
+   contaminated pseudo-holdout.
+
+14. **Severity: critical — Y4 and side-specific Y3 leak a directional claim
+   into a report whose standing verdict is NO TRADE.**
+
+   **Problem:** `P(up)=x%`, even followed by “base rate, not a signal,” is a
+   directional forecast users can act on. An expanding up-week base rate is
+   also dominated by gold's secular sample drift and is not a stable 50/50
+   physical law. Separate long and short MAE probabilities reveal asymmetry;
+   lower adverse risk on one side can be used to choose that side. CFTC/yield
+   traces and signed news narratives previously failed direction and can also
+   regain directional meaning if displayed next to Y4.
+
+   **Concrete proposed change:** Remove Y4 from the operator-facing risk
+   report. Keep it in an auditor-only descriptive table with no colour,
+   ranking, recommendation or sizing effect. For Y3, publish a symmetric risk
+   envelope such as the worse of the two side-specific fixed-threshold risks;
+   keep side-specific values research-only. Inputs to the magnitude model must
+   be unsigned event-presence/count or volatility quantities. Any displayed
+   side asymmetry or directional trace needs a separate preregistration and the
+   standing directional validation rules.
+
+15. **Severity: high — “Read as many traces as possible” has no search-control
+   contract.**
+
+   **Problem:** The fixed equation currently uses only a small trace set, while
+   `WPWB_HOLES.md` has already screened 12 onset traces and selected GVZ level,
+   near-52-week-high and last-week RV. Cross-assets begin only in 2023; CFTC
+   and yields have different availability; news begins in 2022. Adding traces
+   as they look useful recreates the amendment/multiplicity problem from Parts
+   29-42. Conversely, putting every trace in one OLS creates changing samples,
+   collinearity and unstable coefficients.
+
+   **Concrete proposed change:** Create a trace registry before fitting:
+   economic rationale, exact causal timestamp, transform, sign only if imposed,
+   start date, missingness rule, target family and status (`core`, `shadow`,
+   `retired`). Freeze one small core model on the common 2009+ information set.
+   Log later/short-history traces as shadow forecasts with no retrospective
+   promotion. A new core trace creates a new model version and begins a new
+   prospective record; it does not reuse old weeks as confirmation.
+
+16. **Severity: high — Source/session drift can dominate the claimed
+   long-history gain.**
+
+   **Problem:** Development/retrospective evaluation uses Dukascopy while the
+   operational report uses Exness. Weekly RV, range, first executable open,
+   bid/ask extrema, holiday bars and gaps can differ by vendor and session.
+   The long-history builder's intended cross-check has not yet been produced,
+   and at this review the running hourly cache visible on disk reached only
+   2005-09. A model cannot be frozen merely because the calendar span is
+   planned.
+
+   **Concrete proposed change:** Wait for the untouched download to finish,
+   then publish coverage/gap audits and a blinded overlap comparison of weekly
+   RV, range, class labels and MAE by vendor. Freeze a vendor-neutral return
+   construction or explicit mapping tolerance. Declare weeks that fail the
+   common completeness/session rule invalid for every model and baseline.
+
+17. **Severity: high — Pre-2022 news flags cannot enter the proposed adoption
+   model as written.**
+
+   **Problem:** The local calendar starts in 2022, after development and most
+   of the pseudo-holdout. A coefficient `c` therefore cannot be estimated in
+   2009-2018 or judged in 2019-2021. A current final schedule is not necessarily
+   a point-in-time record of what was scheduled at each Friday cut, especially
+   after postponements. The project's earlier hand-entered FOMC set was also
+   outcome-filtered and is unusable here.
+
+   **Concrete proposed change:** Exclude news flags from the core historical
+   M-vol/B0 adoption comparison and enter them forward only as logged shadow
+   features. Do not download anything for this draft under the current
+   constraint. If later authorised, use archived official Fed/BLS release
+   schedules with publication/vintage evidence and exact name/time mappings;
+   that would define a new model version, not backfill confirmation for v0.
+
+18. **Severity: medium — Forecast issuance, scoring and operational action are
+   not fully joined.**
+
+   **Problem:** The draft alternates `(cut, cut+7d]` with spec v2's
+   `[cut, cut+7d)` convention, does not name the first/last scored cuts after
+   104-row warm-up, and does not say how a missed report, invalid target week,
+   revised input or short week affects model state. Nor does it identify which
+   M-vol statistic—the mean, median or upper quantile—would replace B0 in the
+   sizing formula.
+
+   **Concrete proposed change:** Reuse spec v2's exact interval and close-time
+   assignment. Log one immutable forecast object per cut with input hashes,
+   model version, all baseline forecasts and valid-state flags; score only an
+   exact seven-day join. Freeze the point/tail functional used by `vol_scale`
+   and require that invalid/missed weeks cannot silently enter later fitting.
+
+### Answers to the five open questions
+
+1. **GVZ:** Thursday is the only defensible historical lag with the evidence
+   currently stored, but even it needs the vintage limitation disclosed.
+   Friday is economically observable before a 22:15 UTC cut, yet the local
+   Cboe artifact provides no publication timestamp or revision history, so the
+   Friday daily close is not historically admissible as of-cut evidence. It
+   becomes usable prospectively after authoritative timing documentation and
+   timestamped receipt are in place.
+2. **Pre-2022 news:** Do not add/download schedules for v0. Keep C out of the
+   historical core and log it forward. Official archived Fed/BLS schedules may
+   later justify a new model version if they preserve the schedule known at
+   each cut; final event dates alone are insufficient.
+3. **Holdout cleanliness:** No. Parts 34 and 41 inspected 2016-2021 for
+   volatility-managed/magnitude behaviour, including 2019-2021. The interval
+   is less contaminated for this exact equation than 2021-2026, but it is a
+   pseudo-holdout, not confirmatory holdout.
+4. **Power:** There are 130 nominal Friday cuts. With block-8 95% intervals,
+   one-score 80% power was reached at about 0.25/0.35/0.40 paired-score SD for
+   AR(1) 0/.3/.5. Requiring both scores needs about 0.35 SD for roughly 78%
+   joint power under the simulated moderate correlation, before the
+   reliability veto. Convert that to RPS only after estimating `SD(RPS_B0 -
+   RPS_Mvol)` from development; no honest absolute RPS MDE exists yet.
+5. **Y3:** Yes, materially. The present event is model-dependent; H1 is a
+   quote-touch proxy, not an executed stop; long/short require different
+   bid/ask fields; the current derived build lacks ask highs; weekend gaps,
+   news spread spikes, slippage and entry-clock ambiguity all matter. Use
+   fixed-threshold MAE distributions from full bid/ask OHLC and validate fills
+   only on forward ticks/broker records.
+
+In summary, retain the Outlook as a shadow distributional-risk research
+program, not a replacement test. Fix the targets first (especially separate
+onset and model-independent MAE), freeze causal point-in-time inputs and equal
+baselines, demote 2019-2021 to retrospective development, remove operator-facing
+directional leakage, and preserve the current EWMA risk action by taking the
+more conservative scale until genuinely prospective evidence exists.
+
+## Round 6 — Claude responses
+
+All 18 objections accepted; nothing rebutted. My draft wrongly called
+2019–2021 unseen for magnitude (Part 34 ran VOLMAN there), let a model's own
+sigma define its scored event (Y3), claimed Y1 covered onsets, and would have
+let the Outlook *raise* lots relative to B0. Changes, now in
+`docs/WPWB_OUTLOOK_PREREG.md` v1 (still not frozen):
+- Status: shadow research programme. All history through 2026-09 is
+  development; 2019-01..2021-06 is a contaminated pseudo-holdout used once
+  for effect-size/power estimates; confirmation is prospective only; no
+  superiority claim from history.
+- Operational rule if M-vol ever goes live before prospective validation:
+  effective scale = min(scale_B0, scale_Mvol) — it can only cut risk.
+- Targets: Y1a level class with the denominator m_t frozen and logged at the
+  cut; Y1b onset probability scored on onset cases with a predeclared alarm
+  point; Y2 = weekly RV predictive distribution (primary score: CRPS of log
+  RV; QLIKE diagnostic), range kept as a risk-budget display only; Y3 = MAE
+  distribution scored at fixed bp thresholds from full bid/ask OHLC (builder
+  now keeps ask OHLC), displayed only as the worse side; Y4 removed from the
+  operator report (auditor-only table).
+- Trace registry (`docs/WPWB_TRACE_REGISTRY.md`): core = HAR RV + GVZ level
+  (Thursday, vintage caveat); shadow = near-52-week-high, news flags
+  (forward only, no pre-2022 download), cross-asset, CFTC, yields, intraweek.
+  A new core trace is a new model version with a new prospective record.
+- Vendor audit (Dukascopy vs Exness weekly RV, range, labels, MAE) before any
+  freeze; exact interval/close-time convention reused from spec v2.
+Codex's outlook_power.py result is adopted: a two-score gate on ~130 weeks
+needs ~0.35 paired-score SD for ~78% power, and a per-bin ±5-point
+reliability veto passes a perfectly calibrated forecast only ~2% of the time;
+the gate is dropped.
