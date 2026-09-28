@@ -141,6 +141,28 @@ pre-registration that discloses this one.
   costs/swap for the same exposure.
 - Every number presented must be reproducible by a committed script.
 
+## Amendment 1 — stricter significance test (before any approach ran)
+
+The section 8 unit tests caught that the section 6/7 moving-block bootstrap
+(block 4) is anti-conservative: on simulated null weekly series (n=140-200)
+it gave p < 0.05 in 9% of runs (iid) and ~8-9% with AR(1) phi=0.3. Circular
+block (8/12), Newey-West (lag 4/8) alone were all anti-conservative too
+(6-10%). Replacement, strictly harder to pass than the original:
+
+- p = max(centered circular-block-bootstrap p [block 8, 5,000 draws],
+  Newey-West p [lag 8, Student-t]);
+- DEV eligibility (section 6 item 2): p < **0.025** vs every applicable
+  control (replaces "95% lower bound > 0");
+- HOLDOUT (section 7 item 2): p < **0.025 / k** (replaces 0.05 / k).
+
+Measured true false-pass rate of this rule on n=140 AR(1) nulls: 3.3% (phi
+0), 4.1% (0.3), 5.0% (0.5) at 0.025; 0.9-1.7% at 0.0083 (k=3). Implemented
+in `research/wpwb_search/common.py::block_boot`, guarded by
+`test_common.py::test_boot_size_under_null`. Nothing else changes. RDIR/
+RTIME controls are computed as their exact expectation (the limit of the
+section-5 200-draw average), which removes control noise without favouring
+either side.
+
 ## Addendum — finalists (to be filled after DEV, before HOLDOUT)
 
 (empty at commit time)
