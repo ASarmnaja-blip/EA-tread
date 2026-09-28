@@ -65,6 +65,28 @@ A variant that passes is a **candidate WPWB tool for a frozen forward shadow
 arm**, with its weekly rebuild run every Saturday from 2026-10-03 — not a
 licence to trade real money. A fail on every variant is reported as such.
 
-## Result
+## Result (single run, `research/wpwb_live/run_live_hod.py`)
 
-(filled after the single run)
+142 current-era weeks (2024-01-05 .. 2026-09-25). All audits clean.
+**0 of 6 pass.** Best by base P&L: HOD W=26 T=2.0 at +0.78 bp/week base,
+−2.75 at 1.5x, t vs RTIME +0.77, vs RDIR +1.37, vs LONG −0.15, chop half
+−8.58 / trend half +10.14. The W=52 variants were clearly negative vs RTIME
+(t −1.2 to −1.3). The DEV-era hour information did not survive into the
+current era even with costs 5x lighter relative to moves — consistent
+with traces.py: session/hour direction does not persist.
+
+Also explored and dead (design window 2023-09..2024-12 only): DXY -> XAU
+M5 lead-lag. corr(DXY_t, XAU_t+1) = −0.009 (93,550 pairs); after the top
+10% of DXY moves XAU moves +0.09 bp next bar in the opposite direction
+(se 0.08) vs ~1 bp cost. Not tradable; its 2025-26 test window was never
+used.
+
+## Amendment 1 — every other frozen tool gets its current-era run
+
+To answer the user's objection completely, the remaining 34 frozen tools
+of the closed search (round-1 A, C, D, D-ungated, E; round-2 G, H, META;
+round-3 K, I, L) run once on the same 142 current-era weeks, unchanged.
+Multiple-comparison family = all 40, so threshold p < 0.025/40 = 0.000625
+vs every control, plus the same net-positive, evidence-floor (each tool's
+own floor from the closed search) and regime-half rules. Written before
+the run.
