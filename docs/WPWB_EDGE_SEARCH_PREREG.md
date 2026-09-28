@@ -163,6 +163,63 @@ RTIME controls are computed as their exact expectation (the limit of the
 section-5 200-draw average), which removes control noise without favouring
 either side.
 
-## Addendum — finalists (to be filled after DEV, before HOLDOUT)
+## Round 1 result (DEV only, holdout untouched)
+
+`research/wpwb_search/run_dev.py`, output `data/wpwb_search_dev_out.txt`.
+DEV has 130 usable weeks (2021-07-02 .. 2023-12-29; H1 bars need 12
+contiguous M5 bars and the broker's early-2021 M5 history is too sparse
+before July). Pipeline sanity passed: planted oracle p=0.0000, coin-flip
+p=0.163 (rejected), leaky tool caught at 13/25 cuts. Every real variant: 0
+audit failures. **0 of 20 variants DEV-eligible.** Best by min-t vs
+controls: HOD W=52 T=3.0 (min_t +1.40, p 0.154) but net −3.36 bp/week at
+1.5x; CHOPREV z=2.5 H=2 net +2.90 bp/week but min_t +0.43; the chop gate
+added nothing over its ungated twin. Per section 6 round 1 ends as a
+reported failure.
+
+## Amendment 2 — bounded continuation (before any round-2 run)
+
+The user asked for multiple approaches with self-correction. Continuing is
+allowed only under these limits, fixed now:
+
+- At most **3 rounds** and **50 DEV variants in total** (round 1 used 20).
+- HOLDOUT stays sealed until all rounds finish. It is then opened **once**,
+  for at most 3 finalists pooled across all rounds (highest DEV min-t among
+  DEV-eligible variants, max one per family), Bonferroni k = number of
+  finalists (p < 0.025/k). If no variant across all rounds is DEV-eligible,
+  HOLDOUT is never opened and the search is reported as failed.
+- Each round's variants are declared here before that round runs. DEV
+  observations may guide the design of later rounds (that is what DEV is
+  for); the holdout is what protects against the resulting DEV overfit.
+
+### Round 2 variants (12; cumulative 32)
+
+**F. HOD-MERGED** — B's selection (hod_tool), but consecutive selected hours
+of the same sign on the same day are held as ONE position (one round trip
+per block instead of per hour). W=52, T in {2.0, 3.0} (2). Rationale from
+round 1: B's hour selection beat controls weakly but paid one round trip
+per hour.
+
+**G. SESSION** — UTC sessions ASIA (22:00-06:59, crosses midnight), LONDON
+(07:00-12:59), NY (13:00-20:59); hour 21 (daily break) excluded. Each
+week, decay-weighted t-stat per session over trailing W weeks (half-life
+W/2); trade each selected session instance next week in the sign of its
+mean, one position per instance. W in {52, 104} x T in {1.5, 2.0} (4).
+
+**H. DAYREV** — daily (UTC date) move of size >= z x ATR_daily (mean daily
+range, trailing 14 dates) triggers a position from the next date's first
+bar for N dates (truncated at week end). Each week the mode (fade vs
+follow) is set by the decay-weighted mean (half-life 13) of the fade
+P&L over the trailing 26 weeks' triggers, at base cost. z in {1.0, 1.5} x
+N in {1, 2} (4).
+
+**M. META** — the WPWB rule-4 selector over the fixed round-1 menu of 20
+tools: each week pick the tool with the highest decay-weighted mean weekly
+net P&L (base cost) over the trailing 26 weeks (only fully resolved weeks),
+trade it only if that mean > 0, else stand aside. Half-life in {3, 8}
+weeks (2). Controls: LONG and RDIR of the chosen tool's trades, plus
+**RTOOL** — a tool drawn uniformly from the menu that week (exact
+expectation), which tests whether the weekly *selection* adds value.
+
+## Addendum — finalists (to be filled after all rounds, before HOLDOUT)
 
 (empty at commit time)

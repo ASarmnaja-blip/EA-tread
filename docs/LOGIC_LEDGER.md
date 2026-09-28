@@ -1229,6 +1229,36 @@ answer.
 
 ---
 
+## Part 29 — WPWB edge search, round 1: 0 of 20 pass DEV (2026-09-28)
+
+**Source:** `docs/WPWB_EDGE_SEARCH_PREREG.md` (committed before any run),
+`research/wpwb_search/`. User instruction: search autonomously across
+multiple approaches for a WPWB-fitting edge, self-check, present only the
+final result for a pass/fail verdict. Design: 5 structurally new approaches
+(weekly TS momentum, hour-of-day and day-of-week seasonality retuned
+weekly, regime-gated H1 reversal with ungated twin, weekend gap
+fade/follow), 20 variants, DEV 2021-07..2023-12 (130 weeks), HOLDOUT
+2024-01..2026-09 sealed. Controls: random direction, always-long, random
+timing, all as exact expectations under identical costs.
+
+Self-checks that fired and were fixed before any approach ran: the
+pre-registered block-4 bootstrap gave p<0.05 in ~9% of null runs; replaced
+by max(circular-block-8, Newey-West-8) against a halved threshold (true
+size 3.3-5.0% measured). A run from the wrong working directory was
+refused by the data loader rather than silently using non-canonical data;
+the runner now pins cwd and asserts the canonical snapshot.
+
+Pipeline sanity: planted oracle detected (p=0.0000), coin-flip rejected
+(p=0.163), leaky tool caught by the look-ahead audit (13/25 cuts); all 20
+real variants 0 audit failures. **Result: 0 of 20 DEV-eligible.** Closest:
+HOD W=52 T=3.0 beat its controls weakly (min t +1.40) but was net negative
+after costs (−3.36 bp/week at 1.5x); CHOPREV z=2.5 net positive (+2.90
+bp/week) but min t +0.43; regime gate added nothing. Weekly TSM negative at
+every lookback in DEV. Holdout unopened. Round 2 pre-registered under a
+declared cap (3 rounds, 50 variants, one holdout opening at the end).
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
