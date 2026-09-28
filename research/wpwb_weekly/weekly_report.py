@@ -32,7 +32,7 @@ LOG = BR.WEEKLY_DIR / "log.csv"
 REPORTS = BR.WEEKLY_DIR / "reports"
 FORWARD_START = int(np.datetime64("2026-10-02T22:15:00", "s").astype(np.int64))
 TH = 7 * 3600
-SPEC_VERSION = "v1"
+SPEC_VERSION = "v2"
 
 
 def md_table(df):
@@ -51,32 +51,35 @@ def th(ep, fmt="%a %d %b %Y %H:%M"):
 
 def compute(m, cut):
     """Everything the report needs at `cut`, using only bars before `cut`."""
-    done = BR.cuts_between(m, BR.FIRST_CUT, cut - BR.WEEK)
+    done = BR.cuts_between(m, BR.FIRST_CUT, cut - BR.WEEK, now=cut)
     assert len(done) and done[-1] == cut - BR.WEEK, "last completed week missing"
     assert int(done[-1]) + BR.WEEK <= cut
-    rv, rng, ret, nbar = V.weekly_rv(m.t, m.c, m.h, m.l, done)
-    if nbar[-1] < V.MIN_BARS:
-        raise RuntimeError(f"DATA_INVALID: last week has {nbar[-1]} H1 bars (< {V.MIN_BARS})")
+    rv_raw, rng, ret, nbar = V.weekly_rv(m.t, m.c, m.h, m.l, done)
+    rv = V.mask_invalid(rv_raw, nbar)
+    last_valid = bool(np.isfinite(rv[-1]))
     fc_now = V.forecast_one_ahead(rv)                       # for week starting `cut`
     f_hist = V.ewma_forecast(rv)                             # f_hist[k] = forecast made for week k
     har_hist = V.har_forecast(rv)
     m26_hist = V.mean26_forecast(rv)
-    med = float(np.median(rv[-52:]))
+    med = float(np.nanmedian(rv[-52:]))
     lab_th, lab_en = V.label(fc_now["ewma"] / med)
-    real_th, real_en = V.label(rv[-1] / float(np.median(rv[-53:-1])))
+    real_th, real_en = (V.label(rv[-1] / float(np.nanmedian(rv[-53:-1]))) if last_valid
+                        else ("ข้อมูลไม่ครบ (DATA_INVALID)", "DATA_INVALID"))
     ok, medlog, tail, ncal = V.calibration(rv, f_hist)
+    raw_scale = V.vol_scale(fc_now["ewma"])
+    eff_scale = V.effective_scale(raw_scale, ok, last_valid)
     k = np.flatnonzero(m.t < cut)[-1]
     price = float(m.c[k])
     ratio = rng[-104:] / np.sqrt(rv[-104:])
-    range_hat = float(np.median(ratio) * math.sqrt(fc_now["ewma"]))
+    range_hat = float(np.nanmedian(ratio) * math.sqrt(fc_now["ewma"]))
     return dict(
         cut=cut, data_end=int(m.t[-1]), price=price,
-        last=dict(cut=int(done[-1]), rv=float(rv[-1]), bars=int(nbar[-1]), ret=float(ret[-1]),
+        last=dict(cut=int(done[-1]), rv=float(rv_raw[-1]), valid=last_valid, bars=int(nbar[-1]), ret=float(ret[-1]),
                   rng=float(rng[-1]), label=real_th, label_en=real_en,
                   f_ewma=float(f_hist[-1]), f_har=float(har_hist[-1]), f_m26=float(m26_hist[-1]),
-                  u=float(rv[-1] / f_hist[-1])),
+                  u=float(rv_raw[-1] / f_hist[-1])),
         next=dict(ewma=fc_now["ewma"], har=fc_now["har"], mean26=fc_now["mean26"], med52=med,
-                  label=lab_th, label_en=lab_en, vol_scale=V.vol_scale(fc_now["ewma"]),
+                  label=lab_th, label_en=lab_en, vol_scale_raw=raw_scale, vol_scale=eff_scale,
                   range_hat=range_hat),
         cal=dict(ok=ok, medlog=medlog, tail=tail, n=ncal),
     )
@@ -89,8 +92,10 @@ def log_row(r, generated):
         "spec": SPEC_VERSION, "forward": bool(r["cut"] >= FORWARD_START),
         "data_end_utc": pd.to_datetime(r["data_end"], unit="s").strftime("%Y-%m-%d %H:%M"),
         "f_ewma": round(N["ewma"], 3), "f_har": round(N["har"], 3), "f_mean26": round(N["mean26"], 3),
-        "med52": round(N["med52"], 3), "label_fc": N["label_en"], "vol_scale": round(N["vol_scale"], 4),
-        "prev_rv": round(L["rv"], 3), "prev_bars": L["bars"], "prev_label": L["label_en"],
+        "med52": round(N["med52"], 3), "label_fc": N["label_en"],
+        "vol_scale_raw": round(N["vol_scale_raw"], 4), "vol_scale": round(N["vol_scale"], 4),
+        "calibrated": r["cal"]["ok"],
+        "prev_rv": round(L["rv"], 3), "prev_valid": L["valid"], "prev_bars": L["bars"], "prev_label": L["label_en"],
         "prev_f_ewma": round(L["f_ewma"], 3), "prev_u": round(L["u"], 4),
         "prev_qlike_ewma": round(float(V.qlike(L["rv"], L["f_ewma"])), 5),
         "prev_qlike_har": round(float(V.qlike(L["rv"], L["f_har"])), 5),
@@ -120,17 +125,28 @@ def append_log(row):
 
 
 def forward_scores():
+    """Score each forward week only against the forecast that was actually
+    logged at a forward cut exactly 7 days before it (Codex Round 5)."""
     if not LOG.exists():
         return None
     d = pd.read_csv(LOG)
-    d = d[d.forward.astype(str) == "True"]
-    # a row's prev_* fields score the week before its cut; count only weeks
-    # whose forecast was itself made at a forward cut
-    d = d.iloc[1:] if len(d) else d
+    d = d[d.forward.astype(str) == "True"].copy()
     if not len(d):
         return None
-    return dict(n=len(d), ewma=d.prev_qlike_ewma.mean(), har=d.prev_qlike_har.mean(),
-                mean26=d.prev_qlike_mean26.mean())
+    d["cut"] = pd.to_datetime(d.cut_utc)
+    by_cut = d.set_index("cut")
+    rows = []
+    for r in d.itertuples():
+        prev = r.cut - pd.Timedelta(days=7)
+        if prev in by_cut.index and str(r.prev_valid) == "True":
+            p = by_cut.loc[prev]
+            y = float(r.prev_rv)
+            rows.append((float(V.qlike(y, p.f_ewma)), float(V.qlike(y, p.f_har)),
+                         float(V.qlike(y, p.f_mean26))))
+    if not rows:
+        return None
+    a = np.asarray(rows)
+    return dict(n=len(a), ewma=a[:, 0].mean(), har=np.nanmean(a[:, 1]), mean26=a[:, 2].mean())
 
 
 def render(r, nxt, covered, cal_end, lastwk, lw_note, pos_line, fetch_note, status):
@@ -161,13 +177,17 @@ def render(r, nxt, covered, cal_end, lastwk, lw_note, pos_line, fetch_note, stat
             f"| กรอบสูง-ต่ำที่คาด (รอง, ยังไม่ยืนยัน) | ≈ {N['range_hat']:.0f} bp (≈ ${usd(N['range_hat']):,.0f}) |",
             f"| ความเคลื่อนไหวต่อแท่ง H1 โดยประมาณ | ≈ {fv / math.sqrt(115):.0f} bp (≈ ${usd(fv / math.sqrt(115)):,.2f}) |",
             f"| เทียบค่าอ้างอิงระยะยาวที่ตรึงไว้ ({math.sqrt(V.B_REF):.0f} bp) | {fv / math.sqrt(V.B_REF):.2f} เท่า |",
-            f"| **ตัวคูณขนาดไม้ vol_scale** | **{N['vol_scale']:.2f}** (สูงสุด 1.00 · ต่ำสุด 0.50) |", "",
+            f"| vol_scale จากพยากรณ์ | {N['vol_scale_raw']:.2f} |",
+            f"| **ตัวคูณขนาดไม้ที่ใช้จริง** | **{N['vol_scale']:.2f}** (สูงสุด 1.00 · ต่ำสุด 0.50) |", "",
             "ระดับ (สงบ/ปกติ/ผันผวน) เทียบกับ 52 สัปดาห์ล่าสุด ส่วน vol_scale เทียบกับค่าอ้างอิงระยะยาวที่ตรึงไว้ "
             "ช่วงที่ทองผันผวนกว่าอดีตทั้งยุค จึงลดขนาดไม้แม้ระดับจะ \"ปกติ\"", "",
-            "vol_scale ใช้ได้เฉพาะ **ลด** ขนาดไม้หรือเผื่อระยะ SL เทียบกับค่าเริ่มต้นที่ตรึงไว้ "
-            "ห้ามใช้เพิ่มความเสี่ยง ห้ามใช้เลือกทิศ/setup/จุดเข้า", ""]
-    cal_txt = ("ยังไม่ครบ 26 สัปดาห์" if K["ok"] is None else
-               ("อยู่ในเกณฑ์" if K["ok"] else "**หลุดเกณฑ์ → Risk Manager ใช้ค่าเริ่มต้นที่เข้มกว่า**"))
+            "ตัวคูณใช้ได้เฉพาะ **ลด** จำนวน lot เทียบกับค่าเริ่มต้นที่ตรึงไว้ ถ้าจะขยาย SL ต้องลด lot "
+            "จนเงินที่เสี่ยงไม่เกินเพดานเดิม ห้ามใช้เพิ่มความเสี่ยง ห้ามใช้เลือกทิศ/setup/จุดเข้า", ""]
+    if N["vol_scale"] != N["vol_scale_raw"]:
+        out += ["**ใช้ค่าปลอดภัย 0.50 แทน** เพราะพยากรณ์หลุดเกณฑ์ความแม่น หรือยังตัดสินไม่ได้ "
+                "หรือสัปดาห์ที่แล้วข้อมูลไม่ครบ (กฎตรึงไว้ในสเปก)", ""]
+    cal_txt = ("ยังไม่ครบ 26 สัปดาห์ → ใช้ 0.50" if K["ok"] is None else
+               ("อยู่ในเกณฑ์" if K["ok"] else "**หลุดเกณฑ์ → ตัวคูณที่ใช้จริงถูกบังคับเป็น 0.50**"))
     out += ["## 3. ความแม่นของพยากรณ์ (26 สัปดาห์ล่าสุด)", "",
             f"- สถานะ: {cal_txt}",
             f"- ค่ากลางของ log(จริง/พยากรณ์): {K['medlog']:+.2f} (เกณฑ์ ±{V.CAL_BAND:.2f})",
@@ -222,9 +242,11 @@ def main() -> int:
     cut = (int(np.datetime64(args.cut + "T22:15:00", "s").astype(np.int64)) if args.cut
            else BR.last_cut_before(now))
     assert (cut - BR.FIRST_CUT) % BR.WEEK == 0, "cut must be a Friday 22:15 UTC"
+    if now < cut:
+        raise RuntimeError("the cut has not happened yet")
     m = BR.market(BR.load_bars(frozen=False))
-    if int(m.t[-1]) + 3600 < cut:
-        raise RuntimeError("price data ends before the cut; run with --fetch")
+    if int(m.t[-1]) + 3600 < cut - BR.FRIDAY_SLACK:
+        raise RuntimeError("price data ends more than 6 h before the cut; run with --fetch")
     r = compute(m, cut)
     cal = NP.load_cal()
     nxt, covered, cal_end = NP.next_week(cal, cut)

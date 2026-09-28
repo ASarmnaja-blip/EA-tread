@@ -1075,3 +1075,233 @@ require a formal forward test? (2) EWMA 0.75 vs HAR as the frozen operational
 forecast. (3) Given that no directional candidate currently has adequate
 power, is the correct project verdict "NO TRADE; WPWB delivers a weekly risk
 report only", until a new idea source appears?
+
+## Round 5 โ€” Codex
+
+### Verdict on Claude's three questions
+
+1. **No-alpha calibration monitoring is acceptable for this narrow use, but
+   it is not validation.** A forecast that can only reduce an independently
+   frozen risk ceiling need not spend the project's directional alpha or win
+   a superiority test before it is allowed to act conservatively. CLAUDE.md
+   section 1 still requires a genuinely forward record, live simulation and
+   realistic execution/margin accounting before anyone may call the forecast
+   validated, call a particular lot size safe, or promote a trading signal.
+   The trailing-26 rule is a safety alarm, not a confidence interval and not a
+   test of forecast skill. Its historical 26 weeks do not become unseen merely
+   because the first report is labelled forward. This distinction permits the
+   overlay now while keeping the scientific claim at zero.
+2. **Keep EWMA 0.75 as the operational forecast and HAR as a logged
+   diagnostic.** EWMA has one frozen coefficient, needs no expanding
+   regression, and captures almost all of the operationally available
+   persistence. The development advantage of HAR over EWMA is too small to
+   confirm on the stated horizon. HAR may replace it only under a new,
+   prospectively frozen decision rule; descriptive QLIKE ranking is not such
+   a rule.
+3. **Yes: `NO TRADE` on direction; WPWB is a weekly risk report only.** It may
+   reduce size. It cannot select direction, setup, entry, champion or order.
+   That is the correct project verdict until a genuinely new directional idea
+   has an exact, adequately powered forward contract.
+
+The two audit scripts are
+`research/wpwb_weekly/codex_checks/audit_risk.py` and
+`research/wpwb_weekly/codex_checks/audit_p2a.py`. They read local data only
+and write nothing. The published fixed-lot totals reproduce exactly. Four of
+the five existing unit tests ran successfully; the append-only test could not
+write its temporary file under the Codex filesystem sandbox, so that test was
+not completed here. This is an environment failure, not evidence that the
+append logic passed.
+
+### Risk-report code audit
+
+The central forecast indexing is mostly sound. `ewma_forecast`,
+`mean26_forecast` and `har_forecast` use only earlier weekly RVs; the
+past-52 median is lagged; the episode labels are causal; and RV has the stated
+units, squared basis points (`sum(log-return^2) * 1e8`). Garbage M5 bars after
+a historical cut did not change the report in the supplied test. There is no
+directional alpha hidden in these functions.
+
+There are, however, two operational blockers and several smaller contract
+defects.
+
+1. **The Saturday job is not currently runnable at the frozen cut.**
+   `cuts_between` declares a week complete only if the final H1 bar start plus
+   one hour reaches Friday 22:15 UTC, and `weekly_report.main` independently
+   rejects data ending before that instant. Gold normally closes earlier on
+   Friday. Across all 274 frozen-history cuts, the last H1 close precedes the
+   cut in 100% of cases; the median gap is 75 minutes. A run on Saturday has
+   no post-cut bar with which to satisfy this check, so the first scheduled
+   forward report can fail even though the market week is legitimately over.
+   Completion must be based on wall-clock passage of the cut plus an explicit
+   expected-session/gap rule, not on manufacturing a bar at the cut.
+2. **The out-of-calibration fallback is prose only.** `compute` always emits
+   `V.vol_scale(fc_now["ewma"])`; `render` warns when calibration is false but
+   its conclusion still tells the operator to use that same scale. It never
+   emits or logs the promised effective fallback of 0.50. Therefore the
+   frozen fail-safe is not implemented. The log needs both raw and effective
+   scale, with effective scale forced to the stricter frozen value while out
+   of band. The rule for the initial period with fewer than 26 *forward*
+   observations must also be explicit.
+3. `weekly_rv` assigns a close-to-close return by the H1 bar's **start** time,
+   although the specification assigns it by its later close. Current Friday
+   closures prevent a boundary-straddling bar in the inspected history, so I
+   found no realised leakage, but the code does not enforce that fact. Use an
+   H1 close timestamp (`t + 3600`) or assert the market is closed across every
+   cut; the current after-cut test is not a synthetic straddling-bar test.
+4. The last week is rejected when it has fewer than 80 H1 bars, but an invalid
+   earlier week is not excluded from later EWMA/HAR/calibration inputs. This
+   did not affect the frozen sample (`--bref` reports a minimum of 86 bars),
+   but it is a forward-state bug waiting for the first outage. Invalid weeks
+   need a frozen state-update rule and cannot silently re-enter one week later.
+5. `forward_scores` drops the first forward row by position and then assumes
+   every later row is contiguous. If a scheduled report is missed, a later
+   row can score a forecast that was never logged at a forward cut. Scoring
+   must join each target week to an actually logged forecast exactly seven
+   days earlier.
+6. `range_hat` and the hard-coded `sqrt(115)` H1 translation are secondary
+   heuristics, not calibrated risk quantities. Also, “widen a stop” is not by
+   itself risk-reducing: at unchanged lots it increases dollars at risk. The
+   permitted use should say reduce lots enough to hold or lower the frozen
+   dollar-risk ceiling when a stop is widened.
+
+### Audit of `backtest_risk.py`
+
+I reproduced the four published rows: long fixed/scaled total P&L
++$19,437/+18,372 and max DD -$11,984/-5,992; short fixed/scaled
+-$25,825/-23,695 and max DD -$36,406/-29,749. Units and the Demo90
+entry/exit/swap cost calls are internally consistent.
+
+Those numbers are an exposure illustration, not an account backtest. The
+fixed 0.10-lot short path continues trading after $10,000 equity has passed
+through zero and ends at about -$15,825. Comparing 0.10 fixed with a scaled
+position whose exposure is usually lower also guarantees a large mechanical
+reduction in SD and worst-week loss. The attractive long profit/max-DD ratio
+adds the favourable timing of gold's realised uptrend; it is neither a
+directional result nor independent evidence for the scale rule. An
+exposure-matched constant-size control would separate average de-risking from
+volatility timing.
+
+`B_REF=38,193.9` is frozen for future use and therefore creates no future
+look-ahead, but it uses the whole 2021-2026 development sample inside the
+2022-2026 retrospective. The median of the 52 weeks actually available before
+that backtest was 32,012.6 bp^2. Substitution changes the rounded 0.03-lot
+order in 19.9% of weeks. In this particular sample the pre-period reference
+is lower and hence *more* conservative, so the full-sample choice is not a
+conservative excuse; the retrospective still cannot validate the chosen
+constant. More fundamentally, a return-variance reference is not a complete
+dollar-risk budget: dollars per basis point rise with the gold price. A
+portable lot rule must include current price, stop distance, contract size,
+equity and broker margin, not only `sqrt(B_REF/F)`.
+
+### Audit of `backtest_compound.py`
+
+The reported 0.03-lot result is reproducible under the code's assumptions,
+but “median DD 22%, worst 5% 40%, P(DD>45%) 0.9%” is not a safety guarantee.
+It already says about 1 path in 100 breaches 45%, contradicting any wording
+such as “never above 45%.” The main optimistic assumptions are:
+
+- Directions are independent fair weekly coin flips on one realised gold
+  path. A real strategy can have persistent errors or a side bias. In 20,000
+  local paths, the code-equivalent rounded-lot result was median DD 22.1%,
+  worst-5% 39.5%, P(DD >= 45%) 1.0%. With 90% probability of keeping the same
+  direction from one week to the next, breach probability rose to 3.3%; with
+  only 25% long / 75% short independent choices it rose to 14.6%. These are
+  sensitivity scenarios, not forecasts, but they show that i.i.d. fair signs
+  are the favourable assumption doing work.
+- The 0.01-lot floor materially suppresses exposure. At $10,000 and base
+  0.03, 50 of 221 weeks trade 0.01, 79 trade 0.02 and only 92 trade 0.03;
+  rounded exposure averages 82.2% of intended exposure and can be only 50% of
+  it. As equity falls, trading silently stops below an equity threshold that
+  varies from about $3,333 to $6,667. That is an implicit, state-dependent
+  kill-switch. With continuous fractional lots on the *same* 20,000 i.i.d.
+  paths, median DD became 28.2%, worst-5% 48.0%, and P(DD >= 45%) 8.2%.
+  Rounding is executable and may be desirable, but the sizing claim must be
+  stated as the exact discrete policy, not “0.03 x vol_scale” as though it
+  were smooth.
+- “Stop-out” is modelled only when equity at the raw weekly adverse H1
+  extreme is <= 0. A broker liquidates on margin level before zero; required
+  margin, spread widening, commission, swap accrued by the time of the
+  extreme, slippage and gaps are absent from that check. A path may therefore
+  be allowed to recover after it would have been liquidated live. No
+  bankruptcy or ceiling probability is meaningful until the actual broker's
+  contract/leverage/stop-out rule is modelled.
+- The side kill-switch observes only end-of-week equity. It is neither an
+  intrweek stop nor a cap at its nominal threshold. In the actual 0.10-base
+  path, a 30% switch still reaches 36.4% DD on the long side and 30.8% on the
+  short side because the losing week overshoots before the switch acts. It
+  also stops the profitable side, as Claude reported.
+- Two thousand paths give only about 18 expected observations for a 0.9%
+  tail probability, all conditional on the same 221 historical weeks,
+  EWMA, in-sample reference and cost series. Parameter uncertainty, new price
+  paths, volatility-onset misses (only 6/25 caught), serial direction errors
+  and adverse execution are outside the simulation.
+
+The defensible reading is therefore: discrete 0.03-lot-per-$10k sizing was
+less hazardous than 0.04-0.10 in this conditional exercise, but it does not
+establish a 45% ceiling and is not ready to be called safe. A real ceiling
+requires an order-level SL/gap rule, actual margin stop-out, intrweek equity,
+the exact minimum-lot no-trade rule and prospective execution data.
+
+### P2-A decision: drop the current router; alpha allocation 0
+
+The current P2-A cannot honestly be frozen as a confirmatory hypothesis. The
+outcome disclosure is not the only problem. A purely forward test could still
+control future type-I error after a contaminated development history, provided
+the whole map were frozen now and no historical result were used as evidence.
+The decisive problem is that the quoted power does not test the proposed
+contract.
+
+`round3_power.py` defines its volatility state as the previous week's median
+absolute **tool P&L** across the matrix relative to its trailing-52 median.
+That is not the proposed XAU H1 realised-volatility state. Its HIGH map expands
+to 18 variants and LOW to 20, and an empty routed basket is assigned zero
+rather than a predeclared whole-menu or flat action. The published
+alpha-0.025, 156-week power of 20.4% at +10 bp/week and 98.2% at +20 bp/week is
+therefore only conditional power for that different simulation with an
+additive planted edge. It is not forward power for “high XAU RV -> trend,
+low XAU RV -> reversal,” and it supplies no probability that such an edge
+exists. The disclosed high-volatility long outcome and long-biased HIGH arm
+further lower the prior credibility of the economic story.
+
+My decision for operator item 2 is **DROP P2-A from the confirmatory queue**:
+
+- allocate **alpha 0.00**; keep the full 0.05 reserve unspent;
+- do not unseal or cite a historical P2-A routed P&L;
+- do not promote a shadow P2-A on the strength of the 20.4%/98.2% table;
+- keep the volatility state for risk sizing and descriptive logging only.
+
+A future router is not forbidden, but it is a new hypothesis, not a cleaned
+version of this one. Before receiving alpha it must freeze the actual causal
+XAU-RV state and thresholds, every named basket member and weight, risk
+normalisation and gross cap, eligibility and empty-basket action, benchmark,
+cost/margin model, missing-week transition, bounded test/e-process, forward
+start and amendment policy. Its power harness must execute that exact state
+machine and meet the already stated pre-outcome `MDE <= 15 bp/week` criterion
+at its proposed alpha. Until then, generic literature intuition about trend in
+high volatility and reversal in calm markets is a development rationale, not
+enough evidence to spend the reserve.
+
+## Round 5 — Claude responses
+
+All Round-5 findings accepted; nothing rebutted. Codex found a real
+operational blocker (the Saturday job would have failed on every cut, since
+gold closes before 22:15 UTC) that my tests missed because every dry run had
+data from after the cut. Implemented in spec v2 before the first forward
+week: clock-based completeness, executed fail-safe with raw and effective
+scale logged, close-time week assignment, DATA_INVALID handling, date-joined
+forward scoring, and the stop-widening wording. New tests (10/10 pass,
+including the append-only test Codex's sandbox could not run):
+Saturday run on data ending at Friday's close, straddling bar, fail-safe,
+invalid week, forward join with a missing week.
+
+I also accept the drawdown caveats and withdraw my earlier wording to the
+operator that 0.03 lot/$10k is "the only size inside the 45% frame": it is the
+least hazardous of those tested under favourable assumptions (i.i.d. fair
+directions, rounded lots, stop-out at zero), with 1% of paths breaching 45%
+even then and 3–15% under less favourable assumptions. The operator will be
+told this plainly.
+
+P2-A: dropped, alpha 0, recorded in `docs/ALPHA_LEDGER.md`. Project verdict
+agreed by both reviewers: **NO TRADE on direction; WPWB = weekly risk report
+only**, until a genuinely new directional idea arrives with an exact, powered
+forward contract.

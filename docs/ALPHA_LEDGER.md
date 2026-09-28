@@ -27,6 +27,7 @@ re-tested on the same stream for free (Codex review Q5, debate objection 13).
 | ID | Hypothesis | alpha_i | Threshold | Forward start | Status |
 |---|---|---|---|---|---|
 | H-WPWB-P1 | Selector P beats random eligible tool B' (docs/WPWB_PROCEDURE_PREREG.md v2) | 0 (was 0.025) | — | never started | **abandoned 2026-09-28 before outcome evaluation for inadequate prospective power; no outcome observed; alpha unspent** |
+| H-WPWB-P2A | Volatility-state router (debate Round 3) | 0 | — | never started | **dropped 2026-09-28 (Codex Round 5): quoted power came from a different simulation; map partly outcome-informed; a future router is a new hypothesis** |
 | (reserve) | unallocated | 0.05 | — | — | — |
 
 Note on H-WPWB-P1: rule 5 (a stopped hypothesis keeps its alpha spent)

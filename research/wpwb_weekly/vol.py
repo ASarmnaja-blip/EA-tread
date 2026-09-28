@@ -11,9 +11,11 @@ Forecasts for week t, all made from weeks < t only:
   MEAN26 (logged only)     mean RV of weeks t-26..t-1
 
 Risk use (the only permitted use):
-  vol_scale_t = clip(sqrt(B_REF / F_t), 0.5, 1.0) — may only REDUCE size or
-  widen stops relative to the frozen default risk unit; never increases risk,
-  never chooses direction, setup, entry or champion.
+  vol_scale_t = clip(sqrt(B_REF / F_t), 0.5, 1.0) — may only REDUCE lots
+  relative to the frozen default risk unit; a wider stop is allowed only if
+  lots are cut enough to keep dollars at risk at or below the frozen ceiling.
+  Never increases risk, never chooses direction, setup, entry or champion.
+  effective_scale() applies the fail-safe: 0.50 while out of calibration.
 """
 from __future__ import annotations
 
@@ -42,14 +44,17 @@ B_REF = 38193.9                 # bp^2 (weekly vol 195.4 bp), computed 2026-09-2
 
 
 def weekly_rv(t, c, h, l, cuts):
-    """RV, range (bp of the week's first close) and bar count for each week
-    [cuts[k], cuts[k] + 7d). Reads only bars with t < cuts[k] + 7d."""
+    """RV, range (bp of the week's first close), return and bar count for each
+    week (cuts[k], cuts[k] + 7d], assigning every H1 bar by its CLOSE time
+    (t + 1h), so a bar that straddles a cut belongs to the later week (Codex
+    Round 5). Reads only bars that close by cuts[k] + 7d."""
     week = 7 * 86400
+    close_t = np.asarray(t) + 3600
     lr = np.full(len(t), np.nan)
     lr[1:] = np.diff(np.log(c))
     rv, ran, ret, n = [], [], [], []
     for a in cuts:
-        use = (t >= a) & (t < a + week)
+        use = (close_t > a) & (close_t <= a + week)
         vals = lr[use]
         vals = vals[np.isfinite(vals)]
         n.append(int(use.sum()))
@@ -65,6 +70,14 @@ def weekly_rv(t, c, h, l, cuts):
     return np.asarray(rv), np.asarray(ran), np.asarray(ret), np.asarray(n)
 
 
+def mask_invalid(rv, n):
+    """Weeks with fewer than MIN_BARS H1 bars are DATA_INVALID: their RV
+    becomes NaN so it never re-enters a forecast or calibration."""
+    rv = np.asarray(rv, float).copy()
+    rv[np.asarray(n) < MIN_BARS] = np.nan
+    return rv
+
+
 def ewma_forecast(rv):
     """F[t] uses rv[:t] only. F[0] is undefined (NaN)."""
     f = np.full(len(rv), np.nan)
@@ -72,14 +85,21 @@ def ewma_forecast(rv):
         return f
     f[1] = rv[0]
     for k in range(2, len(rv)):
-        f[k] = EWMA_LAMBDA * f[k - 1] + (1 - EWMA_LAMBDA) * rv[k - 1]
+        prev = rv[k - 1]
+        if not np.isfinite(prev):            # invalid week: carry the forecast
+            f[k] = f[k - 1]
+        elif not np.isfinite(f[k - 1]):
+            f[k] = prev
+        else:
+            f[k] = EWMA_LAMBDA * f[k - 1] + (1 - EWMA_LAMBDA) * prev
     return f
 
 
 def mean26_forecast(rv):
     f = np.full(len(rv), np.nan)
     for k in range(26, len(rv)):
-        f[k] = float(np.mean(rv[k - 26:k]))
+        w = rv[k - 26:k]
+        f[k] = float(np.nanmean(w)) if np.isfinite(w).any() else np.nan
     return f
 
 
@@ -97,6 +117,10 @@ def har_forecast(rv):
     for k in range(first, len(rv)):
         x = np.array([feat(s) for s in range(26, k)])
         y = lv[26:k]
+        ok = np.isfinite(x).all(axis=1) & np.isfinite(y)
+        if ok.sum() < HAR_MIN_TRAIN or not np.isfinite(feat(k)).all():
+            continue                             # an invalid week in reach: no HAR this week
+        x, y = x[ok], y[ok]
         beta = np.linalg.lstsq(x, y, rcond=None)[0]
         res = y - x @ beta
         s2 = float(res @ res / max(len(y) - 4, 1))
@@ -108,16 +132,16 @@ def forecast_one_ahead(rv_done):
     """Forecasts for the week AFTER the last completed week in rv_done."""
     ext = np.r_[rv_done, np.nan]
     e = ewma_forecast(ext)[-1]
-    m = float(np.mean(rv_done[-26:])) if len(rv_done) >= 26 else np.nan
+    m = float(np.nanmean(rv_done[-26:])) if len(rv_done) >= 26 else np.nan
     h = har_forecast(ext)[-1] if len(rv_done) >= 26 + HAR_MIN_TRAIN else np.nan
     return dict(ewma=float(e), har=float(h), mean26=m)
 
 
 def past_median52(rv):
-    """med[t] = median of rv[t-52..t-1] (NaN before 52 weeks)."""
+    """med[t] = median of valid rv[t-52..t-1] (NaN before 52 weeks)."""
     med = np.full(len(rv), np.nan)
     for k in range(52, len(rv)):
-        med[k] = float(np.median(rv[k - 52:k]))
+        med[k] = float(np.nanmedian(rv[k - 52:k]))
     return med
 
 
@@ -126,6 +150,15 @@ def label(ratio):
         return "ไม่ทราบ", "UNKNOWN"
     i = int(np.searchsorted(LABEL_EDGES, ratio, side="right"))
     return LABELS[i], LABELS_EN[i]
+
+
+def effective_scale(raw_scale, calibrated, last_week_valid=True):
+    """Frozen fail-safe (spec): out of calibration, or last week DATA_INVALID,
+    -> the strictest scale 0.50. Not enough history to judge (None) also
+    falls back to 0.50."""
+    if calibrated is not True or not last_week_valid:
+        return SCALE_MIN
+    return raw_scale
 
 
 def vol_scale(forecast, b_ref=None):
@@ -137,7 +170,9 @@ def vol_scale(forecast, b_ref=None):
 
 def calibration(rv, f):
     """Trailing-26-week calibration of forecast f against realised rv.
-    Returns (ok, median_log_u, tail_share, n)."""
+    Uses every logged week (development weeks included, not only forward
+    ones) and skips DATA_INVALID weeks. Returns (ok, median_log_u,
+    tail_share, n)."""
     u = rv / f
     m = np.isfinite(u) & (u > 0)
     u = u[m][-CAL_WINDOW:]

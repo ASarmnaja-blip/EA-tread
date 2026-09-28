@@ -54,10 +54,19 @@ def market(b5):
     return C.Market(b5)
 
 
-def cuts_between(m, first, last):
-    """Friday 22:15 UTC cuts first..last inclusive whose week is complete in m."""
+FRIDAY_SLACK = 6 * 3600   # data must reach at least 6 h before a cut
+
+
+def cuts_between(m, first, last, now=None):
+    """Friday 22:15 UTC cuts first..last inclusive whose week is complete.
+
+    Gold closes before 22:15 UTC on Friday, so no bar ever exists at the cut
+    (Codex Round 5). A week (x, x + 7d] is complete when data runs past its
+    end, or - given the wall-clock time `now` - when now >= x + 7d and the
+    data reaches at least FRIDAY_SLACK before x + 7d."""
     end = int(m.t[-1]) + C.HOUR
-    c = [x for x in m.cuts if first <= x <= last and x + WEEK <= end]
+    c = [x for x in m.cuts if first <= x <= last and (
+        x + WEEK <= end or (now is not None and now >= x + WEEK and end >= x + WEEK - FRIDAY_SLACK))]
     return np.asarray(c, np.int64)
 
 

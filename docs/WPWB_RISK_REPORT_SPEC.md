@@ -1,11 +1,19 @@
-# WPWB weekly risk report — specification v1 (frozen 2026-09-28)
+# WPWB weekly risk report — specification v2 (2026-09-28; v1 amended after Codex Round 5)
 
 Operator approved items 4, 7, 9, 10, 11 on 2026-09-28 (Thai: "4/7/9/10/11 ส่วน
 ข้อ2 รอลิมิต codex ก่อน · บันทึกหาช่วงที่ตลาดผันผวนไว้ด้วย ... ตอนนี้ช่วงตลาด
 ผันผวนยังไม่ต้องเสี่ยงมาก"). Origin: debate rounds 3–4
 (`docs/WPWB_DEBATE_2026-09-28.md`, P2-C). Code: `research/wpwb_weekly/`.
-Codex Round 5 review of this spec is pending (Codex usage limit); any change
-it causes is a versioned amendment (v2), never a silent edit.
+**v2 amendments (Codex Round 5, all accepted, before any forward week):**
+(1) week completeness is judged by the clock — gold closes before the 22:15
+cut, so v1 would have failed on every Saturday; (2) the out-of-calibration
+fail-safe is now executed in code (effective scale 0.50) and both raw and
+effective scales are logged; (3) H1 bars are assigned to weeks by their close
+time; (4) a DATA_INVALID week (< 80 H1 bars) never re-enters EWMA/HAR/
+calibration and forces scale 0.50; (5) forward QLIKE scoring joins each week
+to the forecast logged exactly 7 days earlier; (6) "widen a stop" is only
+allowed with lots cut to keep dollars at risk at or below the ceiling.
+v1 dry-run log archived as `data/wpwb_weekly/log_v1_dryrun.csv`.
 
 ## What it is — and is not
 
@@ -40,8 +48,9 @@ tuned by Claude (no other lambda was tried). B_REF was computed once.
 
 ## Permitted use (items 4 and 7)
 
-- vol_scale may only **reduce** position size or widen a planned stop relative
-  to the frozen default risk unit. It can never exceed 1.00 — this is the
+- vol_scale may only **reduce** lots relative to the frozen default risk unit;
+  a wider stop is allowed only if lots are cut so dollars at risk stay at or
+  below the frozen ceiling (a wider stop at unchanged lots adds risk). It can never exceed 1.00 — this is the
   useful half of VOLMAN (item 7); VOLMAN's scaling *up* in calm weeks and its
   long-only direction are **not** adopted (VOLMAN failed 2016–20: −588 bp vs exposure-matched long, Part 34).
 - It never chooses direction, setup, entry, champion, and never authorises an
@@ -52,10 +61,13 @@ tuned by Claude (no other lambda was tried). B_REF was computed once.
 
 ## Calibration monitoring (replaces an alpha test)
 
-Weekly u_t = RV_t / F_t. "In calibration" while, over the trailing 26 weeks,
+Weekly u_t = RV_t / F_t. "In calibration" while, over the trailing 26 valid
+weeks (development weeks count; this is a safety alarm, not a test of skill),
 |median log u| <= log 1.5 and the share of weeks with u > 4 is < 10%. Out of
-calibration → the Risk Manager uses the tighter of the frozen default and
-vol_scale = 0.50 until back in band. HAR and the 26-week mean are scored
+calibration, undecidable, or last week DATA_INVALID → effective scale 0.50
+(implemented in `vol.effective_scale`, logged as `vol_scale`; the raw value
+is logged as `vol_scale_raw`). Passing this alarm does not validate the
+forecast (Codex Round 5). HAR and the 26-week mean are scored
 alongside by QLIKE, descriptively.
 
 ## News section (item 9)
@@ -158,3 +170,21 @@ if equity at the week's worst H1 price <= 0. 2,000 random-direction paths
   in 2023-01 but also stops the long in 2023-09, before gold's rise; at 30%
   it stops the short in 2023-04 and the long in 2026-03. It caps loss; it
   does not identify the wrong side. In-sample, one history.
+
+### Codex Round 5 caveats on the backtests (accepted)
+
+- The fixed-lot table is an exposure illustration, not an account backtest
+  (the fixed short keeps trading below $0), and scaled vs fixed differ in
+  average exposure; an exposure-matched control is needed to credit timing.
+- B_REF uses the whole sample; the pre-2022 median (32,012.6 bp²) would have
+  been more conservative. A return-variance reference is not a full dollar-risk
+  budget: dollars per bp rise with price; a portable lot rule needs price,
+  stop distance, contract size, equity and broker margin.
+- The 0.03-lot result is **not a 45% guarantee**: 0.9–1.0% of i.i.d. paths
+  breach 45%; persistent direction (90% repeat) 3.3%; a 25/75 side bias
+  14.6%; continuous (unrounded) lots 8.2%. Lot rounding to 0.01 lowers mean
+  exposure to ~82% of intended and acts as a hidden stop below ~$3.3–6.7k.
+  Stop-out was modelled only at equity <= 0, not the broker's margin level;
+  the kill-switch acts on weekly closes and overshoots (36.4% at a 30% switch).
+- Therefore no lot size is called "safe" until order-level SL/gap rules, real
+  margin stop-out, intraweek equity and forward execution data exist.

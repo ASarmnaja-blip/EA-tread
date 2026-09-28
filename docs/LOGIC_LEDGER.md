@@ -1780,3 +1780,16 @@ larger. The forecast flags 56% of volatile weeks but only 6 of 25 episode
 onsets — the first week of a volatile episode is not predicted.
 
 **Verdict unchanged: NO TRADE** on direction.
+
+## Part 44 — Codex Round 5: Saturday blocker fixed, P2-A dropped, drawdown claims narrowed (2026-09-28)
+
+Codex audited the weekly risk report and backtests. Accepted and fixed before
+the first forward week (spec v2): v1 would have failed every Saturday because
+gold closes before the 22:15 UTC cut (completeness now by clock); the
+out-of-calibration fail-safe (scale 0.50) is now executed, not just written;
+H1 bars assigned by close time; invalid weeks cannot re-enter forecasts;
+forward scoring joins by date. 10/10 tests. Drawdown sizing claims narrowed:
+0.03 lot/$10k breaches 45% in ~1% of favourable i.i.d. paths and 3–15% under
+persistent or biased direction or unrounded lots; stop-out modelled only at
+zero equity. P2-A router dropped (alpha 0). Verdict: NO TRADE on direction;
+WPWB is a risk report.
