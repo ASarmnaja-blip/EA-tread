@@ -537,6 +537,29 @@ M1-covered subset.
 | 2.00 | 48.0% | −0.0956 | 48.0% | −0.0953 |
 | 3.00 | 50.7% | −0.0243 | 50.7% | **−0.0239** |
 
+**Update — the flipped SHORT side, same method, all five stops:**
+
+| stop ATR | LONG win% M1-fix | LONG net/tr M1-fix | SHORT* win% M1-fix | SHORT* net/tr M1-fix |
+|---:|---:|---:|---:|---:|
+| 0.75 | 42.4% | −0.3005 | 21.1% | −0.7250 |
+| 1.00 | 45.1% | −0.2086 | 30.5% | −0.5009 |
+| 1.50 | 47.7% | −0.1192 | 43.5% | −0.2045 |
+| 2.00 | 48.0% | −0.0953 | 47.4% | −0.1074 |
+| 3.00 | 50.7% | −0.0239 | 47.9% | −0.0787 |
+
+(*SHORT is the flipped simulation of the same LONG entries, not a real
+signal.)
+
+The LONG-vs-SHORT gap narrows steadily as the stop widens, and in the raw
+full-period numbers it actually **crosses over** at 2.0-3.0 ATR (SHORT's
+full-period win rate edges ahead: 49.2%/50.2% vs LONG's 44.8%/47.5%). But
+**in the M1-covered recent period specifically, LONG stays ahead at every
+single stop width, with no crossover.** Consistent with the recent-regime
+drift favouring longs (gold's strong uptrend in the recent period) outweighing
+whatever the older, flatter 2021-2022 era contributed to the full-period
+SHORT numbers. The single best cell in either table remains LONG at 3.0 ATR,
+recent period: −0.0239 R/trade.
+
 **Guideline:** win rate climbs toward 50% and net R toward zero smoothly as
 the stop widens - at 3.0 ATR (the widest in the declared grid) this specific
 slice is within a hair of breakeven in the recent (M1-covered) period. The
