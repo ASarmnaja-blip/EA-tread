@@ -900,6 +900,54 @@ labelled honestly as a first cut, not a finished Regime Stability Score.
 
 ---
 
+## Part 24 — WPWB's own champion selector confirms Parts 18-22 by an independent method (2026-09-28)
+
+**Source:** re-ran the existing (Amendment 21, "explicitly not yet
+promoted") `research/pilot/weekly_evolution_grid.py` fresh against the
+canonical history. Context: user redirected focus to WPWB (Wednesday
+Report / Weekend Rebuild, `docs/AMENDMENT_22_WEEKLY_OPERATING_PROTOCOL.md`
++ its rule-9 addendum). This selector draws its weekly "champion" from the
+**same 8,250-cell, 6-setup-family grid** (`sweep`/`expansion`/`vwap`/
+`failed`/`breakout`/`pullback`) that Parts 18-22 tested tonight - not a
+different pool.
+
+**Result, 2021-01-03 to 2026-09-21, 290 weekly rolls:**
+
+- **213/290 = 73.4% weekly champion-change rate** - reproduces the 73%
+  figure Codex flagged in Amendment 21/`docs/CODEX_COLLAB_2026-09-27.md`
+  exactly.
+- Forward performance of the selected champion each week: 1,223 trades,
+  net **−32.246R**, mean **−0.0264R/trade**, win 30.0%, PF 0.964, max
+  drawdown −110.263R.
+- **Built-in same-week ranking control (top-ranked cell vs the median-
+  ranked cell, same week): top beats mid by only +0.0042R, and only in
+  49.7% of weeks** - statistically indistinguishable from a coin flip.
+  Both top and mid are net negative (−0.0491R and −0.0533R respectively).
+
+**Why this matters:** rule 9's own random-look-alike test says the same
+thing Parts 19/22 said with an unconditional random-entry baseline, but
+here it comes from WPWB's own walk-forward selector, on the actual full
+history, using a completely different method (LCB shrinkage score, 56-day
+selection, 7-day forward test) - **two independent methods now agree**: the
+weekly "champion" is not distinguishable from an arbitrary cell in this
+pool, because the pool itself carries no real edge. The 73% churn is not a
+tuning defect (e.g. the missing decay-weighting flagged in Amendment 22
+§3.1) by itself - a selector cannot reliably find and hold a winner inside
+a pool where there is nothing to find.
+
+**Implication for WPWB:** decay-weighting `weekly_evolution_grid.py`'s
+56-day window (Amendment 22 §3.1) is still worth doing for its own sake,
+but it will not fix the churn or the negative forward result on its own,
+since the underlying grid has no distinguishable edge regardless of how
+the window is weighted. The blocking problem is upstream: **WPWB has no
+tool in its current candidate pool worth selecting.** This matches
+`docs/OWNERSHIP.md`'s already-stated next step ("a new pre-registered
+design attacking the actual open problem... since gating on cost/R alone
+was not enough") - tonight's finding is independent evidence for why that
+next step is necessary, not a replacement for it.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
