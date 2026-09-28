@@ -379,3 +379,14 @@ on 2026-09-28. Before any A7.2/A7.3 result was computed, the final eligible
 outcome cut is corrected to **2026-09-18**; 2026-09-25 is excluded. Everything
 else in Amendment 7, including the trace family, signs, eras, controls, seed,
 and pass criteria, is unchanged.
+
+### Amendment 7b (Codex) — timestamp implementation correction before rerun
+
+The first A7.2/A7.3 execution printed 272 weeks ending 2026-09-11. Inspection
+showed the 2026-09-18 week has 115 H1 bars and is complete, but the code encoded
+`FINAL_CUT` as midnight at the start of 2026-09-18; the actual WPWB cut at
+22:15 was therefore greater than the limit and wrongly excluded. That first
+output is **superseded**. Before rerunning, change only the constant to
+2026-09-18 22:15 UTC. The family, data transformations, controls, seeds, and
+pass rules remain frozen. The corrected 273-week run is the result of record;
+both the defect and any numerical changes are reported.
