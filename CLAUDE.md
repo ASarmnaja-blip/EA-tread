@@ -264,7 +264,12 @@ docs/                        RESEARCH_FINDINGS.md, BACKTEST.md,
 1. **ไม่มีกลไก Champion/Challenger และ Shadow trading** — setup ทั้งหมดเป็น
    สวิตช์คงที่ ไม่มีการจัดอันดับใหม่ตาม Regime
 2. **ไม่มี Regime Stability Score** — `atrPercentile` ยังไม่ได้รวม Correlation,
-   Liquidity, Narrative, ผลงานล่าสุด
+   Liquidity, Narrative, ผลงานล่าสุด — **(2026-09-28) เริ่มสร้าง v1 แล้ว**
+   (`research/pilot/regime_stability_score.py`, LOGIC_LEDGER.md Part 23):
+   ports `Regime.mqh` Classify() + เพิ่ม efficiency ratio, ดึงข้อมูลสดจาก
+   MT5 terminal จริง (ไม่ใช่ snapshot แช่แข็ง) คำนวณ % ที่ regime label
+   คงเดิมใน 100 แท่งล่าสุด **ยังไม่มี Correlation, Liquidity, Narrative,
+   ผลงานล่าสุด** — เป็นแค่ price-structure + volatility เท่านั้น
 3. **ไม่มีหน้าต่างข้อมูลแบบถ่วงน้ำหนักตามเวลา** — งานวิจัยปัจจุบันวัดบนสเกล
    15 ปี ซึ่งตรงข้ามกับข้อ 5
 4. **ไม่มี Signal Schema ตามข้อ 6** — ยังไม่มีการส่งออกสัญญาณพร้อม Confidence,

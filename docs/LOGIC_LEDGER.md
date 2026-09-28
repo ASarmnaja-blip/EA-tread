@@ -861,6 +861,45 @@ far suggests they would fare differently.
 
 ---
 
+## Part 23 — Regime Stability Score v1 (CLAUDE.md gap #2, first cut) (2026-09-28)
+
+**Source:** `research/pilot/regime_stability_score.py`. User pointed out
+that the CLAUDE.md 9-point scope already names the tool that should answer
+"is the table hot or did the setup actually play well" - a working Regime
+Stability Score (item 2), rather than a one-off random-baseline script each
+time. Starting to build it from what already exists: `Regime.mqh`'s
+`Classify()` logic (ported to Python 1:1, same constants as
+`MQL5/Include/XAUM15/Config.mqh`: EMA 50/200, ATR(14), 100-bar ATR-percentile
+lookback, compression/slope/vol thresholds) plus the efficiency-ratio
+diagnostic validated in Parts 20-22.
+
+**Deliberately reads FRESH data from the live MT5 terminal**, not the
+frozen `data/canonical_XAUUSD_M5.npz` snapshot that every other Part in
+this ledger cites by sha256 for backtest reproducibility - a *current*-
+regime score needs current data, and freezing it would defeat the purpose.
+Confirmed live as of 2026-09-28 04:00 UTC (`MetaTrader5` package, same
+Exness-MT5Trial7 demo terminal probed in Part 20).
+
+**v1 score definition:** % of the last 100 M15 bars (matching
+`InpAtrRegimeLookback`) classified with the SAME discrete regime label as
+the current bar. High = the label has held, adjust slowly (CLAUDE.md
+section 4). Low = the label is flipping, adjust fast.
+
+**Current reading (2026-09-28 04:00 UTC):** regime=**TREND_DOWN**, ATR
+percentile 64.0, **Regime Stability Score = 22.0%** (10 label changes in
+the last 100 M15 bars). Efficiency ratio near zero at every trailing window
+(14d 0.034, 30d 0.033, 60d 0.009, 90d 0.009, 180d 0.009) - consistent with
+Part 21's flat-regime finding, not a strong trend. Both signals agree: the
+TREND_DOWN label should be treated as unstable/low-confidence right now,
+not acted on directly.
+
+**Explicitly NOT included in this v1** (still open against CLAUDE.md item
+2): correlation with DXY/yields, liquidity proxies, narrative/positioning,
+recent setup performance. This is price-structure + volatility only -
+labelled honestly as a first cut, not a finished Regime Stability Score.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
