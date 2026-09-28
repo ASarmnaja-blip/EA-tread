@@ -683,6 +683,63 @@ a forward period with a different regime) says otherwise.
 
 ---
 
+## Part 20 — MT5's real usable history depth, and Part 19's test repeated in a flat window (2026-09-28)
+
+**MT5 history depth**, probed directly against the live terminal
+(`Exness-MT5Trial7` demo, login 434191008) via the `MetaTrader5` python
+package - not an assumption:
+
+| timeframe | real continuous data starts |
+|---|---|
+| M1 | **2023-11-27** (matches `data/XAUUSD_M1.csv`) |
+| M5 | **~2021-01** (2016-2020 exists but is sparse - 100-700 bars/year, not usable) |
+| M15 / H1 / D1 | 2016-08-09 |
+
+So M5-level backtesting is only reliable from 2021 on, and tick-quality
+(M1) modelling only from 2023-11-27 on. This bounds every M5-grid finding
+in this ledger to that window, and it is the same bound Strategy Tester
+would face if this were run there.
+
+**Flat-period repeat of Part 19's fake-edge test.** `find_flat_period.py`
+ranked every calendar month from 2021-01 by trend efficiency ratio
+(|net move| / sum|bar-to-bar moves|; near 0 = chop, near 1 = one-way
+trend), restricted to MT5's real-data window. May-June 2025 is the
+flattest *consecutive* two-month stretch inside the M1-tick-quality period
+(efficiency 0.001 and 0.001 individually, 0.0020 combined).
+
+`check_fake_edge_flat.py` reran Part 19's real-vs-random comparison
+restricted to that window (n=82-88 deduped signals per stop - small, noisy,
+but the pattern is what matters):
+
+| stop | RR | net R, real setup | net R, random baseline |
+|---:|---:|---:|---:|
+| 1.5 | 1:1 | −0.1968 | +0.0361 |
+| 1.5 | 1:4 | −0.3188 | −0.0005 |
+| 1.5 | 1:7 | −0.3675 | −0.1590 |
+| 1.5 | 1:10 | −0.1115 | −0.2322 |
+| 1.0 | 1:10 | −0.3254 | −0.1854 |
+
+**No cell turns positive.** Unlike the trending M1-covered window, wider RR
+does not rescue net R here - if anything it gets worse for the real setup
+(win% collapses toward 7-9% by RR 1:7-10, chop keeps clipping the stop
+before a distant target is ever reached). This is the expected signature if
+Part 19's diagnosis is right: remove the drift, and the "edge" has nothing
+left to stand on.
+
+**Caveat stated plainly:** n=82-88 is too small for precise numbers: this
+is not a second confirmed result, it is a directional check that is
+consistent with Part 19 and does not contradict it.
+
+**Not done:** this remains a Python simulation against cached history, not
+an actual MT5 Strategy Tester run - the `MetaTrader5` package used to probe
+history depth can read data and (per the demo-only order permission) place
+orders, but cannot drive the Strategy Tester GUI from this session. No EA
+in this repo implements the "expansion" setup tested tonight, so there is
+nothing yet that could be loaded into Strategy Tester for this specific
+finding even if the GUI step were done manually.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
