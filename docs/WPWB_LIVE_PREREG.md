@@ -119,3 +119,29 @@ that persists week to week, rho 0.81) with suggestive but not proven
 evidence. At the observed effect size a forward record needs ~162 weeks to
 reach t=2 and ~365 for t=3. **Status: best candidate for a frozen forward
 shadow arm, not a validated edge. Engine decision: NO TRADE.**
+
+## Amendment 2 — loss-reduction rules (frozen before testing)
+
+Nominated by the exploratory `research/wpwb_live/loss_diagnosis.py`
+(hindsight, both eras seen — NOT BLIND). None of 13 pre-week traces
+predicted next-week direction in both eras. Two readable-in-advance items
+survived the diagnosis: FOMC weeks were worse for longs in BOTH eras (old
+−59 vs +5 bp, new −55 vs +67 bp; p 0.19 / 0.10), and the catastrophic
+week (−$522) went 2.4 weekly-sigma against entry while tight stops (<=1.5
+sigma) cut winners more often than losers. Rules, applied on top of VOLMAN
+(hl=13), evaluated on BOTH eras (old 2021-07..2023-12, new 2024-01..
+2026-09):
+
+- **R1** VOLMAN (reference).
+- **R2** VOLMAN, stand aside in weeks containing a scheduled FOMC decision.
+- **R3** VOLMAN with a catastrophe stop at 2.0 x weekly sigma below entry
+  (weekly sigma = rebuild daily sigma x sqrt 5; M5 path; gap-through fills
+  at the bar open).
+- **R4** R2 + R3.
+- **R5** VOLMAN with the stop at 2.5 x weekly sigma.
+
+Controls: for R2/R4, the SAME number of weeks skipped at random (5,000
+draws) — the rule must beat random skipping on net P&L AND max drawdown
+(percentile of the actual result reported). For stops, the comparison is
+the same weeks without the stop. A rule is kept only if it improves max
+drawdown without lowering net P&L in BOTH eras.
