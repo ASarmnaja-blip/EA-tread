@@ -631,6 +631,58 @@ been held to.
 
 ---
 
+## Part 19 — Part 18's positive cells are directional drift, not a setup edge (2026-09-28)
+
+**Source:** `research/pilot/check_fake_edge.py`. Follow-up on Part 18's two
+open concerns (unregistered sweep, duplicated n). Both are now resolved -
+the second more damningly than expected.
+
+**Dedup result:** collapsing to one row per unique entry bar (dropping
+duplicate rows fired by different entry-mode variants on the same bar)
+shrinks the sample far more than a rounding correction:
+
+| stop ATR | n reported in Part 18 | n after dedup (unique bars) |
+|---:|---:|---:|
+| 1.0 | 14,103 | **1,292** |
+| 1.5 | 13,674 | **1,269** |
+
+The independent-event sample behind Part 18's numbers is about 1/11th of
+what was reported - consistent with 11 entry-mode variants tagging the same
+underlying bar.
+
+**Fake-edge test:** built an unconditional random-entry baseline of the same
+size, same window (M1-covered period), same stop, ATR(14) computed directly
+on M5 - any bar, always LONG, market fill, zero relationship to the
+expansion setup. Ran the identical RR sweep on both:
+
+| stop | RR | net R/tr, real (deduped) setup | net R/tr, random baseline |
+|---:|---:|---:|---:|
+| 1.0 | 1:7 | −0.0344 | **+0.0110** |
+| 1.0 | 1:10 | +0.0461 | **+0.1410** (random wins) |
+| 1.5 | 1:4 | +0.0245 | −0.0392 |
+| 1.5 | 1:7 | +0.1420 | +0.0687 |
+| 1.5 | 1:10 | +0.1995 | +0.1538 |
+
+The random baseline turns positive at essentially the same RR levels as the
+real setup, and at stop=1.0 it **outperforms** the real setup at every RR
+from 1:6 upward. This is the standard signature of directional drift, not a
+timing edge: in a window where gold trended up steadily (already flagged in
+Parts 3, 9, 10, 15), *any* sufficiently-wide-target long trade looks
+profitable, regardless of when it was entered.
+
+**Verdict: Part 18's positive net-R cells (stop=1.0 LONG RR>=1:6, stop=1.5
+LONG RR>=1:4) do not represent a setup-specific edge.** They are consistent
+with pure long-side market drift over the M1-covered period. The expansion
+setup's entry conditioning adds no measurable value over picking entries at
+random once the target is wide enough not to get stopped out - if anything,
+at stop=1.0 the setup's timing is slightly worse than random. This
+supersedes the "may be worth pursuing" framing in Part 18; treat those cells
+as **confirmed fake edge**, not a candidate, unless a genuinely different
+test (e.g. de-trended/detrended-return version of this same comparison, or
+a forward period with a different regime) says otherwise.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
