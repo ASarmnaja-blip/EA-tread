@@ -1259,6 +1259,35 @@ declared cap (3 rounds, 50 variants, one holdout opening at the end).
 
 ---
 
+## Part 30 — WPWB edge search closed: 0 of 40 pass, holdout never opened (2026-09-28)
+
+**Source:** `docs/WPWB_EDGE_SEARCH_PREREG.md` (amendments 1-3, results
+sections), `research/wpwb_search/run_round2.py`, `run_round3.py`,
+`power_check.py`.
+
+Round 2 (12 variants: hour-blocks merged into one position, UTC sessions,
+daily reversal/follow retuned weekly, a WPWB meta-selector over the round-1
+menu): 0 eligible. The meta-selector did worse than a random tool from its
+own menu (min t −0.34 / −1.08) — the same selection-churn pathology Part 24
+found in the old grid, now on structurally different tools. Round 3 (8
+variants: swap-free intraday TSM, volatility-managed long vs exposure-
+matched long, extreme-threshold H1 reversal): 0 eligible. A notable
+cost fact surfaced along the way: on this account a week-long long pays
+~14 bp of swap (0.5493/night at ~$1,900) while shorts pay nothing — larger
+than most effects measured.
+
+**Final: 0 of 40 pre-registered variants DEV-eligible across 12 families.
+Holdout 2024-01..2026-09 never opened; it stays clean for any future
+pre-registered test.** Power check: with 130 DEV weeks the pipeline detects
+a 70%-accurate weekly direction 76% of the time but a 60%-accurate one only
+22% and 55% only 4% — so large edges are ruled out among these ideas,
+modest ones are not. Standing implication for WPWB: a modest real edge
+could not be *statistically confirmed* within a few years of weekly data at
+all; forward accumulation under a frozen rule is the only path, and a
+26-week shadow is shorter still than the 130 weeks that could not.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,

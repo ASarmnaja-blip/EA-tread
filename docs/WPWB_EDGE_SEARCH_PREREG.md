@@ -259,6 +259,29 @@ judges it.
 Evidence floor for round 3: section 6 default (50%) for K and I; 25% for L,
 matching its round-1 ungated parent (D-ungated), declared here before running.
 
-## Addendum — finalists (to be filled after all rounds, before HOLDOUT)
+## Round 3 result and search closure (DEV only, holdout never opened)
 
-(empty at commit time)
+`research/wpwb_search/run_round3.py`, output `data/wpwb_search_round3_out.txt`.
+All audits clean. **0 of 8 DEV-eligible.** TSMI (swap-free intraday TSM)
+still net negative (min t +0.27 / −0.16). VOLMAN did not beat the
+exposure-matched long (min t −0.39 / +0.20). CHOPREV-EXTREME turned
+negative at z=3-4 — the round-1 net-positive z=2.5 did not extend.
+
+## Addendum — finalists
+
+**None.** 0 of 40 pre-registered variants (3 rounds, 12 families) were
+DEV-eligible, so per sections 6 and Amendment 2 the HOLDOUT (2024-01 ..
+2026-09) was **never opened** and remains clean for any future
+pre-registered test. Verified: every runner builds weeks through
+`run_dev.dev_cuts()`, which asserts no DEV week reaches 2024-01-01.
+
+**Power disclosure** (`research/wpwb_search/power_check.py`): planting a
+weekly-direction strategy with known accuracy into the identical pipeline
+(130 DEV weeks, weekly long P&L sd 184 bp, 1.5x costs) gives detection
+rates of 4% at 55% accuracy (+6 bp/week), 22% at 60% (+20), 47% at 65%
+(+35), 76% at 70% (+49). The search therefore rules out LARGE weekly edges
+among these 40 variants; it cannot rule out modest ones (55-60% weekly
+accuracy), which ~2.5 years of weekly data cannot distinguish from noise.
+
+**Search status: FAILED — no WPWB-compatible edge found that clears a
+pre-registered bar.** Engine decision: NO TRADE.
