@@ -182,18 +182,20 @@ def main() -> int:
                       f"{r['m1_corr_win']:10.1f}%{r['m1_corr_net']:13.4f}"
                       f"{r['full_timeexp']:8.1f}%  |"
                       f"{r['full_dollars']:12,.2f}{r['m1_corr_dollars']:12,.2f}")
+                side_th = "ซื้อ (จริง)" if label == "LONG" else "ขาย (กลับด้าน จำลอง)*"
                 excel_rows.append({
-                    "stop_ATR": st, "RR": f"1:{tg:g}", "side": label,
-                    "n_total": r["n"], "n_M1": r["n_m1"],
-                    "full_win_pct": round(r["full_win"], 2),
-                    "full_net_R": round(r["full_net"], 4),
-                    "full_timeexp_pct": round(r["full_timeexp"], 2),
-                    "full_dollars": round(r["full_dollars"], 2),
-                    "M1_orig_win_pct": round(r["m1_orig_win"], 2),
-                    "M1_orig_net_R": round(r["m1_orig_net"], 4),
-                    "M1_corrected_win_pct": round(r["m1_corr_win"], 2),
-                    "M1_corrected_net_R": round(r["m1_corr_net"], 4),
-                    "M1_corrected_dollars": round(r["m1_corr_dollars"], 2),
+                    "ATR หยุดขาดทุน": st, "RR (เป้า:ทุน)": f"1:{tg:g}",
+                    "ทิศทาง": side_th,
+                    "จำนวนไม้ทั้งหมด": r["n"], "จำนวนไม้ (ช่วงมี M1)": r["n_m1"],
+                    "อัตราชนะ% (ทั้งช่วง)": round(r["full_win"], 2),
+                    "กำไร/ไม้ เป็น R (ทั้งช่วง)": round(r["full_net"], 4),
+                    "%หมดเวลา (ทั้งช่วง)": round(r["full_timeexp"], 2),
+                    "กำไรรวม$ (ทั้งช่วง)": round(r["full_dollars"], 2),
+                    "อัตราชนะ% (M1 ก่อนแก้)": round(r["m1_orig_win"], 2),
+                    "กำไร/ไม้ เป็น R (M1 ก่อนแก้)": round(r["m1_orig_net"], 4),
+                    "อัตราชนะ% (M1 แก้ไขแล้ว)": round(r["m1_corr_win"], 2),
+                    "กำไร/ไม้ เป็น R (M1 แก้ไขแล้ว)": round(r["m1_corr_net"], 4),
+                    "กำไรรวม$ (M1 แก้ไขแล้ว)": round(r["m1_corr_dollars"], 2),
                 })
     print("\ncolumns: RR = target:stop ratio. n_M1 = trades inside M1 coverage.")
     print("win%_M1fix/net_M1fix = M1-corrected, on the M1-covered subset only.")
@@ -208,10 +210,10 @@ def main() -> int:
     df = pd.DataFrame(excel_rows)
     out_path = Path("data/rr_sweep_finance.xlsx")
     with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name="all", index=False)
+        df.to_excel(writer, sheet_name="ทั้งหมด", index=False)
         for st in STOPS:
-            df[df.stop_ATR == st].to_excel(writer, sheet_name=f"stop_{st}",
-                                           index=False)
+            df[df["ATR หยุดขาดทุน"] == st].to_excel(
+                writer, sheet_name=f"stop_{st}", index=False)
     print(f"\nExcel written: {out_path}  ({len(df)} rows)")
     return 0
 
