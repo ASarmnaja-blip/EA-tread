@@ -1444,6 +1444,42 @@ this cannot be confirmed statistically soon.
 
 ---
 
+## Part 35 — H1 trace library: what the traces were, and why they came too late (2026-09-28)
+
+**Source:** `research/wpwb_live/h1_traces.py`, `level_break.py`;
+`data/wpwb_h1_trace_library.xlsx`; `docs/WPWB_LIVE_PREREG.md` amendments
+5-6. User: the weeks are past, so at H1 we should know what the trace was.
+
+**The traces, in hindsight (rule-9 library, every week 2021-07..2026-09):**
+losing weeks = the dollar strengthening through the week (median +0.21% vs
+−0.11%), gold closing an H1 below the prior week's low (51% vs 16% of
+winning weeks), selling in all three sessions (median Asia −49, London −39,
+NY −49 bp), spread evenly over Monday-Friday, not concentrated in news
+hours (~1% of absolute H1 movement) nor in a few jumps (top-3 H1 bars
+~13%). A few losses were event shocks: 2026-03-13 (FOMC Wed 18:00 −148 bp
+in 3h, then London Thursday −621 bp), 2026-05-29 (hot NFP −224 bp in 3h).
+Winning weeks are the mirror: weak dollar, break above the prior week's
+high, all sessions up.
+
+**Readable in time? No (two single pre-registered tests):**
+- Wednesday 00:00 UTC checkpoint: 0 of 5 H1 features (return so far, DXY
+  so far, prior-week level state, realised/forecast volatility, news-
+  reaction direction) predicted Thursday-Friday in both eras; DXY-so-far
+  was significant in both DXY sub-eras but with opposite signs.
+- First prior-week level break (Mon-Thu) as a continuation signal: FAIL.
+  After an H1 close below the prior week's low gold continued down only 46%
+  (2021-23) / 34% (2024-26) of the time (mean −18 / −59 bp for a short,
+  i.e. it bounced); after a close above the high it continued 52% / 62%.
+  An "exit the long when last week's low breaks" rule would have sold dips
+  that were bought, in both eras.
+
+**Reading:** the losing-week trace is real but coincident — it is the loss
+itself happening (dollar strength, broad selling), not an early warning.
+Knowing it after the week is the guideline library's job; it does not
+become a tradable signal by being clear in hindsight.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
