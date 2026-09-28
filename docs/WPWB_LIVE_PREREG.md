@@ -390,3 +390,42 @@ output is **superseded**. Before rerunning, change only the constant to
 2026-09-18 22:15 UTC. The family, data transformations, controls, seeds, and
 pass rules remain frozen. The corrected 273-week run is the result of record;
 both the defect and any numerical changes are reported.
+
+### Amendment 7 result (Codex)
+
+**A7.1 audit:** all 7 existing `test_common.py` tests passed. The independent
+checks also passed: H1 OHLC/continuity, Bid/Ask and 1.5x costs, entry/exit
+spread locations, rollover boundary equivalence, Friday 22:15 week boundaries,
+Wednesday 00:00 checkpoint causality, epoch-second events/W5 completion, and
+fresh/canonical combination. XAU overlap was 216,085 bars, 99.9995% within
+0.01, best offset +0h; 1,373 bars were appended strictly after canonical.
+No active bug was found that biases the tested traces toward “no trace.”
+
+Two robustness limitations do not change the test results: `fetch_fresh.py`
+writes files before its final validation and leaves them in place on a failed
+validation (potential bias either way on a future failed fetch), while the H1
+descriptive day/session summaries sum bar bodies and omit inter-bar gaps
+(descriptive library only, not W1-W5 outcomes).
+
+**A7.2 corrected run:** 273 complete weeks, 2021-07-02..2026-09-18 (era A
+131, era B 142). **0 of 10 pass.** Rhos (A/B) and random-timing p-values:
+N1 +0.077/−0.119 (0.853/0.178), N2 −0.005/−0.140 (0.531/0.022),
+N3 +0.073/−0.144 (0.829/0.035), N4 −0.003/−0.107 (0.453/0.086),
+R1 +0.102/−0.131 (0.969/0.058), R2 +0.051/−0.094 (0.680/0.130),
+G1 +0.143/+0.042 (0.090/0.373), G2 +0.056/+0.154 (0.246/0.061),
+C1 −0.150/−0.015 (0.016/0.403), C2 −0.158/+0.015 (0.939/0.418).
+The pass threshold was p<0.005 in both eras. The first, superseded 272-week
+run omitted the final cut due to Amendment 7b's midnight/22:15 bug; correcting
+it changed some era-B numbers but no verdict.
+
+**A7.3 corrected run: FAIL.** Era A: 20 FOMC weeks (6 dovish/14 hawkish),
+mean score +5.0 bp, median +9.0, hit 55.0%, p=0.451 vs random direction and
+0.314 vs random weeks. Era B: 22 (11/11), mean +102.2 bp, median +116.2,
+hit 68.2%, p=0.0345 vs random direction but p=0.0954 vs random weeks. Both
+controls had to pass in both eras. Binomial power for a true 60%/65%/70% hit
+rate was only 12.6%/24.5%/41.6% in A and 15.8%/30.2%/49.4% in B. The already-
+examined 2016-08..2020-11 context was positive (27 verified FOMC weeks, +48.6
+bp mean score, 59.3% hit) but is not confirmation. With only about two policy
+cycles, cycle-level generalisation is **NOT ASSESSED**. Fed-funds-futures data
+were not retrieved and are also **NOT ASSESSED**. Engine decision remains
+**NO TRADE**.

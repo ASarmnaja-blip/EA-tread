@@ -1485,3 +1485,88 @@ become a tradable signal by being clear in hindsight.
 Everything above is read-only against existing data and Codex's paused,
 unmodified cache. No real-money order sent. No open position. No PR. **NO
 TRADE.**
+
+---
+
+## Part 36 (Codex) — independent WPWB trace-code audit (2026-09-28)
+
+**Source:** `docs/WPWB_LIVE_PREREG.md` amendments 7/7a/7b,
+`research/wpwb_live/audit_codex.py`. The preregistration was committed before
+tests (`390bd69`; end-cut corrections were separately registered in `c4e6a73`
+and `ded650f`). Read-only throughout; no MT5 function was called.
+
+All 7 existing `research/wpwb_search/test_common.py` tests passed. Independent
+checks passed for exact/gapped M5→H1 resampling, Bid/Ask and stressed cost math,
+entry/exit spread selection, vector/scalar rollover equivalence including
+boundary instants, Friday 22:15 week containment, Wednesday 00:00 input
+causality, pandas-3-safe epoch seconds, and W5 reaction completion. Fresh XAU
+matched canonical on 216,085 overlap bars (99.9995% within 0.01; best offset
++0h), and `combined_bars()` preserved the canonical prefix and appended 1,373
+strictly later, unique bars.
+
+**Audit verdict:** no active bug found that would hide a real trace or bias the
+reported tests toward “no trace.” Two non-result-changing robustness issues:
+`fetch_fresh.py` writes fresh files before validation and does not remove them
+if validation fails (a future failed fetch could bias either way), and the
+hindsight day/session descriptions in `h1_traces.py` sum H1 bar bodies rather
+than full close-to-close movement, omitting inter-bar gaps. The latter affects
+descriptive attribution only, not W1-W5 or rest-of-week outcomes.
+
+---
+
+## Part 37 (Codex) — external pre-week traces: 0 of 10 pass both eras (2026-09-28)
+
+**Source:** first-party Treasury, Cboe, and CFTC files in `data/external/`
+(URLs, retrieval time, and SHA-256 in its README/manifest),
+`research/wpwb_live/fetch_external.py`, `external_traces.py`. Data were aligned
+causally to the Friday 22:15 rebuild: Treasury/GVZ no later than Thursday and
+CFTC only after its release timestamp. Window: 273 complete weeks,
+2021-07-02..2026-09-18; era A n=131, era B n=142. Each test used 20,000 seeded
+circular random-timing controls; pass required registered sign and p<0.005 in
+both eras (Bonferroni 10).
+
+| trace | meaning | era A rho / p | era B rho / p | verdict |
+|---|---|---:|---:|---|
+| N1 | 2y yield level → gold | +0.077 / .853 | −0.119 / .178 | FAIL |
+| N2 | 13w change in 2y → gold | −0.005 / .531 | −0.140 / .022 | FAIL |
+| N3 | 10y nominal level → gold | +0.073 / .829 | −0.144 / .035 | FAIL |
+| N4 | 13w change in 10y → gold | −0.003 / .453 | −0.107 / .086 | FAIL |
+| R1 | 10y real-yield level → gold | +0.102 / .969 | −0.131 / .058 | FAIL |
+| R2 | 13w change in real 10y → gold | +0.051 / .680 | −0.094 / .130 | FAIL |
+| G1 | GVZ / realised vol → next absolute gold return | +0.143 / .090 | +0.042 / .373 | FAIL |
+| G2 | 13w GVZ change → next absolute gold return | +0.056 / .246 | +0.154 / .061 | FAIL |
+| C1 | managed-money 52w percentile → gold | −0.150 / .016 | −0.015 / .403 | FAIL |
+| C2 | managed-money 4-report change → gold | −0.158 / .939 | +0.015 / .418 | FAIL |
+
+Some raw p-values in one era look suggestive, but none reaches the registered
+family threshold and none also holds in the other era. The first 272-week run
+was superseded because Codex encoded the final date at midnight and omitted the
+valid 22:15 cut; the correction was registered before rerun, restored the 273rd
+week, and did not change any verdict. Fed-funds-futures/policy-expectation data
+beyond the pre-registered 2-year-yield proxy were not retrieved: **NOT
+ASSESSED**. No leading external trace was found; **NO TRADE**.
+
+---
+
+## Part 38 (Codex) — FOMC direction from the 3-month 2-year-yield change fails (2026-09-28)
+
+**Source:** `research/wpwb_live/external_traces.py`; hypothesis and controls in
+Amendment 7. Signal known at the rebuild: falling/unchanged 63-trading-day 2y
+yield = dovish/long gold; rising = hawkish/short gold. Score = signal × complete
+FOMC-week gross gold return. Required in both eras: positive mean, hit >50%,
+p<.05 versus 20,000 random directions, and p<.05 versus the same number of
+random weeks.
+
+- Era A: 20 FOMC weeks (6 dovish, 14 hawkish), mean score +5.0 bp, median
+  +9.0, hit 55.0%; p=.451 random-direction, p=.314 random-week — **FAIL**.
+- Era B: 22 (11 dovish, 11 hawkish), mean +102.2 bp, median +116.2, hit 68.2%;
+  p=.0345 random-direction but p=.0954 random-week — **FAIL**.
+- Already-examined 2016-08..2020-11 context: 27 verified FOMC weeks, +48.6 bp
+  mean score and 59.3% hit. This is context only, not new confirmation.
+
+Power is poor: for a true 60%/65%/70% hit rate, era-A power was
+12.6%/24.5%/41.6% and era-B power 15.8%/30.2%/49.4%. More importantly, 42
+recent FOMC events are not 42 independent policy cycles; 2016-2026 contains
+only roughly two easing/tightening cycles. The event-level rule fails its
+controls, and cycle-level generalisation remains **NOT ASSESSED**, not inferred
+from the positive old-era context. Engine decision remains **NO TRADE**.

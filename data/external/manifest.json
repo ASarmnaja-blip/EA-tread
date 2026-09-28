@@ -1,0 +1,173 @@
+{
+  "retrieved_utc": "2026-09-28T10:01:43+00:00",
+  "sources": [
+    {
+      "file": "treasury_nominal_2016.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2016",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2016",
+      "bytes": 347673,
+      "sha256": "551f47a52ac629ebc2d34b5c684bf514e7c57cef4bc9531b357c88cd00d61c1d"
+    },
+    {
+      "file": "treasury_nominal_2017.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2017",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2017",
+      "bytes": 347673,
+      "sha256": "f9c1661bfdd87eebbf1a91653b02ce7553dc37cc5be23c1ddffd80911cd2a669"
+    },
+    {
+      "file": "treasury_nominal_2018.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2018",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2018",
+      "bytes": 348937,
+      "sha256": "4c374110f1e71c3ee868291895485a22f187ee735071e6d1d767030624e54165"
+    },
+    {
+      "file": "treasury_nominal_2019.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2019",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2019",
+      "bytes": 360673,
+      "sha256": "99500b758fe54d9060bfeecf38153a634b157c7322cda34bfb75eb0cd9f44fa2"
+    },
+    {
+      "file": "treasury_nominal_2020.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2020",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2020",
+      "bytes": 362113,
+      "sha256": "53098f307448b54a342f6fb15eade1ae7c7ed886291b38775770874bdee31f78"
+    },
+    {
+      "file": "treasury_nominal_2021.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2021",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2021",
+      "bytes": 362113,
+      "sha256": "109c90409f30745391d72f6ef46e4002d4d0cf56dd2e46b1b7d773afc11de9ab"
+    },
+    {
+      "file": "treasury_nominal_2022.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2022",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2022",
+      "bytes": 343983,
+      "sha256": "1219a246a53334841e90ace6dbe099d353fef6ccc6803ada3521edbd49396536"
+    },
+    {
+      "file": "treasury_nominal_2023.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2023",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2023",
+      "bytes": 284423,
+      "sha256": "f1dd5152adfb1b758a6f0983d4ec4b4da64359f70b12ee22552530b22362ea27"
+    },
+    {
+      "file": "treasury_nominal_2024.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2024",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2024",
+      "bytes": 284423,
+      "sha256": "9766c5a49109f942c64395a38913a86c0113e0dd3e9114f92d87ee202860ec44"
+    },
+    {
+      "file": "treasury_nominal_2025.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2025",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2025",
+      "bytes": 345104,
+      "sha256": "bec26702c37e96638a40bb686fbf4720c800538a261d02d5a0c93ae27d957030"
+    },
+    {
+      "file": "treasury_nominal_2026.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026",
+      "bytes": 286498,
+      "sha256": "6dfd9413f8a98480bdfdf681b3000561e1b00a40fee2edb0d9bff5575fbf27d8"
+    },
+    {
+      "file": "treasury_real_2021.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2021",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2021",
+      "bytes": 278991,
+      "sha256": "bcffdb3f6ec4479a6913951ec9c3de6323ad68457768b6eebcdcacf51f1971e7"
+    },
+    {
+      "file": "treasury_real_2022.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2022",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2022",
+      "bytes": 253920,
+      "sha256": "378ae70eb9385ca22624c8b2721da3ffc249c3fe49cee2cd5253b292f1db831f"
+    },
+    {
+      "file": "treasury_real_2023.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2023",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2023",
+      "bytes": 166440,
+      "sha256": "2385f2d7c2a6c50d8a471bad4f2c92a50aa8b467960b5452fc311cc7e43d3c0e"
+    },
+    {
+      "file": "treasury_real_2024.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2024",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2024",
+      "bytes": 166440,
+      "sha256": "a27c224c6443ca0afce5c7276b5ea9623ca91fc793ceaae2c15143af2492f867"
+    },
+    {
+      "file": "treasury_real_2025.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2025",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2025",
+      "bytes": 226335,
+      "sha256": "0fd1e4106204ae764ca7cdb245560668527ec2b2385a47135e5b81f236f7e1e1"
+    },
+    {
+      "file": "treasury_real_2026.xml",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2026",
+      "final_url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2026",
+      "bytes": 204375,
+      "sha256": "c1c88727b0ef82a6d35386010f8b6de3bd84c5e626549fe088ec55a1f85c16a8"
+    },
+    {
+      "file": "GVZ_History.csv",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/GVZ_History.csv",
+      "final_url": "https://cdn-api.cboe.com/api/global/us_indices/daily_prices/GVZ_History.csv",
+      "bytes": 89808,
+      "sha256": "670e620d4d780185737478593ee3d787076cefaf3de647b9abd175e98adbca13"
+    },
+    {
+      "file": "cftc_fut_disagg_2021.zip",
+      "url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2021.zip",
+      "final_url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2021.zip",
+      "bytes": 1943806,
+      "sha256": "12d5d49a8963367fd3439050e3e20e6a5338757dfa083432795c5556827ff8ae"
+    },
+    {
+      "file": "cftc_fut_disagg_2022.zip",
+      "url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2022.zip",
+      "final_url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2022.zip",
+      "bytes": 2049193,
+      "sha256": "74205d75d4d7b75a9f4159ef2e6abed53eeb4771a74e5a4bf78bc0451410ab7f"
+    },
+    {
+      "file": "cftc_fut_disagg_2023.zip",
+      "url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2023.zip",
+      "final_url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2023.zip",
+      "bytes": 2202972,
+      "sha256": "9fe75dba0256819d476bb0d01f9e8e5ac6ec2c4390f609a7e3259e85796b79ce"
+    },
+    {
+      "file": "cftc_fut_disagg_2024.zip",
+      "url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2024.zip",
+      "final_url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2024.zip",
+      "bytes": 2381296,
+      "sha256": "5e40f60993120d26c116ab347beaf93702f5da60c7bdccbbee43cb3d0a91d01a"
+    },
+    {
+      "file": "cftc_fut_disagg_2025.zip",
+      "url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2025.zip",
+      "final_url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2025.zip",
+      "bytes": 2420076,
+      "sha256": "17ac2fef1b53303d01e486bbf5768a4e062308a3c34a2970871f3eab89829cbc"
+    },
+    {
+      "file": "cftc_fut_disagg_2026.zip",
+      "url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2026.zip",
+      "final_url": "https://www.cftc.gov/files/dea/history/fut_disagg_txt_2026.zip",
+      "bytes": 1831811,
+      "sha256": "ca88b14a88386ba250e4c48fa786162566efedb3fd5d63c5e87dc49a9dbd39da"
+    }
+  ]
+}
