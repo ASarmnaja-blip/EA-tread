@@ -211,3 +211,29 @@ sign tracks the Fed cycle (easing 2019-2020: FOMC weeks good for gold;
 tightening from 2022: bad). **Conclusion: both surviving rules were
 regime-specific / luck, not stable readable traces.** Neither is carried
 forward as a rule.
+
+## Amendment 5 — H1 Wednesday-checkpoint traces (before running)
+
+User: the weeks are past, so find at H1 what the trace was, WPWB-style.
+Two parts. (a) A descriptive H1 trace library for every week 2021-07..
+2026-09 (hindsight, for the rule-9 guideline library, not a test). (b) A
+test of whether the H1 trace visible at the **Wednesday Report checkpoint
+(Wednesday 00:00 UTC, after the Monday and Tuesday sessions)** predicts the
+rest of the week (Wednesday 00:00 -> Friday close). Five features, frozen:
+
+- **W1** gold return so far (week open -> checkpoint);
+- **W2** DXY return so far (DXY H1 exists from 2023-09 only);
+- **W3** prior-week level acceptance: +1 if the latest H1 close beyond the
+  prior week's range before the checkpoint was above its high, −1 if below
+  its low, 0 if none;
+- **W4** realised H1 volatility so far / volatility forecast at the rebuild
+  (tested against the rest-of-week |move| and against its direction);
+- **W5** event reaction: sum over tier-1 USD releases before the
+  checkpoint of the sign of gold's 3-hour return starting at the release
+  bar (acceptance direction of the news).
+
+Eras: A = 2021-07..2023-12, B = 2024-01..2026-09 (W2: 2023-09..2024-12 vs
+2025-01..2026-09). A feature counts as a readable Wednesday trace only if
+its Spearman correlation with the rest-of-week return has the **same sign
+in both eras and p < 0.01 in both** (Bonferroni over 5). W4-vs-|move| is
+reported separately (magnitude, not direction). Runs once.
