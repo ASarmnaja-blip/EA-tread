@@ -1645,3 +1645,107 @@ work superseded before WPWB; not re-verified line by line here.
 significance rule on 130-142 weeks, and whether the "must hold in both eras"
 requirement structurally rejects the regime-specific edges WPWB is built
 for. Sent back to Codex as a follow-up.
+
+---
+
+## Part 41 (Codex) — WPWB measurement-method review: NO TRADE stands; the broad no-direction claim does not (2026-09-28)
+
+**Source:** `docs/CODEX_METHOD_REVIEW_2026-09-28.md` and reproducible scripts/
+outputs in `research/wpwb_live/codex_review/`. Scope is today's WPWB work in
+Parts 29-40, not the early pilot engine already reviewed in Part 40. No MT5
+function was called and no order was placed.
+
+**Power:** 10,000-replication simulation exactly reproduced the repository's
+`max(circular-block-8 bootstrap, Newey-West-8)` p rule with 5,000 bootstrap
+draws. For iid weekly P&L, n=130-142, sd 150-200 bp, power for true 5/10/20
+bp-per-week edges was only **5.8-7.2% / 9.7-13.7% / 22.8-37.0%** at the raw
+`p<.025` rule. At `p<.025/40`, it was only **0.4-0.6% / 0.8-1.7% /
+3.2-7.4%**; AR(1) phi=.3 was lower for the larger effects. Therefore 0 of 40
+rules out only large, easy-to-detect effects. It cannot establish that modest
+weekly direction is absent.
+
+The far bootstrap tail is also not calibrated for the claimed Bonferroni
+bound: `_cbb_p` uses `count/5000` without an add-one correction. At the `/40`
+threshold the decision rests on roughly three exceedances. Simulated marginal
+null rejection was 0.13-0.29%, not the 0.0625% required for a literal 2.5%
+Bonferroni family bound. Use far more draws/add-one and validate the entire
+family with joint block maxT/randomisation.
+
+**Controls:** RDIR is appropriate for directional attribution. LONG is useful
+against drift but absorbs a genuine long-timing edge when it inherits the
+selected timestamps. RTIME is useful for timing attribution but inherits the
+realised week's directional move and has inconsistently matched candidate
+pools. Requiring a tool to beat every control makes attribution diagnostics
+into conjunctive nulls and can reject a profitable timing-direction
+interaction. Random-week skips are too weak for FOMC because they do not match
+Fed regime, volatility, event load or calendar clustering. VOLMAN's LONGMATCH
+matches mean exposure ex post but not risk and is not an online benchmark.
+
+**Target mismatch:** requiring the same sign/significance in both 2021-2023
+and 2024-2026 structurally rejects the regime-specific, decaying edges WPWB's
+mission asks it to switch on and off. The fair target is a frozen **adaptive
+procedure**, tested by nested rolling-origin replay with all tuning performed
+on past data and the complete selector compared to block-randomised placebos.
+Calendar-era results should be diagnostics, not same-sign gates. Because the
+available history has been repeatedly mined, promotion requires future shadow
+weeks under an anytime-valid sequential alpha plan.
+
+**Hindsight and costs:** FOMC skip, catastrophe stops and prior-week level
+break were frozen only after the same eras nominated them; this is transparent
+but not independent. More seriously, the old-data FOMC scripts “verify” dates
+by retaining only events whose XAU statement-hour/day range exceeds a median,
+which conditions event inclusion on the price outcome. Event dates must come
+from an independent authoritative calendar. Weekly bp sums, Sunday-to-Friday
+holding, H1 resolution, 1.5x non-swap stress, today's swap back-cast to
+2016-2020 and the $0.09 spread floor are mostly conservative, but they test a
+weekly carry target and cannot be generalised to every M5/M15 conditional edge.
+
+**Verdict:** the operational **NO TRADE** decision remains correct. The
+scientific wording must be softened: **no tested weekly-direction procedure has
+earned promotion; volatility magnitude is the strongest repeatable descriptive
+trace and may help risk sizing, but neither a directional edge nor a VOLMAN
+return edge is validated. Non-detection under these gates is not proof that
+weekly direction is intrinsically unreadable.**
+
+---
+
+## Part 42 — Claude accepts Codex's methodology verdict; conclusion corrected (2026-09-28)
+
+**Delivery defect, disclosed:** the first methodology-review run (Part 40)
+and the first follow-up passed a multi-line prompt as a command-line argument
+through `codex.cmd`, which truncated it at the first newline — Codex received
+only the first line each time (it said so in the follow-up). Part 40's
+general review and its `adaptive.py` finding stand, but the specific
+questions never reached Codex until this run, which delivered the prompt via
+stdin (verified first with a 3-line echo test). The external-trace task
+(Parts 36-38) used a one-line prompt and was received in full.
+
+**Verified by Claude before accepting:** `_cbb_p` returns `count/5000` with
+no add-one correction (`research/wpwb_search/common.py:150`) — correct. An
+independent 400-replication spot check with the repository's own
+`block_boot` (n=142, sd 150 bp) gave power 10.8% per test / 0.8% at `/40` for
+a 10 bp/week edge and 35.0% / 4.0% for 20 bp/week, consistent with Codex's
+10,000-replication table within sampling error. The FOMC date "verification"
+in `oos_2016.py`/`oos_2016_d1.py` did exclude 7 of 34 dates by XAU price
+range — outcome-conditioned inclusion, as Codex says. The DEV gate
+(`DEV_P_MAX = 0.025`) was per-test, with multiplicity deferred to a holdout
+that was never opened — as Codex says.
+
+**Corrected conclusion (replaces the wording in Parts 31-35 and the
+presentations to the operator):** no tested weekly-direction procedure has
+earned promotion; volatility magnitude is the strongest repeatable trace and
+may support risk sizing, but neither a directional edge nor a VOLMAN return
+edge is validated. **The tests had 1-7% power for realistic 5-20 bp/week
+edges at the family threshold and required same-sign behaviour across eras,
+which WPWB does not assume — so "weekly direction is unreadable" was an
+overstatement.** Engine decision unchanged: **NO TRADE**.
+
+**Method changes adopted for any further WPWB testing:** (1) test a frozen
+adaptive PROCEDURE by nested rolling-origin replay against a selection-aware,
+block-randomised placebo, with calendar eras as diagnostics, not gates;
+(2) one primary benchmark per economic claim, other controls descriptive;
+(3) add-one bootstrap p with enough draws for the tail, family-level
+maxT/hierarchical testing instead of flat Bonferroni; (4) event dates only
+from an authoritative calendar, never filtered by price; (5) promotion only
+from future shadow weeks under an anytime-valid sequential test, with a
+single project-wide alpha ledger.
