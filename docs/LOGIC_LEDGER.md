@@ -1037,6 +1037,81 @@ reducing it does not create one.
 
 ---
 
+## Part 27 — WPWB champion vs a TRUE random baseline, and a multiple-comparisons probe (2026-09-28, in progress)
+
+**Source:** `research/pilot/champion_vs_random_wpwb.py` and `research/
+pilot/champion_challenger_v1.py`, both building on Part 24. User asked
+whether the random-entry methodology (Parts 19/22) had been applied to
+WPWB's actual selector, and pointed out Part 24's control (champion vs the
+median-ranked cell, BOTH still drawn from the same 8,250-cell pool) is
+weaker than a genuinely unconditional random baseline, since the median
+cell could share whatever pool-wide drift effect inflated Parts 18-22's
+apparent edges.
+
+**Result 1 - champion vs true random, at the CURRENT (uncorrected,
+shrink=0.75) selector, matched week-by-week to whatever stop/target/tf was
+actually champion:**
+
+```
+champion (top-ranked cell), real forward trades:
+  trades=1223  net_R=-32.246  mean_R=-0.0264  win=30.0%  PF=0.964
+matched UNCONDITIONAL random baseline (same weeks/stop/target/tf, random
+bar + random direction, zero relationship to the setup grid):
+  trades=1242  net_R=-98.621  mean_R=-0.0794  win=27.5%  PF=0.897
+champion mean_R - random mean_R = +0.0530R/trade
+```
+
+This gap (+0.0530R) is **larger** than Part 24's within-pool champion-vs-
+median gap (+0.0042R) - the champion clearly beats true random even though
+it is itself still net negative. **Open question, not yet resolved:** does
+this reflect real selection skill, or does the median cell (any grid
+member) ALSO beat true random by a similar margin, in which case the gap
+would be a property of grid membership (the same drift artifact from Parts
+19/22), not of the LCB-based selection step? A second run, adding the
+median cell's own matched-random comparison for a clean three-way split,
+is in progress at the time of this entry - result to follow in a later Part.
+
+**Result 2 - multiple-comparisons probe.** `champion_challenger_v1.py`
+reran the identical selection loop at several LCB shrinkage multipliers
+(0.75 = current/uncorrected, up to ~4.65 = an approximate Bonferroni
+correction for ~8,250 simultaneous weekly comparisons at alpha=0.05):
+
+| shrink | active weeks | trades | net_R | mean_R | win% |
+|---:|---:|---:|---:|---:|---:|
+| 0.75 (current) | 100.0% | 1223 | −32.246 | −0.0264 | 30.0% |
+| 2.00 | 97.6% | 1714 | +60.883 | +0.0355 | 38.6% |
+| 3.00 | 62.8% | 1553 | **+128.935** | +0.0830 | 46.2% |
+| 4.00 | 25.5% | 726 | +74.171 | +0.1022 | 59.6% |
+| 4.65 (~Bonferroni) | 15.2% | 340 | +36.509 | +0.1074 | 65.9% |
+| 5.50 | 5.9% | 80 | +1.148 | +0.0143 | 68.8% |
+
+Net R and win% both rise sharply and roughly monotonically as the
+selection bar is corrected for testing ~8,250 candidates a week - a
+striking result, and explicitly **NOT YET TRUSTED**, for reasons stated
+plainly before any further interpretation:
+
+1. **This is itself an unregistered sweep across 6 shrink levels**, and
+   reporting shrink=3.00 as "the good one" after seeing all six results is
+   exactly Amendment 10's prohibited pattern. No shrink level was
+   pre-registered before this ran.
+2. Active weeks fall to 15.2%/5.9% at the higher shrink levels - small
+   samples (340/80 trades) at exactly the levels with the highest win%.
+3. **Not yet checked: whether the surviving active weeks at high shrink
+   cluster in the same recent trending period (2024-2025) already shown to
+   fake a positive edge via drift** (Parts 18-22). If they do, this is the
+   same artifact wearing a new face, not a second, independent discovery.
+
+**Nothing here is a finding yet.** Recorded promptly per this project's
+practice of logging every attempt, positive-looking or not, before it is
+verified - not after cherry-picking survives review. Next steps before any
+conclusion: (a) the median-vs-its-own-random three-way split already
+running, (b) a time-distribution check of which weeks survive at
+shrink=3.0/4.65, and (c) only then, if still positive, applying the same
+Part 19/22-style random-baseline check to the specific chosen shrink level
+rather than to the uncorrected selector.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
