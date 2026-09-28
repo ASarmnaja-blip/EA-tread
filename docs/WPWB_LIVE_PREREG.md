@@ -193,3 +193,21 @@ on D1 for **2016-08-09 .. 2020-11-27** (disjoint from the H1 run). FOMC
 dates verified on D1 instead (statement-day range above the median range
 of non-FOMC Wednesdays of the same year). Swap = one night per Mon-Thu
 daily bar in the week. Runs once; both runs are reported together.
+
+### Amendment 4 result (`research/wpwb_live/oos_2016_d1.py`)
+
+224 weeks, 2016-08-12..2020-11-20; 27 of 34 FOMC dates verified on D1 (7
+quiet days excluded by the strict rule). **Test F: FAIL, and reversed** —
+FOMC weeks +95.9 bp vs −20.8 bp other, losing 30% vs 51% (p 0.999 for the
+"worse" hypothesis). **Test V: FAIL** — VOLMAN excess −588 bp, size-
+permutation p 0.900, −890 bp without its best 3 weeks. (Today's swap rate
+applied to 2016-2020 overstates costs, but it is a constant per week and
+cancels out of both tests.)
+
+By year, FOMC-minus-other bp: 2016 +145, 2017 −28, 2018 +69, 2019 +110,
+2020 +389, 2021 −29, 2022 −88, 2023 −46, 2024 −31, 2025 −37, 2026 −357;
+pooled 2016-2026 FOMC +3.2 vs other +7.9 bp/week — no stable effect. The
+sign tracks the Fed cycle (easing 2019-2020: FOMC weeks good for gold;
+tightening from 2022: bad). **Conclusion: both surviving rules were
+regime-specific / luck, not stable readable traces.** Neither is carried
+forward as a rule.

@@ -1404,6 +1404,46 @@ no drawdown gain. R4 (R2 + stop) was dominated by R2 in the new era.
 
 ---
 
+## Part 34 — readable trace or luck? Tested on unseen 2016-2021: luck/regime (2026-09-28)
+
+**Source:** `research/wpwb_live/luck_check.py`, `oos_2016.py`, `oos_2016_d1.py`;
+`docs/WPWB_LIVE_PREREG.md` amendments 3-4. User asked what the traces
+looked like in losing vs winning weeks and how to know profits came from
+readable traces rather than repeated luck.
+
+**Before the week, winning and losing weeks are indistinguishable:** 0 of 12
+pre-week traces differ at p<0.05 over 246 weeks (0.6 expected by chance).
+**During the week they differ:** losing weeks had the dollar rising 64% of
+the time vs 42% for winning weeks, and wider ranges ($125 vs $103 median);
+same-week DXY vs gold rho −0.34 — real, but only knowable afterwards.
+
+**In-sample luck checks** on the two surviving rules: VOLMAN's $ edge over
+LONG is its best 3 weeks (+$373; −$237 without them); the new-era FOMC
+gain is one week; best-of-15 random skip rules beat the FOMC gain 30% of
+the time; pooled FOMC p 0.008 -> ~0.12 after the selection penalty.
+
+**Decisive test on never-examined data (single runs, registered first):**
+broker H1 before 2020-12 turned out not to be intraday, so the H1 run
+covered only 2020-12..2021-12 (56 weeks, both rules FAIL); a D1 run
+(registered after that result, disclosed) covered 2016-08..2020-11 (224
+weeks): **FOMC rule FAIL and reversed** (FOMC weeks +96 vs −21 bp, losing
+30% vs 51%), **VOLMAN FAIL** (−588 bp vs exposure-matched long, p 0.90).
+Hand-entered FOMC dates were verified against price (9/9 on H1 at 3.1-9.9x
+statement-hour range; 27/34 on D1). Year by year the FOMC effect follows
+the Fed cycle (positive 2016/2018-2020 easing years, negative 2021-2026),
+pooled 2016-2026 ~0.
+
+**Answer:** the extra profit attributed to "skip FOMC" and "size by
+volatility" was regime-specific or luck; it did not survive data the rules
+had never seen. What remains solid: volatility persists week to week
+(forecastable size of moves, useful for risk sizing, not for profit);
+direction does not. Open hypothesis for WPWB's Wednesday Report, untested:
+the FOMC reaction may be readable only together with the Fed's current
+direction (easing vs tightening) — with only ~2 policy cycles in the data,
+this cannot be confirmed statistically soon.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
