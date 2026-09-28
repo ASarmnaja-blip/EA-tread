@@ -103,3 +103,38 @@ trading volatile periods later, not a rule. Summary:
 inputs; EWMA and HAR use past weeks only; garbage bars after the cut leave
 every reported value unchanged; the log refuses rewrites. RV and HAR match
 Codex's Round-4 functions exactly (max relative difference 0.0).
+
+## Automation (operator approved 2026-09-28: "คุณทำให้เลย")
+
+- Windows Task Scheduler, current user, no admin: **"EA-tread WPWB weekly
+  report"**, every Saturday 06:00 Asia/Bangkok (after the Friday 22:15 UTC
+  cut), runs `pythonw research/wpwb_weekly/run_weekly.py`; start-when-available
+  if the PC was off; 2 h limit. First run 2026-10-03 06:00 (first forward cut).
+- `run_weekly.py`: closes MT5 gracefully → runs the CalendarDump config →
+  validates (rows >= 90% of old, later end) and backs up `data/calendar.csv`
+  into `data/calendar_backups/` → restarts MT5 → `weekly_report.py --fetch` →
+  `episodes.py`. Log: `data/wpwb_weekly/run_logs/`.
+- Known blocker: an MT5 LiveUpdate asks for a UAC prompt; Claude never
+  answers security prompts. While an update is pending the dump may not run;
+  the report then states that the calendar is stale.
+- Report markdown files may be regenerated for the same cut (e.g. after a
+  calendar refresh); the numeric record is the append-only `log.csv`.
+
+## Backtest (risk effect only) — `research/wpwb_weekly/backtest_risk.py`
+
+Hold gold the whole week, LONG and SHORT, Demo90 costs incl. swap, $10,000,
+0.10 lot fixed vs 0.10 × vol_scale rounded down to 0.01 lot (0.01 lot cannot
+be scaled). 221 weeks 2022-07..2026-09, 68 volatile.
+
+| exposure | total $ | max DD $ | worst week $ | weekly SD $ | profit ÷ maxDD |
+|---|---|---|---|---|---|
+| long, fixed | +19,437 | −11,984 | −5,223 | 839 | 1.62 |
+| long, × vol_scale | +18,372 | **−5,992** | **−2,611** | 559 | **3.07** |
+| short, fixed | −25,825 | −36,406 | −3,160 | 839 | — |
+| short, × vol_scale | −23,695 | −29,749 | −1,896 | 559 | — |
+
+Reading: vol_scale halved long's max drawdown and worst week for 5% less
+profit, and cut losses in volatile weeks by about a third on both sides. It
+**cannot rescue a wrong direction** (short still loses, and a 0.10-lot short
+on $10,000 would have wiped the account). LONG's profit is gold's trend, not
+a system edge. In-sample caveat: B_REF was computed on this history.
