@@ -1749,3 +1749,34 @@ maxT/hierarchical testing instead of flat Bonferroni; (4) event dates only
 from an authoritative calendar, never filtered by price; (5) promotion only
 from future shadow weeks under an anytime-valid sequential test, with a
 single project-wide alpha ledger.
+
+## Part 43 — Procedure test closed for no power; WPWB becomes a weekly risk report (2026-09-28)
+
+**Debate with Codex, rounds 1–4** (`docs/WPWB_DEBATE_2026-09-28.md`):
+- P1 (weekly one-tool selector over the 38 legacy tools vs a random eligible
+  tool) was fully specified, coded and audited (12 tests, builder audit 12/12),
+  then **closed before any real-data evaluation**: Codex's scale-preserving
+  harness gives 12% forward power at a true +20 bp/calendar-week edge. The
+  real P, B' and d were never computed; alpha returned to the reserve.
+- P2-B (event-level matched evidence) withdrawn: the direction-agnostic paired
+  residual SD is 52 / 102 / 174 bp for 1 / 4 / 12 h holds; power at 10 bp/week
+  exists only for ~1 h holds with >= 12 independent events per week, and no
+  uncontaminated direction rule exists.
+- P2-C (volatility forecast) adopted as a **risk tool, not an edge**: HAR beats
+  the 26-week mean by 41.6% QLIKE, but only 5.5% / 11.8% over last-week / EWMA,
+  and a forward superiority test against those has 0–8% power in 52 weeks. So
+  no alpha is spent; calibration is monitored instead.
+
+**Built** (`research/wpwb_weekly/`, spec `docs/WPWB_RISK_REPORT_SPEC.md`,
+operator approval items 4/7/9/10/11): weekly report after each Friday cut —
+EWMA volatility forecast, vol_scale = clip(√(B_REF/F), 0.5, 1.0) that can only
+reduce size, 8-scenario news plan using the existing news layer, last week's
+news classification, CFTC positioning, append-only log; forward from
+2026-10-02 22:15 UTC. Codex raw data untracked from git.
+
+**Volatility log** (`docs/WPWB_VOLATILITY_LOG.md`): 68 of 221 weeks volatile
+(31%), 25 episodes; direction in volatile weeks 34 up / 34 down; moves 1.7x
+larger. The forecast flags 56% of volatile weeks but only 6 of 25 episode
+onsets — the first week of a volatile episode is not predicted.
+
+**Verdict unchanged: NO TRADE** on direction.

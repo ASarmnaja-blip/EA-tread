@@ -309,6 +309,14 @@ docs/                        RESEARCH_FINDINGS.md, BACKTEST.md,
    บวกเลยทั้ง setup จริงและไม้สุ่ม — อย่าเอาพารามิเตอร์ชุดนี้ไปใช้ซ้ำโดยคิดว่า
    ผ่านแล้ว
 
+10. **(2026-09-28) WPWB ปัจจุบัน = รายงานความเสี่ยงรายสัปดาห์ ไม่ใช่สัญญาณเทรด**
+    (`research/wpwb_weekly/`, `docs/WPWB_RISK_REPORT_SPEC.md`) — การทดสอบ
+    ตัวเลือกเครื่องมือรายสัปดาห์ (P1) ถูกปิดก่อนเปิดผลเพราะพลังไม่พอ
+    (LOGIC_LEDGER Part 43, `docs/WPWB_DEBATE_2026-09-28.md`); งบ alpha ทั้งหมด
+    0.05 ยังว่าง (`docs/ALPHA_LEDGER.md`); vol_scale ใช้ลดขนาดไม้ได้อย่างเดียว;
+    คลังช่วงผันผวนอยู่ที่ `docs/WPWB_VOLATILITY_LOG.md`; ข้อ 2 (P2-A volatility
+    router) รอถก Codex รอบ 5
+
 ---
 
 ## สิทธิ์ทดสอบ Execution บนบัญชี Demo (อนุญาต 2026-09-21)
