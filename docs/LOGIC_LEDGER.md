@@ -1323,6 +1323,49 @@ This week's rebuild value (cut 2026-09-25 22:15): daily sigma 142 bp,
 
 ---
 
+## Part 32 — WPWB backtest in money terms and attribution (2026-09-28)
+
+**Source:** `research/wpwb_live/backtest_report.py`, `backtest_visuals.py`;
+`data/wpwb_backtest.xlsx`, `data/wpwb_backtest_equity.png`. User asked to
+see profit and which periods made/lost money and why. Weekly Sunday-open to
+Friday-close, base costs incl. long swap, per 0.01 lot, $1,000 start, 142
+weeks 2024-01-05..2026-09-18, gold $2,044 -> $4,286 (+110%).
+
+| tool | net $ | win weeks | worst week | max DD $ | PF |
+|---|---:|---:|---:|---:|---:|
+| LONG | +1,921 | 57% | −522 | −1,198 (31% from a $3.9k peak) | 1.46 |
+| VOLMAN | +2,056 | 57% | −292 | −727 | 1.63 |
+| TSM26 | +2,277 | 61% | −522 | −831 | 1.57 |
+
+**Where the money came from:** gold's trend, 2024-01..2026-02. Every
+quarter from 2025Q1 to 2026Q1 made $270-$510 on LONG; the strongest,
+2025Q1-Q2, coincided with DXY falling 6.5% and 7.0% (weekly LONG $ vs DXY %
+corr −0.29). **Where it was lost:** 2024Q4 (DXY +6.9%, gold flat, −$44) and
+2026Q2 (gold −8.2% in high volatility, LONG −$399); single worst week
+2026-03-13 (FOMC week) −$520, −10.4%.
+
+**Why VOLMAN helps (the WPWB-usable part):** grouped by volatility at the
+Weekend Rebuild, gold averaged +$21/week (low vol), +$32 (mid), **−$5.8
+(high)** with the worst week −$520 in the high group. Volatility at the
+rebuild predicts next week's |move| (corr +0.39) but not its direction
+(−0.15), so cutting size when rebuild volatility is high (VOLMAN ~0.55x in
+2026's turbulent weeks) cut max drawdown from $1,198 to $727 at slightly
+higher net. TSM26 beat both only by being short through 2026Q2 (+$448),
+then gave most of it back when gold rebounded in 2026Q3 (−$423).
+
+**News:** FOMC weeks gold −$29/week on average (22 weeks), NFP weeks
++$32 (31); CPI/PCE ~0; news weeks were not larger-move weeks on average.
+
+**Honest reading:** the backtest profit is real in the data but is mostly
+gold's +110% trend; all three tools are long-gold bets underneath (TSM26
+only partly). The WPWB value-add found is risk control via the volatility
+trace, not a directional edge. Risk note for the actual demo account (~$995):
+at 0.01 lot the current 1-sd weekly move is ~$136 (~14% of balance) and the
+worst week in the sample was −$520 (−52% of a $1k balance) — full-week
+holding at 0.01 lot is oversized for $1k at $4,300 gold.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
