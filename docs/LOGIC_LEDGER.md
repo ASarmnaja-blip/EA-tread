@@ -778,6 +778,48 @@ windowing) rather than continuing to extend this detour further.
 
 ---
 
+## Pre-registration — setup survey vs random baseline, current (flat) regime (2026-09-28)
+
+**Registered BEFORE running**, per this project's standing rule against
+searching until something looks good (Amendment 10).
+
+**Hypothesis:** Part 21 established the current market (trailing 180d as
+of 2026-09-21) is flat/choppy, efficiency ratio 0.002. In a flat regime,
+mean-reversion-style setups (`vwap` = VWAP/value-area reversion, `failed`
+= failed breakout) should show a real edge over the Part 19-style random-
+entry baseline; continuation-style setups (`breakout`, `pullback`) should
+NOT, since they structurally need a trend that Part 21 shows is not
+currently present. `expansion` and `sweep` are excluded - already shown
+dead (Parts 18-21 and CLAUDE.md item 9 respectively).
+
+**Setups:** `vwap`, `failed` (primary hypothesis - expected to show edge),
+`breakout`, `pullback` (negative control - expected to show none).
+
+**Grid:** the already-declared M5 grid only, no extension - stop ATR in
+{0.75, 1.0, 1.5, 2.0, 3.0} x target R in {0.5, 1.0, 1.5, 2.0, 3.0}, time
+stop 288 M5 bars (24h, the grid's own default) - not the 30-day extension
+used for the abandoned RR>3 sweep.
+
+**Window:** trailing 180 days from the latest bar (2026-09-21), i.e.
+~2026-03-25 onward - chosen because Part 21 already measured this exact
+window as uniformly flat (0.002), and it is long enough to give a less
+noisy sample than the 82-88-trade May-June-2025 window used in Part 20.
+
+**Method:** identical to Part 19 - dedupe real signals to one row per
+independent entry bar, build an unconditional random-entry baseline of the
+same size/window/stop, compare win% and net R/trade, LONG only (the setups'
+own declared direction, not a flipped simulation).
+
+**Success criterion, stated in advance:** a setup counts as a candidate
+worth investigating further only if its net R/trade beats the random
+baseline by a clear margin across MULTIPLE target values at a given stop
+(not one cherry-picked cell), and the direction of the gap matches the
+mean-reversion-in-chop hypothesis. A result that only beats random at one
+isolated cell, or that beats random by roughly the same amount `breakout`/
+`pullback` do, is not a candidate - same standard Parts 18-19 were held to.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
