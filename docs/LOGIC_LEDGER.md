@@ -374,6 +374,51 @@ Does not change Amendment 27's frozen forward policy or clock.
 
 ---
 
+## Part 13 — why flipping a heavy RR=1:1 loser made it worse, not better (2026-09-28)
+
+The operator asked to find the worst RR=1:1 (target R = 1.0) loser and flip
+its direction. Worst bucket: `expansion/M5, stop=0.75 ATR, LONG`, 14,213
+trades, net −0.5282 R/trade, win 36.0%. Flipped (same entry bar/ATR,
+`resolve_plane` recomputed with reversed direction): net −0.7664 R/trade, win
+24.1% — **worse, not the mirror-image winner a symmetric RR 1:1 should give.**
+
+**Mechanism, found in `mtf_engine.resolve_plane` and verified empirically:**
+
+```python
+# a tie on the same bar goes to the stop: worst case, as core.resolve
+if j_stop < len(adv_c) and j_stop <= j_tgt:
+    out[(st, tg)] = (-1.0, "stop", j_stop)
+```
+
+When one M5 bar's range is wide enough to cross both the stop and target
+threshold (a real possibility with a narrow 0.75-ATR stop on a family
+literally selected for volatility *expansion*), the resolver cannot tell
+which was touched first from bar data alone, and conservatively assumes its
+**own** stop first. Applied independently per direction, this means a
+same-bar tie is scored as a loss for **both** the original direction and its
+mirror — not a win for whichever side the market actually favoured.
+
+**Measured directly** (`research/pilot/verify_tie_asymmetry.py`): of 28,449
+trades in this stop/target combination, **14.5% are exact same-bar ties**,
+and of those, **100% also resolve as "own stop first" for the mirrored
+opposite direction** — a clean, deterministic confirmation of the mechanism
+(derivable algebraically: the mirrored stop/target crossing indices are
+each other's target/stop indices, so the tie condition is symmetric).
+
+**Guideline:** a heavy loser at RR 1:1 is not automatically an inverted
+winner. Check the same-bar tie rate first, especially for narrow-stop,
+high-volatility-selected setups — a high tie rate means the reported win
+rate for BOTH directions is being conservatively deflated by bars the M5
+data genuinely cannot resolve, and flipping does not undo that.
+
+This affects every amendment that uses `resolve_plane` (all of them since
+Amendment 14) whenever the stop is narrow relative to typical bar range. It
+is a documented, deliberate conservative convention, not a bug - but its
+consequence for direction-flip tests specifically was not previously
+recorded.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
