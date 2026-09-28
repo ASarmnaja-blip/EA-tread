@@ -275,11 +275,21 @@ docs/                        RESEARCH_FINDINGS.md, BACKTEST.md,
 7. **ไม่มีการตรวจ Drift แบบต่อเนื่อง** และไม่มี live-simulation loop
 8. **Setup ที่ระบุในข้อ 3 ยังขาด**: failed breakout, VWAP/value-area reversion,
    news acceptance/rejection, volatility expansion (มีโมดูลดิบบางส่วนแต่ยังไม่ใช่
-   setup ที่ประเมินผลได้)
+   setup ที่ประเมินผลได้) — **volatility expansion ถูกทดสอบเจาะจงแล้ว
+   (2026-09-28, expansion/M5, stop 1.0/1.5 ATR, RR 1:1 ถึง 1:10, ดูข้อ 9)
+   พบว่าพารามิเตอร์ชุดนี้ไม่มี edge จริง** ยังต้องหา setup family อื่นหรือ
+   เงื่อนไขอื่นสำหรับ expansion ต่อไป
 9. **ข้อเตือนจากงานวิจัยเดิมที่ต้องไม่ลืม**: liquidity-sweep reversal ถูกทดสอบที่
    n=43,353 แล้วได้ −0.202R และ inversion test ก็ยังลบ → ไม่มีข้อมูลทิศทางเหลือ
    ส่วน trend zone `(Close−SMA200)/ATR ∈ [1.08, 7.21]` ยัง**ไม่ผ่าน**
-   cross-asset test และหาเจอบน full sample ไม่ใช่ held-out half
+   cross-asset test และหาเจอบน full sample ไม่ใช่ held-out half —
+   **เพิ่มเข้าคิวเดียวกัน (2026-09-28, LOGIC_LEDGER.md Part 18-20):**
+   expansion/M5 LONG ที่ stop=1.0/1.5 ATR ดูเหมือนเป็นบวกที่ RR สูง
+   (1:4 ถึง 1:10) แต่พิสูจน์แล้วว่าเป็น **directional drift ไม่ใช่ edge** —
+   ไม้สุ่มล้วนๆ (ไม่มีเงื่อนไข setup) ทำกำไรได้เท่ากันหรือดีกว่าในช่วงเทรนด์
+   เดียวกัน และพอทดสอบซ้ำในช่วงทองนิ่ง (พ.ค.-มิ.ย. 2025) ก็ไม่มีจุดไหนเป็น
+   บวกเลยทั้ง setup จริงและไม้สุ่ม — อย่าเอาพารามิเตอร์ชุดนี้ไปใช้ซ้ำโดยคิดว่า
+   ผ่านแล้ว
 
 ---
 
