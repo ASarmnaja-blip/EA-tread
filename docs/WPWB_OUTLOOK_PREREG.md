@@ -67,6 +67,15 @@ reliability stays within ±5 points per bin. Y4 is displayed only as "base rate
 ≈ x%, not a signal". No alpha is spent: this is a risk forecast, not a
 trading edge (same reasoning as spec v2).
 
+## 5b. Candidates added from the hole study (2026-09-29, see docs/WPWB_HOLES.md)
+
+Found on 2021-07..2026-09 (already mined), so they may only be **confirmed on
+an independent era**: GVZ level vs its 1-year median (AUC 0.68 for onset),
+price near the 52-week high (0.67), last-week RV (0.65). They enter M-vol as
+fixed extra regressors and are judged on 2009-09..2021-06 only. Intraweek
+breaker (H2): RV since the Sunday reopen vs the forecast pace, threshold to
+be frozen in v1 before any evaluation.
+
 ## 6. Open questions for Codex
 
 1. Is GVZ (GLD options, US hours) valid for a Friday 22:15 UTC XAU cut when
