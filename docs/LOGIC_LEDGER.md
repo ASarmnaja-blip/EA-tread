@@ -576,6 +576,61 @@ tonight can take a single narrow slice, nothing more.
 
 ---
 
+## Part 18 — RR sweep to 1:10, both stop and target varied, finance conversion (2026-09-28)
+
+**Source:** `research/pilot/rr_sweep_finance.py` (72 cells: stop ATR in
+{0.75, 1.0, 1.5} x target R in {1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0,
+8.0, 9.0, 10.0} x {LONG real, SHORT* flipped}), `data/rr_sweep_finance.xlsx`.
+Same expansion/M5 signal set as Parts 13-17. Time stop extended from 288 to
+8,640 M5 bars (30 calendar days) so distant targets can resolve; `timeexp%`
+was 0.0% in every one of the 72 cells, so the extended window was never
+itself the binding constraint. M1-covered subset ties corrected exactly as
+before. Finance: XAUUSD minimum 0.01 lot = 1 oz, so $1 P&L = 1.0 price-unit
+move.
+
+**Headline finding — the first genuinely positive cells of the whole
+session:**
+
+| stop ATR | RR | side | win% (M1-fix) | net R/tr (M1-fix) | $ total (M1-fix) |
+|---:|---:|---|---:|---:|---:|
+| 1.0 | 1:6 – 1:10 | LONG | 16.0% → 11.7% | +0.0115 → **+0.1712** | +1,777 → +2,408 |
+| 1.5 | 1:4 – 1:10 | LONG | 22.5% → 12.0% | +0.0492 → **+0.2414** (peak +0.2066 @ 1:7, $+3,230) | +2,100 → +3,230 |
+
+SHORT* (flipped) stayed negative across essentially the entire sweep at
+every stop/RR combination — no crossover here, unlike Part 17's RR=1:1
+table. Full grid detail in the Excel file / `data/rr_sweep_finance_out.txt`.
+
+**Concentration check (`research/pilot/check_concentration.py`), stop=1.5,
+RR=1:7, LONG, the single best cell:** n=6,397, 1,024 wins / 5,373 losses,
+mean win $24.77, mean loss $-4.12. Top 20 winning trades (of 1,024) contribute
+48.5% of total profit; top 5 contribute 13.0%; top 1 contributes 2.6%. **Not**
+dominated by one or two lucky trades - the positive average survives a look
+at the tail.
+
+**Two reasons this is NOT a confirmed edge, stated plainly:**
+
+1. **This is an unregistered 72-cell parameter sweep**, and picking the best-
+   looking cell out of 72 after the fact is exactly the pattern Amendment 10
+   already proved fails on unseen data (a winner chosen from 6,480 candidates
+   regressed through zero, not toward it). Nothing here was pre-registered
+   before running.
+2. **The trade count is inflated by cross-entry-mode duplication.** The
+   concentration check's top-10 list showed six trades at the *identical*
+   timestamp (2026-03-10 01:05) and *identical* dollar value ($83.86) - the
+   same underlying price move counted once per entry-mode variant (o0e0 plus
+   ~10 limit variants), not six independent signals. `n=6,397` therefore
+   overstates the number of independent market events behind this result;
+   the true independent-event sample is smaller than reported and has not
+   yet been measured.
+
+**Before this cell (or any other in the sweep) can be treated as a
+candidate:** dedupe trades to independent entry bars/events, pre-register the
+specific stop/RR/direction combination in isolation, and confirm on a forward
+or otherwise-unseen period - the same bar every other finding tonight has
+been held to.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
