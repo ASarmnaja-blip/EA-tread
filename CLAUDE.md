@@ -278,7 +278,14 @@ docs/                        RESEARCH_FINDINGS.md, BACKTEST.md,
    setup ที่ประเมินผลได้) — **volatility expansion ถูกทดสอบเจาะจงแล้ว
    (2026-09-28, expansion/M5, stop 1.0/1.5 ATR, RR 1:1 ถึง 1:10, ดูข้อ 9)
    พบว่าพารามิเตอร์ชุดนี้ไม่มี edge จริง** ยังต้องหา setup family อื่นหรือ
-   เงื่อนไขอื่นสำหรับ expansion ต่อไป
+   เงื่อนไขอื่นสำหรับ expansion ต่อไป — **(2026-09-28) สำรวจ vwap และ failed
+   breakout เพิ่มด้วยวิธีเดียวกัน (LOGIC_LEDGER.md Part 22, หน้าต่าง 180 วัน
+   ล่าสุด, grid ที่ประกาศไว้เดิม stop 0.75-3.0 × target 0.5-3.0R) เทียบกับ
+   breakout/pullback เป็นกลุ่มควบคุม — **ทั้ง 4 ตัวให้ผลเหมือนกันหมด ไม่มีตัว
+   ไหนเอาชนะไม้สุ่มได้จริง** ตอนนี้ทั้ง 6 ตระกูล setup ในระบบวิจัย (sweep,
+   expansion, vwap, failed, breakout, pullback) ยังไม่มีตัวไหนผ่านการตรวจ
+   fake-edge เลยแม้แต่ตัวเดียว — ต้องหา setup ใหม่หรือเงื่อนไข/regime filter
+   ที่ต่างจากที่ลองไปแล้วทั้งหมด
 9. **ข้อเตือนจากงานวิจัยเดิมที่ต้องไม่ลืม**: liquidity-sweep reversal ถูกทดสอบที่
    n=43,353 แล้วได้ −0.202R และ inversion test ก็ยังลบ → ไม่มีข้อมูลทิศทางเหลือ
    ส่วน trend zone `(Close−SMA200)/ATR ∈ [1.08, 7.21]` ยัง**ไม่ผ่าน**

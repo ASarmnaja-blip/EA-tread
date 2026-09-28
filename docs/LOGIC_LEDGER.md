@@ -820,6 +820,47 @@ isolated cell, or that beats random by roughly the same amount `breakout`/
 
 ---
 
+## Part 22 — setup survey result: hypothesis rejected, no family clears the bar (2026-09-28)
+
+**Source:** `research/pilot/check_setup_survey.py`, `data/setup_survey.csv`.
+Executes the pre-registration immediately above. Window: trailing 180 days
+from the latest bar, 2026-03-25 to 2026-09-18 (5,780,349 M5 bars checked
+for signals; n=449-3,329 deduped independent entries per stop, real
+declared direction, not flipped).
+
+**Result at stop=0.75 (all 5 targets, gap = net R real − net R random):**
+
+| setup | 0.5R | 1.0R | 1.5R | 2.0R | 3.0R |
+|---|---:|---:|---:|---:|---:|
+| vwap (predicted to win) | −0.121 | +0.004 | +0.140 | +0.221 | +0.267 |
+| failed (predicted to win) | −0.076 | +0.027 | +0.173 | +0.194 | +0.206 |
+| breakout (control) | −0.102 | +0.017 | +0.139 | +0.214 | +0.233 |
+| pullback (control) | −0.062 | +0.032 | +0.149 | +0.185 | +0.227 |
+
+All four setups - both the mean-reversion pair predicted to win and the
+continuation pair used as a negative control - produce essentially the
+same gap curve: negative at 0.5R, crossing positive by 1.0-1.5R, growing to
++0.19 to +0.27 by 3.0R. Same shape holds (with smaller magnitudes) at
+stop=1.0/1.5/2.0/3.0; full table in the CSV.
+
+**Verdict against the pre-stated success criterion: hypothesis rejected.**
+`vwap` and `failed` do not beat random by a margin distinguishable from
+`breakout`/`pullback` - the exact "gaps similar in size to the continuation
+setups = noise, not edge" disqualifier written into the pre-registration.
+The rising-gap-with-target pattern is a property of this specific 180-day
+window shared by any reasonably-sized subset of entries (real or random),
+not a property of any one setup's detection logic.
+
+**Standing implication:** combined with `sweep` (dead per the original
+CLAUDE.md appendix) and `expansion` (dead per Parts 18-21), **none of the
+6 setup families in the cached research grid (`sweep`, `expansion`,
+`vwap`, `failed`, `breakout`, `pullback`) has now survived a real-vs-random
+check.** `breakout` and `pullback` were only ever run here as a control,
+not evaluated on their own terms - that remains open, but nothing found so
+far suggests they would fare differently.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
