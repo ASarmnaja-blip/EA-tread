@@ -145,3 +145,27 @@ draws) — the rule must beat random skipping on net P&L AND max drawdown
 (percentile of the actual result reported). For stops, the comparison is
 the same weeks without the stop. A rule is kept only if it improves max
 drawdown without lowering net P&L in BOTH eras.
+
+## Amendment 3 — out-of-era test on never-examined data (before running)
+
+`research/wpwb_live/luck_check.py` showed the two surviving rules rest on
+few events (VOLMAN's edge over LONG = its best 3 weeks; the new-era FOMC
+gain = one week; best-of-15 random skip rules beat the FOMC gain 30% of
+the time; pooled permutation p 0.008 becomes ~0.12 after the selection
+penalty). The only honest way to separate a readable trace from luck is
+data never looked at: broker XAUUSD H1 from **2016-08-09 to 2021-12-31**
+(MT5 history; no test in this project has used it for these questions).
+
+- FOMC decision dates 2016-2021 are entered by hand (the local calendar
+  starts 2022) and each is **verified against the price data before use**:
+  the H1 bar containing the statement time must have a range above the
+  median range of that same UTC hour on non-FOMC Wednesdays of the same
+  year. Dates that fail verification are reported and excluded.
+- Weekly Sunday-open to Friday-close long, Demo90 costs and long swap, bp.
+- **Test F (FOMC):** mean bp of FOMC weeks < mean of other weeks, one-sided
+  permutation p < 0.05, AND the share of losing weeks is higher in FOMC
+  weeks. Both required.
+- **Test V (VOLMAN, hl=13):** excess over exposure-matched long > 0 with
+  size-permutation p < 0.05, AND the excess stays positive after removing
+  its best 3 weeks. Both required.
+- Each test runs once. Whatever it shows is recorded as the answer.
