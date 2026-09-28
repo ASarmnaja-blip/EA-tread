@@ -32,7 +32,10 @@ LOG = BR.WEEKLY_DIR / "log.csv"
 REPORTS = BR.WEEKLY_DIR / "reports"
 FORWARD_START = int(np.datetime64("2026-10-02T22:15:00", "s").astype(np.int64))
 TH = 7 * 3600
-SPEC_VERSION = "v2"
+SPEC_VERSION = "v2"            # forecast/log spec (what the log rows mean)
+REPORT_VERSION = "v2.1"       # report text: adds the operator-adopted sizing lines
+BASE_LOT_PER_10K = 0.03       # operator-adopted base size (spec v2.1)
+ACCOUNT_STOP_DD = 0.30        # account hard stop: halt and review
 
 
 def md_table(df):
@@ -154,7 +157,7 @@ def render(r, nxt, covered, cal_end, lastwk, lw_note, pos_line, fetch_note, stat
     usd = lambda bp: r["price"] * bp / 1e4  # noqa: E731
     fv = math.sqrt(N["ewma"])
     out = [f"# รายงาน WPWB รายสัปดาห์ — สัปดาห์เริ่ม {th(r['cut'])} (เวลาไทย)", "",
-           f"**สถานะ:** {status} · สเปก {SPEC_VERSION} · ข้อมูลราคาถึง {th(r['data_end'])} · "
+           f"**สถานะ:** {status} · สเปก {SPEC_VERSION} / รายงาน {REPORT_VERSION} · ข้อมูลราคาถึง {th(r['data_end'])} · "
            f"ทองล่าสุดก่อนจุดตัด ${r['price']:,.2f}", ""]
     if fetch_note:
         out += [f"การดึงข้อมูล: {fetch_note}", ""]
@@ -224,6 +227,12 @@ def render(r, nxt, covered, cal_end, lastwk, lw_note, pos_line, fetch_note, stat
             "## 8. ข้อสรุป", "",
             f"- ทิศทาง: **NO TRADE** — ไม่มี edge ทิศทางที่ผ่านการตรวจ",
             f"- ความเสี่ยง: ถ้ามีแผนเทรดใดๆ ในสัปดาห์นี้ ใช้ขนาดไม้ × {N['vol_scale']:.2f}",
+            f"- **ขนาดไม้แนะนำ:** ปัดลง( {BASE_LOT_PER_10K:.2f} × ทุน/10,000 × {N['vol_scale']:.2f} ) เป็นขั้น 0.01 lot "
+            f"→ ทุน $10,000 = **{math.floor(BASE_LOT_PER_10K * N['vol_scale'] / 0.01 + 1e-9) * 0.01:.2f} lot**; "
+            f"ต่ำกว่า 0.01 lot = ไม่เทรด",
+            f"- **หยุดทั้งบัญชี** เมื่อทุนลดจากยอดสูงสุด {ACCOUNT_STOP_DD:.0%} แล้วทบทวนก่อนเริ่มใหม่ ห้ามแก้กฎระหว่างถือสถานะ",
+            "- ขนาดนี้ **ไม่ใช่การรับประกัน** DD ไม่เกิน 45%: ในการจำลองทะลุได้ ~1% ถ้าทิศเป็นแบบสุ่ม "
+            "และ 3–15% ถ้าผิดทางต่อเนื่องหรือเอียงฝั่งเดียว (Codex Round 5) ยังไม่ได้จำลอง margin/stop-out จริงของโบรก",
             f"- สัปดาห์หน้าพยากรณ์ว่า **{N['label']}** — บันทึกไว้ในคลังช่วงผันผวนเพื่อศึกษาต่อ", ""]
     return "\n".join(out)
 

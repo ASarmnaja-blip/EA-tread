@@ -188,3 +188,13 @@ if equity at the week's worst H1 price <= 0. 2,000 random-direction paths
   the kill-switch acts on weekly closes and overshoots (36.4% at a 30% switch).
 - Therefore no lot size is called "safe" until order-level SL/gap rules, real
   margin stop-out, intraweek equity and forward execution data exist.
+
+## v2.1 (report text only, 2026-09-29) — operator-adopted sizing
+
+The operator adopted the risk frame as the one to use. Each report now states:
+recommended lots = floor(0.03 × equity/10,000 × effective vol_scale, 0.01);
+below 0.01 lot = no trade; account hard stop at 30% drawdown from peak, then
+review before restarting; and that this is **not** a guarantee against a 45%
+drawdown (~1% of i.i.d. random-direction paths breach it, 3–15% with
+persistent or one-sided errors; broker margin stop-out not yet modelled).
+The forecast and log specification stays v2 (log rows unchanged).
