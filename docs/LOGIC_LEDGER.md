@@ -522,6 +522,37 @@ split Part 13 originally reported.
 
 ---
 
+## Part 17 — win rate and net R across all stop widths, M1-corrected (2026-09-28)
+
+Closes the RR=1:1 investigation (Parts 13-16) with one table: every trade
+(not just ties) in expansion/M5, RR=1:1, LONG, by stop ATR, win rate and net
+R/trade both full-period-original and M1-corrected on the identical
+M1-covered subset.
+
+| stop ATR | winrate, M1-covered, original | net/tr, original | **winrate, M1-corrected** | **net/tr, M1-corrected** |
+|---:|---:|---:|---:|---:|
+| 0.75 | 40.9% | −0.3290 | 42.4% | −0.3005 |
+| 1.00 | 44.8% | −0.2157 | 45.1% | −0.2086 |
+| 1.50 | 47.7% | −0.1208 | 47.7% | −0.1192 |
+| 2.00 | 48.0% | −0.0956 | 48.0% | −0.0953 |
+| 3.00 | 50.7% | −0.0243 | 50.7% | **−0.0239** |
+
+**Guideline:** win rate climbs toward 50% and net R toward zero smoothly as
+the stop widens - at 3.0 ATR (the widest in the declared grid) this specific
+slice is within a hair of breakeven in the recent (M1-covered) period. The
+M1 tie-correction itself matters only at narrow stops (+0.0285 R at 0.75 ATR)
+and is negligible by 2.0-3.0 ATR (+0.0003-0.0004 R), consistent with Part 16's
+tie-rate table falling to near zero over the same range. The recent period
+outperforms the full-history average at every stop width tested, consistent
+with Parts 3, 9, 10 and 15.
+
+This does not establish a positive edge anywhere in this table - the closest
+result (3.0 ATR, M1-corrected) is still negative. It is a clean, complete
+picture of how far the wider-stop / recent-regime effects already found
+tonight can take a single narrow slice, nothing more.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
