@@ -10,13 +10,40 @@ import common as C
 import data as D
 
 
-def weekly_series(fam, params, m, cuts, stress, eff_cache):
+def _rtime_expectation(m, trades, pool, stress):
+    dd = np.array([t[2] for t in trades])
+    if isinstance(pool, tuple) and pool and pool[0] == "entries":
+        _, lo, hi = pool
+        total = 0.0
+        cache = {}
+        for i, k, d in trades:
+            length = k - i + 1
+            if length not in cache:
+                ent = np.arange(lo, hi)
+                ex = np.array([m.exit_index(e, length, hi) for e in ent])
+                cache[length] = (m.pnl_bp(ent, ex, np.ones(len(ent), int), stress).mean(),
+                                 m.pnl_bp(ent, ex, -np.ones(len(ent), int), stress).mean())
+            ml, ms = cache[length]
+            total += ml if d > 0 else ms
+        return total
+    if pool:
+        pi = np.array([p[0] for p in pool]); pk = np.array([p[1] for p in pool])
+        ml = m.pnl_bp(pi, pk, np.ones(len(pi), int), stress).mean()
+        ms = m.pnl_bp(pi, pk, -np.ones(len(pi), int), stress).mean()
+        return (dd > 0).sum() * ml + (dd < 0).sum() * ms
+    return np.nan
+
+
+def weekly_series(fam, params, m, cuts, stress, eff_cache, runner=None):
     """Per-week sums (bp): strategy, LONG, RDIR, RTIME; plus trade counts."""
     n = len(cuts)
     strat = np.zeros(n); lng = np.zeros(n); rdir = np.zeros(n); rtime = np.zeros(n)
     ntr = np.zeros(n, int)
     for w, cut in enumerate(cuts):
-        trades, pool = AP.run_week(fam, m, int(cut), params, eff_cache)
+        if runner is None:
+            trades, pool = AP.run_week(fam, m, int(cut), params, eff_cache)
+        else:
+            trades, pool = runner(fam, m, int(cut), params)
         if not trades:
             continue
         ii = np.array([t[0] for t in trades]); kk = np.array([t[1] for t in trades])
@@ -26,13 +53,7 @@ def weekly_series(fam, params, m, cuts, stress, eff_cache):
         strat[w] = np.where(dd > 0, pl, ps).sum()
         lng[w] = pl.sum()
         rdir[w] = (0.5 * (pl + ps)).sum()
-        if pool:
-            pi = np.array([p[0] for p in pool]); pk = np.array([p[1] for p in pool])
-            ml = m.pnl_bp(pi, pk, np.ones(len(pi), int), stress).mean()
-            ms = m.pnl_bp(pi, pk, -np.ones(len(pi), int), stress).mean()
-            rtime[w] = (dd > 0).sum() * ml + (dd < 0).sum() * ms
-        else:
-            rtime[w] = np.nan
+        rtime[w] = _rtime_expectation(m, trades, pool, stress)
         ntr[w] = len(trades)
     return dict(strat=strat, long=lng, rdir=rdir, rtime=rtime, ntr=ntr)
 
@@ -41,11 +62,11 @@ def controls_for(fam):
     return ("long", "rdir") if fam == "A" else ("long", "rdir", "rtime")
 
 
-def summarize(fam, s):
+def summarize(fam, s, controls=None):
     out = dict(weeks=len(s["strat"]), active=float((s["ntr"] > 0).mean()),
                trades=int(s["ntr"].sum()), mean_week_bp=float(s["strat"].mean()))
     worst_t, worst_p = np.inf, 0.0
-    for c in controls_for(fam):
+    for c in (controls or controls_for(fam)):
         diff = s["strat"] - np.nan_to_num(s[c])
         r = C.block_boot(diff)
         out[f"vs_{c}_mean"] = r["mean"]; out[f"vs_{c}_p"] = r["p"]
@@ -79,15 +100,15 @@ def mutated_after(m, cut, seed):
     return mm
 
 
-def audit_lookahead(fam, params, m, cuts, n_checks=25, seed=99):
+def audit_lookahead(fam, params, m, cuts, n_checks=25, seed=99, sig=None):
     rng = np.random.default_rng(seed)
     picks = rng.choice(cuts, size=min(n_checks, len(cuts)), replace=False)
+    sig = sig or (lambda f, mm, c, p: AP.tool_signature(f, mm, c, p, {}))
     bad = []
     for cut in picks:
         cut = int(cut)
-        real = AP.tool_signature(fam, m, cut, params, {})
-        fake = AP.tool_signature(fam, mutated_after(m, cut, seed + cut % 1000), cut,
-                                 params, {})
+        real = sig(fam, m, cut, params)
+        fake = sig(fam, mutated_after(m, cut, seed + cut % 1000), cut, params)
         if real != fake:
             bad.append(cut)
     return bad

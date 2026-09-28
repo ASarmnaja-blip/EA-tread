@@ -220,6 +220,45 @@ weeks (2). Controls: LONG and RDIR of the chosen tool's trades, plus
 **RTOOL** — a tool drawn uniformly from the menu that week (exact
 expectation), which tests whether the weekly *selection* adds value.
 
+## Round 2 result (DEV only, holdout untouched)
+
+`research/wpwb_search/run_round2.py`, output `data/wpwb_search_round2_out.txt`.
+Self-tests passed (entries-pool RTIME = brute force; META choice unchanged
+under future garbage in 50/50 checks). **0 of 12 DEV-eligible.** HODM
+reproduced HOD almost exactly (T=3 selects isolated hours, nothing to
+merge). SESSION thresholds were almost never met (active 0-8%). DAYREV
+mostly negative (z=1.0 N=1 min t −2.65). META was worse than a random
+tool from the same menu (min t −0.34 / −1.08; tool change rate 43% / 27%).
+
+## Amendment 3 — round 3, the final round (before it runs)
+
+Cumulative after this round: **40 of 50**; the search closes after round 3
+regardless of outcome. Round-3 rationale comes from DEV observations: a
+week-long long pays ~14 bp of swap (0.5493/night at ~$1,900), larger than
+most measured effects, while shorts pay none; and CHOPREV-ungated z=2.5 was
+the only family net positive at 1.5x in round 1.
+
+**K. TSM-INTRADAY** — weekly TSM direction (tsm_tool, L), but held only
+within each UTC date's liquid block (first bar with hour >= 7 to last bar
+with hour <= 20), flat across the 21:00 rollover: no swap, more round trips.
+L in {8, 13} (2). Controls LONG, RDIR.
+
+**I. VOLMAN** — volatility-managed long held for the week: size s_w =
+min(2, sigma_ref / sigma_w), sigma_w = decay-weighted std of the trailing
+26 weeks' daily returns (half-life hl weeks), sigma_ref = median of
+sigma over the trailing 52 weekly rebuilds (causal). P&L = s_w x week-long
+P&L. hl in {4, 13} (2). Controls: **LONGMATCH** = (mean s over the
+evaluated weeks) x LONG — matches average exposure, the Moreira-Muir
+comparison — and RDIR (s_w x coin-flip expectation).
+
+**L. CHOPREV-EXTREME** — CHOPREV-ungated with z in {3.0, 4.0} x H in {2, 6}
+(4). This is DEV-guided extension of the one net-positive family and is
+flagged as the highest overfit risk in the search; the holdout is what
+judges it.
+
+Evidence floor for round 3: section 6 default (50%) for K and I; 25% for L,
+matching its round-1 ungated parent (D-ungated), declared here before running.
+
 ## Addendum — finalists (to be filled after all rounds, before HOLDOUT)
 
 (empty at commit time)
