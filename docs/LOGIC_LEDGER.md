@@ -490,6 +490,38 @@ improvement pattern in Parts 3, 9 and 10.
 
 ---
 
+## Part 16 — correction to Part 13's tie percentage, and the tie rate by stop ATR (2026-09-28)
+
+**Correction.** Part 13's 14.5% tie rate and 87.1% target-first figure for
+`expansion/M5/stop=0.75/target=1.0` were computed by
+`verify_tie_asymmetry.py` and `zoom_m1_ties.py`, and **neither script applied
+the entry-bar target-exclusion rule** (`resolve_plane`'s
+`allow_entry_bar_target`, false for an intrabar limit fill) that production
+uses. Both figures were overstated. `m5_m1_corrected_summary.py` (Part 14)
+and `m1_correct_both_bucket.py` (Part 15) already applied this correctly, so
+their conclusions stand; only Part 13's two specific numbers are revised.
+
+**Corrected same-bar-tie percentage, expansion/M5, RR=1:1, LONG, by stop ATR:**
+
+| stop ATR | trades | tie % (M5) | ties w/ M1 | stop-first % | target-first % | tied@M1 % |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0.75 | 14,213 | **3.64%** | 203 | 40.4% | 46.3% | 13.3% |
+| 1.00 | 14,103 | 1.47% | 85 | 62.4% | 27.1% | 10.6% |
+| 1.50 | 13,674 | 0.28% | 20 | 35.0%* | 25.0%* | 40.0%* |
+| 2.00 | 12,900 | 0.05% | 1* | 0%* | 100%* | 0%* |
+| 3.00 | 11,405 | 0.02% | 2* | 50%* | 50%* | 0%* |
+
+(*fewer than 30 samples - not statistically meaningful, shown for completeness)
+
+**Guideline:** the tie rate falls off sharply and monotonically as the stop
+widens - 3.64% at 0.75 ATR to 0.02% at 3.0 ATR - confirming this is
+specifically a narrow-stop phenomenon, not a general one. At the one stop
+width with enough resolved ties to read (0.75 ATR, n=203), target-first
+(46.3%) and stop-first (40.4%) are close to even, not the extreme 87%/7%
+split Part 13 originally reported.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
