@@ -459,6 +459,37 @@ entry-mode breakdown showed market orders alone were close to a coin flip,
 
 ---
 
+## Part 15 — final, fully-corrected verdict on the RR=1:1 flip (2026-09-28)
+
+Closes the investigation opened in Part 13. The operator asked directly:
+have the two original headline numbers (LONG −0.5282 R, flipped SHORT
+−0.7920 R full-period, corrected from an earlier −0.7664 once entry-bar
+target-credit exclusion for limit fills was matched to production exactly)
+themselves been M1-corrected yet? They had not been - Part 13/14 corrected
+the tie mechanism in general and across the whole M5 grid, but never
+re-applied it to this specific bucket's own two numbers.
+
+**Done, on the identical 6,611 trades (the 46.5% of this bucket inside M1
+coverage, since correction requires M1 data):**
+
+| | M1-subset, original | M1-corrected |
+|---|---:|---:|
+| LONG (real entries) | −0.3290 | **−0.3005** |
+| SHORT (flipped, same entries) | −0.7407 | **−0.7250** |
+
+**Verdict stands, now on its most solid footing:** flipping this heavy
+RR=1:1 loser is still worse, not better, after every correction found
+tonight (tie-break asymmetry resolved with real M1 data, entry-bar
+target-exclusion matched to production for limit fills). The gap is large
+(−0.30 vs −0.73 R/trade) and not an artifact.
+
+**Also found:** this bucket's recent (M1-covered, post-2023-11) performance
+is much better than its full-history average (LONG −0.33 vs −0.53
+full-period) - one more data point consistent with the recent-regime
+improvement pattern in Parts 3, 9 and 10.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
