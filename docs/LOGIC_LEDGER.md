@@ -419,6 +419,46 @@ recorded.
 
 ---
 
+## Part 14 — closing the tie-break investigation: real but small across the whole M5 grid (2026-09-28)
+
+Part 13 found the conservative "tie goes to stop" convention charges a loss
+to both directions on a same-bar ambiguity, and a zoom into one narrow-stop
+bucket (`expansion/M5/stop=0.75`) found 1-minute data resolved 87% of its
+ties as "target actually touched first". The operator asked to check this
+across every M5 signal, restricted to the period M1 data covers, before
+drawing a conclusion.
+
+**Scope:** all 1,650 M5 cells (6 families x 5 stops x 5 targets x 11 entry
+modes), causal chain, entries restricted to on/after 2023-11-20 (M1's first
+bar) - 6,729,184 trades over about 2.85 years.
+
+**The 87% finding does not generalize.** Same-bar ties are only 0.89% of all
+M5 trades here (not 14.5% - that bucket's narrow 0.75-ATR stop was an
+outlier), and of those ties, resolution at 1-minute data is close to even:
+34.7% truly stop-first, 52.2% truly target-first, 13.1% still tied even at
+one minute.
+
+**Net effect of correcting every resolvable tie with real M1 data:**
+
+| | net R/trade | win% |
+|---|---:|---:|
+| original (conservative) | −0.1051 | 43.7% |
+| M1-corrected | −0.0969 | 44.1% |
+| difference | **+0.0082** | +0.4pp |
+
+Uniform across every family (+0.0069 to +0.0091 R/trade, no outlier).
+
+**Guideline:** the conservative tie-break convention is real and costs about
+0.008 R/trade on average - small but genuine, and it should be corrected in
+any future engine revision. It does not rescue the grid: average performance
+moves from −0.105 to −0.097 R/trade, still clearly negative. The dramatic
+87% figure was a property of one extreme corner (narrowest stop, most
+volatile family, limit-order entries specifically - Part 13's own
+entry-mode breakdown showed market orders alone were close to a coin flip,
+37.9/56.8/5.3), not a general phenomenon.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
