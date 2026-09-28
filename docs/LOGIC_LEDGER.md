@@ -1570,3 +1570,33 @@ recent FOMC events are not 42 independent policy cycles; 2016-2026 contains
 only roughly two easing/tightening cycles. The event-level rule fails its
 controls, and cycle-level generalisation remains **NOT ASSESSED**, not inferred
 from the positive old-era context. Engine decision remains **NO TRADE**.
+
+---
+
+## Part 39 — Claude's verification of Codex Parts 36-38 (2026-09-28)
+
+Codex was run non-interactively via the official `@openai/codex` CLI (user-
+local install, the operator's existing ChatGPT login) against
+`docs/CODEX_REQUEST_2026-09-28_WPWB_TRACES.md`, sandbox workspace-write with
+network enabled, instructed never to call MT5 trading functions or push.
+
+Checked: (1) pre-registration commit `390bd69` (16:56) precedes the results
+commit `5fb2d7d` (17:10); the end-cut fix was registered (`ded650f`) before
+the final run and adds one valid week without changing any verdict. (2) The
+diff from `69d0761` to `5fb2d7d` contains **zero deleted or modified lines**
+in `docs/LOGIC_LEDGER.md` and `docs/WPWB_LIVE_PREREG.md` — additions only.
+(3) `external_traces.py` and `audit_codex.py` read local files only; the only
+network script is `fetch_external.py` (treasury.gov, cboe.com, cftc.gov).
+(4) **Independent rerun reproduces every reported number exactly**: audit
+PASS; external traces 0 of 10 (identical rho/p per trace); FOMC x Fed-
+direction FAIL (era A +5.0 bp, hit 55.0%, p .451/.314; era B +102.2 bp, hit
+68.2%, p .0345/.0954).
+
+Observation (not a finding): the Fed-direction FOMC rule leaned the right way
+in all three windows (+5, +102 and, in the already-examined 2016-20 data,
++49 bp; hits 55% / 68% / 59%) yet fails its random-week control and has
+12-49% power. It is a forward-shadow candidate at most, never a rule.
+
+Hygiene note: Codex force-added ~100k lines of raw external data (incl.
+~12 MB of CFTC zips) under the gitignored `data/` directory. Local branch
+only; not removed here without the operator's say-so.
