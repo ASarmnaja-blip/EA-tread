@@ -1178,6 +1178,57 @@ no edge that survives a genuine trend-independence check.**
 
 ---
 
+## Part 28 — pooled similar-regime sample: the strongest-sample test yet, same verdict (2026-09-28)
+
+**Source:** `research/pilot/find_similar_regime_periods.py` and
+`research/pilot/check_setup_survey_similar_regime.py`. User's point,
+stated directly: design/test a setup against data matching the CURRENT
+regime, not an arbitrary window, and if measuring, measure against a
+similarly-regimed period - correctly identifying that Part 20's flat-period
+test (n=82-88) was too small to trust on its own.
+
+**Finding similar periods:** using the current reading (regime_stability_
+score.py, Part 23: ATR percentile ~64, efficiency ratio 0.009-0.034) as the
+target, scanned all 272 weeks of the full canonical history for weeks
+matching efficiency <= 0.05 and ATR percentile in [40, 85]. **145 weeks
+(53.3% of the full 2021-2026 history) matched, spread evenly across every
+year** (2021:15, 2022:31, 2023:32, 2024:27, 2025:25, 2026:15) - explicitly
+checked and confirmed NOT concentrated in the 2024-2026 trending period
+that inflated every earlier "positive" finding tonight. This is a
+genuinely time-robust "similar regime" pool, not a repeat of the drift
+artifact.
+
+**Result, pooled across all 145 weeks (n now in the thousands per cell -
+e.g. `failed`/stop=0.75 has n=21,194, versus Part 20's 82-88):**
+
+| setup | best gap (stop=0.75) | pattern |
+|---|---:|---|
+| vwap | +0.190 | negative at short target, rising to positive at long target |
+| failed | +0.249 | same shape |
+| breakout | +0.196 | same shape |
+| pullback | +0.245 | same shape |
+| **expansion** | **negative at every cell (−0.013 to −0.375)** | consistently worse than random in this regime type |
+
+**vwap/failed/breakout/pullback still show the identical rising-gap-with-
+target signature, still cluster together with no setup separating from the
+others** - now on a sample an order of magnitude larger than any earlier
+test tonight, which makes the "shared window property, not setup skill"
+diagnosis (Parts 22/26) considerably more solid, not less.
+**`expansion` is new information: it underperforms random consistently in
+this specific (moderate-chop) regime type** - plausibly because expansion/
+breakout-continuation logic gets whipsawed in chop, unlike in the trending
+window where Parts 18-21 found it looked (falsely) positive.
+
+**Verdict against the standing pre-registered criterion (unchanged from
+Part 22): no setup passes.** This is the methodologically strongest test
+run tonight - largest sample, regime-matched, time-robust across all six
+years - and it reaches the same conclusion as every smaller/narrower test
+before it. The user's suggested refinement (test like-for-like regime,
+pooled properly) was sound and worth doing; it just does not change the
+answer.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
