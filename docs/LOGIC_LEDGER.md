@@ -1366,6 +1366,44 @@ holding at 0.01 lot is oversized for $1k at $4,300 gold.
 
 ---
 
+## Part 33 — what was missed: FOMC weeks; what cannot be read: direction (2026-09-28)
+
+**Source:** `research/wpwb_live/loss_diagnosis.py` (exploratory, both eras),
+`rules_test.py` (rules frozen in `docs/WPWB_LIVE_PREREG.md` amendment 2
+before running), `r2_visual.py`. User asked how not to lose and what was
+missed or unreadable.
+
+**Unreadable:** none of 13 pre-week traces (volatility level/trend, 1/4/13-
+week returns, extension above the 20-week mean, distance from the 26-week
+high, 4-week DXY change, CFTC rank/change, tier-1 event count, trailing
+efficiency) predicted next-week direction in both eras. Mon-Wed gold did
+not predict Thu-Fri. The remaining large losses mostly coincided with the
+dollar rising IN the same week (2024-11-08 DXY +1.6%, 2026-05-08 +1.3%,
+2026-03-06 +1.2%, 2026-05-29 +1.1%), which was not visible beforehand.
+
+**Readable and missed: FOMC weeks.** Longs did worse in FOMC weeks in both
+eras (old −59 vs +5 bp; new −55 vs +67 bp). Frozen rule R2 (VOLMAN, no
+position in weeks with a scheduled FOMC decision) vs VOLMAN:
+
+| era | VOLMAN | R2 | R2 vs skipping the same number of random weeks |
+|---|---|---|---|
+| 2022-01..2023-12 (104 wks) | −161 bp (−$69), DD −2,130 bp | **+779 bp (+$114), DD −1,759 bp** | net beats 87%, DD better than 75% |
+| 2024-01..2026-09 (142 wks) | +$2,056, DD −$727 | **+$2,433, DD −$391** | net beats 96%, DD better than 95% |
+
+Versus plain LONG in the new era: +$512 more net, max drawdown $1,198 ->
+$391, worst week −$522 -> −$208, losing weeks 61 -> 51. Cross-checked: two
+independent code paths give identical R2 numbers. **Caveats:** nominated
+after seeing both eras (NOT BLIND); in the new era $292 of the $377 gain
+comes from one week (2026-03-13, gold −10.4%) — without it the gain is
+~$85; the old era's gain is spread more evenly. Skipped FOMC weeks: $820 of
+losses avoided, $443 of gains given up.
+
+**Tested and rejected:** catastrophe stops at 2.0 and 2.5 weekly sigma (R3,
+R5) cut the worst week but stopped out recoveries — lower new-era net and
+no drawdown gain. R4 (R2 + stop) was dominated by R2 in the new era.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
