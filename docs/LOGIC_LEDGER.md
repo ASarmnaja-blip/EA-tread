@@ -985,6 +985,58 @@ project have failed.** CLAUDE.md item 8 updated.
 
 ---
 
+## Part 26 — moving the setup survey to M15 does not reveal a hidden edge either (2026-09-28)
+
+**Source:** `research/pilot/check_setup_survey_m15.py`, `data/
+setup_survey_m15.csv`. User asked directly whether cost was killing the
+setups and, if so, whether widening ATR would fix it. Answered with Part
+17's own numbers (net R improves from -0.30 to -0.02 as stop widens 0.75
+to 3.0 ATR) - cost is a real, sizeable drag - but Parts 18-22's random-
+baseline gap never separates real from random at any width, meaning
+widening the stop reduces cost drag for real and random equally without
+creating distinguishable edge. User then asked to move the whole survey to
+M15, where the timeframe's own naturally larger ATR reduces the fixed-
+dollar cost's share of R without artificially stretching the ATR multiplier.
+
+**Correctness note:** the M5 survey's random baseline reused the M5 ATR(14)
+array for both real and random entries, which was fair because M5 setups
+also use M5-scale ATR. Real M15 setups use M15-scale ATR (larger), so this
+script builds an M15-ATR-aligned-to-M5-bar-index array via `mtf_engine.
+resample` + `core.atr` for the random baseline instead - reusing the raw M5
+array here would have unfairly inflated the random baseline's cost drag
+and made real setups look relatively better for a spurious reason. Sanity-
+checked against real streams' own `atr` values: ~8.7% mean relative
+difference (a reasonable approximation, not exact - the streams' own ATR
+computation pipeline was not fully reverse-engineered).
+
+**Result at stop=0.75 (gap = net R real - net R random, M15-scale ATR
+throughout, time stop scaled to 72h to match M15's 3x M5 multiplier):**
+
+| setup | 0.5R | 1.0R | 1.5R | 2.0R | 3.0R |
+|---|---:|---:|---:|---:|---:|
+| vwap | −0.120 | +0.024 | +0.133 | +0.112 | +0.212 |
+| failed | −0.094 | +0.023 | +0.088 | +0.147 | +0.098 |
+| breakout | −0.136 | +0.027 | +0.080 | +0.072 | +0.073 |
+| pullback | −0.041 | +0.018 | +0.011 | +0.011 | +0.018 |
+
+Same signature as the M5 survey (Part 22): all four setups rise from
+negative to positive with target distance, all four track each other in
+magnitude, and the ranking is not stable across stops (at stop=1.0,
+`pullback` - a continuation control - shows the largest gaps of all four,
++0.057 to +0.095, while `vwap`/`failed` are flat-to-negative there). No
+setup clears Part 22's pre-registered bar (consistent, real, above-control
+separation across multiple targets).
+
+**Verdict:** moving to M15 does not reveal a hidden edge suppressed by
+cost on M5. The rising-gap-with-target pattern persists at the new
+timeframe and ATR scale, reinforcing Part 22's diagnosis that it is a
+property of the market window shared by any similarly-sized entry subset,
+not something cost was masking. Cost is a real drag (confirmed, sizeable)
+but is not the reason these 7 setup ideas have no edge - removing or
+reducing it does not create one.
+
+---
+
 ## Status
 
 Everything above is read-only against existing data and Codex's paused,
