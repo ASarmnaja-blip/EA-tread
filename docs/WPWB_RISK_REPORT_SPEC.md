@@ -138,3 +138,23 @@ profit, and cut losses in volatile weeks by about a third on both sides. It
 **cannot rescue a wrong direction** (short still loses, and a 0.10-lot short
 on $10,000 would have wiped the account). LONG's profit is gold's trend, not
 a system edge. In-sample caveat: B_REF was computed on this history.
+
+### Compounding backtest, DD sizing, side kill-switch — `backtest_compound.py`
+
+Lots = base per $10,000 × equity/10,000 × vol_scale, floor to 0.01; stop-out
+if equity at the week's worst H1 price <= 0. 2,000 random-direction paths
+(seed 20260928) stand in for "direction unknown in advance".
+
+- Current 0.10 lot/$10k (≈1.7× notional at $1,700 gold, 4.3× at $4,300):
+  long × vol_scale max DD −50%; long fixed −78%; short −89 to −93%;
+  random direction median −68%. Far above a 30–45% tolerance.
+- For max DD 30–40%, never above 45% (random direction, × vol_scale):
+  0.03 lot/$10k → median −22%, worst 5% −40%, P(DD > 45%) 0.9%;
+  0.04 → median −31%, worst 5% −50%, P 11%; 0.05 → −39% / −60% / 31%.
+  A persistently wrong side (the real short path) still reaches −51% at 0.03,
+  so only a hard stop can guarantee a ceiling.
+- Kill-switch (stop a side at X% DD from its peak), applied to both sides
+  because a rule cannot know which side is wrong: at 20% it stops the short
+  in 2023-01 but also stops the long in 2023-09, before gold's rise; at 30%
+  it stops the short in 2023-04 and the long in 2026-03. It caps loss; it
+  does not identify the wrong side. In-sample, one history.
