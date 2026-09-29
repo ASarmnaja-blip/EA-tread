@@ -37,6 +37,9 @@ def run_spec(sp, H, D, cellbar_H, cellbar_D, rng):
     return B, cb, gross, ctrl
 
 
+ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"]}   # WPWB router: only these pre-declared cells
+
+
 def disc_pass_R(r):
     return (r.get("n", 0) >= 60 and r["net"] > 0 and r.get("net_R", -1) > 0 and r["excess"] > 0
             and r.get("t_R", 0) >= 3.0 and r.get("t_excess_R", 0) >= 2.0 and r.get("yr_pos_R", 0) >= 0.6)
@@ -62,13 +65,16 @@ def main(batch) -> int:
     rows, keep = [], {}
     for sp in specs:
         B, cb, gross, ctrl = run_spec(sp, H, D, cellbar_H, cellbar_D, rng)
-        for dn, dm in (("both", np.ones(len(sp.dirs), bool)), ("long", sp.dirs > 0), ("short", sp.dirs < 0)):
+        dir_opts = (("both", np.ones(len(sp.dirs), bool)), ("long", sp.dirs > 0), ("short", sp.dirs < 0))
+        if batch in ROUTER_CELLS:
+            dir_opts = dir_opts[:1]
+        for dn, dm in dir_opts:
             if dm.sum() < 20:
                 continue
             name = f"{sp.name}|{dn}"
             sb = (sp.stop / (sp.eprice if sp.eprice is not None else B.o[sp.ent]) * 1e4)[dm]
             rr = E.evaluate(name, B, cb, sp.ent[dm], sp.dirs[dm], gross[dm], ctrl[dm],
-                            cells=E.CELLS if batch == "batch1" else E.CELLS2, stop_bp=sb)
+                            cells=ROUTER_CELLS.get(batch, E.CELLS if batch == "batch1" else E.CELLS2), stop_bp=sb)
             rows += rr
             keep[name] = (B, cb, sp.ent[dm], sp.dirs[dm], gross[dm], ctrl[dm], sb)
     R = pd.DataFrame(rows)

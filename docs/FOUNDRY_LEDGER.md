@@ -47,3 +47,17 @@ high-volatility years; fixed-risk sizing is how it would be traded -> protocol A
 ## Batch `batch3` (registered 2026-09-30, before running)
 SHOCK_CONT (6), MOM (12), PDHL_BRK (2), WEEK_BRK (2), ASIA_BRK_t0 (1) re-scored in R units on the
 17 cells x {both, long, short}. NR7 is excluded (it already failed VAL; re-sending it would reuse VAL).
+
+### Result `batch3` (1,054 DISC candidates; cumulative 2,838)
+Risk units did not lift power: t_R ~ t_net. DISC pass 1: WEEK_BRK_s1.0 long */UP (t_R 3.60, excess
+t 2.47) -> **VAL fail** (2015-20 net -1.0 bp, R +0.09, p 0.17; M = 5). Long-only in up-trend weeks
+is close to drift. Diagnosis: the continuation edge is ~0.05-0.15 R per trade; with 12 DISC years a
+single variant cannot reach t 3. Two ways left inside the data: pool the continuation signals into
+one tool (more independent trades) and let WPWB's weekly regime choose when it is switched on
+(operator 2026-09-30: use the tool that fits WPWB; do not stop until "หยุด").
+
+## Batch `batch4` — WPWB router v1 (registered 2026-09-30, before running)
+One pooled tool, CONT_UNION_h6: follow after a > 3 ATR H1 bar, or a 6 h move > 1.5 ATR*sqrt(6),
+or a 12 h move > 1.5 ATR*sqrt(12); hold 6 h; stop 2 ATR; no target; one position at a time; both
+directions only. Router cells pre-declared: HIGH/* (WPWB forecast HIGH weeks only), NOTCALM/*
+(every week except CALM), ALL. 3 candidates only.

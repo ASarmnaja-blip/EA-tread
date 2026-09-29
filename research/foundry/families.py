@@ -303,3 +303,32 @@ def batch3(H, D):
     s = shock(H, follow=True) + mom_h1(H) + pdhl_break(H, D) + week_break(H)
     s += _range_break(H, "ASIA_BRK", list(range(0, 7)), list(range(7, 16)), 20, (0,))
     return s
+
+
+# ------------------------------------------------------------------ batch 4: WPWB router (weekly regime -> tool)
+def cont_union(H, hold=6):
+    """One continuation tool pooled from the batch 1-3 signals: follow when the last bar moved
+    > 3 ATR, or the last 6 h moved > 1.5 ATR*sqrt(6), or the last 12 h > 1.5 ATR*sqrt(12).
+    Hold `hold` hours, stop 2 ATR, no target, one position at a time."""
+    c, a = H.c, H.atr
+    sigs = []
+    r1 = np.r_[np.nan, np.diff(c)]
+    sigs.append((np.abs(r1) > 3 * a, np.sign(r1)))
+    for L in (6, 12):
+        rL = np.r_[np.full(L, np.nan), c[L:] - c[:-L]]
+        sigs.append((np.abs(rL) > 1.5 * a * np.sqrt(L), np.sign(rL)))
+    fire = np.zeros(len(c), bool); d = np.zeros(len(c))
+    for m, sg in sigs:
+        new = m & ~fire
+        d[new] = sg[new]; fire |= m
+    ent = np.flatnonzero(fire[:-1]) + 1
+    last = ent + hold - 1
+    keep = nonoverlap(ent, last)
+    ent, last = ent[keep], last[keep]
+    dd = d[ent - 1]; aa = a[ent]
+    ok = np.isfinite(aa) & (dd != 0)
+    return Spec(f"CONT_UNION_h{hold}", "H1", ent[ok], dd[ok], 2 * aa[ok], np.full(ok.sum(), np.nan), last[ok])
+
+
+def batch4(H, D):
+    return [cont_union(H, 6)]
