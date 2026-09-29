@@ -218,3 +218,15 @@ Diagnostic (DISC only): future 4-week mean R by trailing-104-week decile on menu
 
 ## Batch `batch14` (registered 2026-09-30, before running)
 Sharper selection on menu4, L104, equal risk per variant-week: top 10 % and top 5 %. 2 candidates.
+
+### Result `batch14` (2 candidates; cumulative 2,898)
+**First DISC pass of a selector: TOP5_L104_EW** (3,916 units, +0.088 R, t_R 3.16, excess t 4.18,
+100 % of years) -> **VAL FAIL** (M = 10): 2015-20 +0.020 R, t_R 0.59, p 0.28, excess +0.049 R t 1.62.
+TOP10_L104_EW DISC t_R 2.75. Sharper selection helps in DISC but not out of sample; VAL net stays
+at +0.02..+0.03 R for every selector tried.
+Diagnostic (DISC only) of the nomination-4 selector by WPWB class: CALM weeks +0.024 R (t 0.68),
+NORMAL +0.062 (t 2.17), HIGH +0.065 (t 1.93).
+
+## Batch `batch15` (registered 2026-09-30, before running)
+WPWB overlay: TOPQ_L104_EW on menu4 traded only in weeks WPWB forecasts NORMAL or HIGH (stand
+aside in CALM). 1 candidate.
