@@ -1991,3 +1991,37 @@ found 100%.
   that: freeze the rule, then apply it to eras it has never seen.
 - Plan B (`docs/PLAN_B_DAILY_PREREG.md`) is **not** run: the decision tree sends
   a LEAD to a frozen rule first.
+
+## Part 50 — Plan B result, the frozen hour rule on Exness, and a course correction (2026-09-29)
+
+**Plan B (daily scale, 2003-2015, leave-one-year-out, shift-null p-values after
+Amendment 1).** Self-check passed (pseudo-real null rejection 2%). **Only 20 of
+the 30 registered tests actually ran:** my window rule (calendar gap ≤ h + 4
+days) silently discarded every 20-trading-day window (~28 calendar days), so all
+ten h = 20 tests are missing; and the 2016+ consistency check was not computed
+(the cache ended mid-2016, < 300 days). Among the 20 that ran: **0 leads**;
+largest |ρ| 0.078 (month, 5 days, p = 0.12), next 0.042 (ret20, 5 days). Power
+caveat: a planted ρ = 0.10 at h = 5 came back at p = 0.025, not below the
+Bonferroni α = 0.00167, so Plan B can only exclude effects of roughly ρ ≳ 0.15.
+A null here is weak, not decisive.
+
+**Frozen hour-of-day rule on Exness 2021-07..2026-09 (E1).** R24: 6,700 trades,
+net −0.48 bp [−1.58, +0.58], drift-controlled diff +0.17 bp (p = 0.76): does not
+replicate; by year net +1.8 (2021), then −1.7, −0.7, 0.0, −0.1, −1.3. Rt2 (only
+hour 06 UTC, all short): net −1.18 bp; the registered drift-controlled diff is
+degenerate for a one-sided rule (long share 0% forces diff ≡ 0), a defect in
+my pre-registration — the verdict is unchanged because net < 0 anyway. E2
+(Dukascopy 2016-2020) is pending the download.
+
+**Course correction.** CLAUDE.md §1 does not ask for an edge that works in every
+era: "long history is for catching serious errors and understanding behaviour,
+not a requirement that the signal profit every year", and the engine must drop a
+strategy the moment its edge decays. Parts 46-50 nevertheless used DEV →
+CONFIRM transfer across eras as a pass/fail gate, which tests *permanence* and
+by construction rejects regime-specific edges (Codex Round 1 had already said
+so). The hour-of-day result is the concrete example: real in 2003-2015, gone by
+2021 — an edge with a life span, not a failure of measurement. Rule from now on:
+(1) history is used to measure *when* an effect exists, how strong it is by
+regime, and how long it lasts (decay), never as a persistence gate; (2) the
+evidence that turns an effect on is current and forward, with decay monitoring;
+(3) no design may require the same sign in every era.
