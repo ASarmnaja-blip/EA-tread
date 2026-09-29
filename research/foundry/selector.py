@@ -254,6 +254,13 @@ def main_ew(batch, menu_fn) -> int:
         MIN_COUNT = 5
     T, cuts, cell, names = menu_trades(menu_fn)
     rows, keep = [], {}
+    if batch == "batch17":
+        volk = np.array([c.split("/")[0] if c else "" for c in cell], object)
+        S = variant_week(run_portfolio_shrunk(T, cuts, names))
+        S = S[np.isin(volk[S.wk.to_numpy()], ["NORMAL", "HIGH"])]
+        keep["TOPQ_SHRUNK_MULTI_EW_NOTCALM"] = S
+        r = stats(S, "DISC"); r["cand"] = "TOPQ_SHRUNK_MULTI_EW_NOTCALM"
+        rows.append(r)
     if batch in ("batch15", "batch16"):
         volk = np.array([c.split("/")[0] if c else "" for c in cell], object)
         S = variant_week(run_portfolio(T, cuts, 104, False))
@@ -270,7 +277,7 @@ def main_ew(batch, menu_fn) -> int:
             r = stats(S, "DISC"); r["cand"] = name
             rows.append(r)
         TOP_FRAC = 0.2
-    grid = () if batch in ("batch14", "batch15", "batch16") else ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
+    grid = () if batch in ("batch14", "batch15", "batch16", "batch17") else ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
     for L, ew in grid:
         name = f"TOPQ_L{L}{'_EW' if ew else ''}"
         S = run_portfolio(T, cuts, L, False)
@@ -470,3 +477,41 @@ if __name__ == "__main__":
     mode = sys.argv[3] if len(sys.argv) > 3 else ""
     fn = {"portfolio": main_portfolio, "ew": main_ew, "bar": main_bar, "regime": main_regime}.get(mode, main)
     sys.exit(fn(sys.argv[1], sys.argv[2]))
+
+
+def run_portfolio_shrunk(T, cuts, names, Ls=(52, 104, 156), k_shrink=50.0):
+    """Rank = mean over lookbacks of the rank of each variant's family-shrunk trailing mean R;
+    hold the top 20 %."""
+    fam = np.array([n.split("_")[0] + ("~INV" if "~INV" in n else "") + ("^x" if "^x" in n else "") for n in names], object)
+    out = []
+    et, xt, v, R = T.et.to_numpy(), T.xt.to_numpy(), T.v.to_numpy(), T.R.to_numpy()
+    by_wk = T.groupby("wk").indices
+    order = np.argsort(xt); xs = xt[order]
+    for k in range(len(cuts)):
+        if k not in by_wk:
+            continue
+        cut = cuts[k]
+        ranks = []
+        for L in Ls:
+            lo = np.searchsorted(xs, cut - L * WEEK, side="right"); hi = np.searchsorted(xs, cut, side="right")
+            idx = order[lo:hi]
+            if len(idx) == 0:
+                continue
+            s = pd.DataFrame(dict(v=v[idx], R=R[idx])).groupby("v").R.agg(["mean", "count"])
+            s = s[s["count"] >= MIN_COUNT]
+            if len(s) < 10:
+                continue
+            f = pd.Series(fam[s.index], index=s.index)
+            fm = (s["mean"] * s["count"]).groupby(f).sum() / s["count"].groupby(f).sum()
+            shr = (s["count"] * s["mean"] + k_shrink * fm.reindex(f).to_numpy()) / (s["count"] + k_shrink)
+            ranks.append(shr.rank(ascending=False))
+        if not ranks:
+            continue
+        rk = pd.concat(ranks, axis=1).mean(axis=1, skipna=False).dropna().sort_values()
+        top = rk.iloc[:max(1, int(np.ceil(TOP_FRAC * len(rk))))]
+        wk_rows = T.iloc[by_wk[k]]
+        ctrl = wk_rows.groupby("v").R.mean().mean()
+        sel = wk_rows[wk_rows.v.isin(top.index)]
+        for r in sel.itertuples():
+            out.append(dict(wk=k, et=r.et, v=r.v, name=r.name, net=r.net, R=r.R, stress=r.stress, ctrl=ctrl, score=0.0))
+    return pd.DataFrame(out)

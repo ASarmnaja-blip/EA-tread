@@ -248,3 +248,14 @@ Status summary for the operator: `docs/FOUNDRY_STATUS.md`.
 Menu `menu5` = menu4 + a copy of every H1 variant held 4x longer with a 1.5x wider stop and no
 target (cost becomes a smaller share of R; the selector decides which horizon is working).
 Candidate: TOPQ_L104_EW_NOTCALM on menu5 (1).
+
+### Result `batch16` (1 candidate; cumulative 2,900)
+DISC pass 0: menu5 TOPQ_L104_EW_NOTCALM t_R 2.75, excess t 3.24, +0.069 R - no gain over menu4.
+Not nominated (a near-duplicate of nomination 5 would only raise M). Note on units: "R per year"
+grows with the number of variants held at once and is not a portfolio number; the clustered t over
+weeks is. t 2.9 over 411 DISC weeks ~ annual Sharpe 1.0; t 1.48 over 294 VAL weeks ~ 0.6.
+
+## Batch `batch17` (registered 2026-09-30, before running)
+Ranking stabilised: each variant's trailing mean R shrunk toward its family's mean (k = 50 trades),
+ranked separately for L = 52, 104, 156 weeks, ranks averaged; hold the top 20 % in NORMAL/HIGH
+weeks, equal risk per variant-week, menu4. 1 candidate.
