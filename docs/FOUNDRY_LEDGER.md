@@ -127,3 +127,12 @@ week move together.
 ## Batch `batch8` (registered 2026-09-30, before running)
 Equal risk per selected variant per week (one unit = mean R of a variant's trades in that week):
 TOPQ_L52_EW, TOPQ_L104_EW, and TOPQ_L104 per trade. 3 candidates, same gates.
+
+### Result `batch8` (3 candidates; cumulative 2,886)
+DISC pass 0, but equal risk per variant per week lifted the statistic: **TOPQ_L52_EW 4,238
+variant-weeks, +0.063 R, t_R 2.79, excess over the menu t_R 4.07, 100 % of the 12 DISC years
+positive, ~+22 R/yr**; TOPQ_L104_EW t_R 2.78 / excess 3.98; TOPQ_L104 per trade t_R 2.39.
+
+## Nomination 2 (Amendment 2, registered 2026-09-30, before its VAL score is seen)
+TOPQ_L52_EW (menu1, top 20 % by trailing-52-week score, equal risk per selected variant per week,
+reselected every Friday cut). Chosen over L104_EW as the shorter memory with the same DISC evidence.

@@ -285,7 +285,39 @@ def main_ew(batch, menu_fn) -> int:
     return 0
 
 
+def nominate_ew(tag, L) -> int:
+    """Amendment 2 nomination for an equal-risk top-quintile selector (VAL, then HOLD if passed)."""
+    os.chdir(E.ROOT)
+    st = state()
+    if tag in st.get("nominated", []):
+        print("already nominated"); return 1
+    T, cuts, cell, names = menu_trades("menu1")
+    S = variant_week(run_portfolio(T, cuts, L, False))
+    d = stats(S, "DISC")
+    assert d["t_R"] >= 2.0 and d["t_excess_R"] >= 3.0 and d["net"] > 0, d
+    st["m_val"] += 1; M = st["m_val"]
+    v = stats(S, "VAL"); v["p_net"] = E.one_sided_p(v["t_R"]); v["M"] = M
+    v["pass_val"] = bool(v["n"] >= 20 and v["net"] > 0 and v["net_R"] > 0 and v["excess_R"] > 0 and v["p_net"] < 0.05 / M)
+    rows = [dict(d, stage="DISC-nominated", cand=tag), dict(v, stage="VAL", cand=tag)]
+    print("DISC", {k: (round(x, 4) if isinstance(x, float) else x) for k, x in d.items()})
+    print("VAL ", {k: (round(x, 4) if isinstance(x, float) else x) for k, x in v.items()}, "threshold", round(0.05 / M, 5))
+    if v["pass_val"]:
+        st["hold_looks"] += 1; alpha = 0.05 * 2 ** -st["hold_looks"]
+        h = stats(S, "HOLD"); h["p_net"] = E.one_sided_p(h["t_R"]); h["alpha"] = alpha
+        h["pass_hold"] = bool(h["n"] >= 20 and h["net"] > 0 and h["net_stress"] > 0 and h["net_R"] > 0
+                              and h["excess_R"] > 0 and h["p_net"] < alpha)
+        rows.append(dict(h, stage="HOLD", cand=tag))
+        print("HOLD", {k: (round(x, 4) if isinstance(x, float) else x) for k, x in h.items()})
+    pd.DataFrame(rows).assign(batch=tag).to_csv(TRIALS, mode="a", header=False, index=False)
+    S.to_csv(OUT / f"nominate_{tag.replace(':', '_')}_units.csv", index=False)
+    st.setdefault("nominated", []).append(tag)
+    STATE.write_text(json.dumps(st, indent=1))
+    return 0
+
+
 if __name__ == "__main__":
+    if sys.argv[1] == "nominate":
+        sys.exit(nominate_ew(sys.argv[2], int(sys.argv[3])))
     mode = sys.argv[3] if len(sys.argv) > 3 else ""
     fn = {"portfolio": main_portfolio, "ew": main_ew}.get(mode, main)
     sys.exit(fn(sys.argv[1], sys.argv[2]))
