@@ -280,3 +280,16 @@ Registry trace S6 (intraweek RV vs forecast pace). Checkpoint Tue or Wed 22:00 U
 / (B0 forecast x elapsed share of ~115 H1 bars); if pace < 0.6 or < 0.8, OCO stops at the last close
 +/- k x the forecast's remaining weekly sigma (k 0.25 / 0.5), first touch wins, stop back at the
 reference, exit at week end. 8 candidates, cell ALL, both directions.
+
+### Result `batch19` (8 candidates; cumulative 2,927)
+DISC pass 0; pace-compression breakouts are flat (t_R -0.7..+0.8). Knowing that the rest of the
+week should be more volatile does not say which way.
+Meta-diagnosis after 19 batches: two structures survive in this data - volatility clustering
+(forecastable, not tradeable on spot without options) and cross-sectional persistence of setup
+performance (+0.05 R selection edge, confirmed out of sample, net too thin after cost). Session
+structure (NY morning continuation +, late session -) is the one remaining source of genuinely
+different menu variants.
+
+## Batch `batch20` (registered 2026-09-30, before running)
+Menu `menu6` = menu4 + session-split copies (ASIA / LONDON / NYAM / LATE / OPEN, >= 100 trades)
+of every continuation and breakout H1 variant, with mirrors. Candidate: TOPQ_L104_EW_NOTCALM (1).

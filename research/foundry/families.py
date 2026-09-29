@@ -343,7 +343,8 @@ def by_session(H, spec):
     hr = H.hour[spec.ent]
     for nm, hs in SESSIONS.items():
         m = np.isin(hr, list(hs))
-        out.append(Spec(f"{spec.name}@{nm}", spec.tf, spec.ent[m], spec.dirs[m], spec.stop[m], spec.tgt[m], spec.last[m]))
+        out.append(Spec(f"{spec.name}@{nm}", spec.tf, spec.ent[m], spec.dirs[m], spec.stop[m], spec.tgt[m], spec.last[m],
+                        None if spec.eprice is None else spec.eprice[m]))
     return out
 
 
@@ -547,3 +548,17 @@ def pace_brk(H):
 
 def batch19(H, D):
     return pace_brk(H)
+
+
+def menu6(H, D):
+    """menu4 + session-split copies (ASIA/LONDON/NYAM/LATE/OPEN) of every continuation and breakout
+    H1 variant, with their mirrors."""
+    base = menu4(H, D)
+    fams = ("SHOCK_CONT", "MOM_", "CONT_UNION", "PDHL_BRK", "ASIA_BRK", "NY_ORB", "NR7")
+    extra = []
+    for s in base:
+        if s.tf == "H1" and "~INV" not in s.name and s.name.startswith(fams):
+            for x in by_session(H, s):
+                if len(x.ent) >= 100:
+                    extra.append(x); extra.append(mirror(x))
+    return base + extra
