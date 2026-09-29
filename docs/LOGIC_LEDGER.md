@@ -2074,3 +2074,28 @@ volatility traces), so no p-value can be stated. Where they sit:
 **Consequence:** nothing here licenses a tool. The only defensible next work is volatility-side:
 (a) a pre-registered incremental test of gvz_lvl beyond sig_ratio for V-off/V-on, then (b) a
 prospective shadow log of the alarm, per REGIME_MAP v2 Part 3 as amended. No direction tool.
+
+## Part 52 - WPWB Outlook v2 development run (2026-09-29; log `data/outlook_v2_run.log`, workbook `data/wpwb_outlook_v2_dev.xlsx`)
+Contract `docs/WPWB_OUTLOOK_V2_PREREG.md` + Amendment 1 (Codex R10, 10 findings accepted), commits
+bac1ba3, 5f2d41f; one run. Self-tests passed; synthetic null 0/20. Vendor audit PASSED on the 88 weeks
+whose H1 hour sets are identical (Spearman RV 0.999, median |log RV ratio| 0.005, range 0.001, bid Y3
+0.029, class agreement 97.8% on 45 weeks); the other 181 weeks differ mainly by Dukascopy's Sunday
+22:00-23:00 reopen hours that Exness drops. Scored 675 weeks 2013-09-20..2026-08-21 (late start:
+GVZ 2009-09 + 26-week lags + 104 fit rows + 104-residual pools). DEVELOPMENT ONLY; nothing licensed.
+
+Next-week volatility forecast, MVOL (HAR + GVZ) vs the frozen WPWB EWMA (B0), all 675 weeks:
+CRPS -11% [-16%, -7%], QLIKE -23%, RPS -13%, onset Brier -14%, exit Brier -21%, worse-side
+excursion Brier at 200/300 bp -4.5%/-5.8% (100 bp: nothing). Per period: D1 2013-18 and D2
+2021-26 intervals exclude 0; **pseudo-holdout 2019-01..2021-06 CRPS -7% with the interval
+including 0**. GVZ beyond HAR (MVOL - HAR): CRPS -6% overall, exits -14%, onsets -4% (includes 0);
+**in the pseudo-holdout GVZ added nothing (CRPS +2%)**. HAR alone vs B0: -5% overall, +1% in D1.
+Last-cut MVOL coefficients: G 0.85, L1 0.20, L4 -0.04, L26 -0.06 - the fitted model is mostly GVZ.
+S1 (near 52-week high) added nothing: not promoted. Calibration: every model near nominal (80%
+cover 0.78-0.80, 95% 0.93-0.94, upper tail 6.5% vs 5%: big weeks slightly under-covered), PIT flat.
+Alarms (causal top 20%): onset MVOL precision 0.33 vs base 0.13, sensitivity 0.55 - two of three
+onset alarms still wrong; exit MVOL precision 0.85 vs base 0.44 but only 20 alarms (sensitivity 0.25).
+
+Prior (section 7) partly wrong: the gain is larger than "small" and comes mostly from GVZ, not HAR;
+right on exits > onsets and on onset alarms staying mostly wrong. Power for prospective confirmation
+(80%, AR-adjusted, from the development paired SD): MVOL vs B0 CRPS ~256 weeks (~5 years); GVZ
+beyond HAR ~414 weeks (~8 years). No direction information anywhere (Part 51).
