@@ -486,3 +486,12 @@ longer "the best candidate".
 Budget: 5 HOLD looks spent (0.025 + 0.0125 + 0.00625 + 0.003125 + 0.0015625 = 0.0484). The next
 look would need p < 0.00078 (t ~ 3.2). Historical confirmation is effectively exhausted; from here
 history can only nominate, and confirmation must come from forward weeks.
+
+## Forward panel frozen (Amendment 6, 2026-09-30) - H-FOUNDRY-PANEL-1, alpha 0.01
+440 variant-cells scored on the last 104 weeks (to 2026-08-31, after cost and swap); only 32 were
+positive in both the recent window and 2021-01..2024-08. Panel (top t_R, distinct families):
+INSIDE_DAY_t2 NOTCALM (+0.31 R, t 3.00, check +0.10), HOD_21L ALL (+0.13, t 2.24, check +0.06),
+SHOCK_CONT_k2_h48~INV ALL (fade after a > 2 ATR bar for 48 h; +0.18, t 1.44, check +0.16),
+ASIA_BRK_t2 ALL (+0.05, t 1.22, check +0.01), NR7_t2 ALL (+0.10, t 1.06, check +0.07).
+These historical numbers are nominations, not evidence (440 tries). Confirmation: e-process >= 500
+per candidate on forward weeks from 2026-10-02. Hooked into the Saturday job.

@@ -29,7 +29,8 @@ re-tested on the same stream for free (Codex review Q5, debate objection 13).
 | H-WPWB-P1 | Selector P beats random eligible tool B' (docs/WPWB_PROCEDURE_PREREG.md v2) | 0 (was 0.025) | — | never started | **abandoned 2026-09-28 before outcome evaluation for inadequate prospective power; no outcome observed; alpha unspent** |
 | H-WPWB-P2A | Volatility-state router (debate Round 3) | 0 | — | never started | **dropped 2026-09-28 (Codex Round 5): quoted power came from a different simulation; map partly outcome-informed; a future router is a new hypothesis** |
 | H-BP-VWAP | vwap 4 h, top ATR third, diff vs matched control (Part 46) | 0 | — | never started | **dropped 2026-09-29 (Codex Round 7): p = 0.24 in DEV, best-of-22 on a mined sample; ~11-18 forward years needed; zero-alpha passive log at most** |
-| (reserve) | unallocated | 0.05 | — | — | — |
+| H-FOUNDRY-PANEL-1 | Each of 5 frozen Foundry candidates has forward mean weekly R > 0 after cost and swap (docs/FOUNDRY_PROTOCOL.md Amendment 6; data/foundry/shadow/forward_panel.json) | 0.01 (0.002 each) | E_t >= 500 per candidate, E_t = prod(1 + 0.2 clip(week R, -1, 1)) | week of 2026-10-02 22:15 UTC | **allocated 2026-09-30, paper only** |
+| (reserve) | unallocated | 0.04 | — | — | — |
 
 Note on H-WPWB-P1: rule 5 (a stopped hypothesis keeps its alpha spent)
 applies once a forward test has started. P1's allocation was only a draft in

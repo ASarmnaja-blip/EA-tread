@@ -148,6 +148,13 @@ def main() -> int:
         log(f"hod21_shadow.py exit {r.returncode}: {r.stdout.strip()[-300:]}")
     except Exception as e:
         log(f"hod21 shadow error: {e!r}")
+    try:  # paper-only Foundry forward panel (Amendment 6, H-FOUNDRY-PANEL-1)
+        r = subprocess.run([PY, str(ROOT / "research" / "foundry" / "forward_panel.py")], cwd=ROOT,
+                           capture_output=True, text=True, encoding="utf-8",
+                           env={**os.environ, "PYTHONIOENCODING": "utf-8"}, timeout=3600)
+        log(f"forward_panel.py exit {r.returncode}: {r.stdout.strip()[-500:]}")
+    except Exception as e:
+        log(f"forward panel error: {e!r}")
     log("done")
     return rc
 
