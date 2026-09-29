@@ -154,6 +154,7 @@ def main(batch, menu_fn) -> int:
 
 # ------------------------------------------------------------------ batch 7: top-quintile portfolio selector
 MIN_COUNT = 10
+TOP_FRAC = 0.2
 
 
 def run_portfolio(T, cuts, L, need_pos):
@@ -176,7 +177,7 @@ def run_portfolio(T, cuts, L, need_pos):
         if len(s) < 10:
             continue
         score = (s["sum"] / np.sqrt(s["count"])).sort_values(ascending=False)
-        top = score.iloc[:max(1, int(np.ceil(0.2 * len(score))))]
+        top = score.iloc[:max(1, int(np.ceil(TOP_FRAC * len(score))))]
         if need_pos:
             top = top[top > 0]
         wk_rows = T.iloc[by_wk[k]]
@@ -248,12 +249,21 @@ def main_ew(batch, menu_fn) -> int:
     st = state()
     if batch in st["batches"]:
         print("batch already run"); return 1
-    global MIN_COUNT
+    global MIN_COUNT, TOP_FRAC
     if menu_fn == "menu3":
         MIN_COUNT = 5
     T, cuts, cell, names = menu_trades(menu_fn)
     rows, keep = [], {}
-    grid = ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
+    if batch == "batch14":
+        for frac in (0.10, 0.05):
+            TOP_FRAC = frac
+            name = f"TOP{int(frac * 100)}_L104_EW"
+            S = variant_week(run_portfolio(T, cuts, 104, False))
+            keep[name] = S
+            r = stats(S, "DISC"); r["cand"] = name
+            rows.append(r)
+        TOP_FRAC = 0.2
+    grid = () if batch == "batch14" else ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
     for L, ew in grid:
         name = f"TOPQ_L{L}{'_EW' if ew else ''}"
         S = run_portfolio(T, cuts, L, False)

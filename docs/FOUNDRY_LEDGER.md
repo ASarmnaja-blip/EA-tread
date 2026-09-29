@@ -206,3 +206,15 @@ DISC pass 0. menu4 L104_EW: 15,612 units, +0.048 R, t_R 2.73, **excess t_R 4.40*
 
 ## Nomination 4 (Amendment 2, registered 2026-09-30, before its VAL score is seen)
 TOPQ_L104_EW on menu4.
+
+### Result nomination 4
+VAL **FAIL** (M = 9, p < 0.0056 needed): 2015-20 7,405 units, net +2.88 bp (stress +0.88),
+**+0.027 R, t_R 1.26**, p 0.10, 67 % of years, ~+33 R/yr; **excess over the menu +0.059 R, t 3.26**.
+The selection edge is now confirmed out of sample three times (t 2.09, 2.29, 3.26). What keeps net
+small is cost: the menu averages ~0 gross, and 2 bp (twice Exness's ~1 bp) is ~0.03 R at the median
+stop. The cost assumption is not relaxed.
+Diagnostic (DISC only): future 4-week mean R by trailing-104-week decile on menu4 rises from
+-0.112 (D1) to +0.035 (D9) and **+0.084 (D10)** - the top decile carries more than the top quintile.
+
+## Batch `batch14` (registered 2026-09-30, before running)
+Sharper selection on menu4, L104, equal risk per variant-week: top 10 % and top 5 %. 2 candidates.
