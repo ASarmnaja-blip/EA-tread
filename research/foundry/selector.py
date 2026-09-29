@@ -286,13 +286,13 @@ def main_ew(batch, menu_fn) -> int:
     return 0
 
 
-def nominate_ew(tag, L) -> int:
+def nominate_ew(tag, L, menu="menu1") -> int:
     """Amendment 2 nomination for an equal-risk top-quintile selector (VAL, then HOLD if passed)."""
     os.chdir(E.ROOT)
     st = state()
     if tag in st.get("nominated", []):
         print("already nominated"); return 1
-    T, cuts, cell, names = menu_trades("menu1")
+    T, cuts, cell, names = menu_trades(menu)
     S = variant_week(run_portfolio(T, cuts, L, False))
     d = stats(S, "DISC")
     assert d["t_R"] >= 2.0 and d["t_excess_R"] >= 3.0 and d["net"] > 0, d
@@ -381,7 +381,7 @@ def main_bar(batch, menu_fn) -> int:
 
 if __name__ == "__main__":
     if sys.argv[1] == "nominate":
-        sys.exit(nominate_ew(sys.argv[2], int(sys.argv[3])))
+        sys.exit(nominate_ew(sys.argv[2], int(sys.argv[3]), sys.argv[4] if len(sys.argv) > 4 else "menu1"))
     mode = sys.argv[3] if len(sys.argv) > 3 else ""
     fn = {"portfolio": main_portfolio, "ew": main_ew, "bar": main_bar}.get(mode, main)
     sys.exit(fn(sys.argv[1], sys.argv[2]))

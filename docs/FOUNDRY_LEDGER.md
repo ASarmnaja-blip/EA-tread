@@ -159,3 +159,10 @@ Menu `menu2` = menu1 + 6 longer-hold continuation variants (SHOCK_CONT k2/k3 hol
 L6/L12 hold 4L, stop 3 ATR) + the mirror (opposite direction, same timing, stop and hold) of every
 variant, so the selector can fade what is failing. Candidates: TOPQ_L52_EW and TOPQ_L104_EW on
 menu2 (2).
+
+### Result `batch10` (2 candidates; cumulative 2,891)
+DISC pass 0. menu2 L104_EW: 9,439 units, +0.060 R, t_R 2.53, excess t_R 3.79, 83 % of years, ~+47 R/yr;
+L52_EW t_R 1.68. The mirrors roughly double the menu (109 distinct champions used).
+
+## Nomination 3 (Amendment 2, registered 2026-09-30, before its VAL score is seen)
+TOPQ_L104_EW on menu2 (DISC t_R 2.53, excess t_R 3.79, net +4.9 bp).
