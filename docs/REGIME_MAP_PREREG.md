@@ -193,3 +193,14 @@ README sheet, and the console prints the same line above the results.
 Also see `EXTERNAL_TRACE_PREREG.md` Amendment 2 for the multiplicity unit
 (420 pair-window intervals), interval coverage (Brier skill and lift only) and
 the corrected bootstrap block range.
+
+
+### Note (2026-09-29, data availability, before any result)
+The run's completeness check required a last bar on or after 2026-09-01. Dukascopy
+publishes an hourly monthly file only after the month ends, so the September 2026
+file is empty and the data end at 2026-08-31 23:00 UTC. The threshold is now
+2026-08-31; the last cut is therefore 2026-08-28 (weeks to 2026-09-04 are not
+scored). Separately, the 8-day gap assertion caught a corrupt cache file (BID
+May 2024, 744 rows of zeros stored during rate limiting); it was deleted and
+re-downloaded, and a scan of all 562 monthly files now finds no non-monotonic or
+all-zero file. Neither change looked at any result.

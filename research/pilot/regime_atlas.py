@@ -419,7 +419,7 @@ def main() -> int:
     print(f"{'SMOKE ' if SMOKE else ''}H1 bars {len(t):,} {pd.to_datetime(t[0], unit='s'):%Y-%m-%d}.."
           f"{pd.to_datetime(t[-1], unit='s'):%Y-%m-%d}; weeks {len(cuts)}; valid {int(np.isfinite(sig).sum())}; big gaps {big}")
     if not SMOKE:
-        assert big == 0 and pd.to_datetime(t[-1], unit="s") >= pd.Timestamp("2026-09-01"), "cache incomplete: run later"
+        assert big == 0 and pd.to_datetime(t[-1], unit="s") >= pd.Timestamp("2026-08-31"), "cache incomplete: run later"
     Y, cur, nxt, q = targets(sig, rv, ret)
     T = traces(h, t, cuts, rv, rng, ret, sig, nbar)
     import external_traces as X  # noqa: E402
