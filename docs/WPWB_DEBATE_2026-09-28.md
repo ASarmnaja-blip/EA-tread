@@ -1724,3 +1724,151 @@ Codex's outlook_power.py result is adopted: a two-score gate on ~130 weeks
 needs ~0.35 paired-score SD for ~78% power, and a per-bin ±5-point
 reliability veto passes a perfectly calibrated forecast only ~2% of the time;
 the gate is dropped.
+
+## Round 7 โ€” Codex (edge search in bp)
+
+**Verdict:** the negative promotion decision is safe: no tested cell earned an
+edge claim, and the VWAP result does not deserve project alpha. The mechanics
+mostly implement the frozen design, but this is an ex-post residual comparison,
+not a causal random-entry benchmark. Several qualifications below should be
+carried into Part 46.
+
+### 1. Code audit
+
+- **Signal/outcome timing is correct.** `core.Ctx` and the six setup functions
+  read bar `i` only after that M15 bar has closed. `fwd[H]` enters at
+  `open[i+1]` and exits at `close[i+H]`, so the holding period contains exactly
+  H M15 bars. No price look-ahead appears in the family P&L.
+- **Holding-period contiguity and rollover exclusion are substantially
+  correct.** Because resampled M15 timestamps are strictly increasing and
+  900-second aligned, the endpoint equality at lines 51-55 implies that every
+  bar from entry through exit is contiguous. The 21:00-UTC day key correctly
+  rejects a position whose held interval crosses the maintenance rollover.
+  There are two boundary omissions: the code does not require
+  `t[i+1]-t[i] == 900`, so a signal immediately before a maintenance/weekend
+  gap can enter at the first bar after that gap; and the era mask is applied
+  only to signal bar `i`, so a final-era signal may exit just beyond the era
+  boundary. The former occurred in the source universe (for example, 13 raw
+  VWAP signals have a non-contiguous signal-to-entry transition). These are
+  small, but the first is a stale-signal path not declared in the preregistration.
+  A rerun would need a new version, not an in-place repair.
+- **The non-overlap rule is correct.** After keeping signal `i`, another signal
+  is accepted only at `j >= i+H`. The old trade exits at the close of `i+H`
+  and the new trade enters at the open of `j+1`, so they do not overlap. The
+  rule is applied after each test's ATR filter, as the wording implies.
+- **The control is not a deployable causal control.** It is the full-era mean
+  unsigned forward return for every eligible bar in the same causal ATR decile
+  and session, multiplied by the signal direction. DEV never uses LATER, so
+  this is not a DEV/LATER leak. It is acceptable as a clearly labelled
+  *descriptive ex-post residualization*. It uses future bars within the era and
+  the signal outcomes themselves, however, so it cannot represent the
+  expectation known at entry. Self-inclusion normally attenuates a real family
+  effect toward zero; full-era averaging can either create or remove a
+  difference when a family is concentrated in an early/late sub-regime. The
+  bootstrap treats the estimated bin means as fixed and therefore does not
+  propagate that nuisance-estimation or time-composition uncertainty. A causal
+  confirmation would need past-only rolling means, or cross-fitted/matched
+  controls with the entire control construction repeated inside resampling.
+- **Cost cancellation is algebraically exact for the coded estimand.** Family
+  net is `d*raw_return - cost(entry)` and coded control net is
+  `d*bin_mean - cost(the same signal entry)`, hence their difference is exactly
+  `d*(raw_return-bin_mean)`. This does not estimate the actual bp cost of random entries;
+  it deliberately assigns both arms the signal's entry-price cost. The separate
+  `mean net bp > 0` gate is implemented.
+- **The week bootstrap has the declared broad shape.** It resamples whole
+  seven-day clusters, retains unequal weekly trade counts through ratio-of-sums,
+  recentres the bootstrap distribution, and applies the add-one correction.
+  The clusters are Unix-epoch weeks (Thursday 00:00 UTC), not named calendar
+  weeks; this is not fatal but should have been declared. It captures
+  within-week dependence, not dependence across adjacent weeks. More
+  importantly, 4,000 draws are thin for alpha 0.00208: the tail has only about
+  eight expected exceedances at the decision boundary and Monte Carlo SE is
+  about 0.00072. The add-one formula is correct, but the tail is too noisy for
+  a close pass/fail decision. The present p-values are nowhere near the gate,
+  so this does not rescue any result.
+
+### 2. Preregistration versus implementation
+
+The 6 families, 2 horizons, ATR cutoff, cost, entry/exit prices, primary
+pass/candidate rules, Bonferroni denominator and era-specific controls are
+implemented. The following are undeclared, missing, or materially looser:
+
+1. `hist.load_history()` does not enforce canonical input. If the canonical
+   snapshot is absent it falls back to mutable/local-plus-MT5 history. The run
+   did use the present canonical snapshot, but the script should fail closed
+   rather than silently change the registered data source.
+2. Era membership is based on signal time only; the preregistration does not
+   declare cross-boundary outcomes. Signal-to-entry contiguity is also not
+   checked, as noted above.
+3. The descriptive tercile table contains 1,000-replicate p-values even though
+   it was registered as non-hypothesis-testing output. They should not be read
+   inferentially.
+4. The self-check's 3,000 candidate signals, H=4 only, 800 bootstrap draws,
+   p<0.05 threshold, and lack of a numerical acceptance band were not frozen.
+   It prints a result but cannot fail the pipeline.
+5. Two registered cells were not evaluable: expansion/top-third has DEV n=0
+   at both horizons (LATER n=3, below the n=30 reporting floor). Thus the honest
+   count is **0 passes among 22 evaluable cells, plus 2 structurally empty
+   cells**, while `0/24` remains only a grid-level bookkeeping statement.
+
+### 3. Self-check
+
+It is not adequate validation of the inferential pipeline. One null rejection
+in 30 trials gives the printed 3%, but 30 Bernoulli trials cannot distinguish
+3% from 5% with useful precision. It tests at 0.05, not at the actual 0.00208
+decision threshold; with only 800 resamples that threshold is barely resolved.
+The planted test uses a very large +4 bp shift on roughly thousands of random
+candidate entries and therefore says little about power for the VWAP cell with
+n=250. A useful check would simulate at each representative family count and
+direction/bin/time profile, evaluate the actual family alpha, include nulls
+with week persistence and time-varying bin means, and predeclare an acceptance
+interval. The present uniform random signals also do not expose the full-era
+control bias faced by real signals: random dates are spread across the era,
+whereas a setup can cluster in particular sub-regimes or occupy a material
+share of a sparse bin. Recomputing/cross-fitting controls inside each simulation
+is required to test that failure mode.
+
+### 4. VWAP lead and forward alpha
+
+The H=16 (4 h), top-third VWAP row has DEV n=250, diff +3.528 bp, CI
+[-2.459, +9.218], p=0.236, and LATER n=266, diff +4.347 bp. From the DEV CI,
+the cluster-effective per-signal SD is approximately 47.1 bp. The observed
+rate is about 98 top-third signals/year across the two eras. If the full mined
+3.53 bp effect were real, a frozen one-sided test with 80% power would require
+about 1,100 signals even after spending the **entire** alpha=0.05 reserve
+(about 11 years); alpha=0.01 requires about 1,790 (18 years). A conventional
+two-sided 0.05 test, equivalently a one-sided 0.025 allocation here, needs
+about 1,400 (14 years). Winner's curse, cross-week dependence, and control
+estimation can only make those figures worse.
+
+Therefore this lead should be **dropped as a formal promotion hypothesis**:
+allocate **alpha_i = 0**. If its telemetry is already essentially free, it may
+remain an explicitly exploratory, zero-alpha passive log with no scheduled
+promotion claim, but it is not worth freezing a decade-plus confirmatory
+shadow. Reserving scarce alpha now would strand it under ledger rule 5 once
+forward observation begins.
+
+### 5. Part 46 wording
+
+- “Every family's net return is about -1.6 bp” is false as written. Examples
+  in DEV include VWAP H=4 all-ATR -0.32 bp, VWAP H=16/top +2.00 bp, and
+  breakout H=16 all-ATR -0.80 bp. The defensible statement is that no cell
+  passed, and most broad-family means are compatible with zero gross edge and
+  become unattractive after cost.
+- “There is no gross edge over the matched control in any family” should say
+  **no statistically validated gross edge**. Several point estimates are
+  positive; none satisfies the registered evidence gate.
+- “The ATR gate is not supported” is fair for this fixed search. “The
+  difference ... does not grow with ATR” is too general. The cited number is a
+  descriptive count-weighted pool of overlapping family outcomes, expansion
+  contributes no top-third DEV trades, and family-specific patterns differ.
+  Say instead: **none of the evaluable preregistered top-third family x horizon
+  tests passed, and the pooled descriptive gradient was not increasing in
+  DEV**. This rejects promotion of this gate; it does not establish that ATR
+  can never condition an edge.
+- The “only lead” label is also selective. VWAP H=4 (1 h) top-third is positive
+  and net-positive in both eras (DEV diff +1.88 bp, p=0.101; LATER +2.20 bp),
+  and its bottom/middle/top point estimates rise in both eras. It still fails,
+  but the workbook does not justify calling only the H=16 pattern a lead. The
+  clean summary is simply that several mined VWAP point estimates are positive
+  and none merits confirmation or alpha.

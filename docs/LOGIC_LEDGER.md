@@ -1860,3 +1860,36 @@ Demo90 cost, week-clustered bootstrap, Bonferroni α = 0.00208.
   edges of this size have never been provable here.
 - Half-width of the tests: ±1.6 bp (all ATR) and ±2.6 bp (top third): a
   per-trade difference below about 3 bp cannot be seen at these sample sizes.
+
+## Part 47 — what an edge must look like, and what the chart's own information map shows (2026-09-29)
+
+Pre-registered in `docs/CHART_MEASUREMENT_PREREG.md` (commit 0bc2514, before the
+run); code `research/pilot/chart_information_map.py`; output
+`data/chart_information_map.xlsx`.
+
+**Required edge (arithmetic).** Sharpe ≈ (e/s)·√N, so the years needed to
+*detect* an edge at 5%/80% are (2.8/Sharpe)² regardless of trade frequency:
+**about 7.8 years for Sharpe 1 and 2 years for Sharpe 2**. Per-trade SD is
+27 bp (1 h) and 54 bp (4 h); round-trip cost at 2024-26 prices is 0.80 bp. At
+1,000 trades a year: Sharpe 1 needs a net edge of 0.87 bp (1 h) / 1.72 bp
+(4 h), a win rate of 51.3%, and a signal rank-correlation with forward return
+of about 0.04; Sharpe 2 needs 0.08. The sibling program's real 51.7% reversal
+hit rate is exactly the size of edge that matters — and exactly the size that
+cost and short samples hide.
+
+**Information map (15 causal instruments, out-of-era, 30 primary tests).**
+- **Direction: 0 of 30 leads.** Largest ρ = 0.022 (trend_sep, 4 h; p = 0.04
+  against α = 0.00167). Best case if real: gross ≈ 0.8 × 0.022 × 54 bp ≈ 0.96 bp
+  per trade against 0.80 bp cost → ~0.16 bp net, about zero. A small same-sign
+  lean toward trend continuation appears in both eras (trend_sep, ret16,
+  dist_ll20: ρ 0.01–0.02) but it is not significant and below the 0.04 needed.
+- **Magnitude: strong, and it reproduces in both directions of transfer.**
+  hour of day ρ = 0.19 (DEV→LATER) / 0.30 (LATER→DEV) at 1 h, ATR percentile
+  0.15 / 0.21, current-bar range expansion 0.14 / 0.20, session 0.09 / 0.23,
+  all p < 0.001.
+
+**What kind of instrument the chart yields:** a *volatility/timing clock*
+(hour × ATR × range expansion) that tells how big the next 1–4 hours will be —
+useful for sizing, stop distance and when-not-to-trade — and no direction
+instrument. Not tested here: cross-asset intraday lead-lag (DXY, US500, silver,
+USDJPY, EURUSD → gold), whose M5 data exist only from 2023-09.
