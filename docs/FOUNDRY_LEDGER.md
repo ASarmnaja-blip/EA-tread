@@ -447,3 +447,12 @@ feed with ask entry / bid exit and $0.10 slippage per fill).
    (2022)**, +3.4, +1.2, +2.7, +26.4 (2026 partial): excluding 2026 it is about zero.
 Verdict: not a tool. Kept as a paper forward record HOD21-SHADOW-1 (zero alpha).
 Protocol Amendment 5 (below): swap is part of cost for any position held across the daily rollover.
+
+## Engine: swap now in every gate (Amendment 5), for candidates and their controls and selector menus.
+
+## Track B batch `trackB3` (registered 2026-09-30, before running) - CONTAMINATED hypothesis, stated
+Economically motivated (Asian physical demand vs Western selling) but **informed by Part 49's hour
+map and by the HOD_21L audit**, so its DISC/VAL/HOLD numbers are not clean evidence; the forward
+record would be. OVERNIGHT_LONG: long at the 16:00 New York H1 bar open (DST-aware), exit at the close
+of the bar before 08:00 London, stop 3 ATR. INTRADAY_SHORT: short 08:00 London -> close of the 15:00
+New York bar, stop 3 ATR. Plus mirrors. Time-free control, swap included. Cells ALL, NOTCALM/*, HIGH/*.

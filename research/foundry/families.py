@@ -781,3 +781,43 @@ def trackB2(H, D):
     """Time-defined variants re-scored with a time-free control (design correction)."""
     base = hod(H) + dow(D) + tom(D)
     return base + [mirror(s) for s in tom(D)]
+
+
+# ------------------------------------------------------------------ Track B batch 3: DST-aware overnight / intraday split
+def _local_hours(H, tz):
+    return pd.to_datetime(H.t, unit="s", utc=True).tz_convert(tz).hour.to_numpy()
+
+
+def overnight_split(H):
+    """OVERNIGHT_LONG: long at the H1 bar opening 16:00 New York (last hour before the daily break),
+    exit at the close of the bar before 08:00 London (London open), stop 3 ATR.
+    INTRADAY_SHORT: short at 08:00 London, exit at the close of the 15:00 New York bar, stop 3 ATR.
+    Both DST-aware; one trade per day each."""
+    ny = _local_hours(H, "America/New_York"); ld = _local_hours(H, "Europe/London")
+    out = []
+    ent = np.flatnonzero(ny == 16)
+    last = []
+    for e in ent:
+        j = e + 1
+        while j < len(H.t) and ld[j] != 8 and H.t[j] - H.t[e] < 20 * 3600:
+            j += 1
+        last.append(j - 1)
+    last = np.asarray(last)
+    ok = (last > ent) & np.isfinite(H.atr[ent])
+    out.append(Spec("OVERNIGHT_LONG", "H1", ent[ok], np.ones(ok.sum()), 3 * H.atr[ent][ok], np.full(ok.sum(), np.nan), last[ok]))
+    ent2 = np.flatnonzero(ld == 8)
+    last2 = []
+    for e in ent2:
+        j = e + 1
+        while j < len(H.t) and ny[j] != 16 and H.t[j] - H.t[e] < 14 * 3600:
+            j += 1
+        last2.append(j - 1)
+    last2 = np.asarray(last2)
+    ok2 = (last2 > ent2) & np.isfinite(H.atr[ent2])
+    out.append(Spec("INTRADAY_SHORT", "H1", ent2[ok2], -np.ones(ok2.sum()), 3 * H.atr[ent2][ok2], np.full(ok2.sum(), np.nan), last2[ok2]))
+    out += [mirror(s) for s in out]
+    return out
+
+
+def trackB3(H, D):
+    return overnight_split(H)

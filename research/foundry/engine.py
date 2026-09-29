@@ -245,7 +245,8 @@ def matched_control(B, cell_of_bar, ent, dirs, stop_atr, tgt_atr, hold, rng, rep
         a = B.atr[ce]
         ok = np.isfinite(a)
         ce, d_, a = ce[ok], dirs[ok], a[ok]
-        g, _ = simulate(B, ce, d_, stop_atr[ok] * a, tgt_atr[ok] * a, ce + hold[ok])
+        g, ex_ = simulate(B, ce, d_, stop_atr[ok] * a, tgt_atr[ok] * a, ce + hold[ok])
+        g = g - swap_bp(B, ce, ex_, d_)
         out.append(np.r_[g, np.full((~ok).sum(), np.nan)])
     return np.nanmean(np.vstack(out), axis=0)
 
@@ -338,3 +339,41 @@ def matched_control_trail(B, cell_of_bar, ent, dirs, init_mult, trail_mult, max_
         g, _ = simulate_trail(B, ce[ok], dirs[ok], a[ok], init_mult, trail_mult, max_bars)
         out.append(np.r_[g, np.full((~ok).sum(), np.nan)])
     return np.nanmean(np.vstack(out), axis=0)
+
+
+# ------------------------------------------------------------------ swap (protocol Amendment 5)
+_SWAP = {}
+
+
+def _swap_rate_series():
+    """Annual long-swap rate (%) by calendar day = US 2y yield + markup (calibrated to the measured
+    Exness $0.5493/oz/night at $4,154.5); before 2016 the first 2016 yield."""
+    if "s" in _SWAP:
+        return _SWAP["s"]
+    sys.path.insert(0, str(ROOT / "research" / "pilot"))
+    import external_traces as X
+    y2 = X.treasury("nominal")["BC_2YEAR"].dropna()
+    markup = 0.5493 / 4154.5 * 365 * 100 - float(y2.iloc[-1])
+    s = (y2 + markup).clip(lower=0)
+    _SWAP["s"] = (s, float(s.iloc[0]))
+    return _SWAP["s"]
+
+
+def swap_bp(B, ent, ex, dirs):
+    """Long positions pay one night per daily rollover (taken at 21:30 UTC) between the entry open and
+    the exit bar's close; the Wednesday rollover counts 3 nights. Shorts: 0."""
+    s, s0 = _swap_rate_series()
+    ent = np.asarray(ent, int); ex = np.asarray(ex, int)
+    t0 = B.t[ent]; t1 = B.t[ex] + B.step
+    r0 = (t0 - 21 * 3600 - 1800) // 86400 + 1                     # first rollover day index after entry
+    r1 = (t1 - 21 * 3600 - 1800) // 86400                         # last rollover day index before exit close
+    out = np.zeros(len(ent))
+    days = pd.to_datetime(t0, unit="s").normalize()
+    rate = s.reindex(days, method="ffill").to_numpy()
+    rate = np.where(np.isfinite(rate), rate, s0)
+    for i in np.flatnonzero((np.asarray(dirs) > 0) & (r1 >= r0)):
+        dd = np.arange(r0[i], r1[i] + 1)
+        dow = (dd + 3) % 7                                        # epoch day 0 = Thursday -> Monday = 0
+        nights = np.where(dow == 2, 3, np.where(dow >= 5, 0, 1)).sum()
+        out[i] = rate[i] / 100 / 365 * nights * 1e4
+    return out

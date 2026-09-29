@@ -33,6 +33,7 @@ def menu_trades(menu_fn):
     for vi, sp in enumerate(specs):
         B, cb = (H, cbH) if sp.tf == "H1" else (D, cbD)
         g, ex = E.simulate(B, sp.ent, sp.dirs, sp.stop, sp.tgt, sp.last, sp.eprice)
+        g = g - E.swap_bp(B, sp.ent, ex, sp.dirs)                 # Amendment 5
         ep = sp.eprice if sp.eprice is not None else B.o[sp.ent]
         sb = sp.stop / ep * 1e4
         net = g - E.COST_BP
