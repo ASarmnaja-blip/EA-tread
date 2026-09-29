@@ -1961,3 +1961,33 @@ against gold's own move over 5/15/30 min) plus gold's own return; outcome gold
 - Together with Parts 30-47 this closes the last intraday trace class that the
   project's data can measure. What remains is not another feature but more
   independent history: see the ledger note in `docs/WPWB_DEBATE_2026-09-28.md`.
+
+## Part 49 — long-history H1 search on Dukascopy 2003-2015: families 0/24, one information-map lead (2026-09-29)
+
+Pre-registered in `docs/H1_LONG_HISTORY_PREREG.md` (commit 59cfb01), code
+`research/pilot/edge_search_h1.py` (78ef645), run once after the H1 cache
+reached 2015-12 (152 months, no gaps; input sha256 30f6b77f…c684d1d4). DEV
+2003-05..2012-12 (60,311 bars), CONFIRM 2013-01..2015-12 (18,087 bars, untouched
+by any project result). Self-check: random-signal rejection 5%, planted +3 bp
+found 100%.
+
+- **A1, six families × {1 h, 4 h} × {all ATR, top ATR third}: 0 of 24 pass in
+  DEV, 0 confirmed.** The one DEV p below 0.06 is *negative* (sweep 4 h, −1.69 bp).
+  Expansion top-third has too few signals (16 in DEV). The families that looked
+  best in 2021-2026 (vwap top-third) are negative here (−2.2 and −5.0 bp).
+- **A2, 15 chart instruments × 2 horizons, DEV → CONFIRM: 1 lead of 30**, α =
+  0.000926: **hour of day (UTC) → the next 4 h**: ρ = +0.0402 (p = 0.0001), reverse
+  transfer ρ = +0.0183 (p = 0.0015), implied gross 1.40 bp vs 0.80 bp cost. Nothing
+  else comes near (next |ρ| 0.026, p 0.03).
+- The hour map (drift removed, 4 h, by signal hour, DEV | CONFIRM): positive in
+  the overnight/Asian hours (21-04 UTC, +0.3 to +2.1 bp | +0.4 to +4.9) and
+  negative into the London open (05-07 UTC, −0.8 to −3.8 | −3.0 to −6.9). Signs
+  agree in 16 of 24 hours, mainly those two groups. Individual hours are small
+  (|t| < 2.6). Overall 4 h drift changed sign between eras (+1.41 bp DEV, −1.40
+  CONFIRM), so the lead is not the drift.
+- Caveat set by earlier parts: Part 47 measured hour of day on 2021-2026 M15
+  and found ρ < 0.01 for direction. A pattern present in 2003-2015 and absent in
+  2021-2026 would be a decayed edge, not a live one. The next test is exactly
+  that: freeze the rule, then apply it to eras it has never seen.
+- Plan B (`docs/PLAN_B_DAILY_PREREG.md`) is **not** run: the decision tree sends
+  a LEAD to a frozen rule first.
