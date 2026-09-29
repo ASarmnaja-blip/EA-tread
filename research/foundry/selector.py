@@ -471,13 +471,6 @@ def main_regime(batch, menu_fn) -> int:
     return 0
 
 
-if __name__ == "__main__":
-    if sys.argv[1] == "nominate":
-        sys.exit(nominate_ew(sys.argv[2], int(sys.argv[3]), sys.argv[4] if len(sys.argv) > 4 else "menu1"))
-    mode = sys.argv[3] if len(sys.argv) > 3 else ""
-    fn = {"portfolio": main_portfolio, "ew": main_ew, "bar": main_bar, "regime": main_regime}.get(mode, main)
-    sys.exit(fn(sys.argv[1], sys.argv[2]))
-
 
 def run_portfolio_shrunk(T, cuts, names, Ls=(52, 104, 156), k_shrink=50.0):
     """Rank = mean over lookbacks of the rank of each variant's family-shrunk trailing mean R;
@@ -515,3 +508,11 @@ def run_portfolio_shrunk(T, cuts, names, Ls=(52, 104, 156), k_shrink=50.0):
         for r in sel.itertuples():
             out.append(dict(wk=k, et=r.et, v=r.v, name=r.name, net=r.net, R=r.R, stress=r.stress, ctrl=ctrl, score=0.0))
     return pd.DataFrame(out)
+
+
+if __name__ == "__main__":
+    if sys.argv[1] == "nominate":
+        sys.exit(nominate_ew(sys.argv[2], int(sys.argv[3]), sys.argv[4] if len(sys.argv) > 4 else "menu1"))
+    mode = sys.argv[3] if len(sys.argv) > 3 else ""
+    fn = {"portfolio": main_portfolio, "ew": main_ew, "bar": main_bar, "regime": main_regime}.get(mode, main)
+    sys.exit(fn(sys.argv[1], sys.argv[2]))

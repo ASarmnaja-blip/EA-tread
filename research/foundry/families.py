@@ -448,3 +448,51 @@ def extend_hold(sp, factor=4):
 def menu5(H, D):
     base = menu4(H, D)
     return base + [extend_hold(s) for s in base if s.tf == "H1"]
+
+
+# ------------------------------------------------------------------ batch 18: WPWB forecast-scaled weekly OCO
+def wpwb_oco(H):
+    """At each Friday 22:15 UTC cut: sigma_hat = sqrt(WPWB B0 EWMA forecast of this week's RV).
+    Reference C = open of the week's first H1 bar. Buy stop at C*(1 + k*s), sell stop at C*(1 - k*s)
+    (s = sigma_hat in fraction); first touch wins (both in one bar -> skip, conservative); stop back
+    to C (distance k*s*C) or at the opposite level (2k*s*C); exit at the week's last H1 bar."""
+    import vol as V
+    cuts = np.arange(E_FIRST_CUT, int(H.t[-1]), 7 * 86400, dtype=np.int64)
+    rv_raw, _, _, nb = V.weekly_rv(H.t, H.c, H.h, H.l, cuts)
+    f = V.ewma_forecast(V.mask_invalid(rv_raw, nb))
+    close_t = H.t + 3600
+    out = {}
+    for k in (0.25, 0.5, 1.0):
+        for sm in (1, 2):
+            out[(k, sm)] = ([], [], [], [], [])
+    for w in range(1, len(cuts)):
+        if not np.isfinite(f[w]):
+            continue
+        a = cuts[w]
+        i0 = np.searchsorted(H.t, a, side="right"); i1 = np.searchsorted(close_t, a + 7 * 86400, side="right") - 1
+        if i1 - i0 < 80:
+            continue
+        C = H.o[i0]; s = np.sqrt(f[w]) / 1e4
+        hi, lo = H.h[i0:i1 + 1], H.l[i0:i1 + 1]
+        for k in (0.25, 0.5, 1.0):
+            up, dn = C * (1 + k * s), C * (1 - k * s)
+            hu = hi >= up; hd = lo <= dn
+            j = np.flatnonzero(hu | hd)
+            if not len(j) or (hu[j[0]] and hd[j[0]]):
+                continue
+            j = int(j[0]); d = 1.0 if hu[j] else -1.0
+            ep = max(up, H.o[i0 + j]) if d > 0 else min(dn, H.o[i0 + j])
+            for sm in (1, 2):
+                L = out[(k, sm)]
+                L[0].append(i0 + j); L[1].append(d); L[2].append(sm * k * s * C); L[3].append(i1); L[4].append(ep)
+    res = []
+    for (k, sm), (e, d, st, la, ep) in out.items():
+        res.append(Spec(f"WPWB_OCO_k{k}_s{'C' if sm == 1 else 'OPP'}", "H1", e, d, st, np.full(len(e), np.nan), la, ep))
+    return res
+
+
+E_FIRST_CUT = int(np.datetime64("2003-05-09T22:15:00", "s").astype(np.int64))
+
+
+def batch18(H, D):
+    return wpwb_oco(H)

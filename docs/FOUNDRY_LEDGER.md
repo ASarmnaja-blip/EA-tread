@@ -259,3 +259,14 @@ weeks is. t 2.9 over 411 DISC weeks ~ annual Sharpe 1.0; t 1.48 over 294 VAL wee
 Ranking stabilised: each variant's trailing mean R shrunk toward its family's mean (k = 50 trades),
 ranked separately for L = 52, 104, 156 weeks, ranks averaged; hold the top 20 % in NORMAL/HIGH
 weeks, equal risk per variant-week, menu4. 1 candidate.
+
+### Result `batch17` (1 candidate; cumulative 2,901)
+DISC pass 0: shrunk multi-lookback ranking t_R 2.71, excess t 3.61 - no gain. Every selector variant
+plateaus at DISC t 2.7-2.9 / VAL t 1.3-1.5.
+
+## Batch `batch18` — WPWB forecast-scaled weekly OCO (registered 2026-09-30, before running)
+Uses WPWB's own output directly. At each Friday cut, s = sqrt(B0 EWMA forecast of the week's RV);
+C = open of the week's first H1 bar; buy stop at C(1 + k s), sell stop at C(1 - k s); first touch
+wins (both in one bar: skip); stop back at C (distance k s) or at the opposite level (2 k s); exit at
+the week's last bar. k in {0.25, 0.5, 1.0} x stop {C, opposite}; cells ALL, NOTCALM/*, HIGH/*; both
+directions only. 18 candidates.
