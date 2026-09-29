@@ -1,4 +1,97 @@
-# Regime map and regime-change traces — pre-registration v1 (2026-09-29)
+# Regime atlas and regime-change traces — pre-registration v2 (2026-09-29)
+
+> v2 replaces v1 (kept below for the record) after Codex Round 8 (15 objections,
+> all accepted). Operator approved the plan on 2026-09-29 ("อนุมัติ"). Committed
+> before any real-data run of `research/pilot/regime_atlas.py`. The output is a
+> **historical trace atlas**, not permission to build or switch on any tool.
+
+## v2.0 Clock, calendar, validity
+- Cuts C_t every Friday 22:15 UTC from 2003-05-09; week W_t = (C_{t-1}, C_t],
+  H1 bars assigned by close time; σ_t = √RV_t (bp). Dukascopy H1 bid only,
+  2003-05..2026-09, single vendor; run only when the cache is complete, gap-free.
+- The weekly calendar is never compressed. A week with < 80 H1 bars is invalid:
+  it is not scored, a state at an invalid week is unknown, and any invalid week
+  breaks runs, streaks, spells and multi-week returns.
+
+## v2.1 Part 1 — descriptive map (full-sample; NOT available at any cut)
+Every Part 1 output is stamped "full-sample, descriptive". Equal-frequency bands
+of σ over the whole history (LOW/MID/HIGH — bands, not discovered natural
+regimes), with the within-band distribution (5/25/50/75/95%) and a boundary-
+sensitivity table (quartiles, quintiles). Trend band from the 13-week
+cumulative log return. Volatility spells and 9-state spells are defined
+separately: completed spells, median and 25/75% length, censored spells
+reported, gaps break spells. Week-to-week transition matrix with 26-week
+moving-block bootstrap 95% intervals; shares by era.
+
+## v2.2 Causal state (used by Parts 2-3 only)
+At C_t, q1_t, q2_t = terciles of σ over the 52 calendar weeks W_{t-52}..W_{t-1}
+(≥ 40 valid), linear interpolation; σ ≥ q2 is HIGH, σ < q1 is LOW, else MID.
+The **same** edges classify σ_t (state_t) and σ_{t+1} (state'_{t+1}). Trend
+state at C_t: z13 = r13 / √(Σ RV of those 13 weeks), UP if z13 ≥ 0.5, DOWN if
+≤ −0.5, else FLAT (13 consecutive valid weeks needed).
+
+## v2.3 Targets (6), each for W_{t+1} from information at C_t
+| id | risk set | event |
+|---|---|---|
+| V-change | state_t known | state'_{t+1} ≠ state_t |
+| V-on | state_t ∈ {LOW, MID} | state'_{t+1} = HIGH |
+| V-off | state_t = HIGH | state'_{t+1} ≠ HIGH |
+| D-counterweek | 4 consecutive valid weeks and abs(r4) ≥ 0.5·√(Σ RV of those 4) | sign(r_{t+1}) ≠ sign(r4) |
+| D-state-change | trend state known at t and after W_{t+1} | trend state changes |
+| Next-sign (a forecast, not a change target) | r_{t+1} ≠ 0 | r_{t+1} > 0 |
+
+Also reported: the full causal 3 × 3 next-state transition counts and a
+multinomial baseline (past transition frequencies).
+
+## v2.4 Traces (21) — see `docs/REGIME_TRACE_DICTIONARY.md`
+Continuous (17): sig_ratio, sig4_26, ewma_ratio, range_exp, accel, gvz_lvl,
+gvz_chg, gvz_prem, r4z, r13z, r26z, dist_ma50, dist_ma200, dist_hi52, dist_lo52,
+streak, up_share8. Categorical (2): month, week_of_month. Binary (2): qend_flag,
+**lag_short** (the just-completed week had < 100 bars). The v1 coming-week
+short flag is dropped: no point-in-time holiday schedule is held.
+
+## v2.5 Part 2 — prequential accuracy for ALL 21 × 6 = 126 pairs (no survivor gate)
+- At each origin t a one-feature model is fitted on the pair's past risk-set
+  weeks whose outcomes are known by C_t: continuous → 3 quantile bins, edges from
+  the past; categorical/binary → its categories; each cell's rate shrunk toward
+  the past base rate with a beta-binomial prior of strength 10. Orientation is
+  implicit in the bin rates (no full-sample sign choice).
+- Ready only when the pair's past has ≥ 30 events and ≥ 30 non-events.
+- Two windows, both reported: expanding, and trailing 260 weeks.
+- Baseline: the past base rate in the same window.
+- Metrics, overall and by the causal state at issuance (V-on: LOW vs MID; V-off:
+  HIGH only; others: LOW/MID/HIGH): Brier skill vs baseline, AUC of predictions,
+  and a causal alarm (prediction strictly above the 80th percentile of the
+  pair's ≥ 50 past predictions; ties do not alarm; prevalence reported) with
+  confusion counts, precision, lift, sensitivity, false-positive rate
+  FP/(FP+TN) and false-discovery share FP/(TP+FP). 95% intervals by 26-week
+  moving-block bootstrap.
+- Rolling picture: Brier skill in 5-year windows stepped yearly, per pair —
+  birth, peak and decay are what history is for.
+- **No p-value gate, no survivor.** Of 126 pairs ~6 intervals are expected to
+  exclude 0 by chance at 95%. Self-check before results are read: 40 synthetic
+  AR(1) traces (φ = 0.9, same missing pattern as sig_ratio) through the same
+  pipeline must give 1-10% of Brier-skill intervals excluding 0.
+- A count table (risk weeks, events, first ready week per pair) is printed first.
+  Any cell with < 20 events or < 20 non-events is not printed.
+
+## v2.6 Part 3 — no tool from history
+Two routes, each needing its own later pre-registration: (a) change-alarm tool —
+prospective timestamped shadow record, minimum current sample, calibration
+metric, decay detector, automatic off rule; (b) observed-regime tool — built on
+the causal current state even if change is not forecastable, with forward
+confirmation. No setup, no size increase and no activation follows from this
+atlas; an unconfirmed alarm may at most stay shadow or reduce risk under a
+separately frozen conservative rule.
+
+## v2 stated in advance
+Volatility change targets: modest skill expected (clustering, GVZ). Direction
+targets: none expected. Power (Codex): a null excludes only roughly AUC ≥ 0.65
+for V-on/V-off and ≥ 0.57 for balanced direction targets.
+
+---
+
+# (superseded) v1 — kept for the record
 
 Operator instruction (Thai, 2026-09-29): use all the data going back; see what
 market conditions exist, low / medium / high, clearly separated; then look for

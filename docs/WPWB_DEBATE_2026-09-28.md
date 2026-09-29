@@ -1887,3 +1887,365 @@ audit points apply to `chart_information_map.py`: its bin means are fitted on
 the other era only (so no future leak between eras), but the bootstrap treats
 those bin means as fixed and adjacent-week dependence is not modelled — both
 attenuate nothing in the direction tests, which found no lead.
+
+## Round 8 — Codex (regime map design)
+
+**Verdict:** the map is suitable as an explicitly ex-post description, but Part
+2 is not ready to run as an inferential screen and Part 3 is not yet an
+authorised route to a tool. The target clock is ambiguous, the document lists
+21 traces while budgeting for 20, the proposed circular-shift reference set
+cannot resolve the family-wise alpha, and selecting on the full history before
+showing nominally walk-forward accuracy makes the latter post-selection. Most
+importantly, a full-history survivor gate favours permanent effects and can
+discard exactly the finite-lived effects Part 50 says history must describe.
+
+1. **Severity: critical — The volatility transition target does not have one
+   frozen clock or one threshold.**
+
+   **Problem:** At a Friday cut, “the week” and “this week” do not identify
+   indices. If the just-completed week is classified with the preceding 52
+   weeks but the coming week is classified with a newly rolled 52-week window,
+   a reported transition can be caused by the quantile moving rather than by
+   volatility crossing a common boundary. “Given this week is not HIGH” is a
+   legitimate forecast-time risk set, not an unconditional target; its AUC,
+   base rate and alarm rate must be computed only in that risk set. The same
+   applies to V-off.
+
+   **Concrete proposed change:** Define cuts and intervals algebraically. For
+   example, at cut `C_t`, `W_t=[C_{t-1},C_t)` is complete and `W_{t+1}` is the
+   target. Compute `(q1_t,q2_t)` from the 52 calendar slots before `W_t`, freeze
+   those same edges for both `sigma_t` and `sigma_{t+1}`, and define
+   `V-on_t = 1[sigma_t < q2_t and sigma_{t+1} >= q2_t]` on the non-HIGH risk
+   set; define V-off symmetrically. Alternatively retain rolling state labels,
+   but then explicitly call the estimand a *label transition* and separately
+   count transitions caused only by edge motion. Freeze inclusivity, quantile
+   interpolation, and the treatment of ties.
+
+2. **Severity: critical — The ex-post terciles leak into Part 2 and cannot
+   select an operational regime.**
+
+   **Problem:** Full-history volatility and trend cut-offs are acceptable for
+   a retrospective atlas: they deliberately answer where each historical week
+   sits relative to the entire 2003–2026 distribution. They are unavailable at
+   an old cut and at the next live cut. Stage 3 nevertheless asks for accuracy
+   “inside LOW, MID and HIGH weeks” without saying which taxonomy or whether it
+   means the current or outcome week. Using the Part 1 label there is ex-post
+   conditioning; using the outcome-week label is outright look-ahead. For
+   V-on, the current risk set contains only LOW/MID, and for V-off it contains
+   only HIGH, so a three-row table is not even defined for those targets.
+
+   **Concrete proposed change:** Stamp every Part 1 output **full-sample,
+   descriptive, not available at the cut**. In Parts 2–3 use only the causal
+   current-week label whose edges were known at `C_t`; state that stratification
+   is by the state at forecast issuance. Show V-on by causal LOW versus MID,
+   V-off within causal HIGH, and direction targets across all three. Only this
+   causal state may later route a regime-specific tool.
+
+3. **Severity: critical — The full-history survivor gate conflicts with Part
+   50 and contaminates Stage 2.**
+
+   **Problem:** A single AUC over all 23 years is an average-persistence test.
+   An effect that is strong for five years and then dies, or reverses sign, can
+   fail even though its birth, useful life and decay are exactly what Part 50
+   says to measure. Conversely, a trace is declared a survivor using every
+   outcome and then only survivors receive “walk-forward” reporting on those
+   same outcomes. The predictions may be past-only, but the decision to show
+   them knows the future; their AUC and hit rates are post-selection estimates,
+   not an independent accuracy stage.
+
+   **Concrete proposed change:** Produce prequential predictions and rolling
+   accuracy for **all** registered trace-target pairs. Treat full-history tests
+   as descriptive discovery only, and show fixed rolling windows or
+   predeclared eras with effect sign, onset, decay and uncertainty; do not
+   require cross-era sign agreement. If a formal historical shortlist is still
+   wanted, nest the screening inside each forecast origin. Tool activation must
+   then require genuinely prospective, timestamped current evidence with a
+   decay/off rule; historical “survival” alone must never turn a tool on.
+
+4. **Severity: critical — Circular shifts are not a valid generic null here.**
+
+   **Problem:** A circular shift is exact only under joint shift-invariance.
+   This project assumes structural change; volatility targets, volatility
+   traces and overlapping return windows are persistent, while price-distance
+   and GVZ histories are nonstationary. Excluding lags shorter than 52 weeks
+   does not remove multi-year clusters. Wrapping 2026 beside 2003 adds an
+   artificial seam. GVZ has a late-start block of missing values, so shifting
+   the trace also changes which target weeks and event counts enter each null
+   replicate unless a fixed common sample is imposed. Month, week-of-month and
+   quarter-end have deterministic calendar phase, for which arbitrary weekly
+   shifts test a different null again.
+
+   **Concrete proposed change:** Do not use one shift null for all traces. Freeze
+   a fixed common-valid sample per trace-target. For continuous persistent
+   traces, use a prevalidated time-series null such as a null logistic/rank
+   model with moving-block or stationary-bootstrap score inference and blocks
+   long enough to cover the measured dependence; report sensitivity to longer
+   blocks. Test calendar effects with a categorical seasonal model and
+   dependence-robust/year-block inference, not shifted numeric month ranks.
+   Validate type-I error on synthetic Markov/clustered, nonstationary and
+   missing-block cases at the actual family threshold before the real run.
+
+5. **Severity: critical — The proposed reference set cannot resolve the stated
+   alpha, and the multiplicity count is wrong.**
+
+   **Problem:** The frozen list contains **21**, not 20, traces, hence 84 tests
+   and Bonferroni alpha `0.05/84 = 0.000595`, not 0.000625. With about 1,200
+   weeks there are at most about 1,096 distinct circular offsets after excluding
+   both directions within 52 weeks; even all 1,199 non-zero offsets have minimum
+   exact p about 0.000833. Drawing 5,000 offsets with replacement merely repeats
+   them and creates false numerical resolution. Under the stated 5,000-draw
+   calculation, p takes values 0.0002 apart; at alpha 0.000625 only 0, 1 or 2
+   exceedances pass, and the Monte Carlo standard error at the boundary is
+   about 0.00035 (56% relative). With the correct 84-test alpha, two
+   exceedances give p=0.000600 and no longer pass.
+
+   **Concrete proposed change:** Correct the registry and denominator first.
+   Then either reduce the confirmatory family drastically and use a null with
+   enough genuinely distinct resamples, or remove the historical p-value
+   survivor gate and emphasize effect sizes, dependence-robust intervals and
+   prospective confirmation. Repeating a finite set of shifts is not a fix.
+
+6. **Severity: high — AUC is not defined consistently for the proposed trace
+   types.**
+
+   **Problem:** Numeric AUC imposes an ordering on month 1–12 even though
+   December and January are adjacent and a seasonal effect can be nonmonotone.
+   Week-of-month is at best ordinal. Quarter-end and short-week are binary and
+   cannot form five bins. Sign-free `|AUC-0.5|` also requires the predictive
+   orientation to be learned using past data only; choosing the sign from the
+   full sample would leak. A nonlinear five-bin model and a monotone AUC test
+   are testing different alternatives.
+
+   **Concrete proposed change:** Give each trace a registered type and matching
+   statistic/model: rank AUC for continuous/ordinal monotone traces, a
+   categorical likelihood or properly scored probability model for month, and
+   two-level estimates for flags. Freeze how inverse orientation is learned at
+   each cut. If the detection statistic and Stage 2 model test different
+   alternatives, say so and control the enlarged family.
+
+7. **Severity: high — Transition counts, not 1,200 weeks, determine power.**
+
+   **Problem:** After the first 52 weeks, a top-tercile state supplies roughly
+   380 HIGH and 760 non-HIGH risk weeks. If states were independent, V-on and
+   V-off would each have about `2/9 × 1,200 ≈ 267` transitions (about 255 after
+   warm-up). That is an implausible upper benchmark. If a HIGH spell averages
+   3–6 weeks, the expected number of onsets and offsets is only about
+   `380/L_HIGH = 64–127`; at five weeks it is about 76. Onsets and offsets differ
+   by at most an endpoint, and these spell boundaries—not the repeated weeks
+   inside spells—are the effective positive observations. A two-state Markov
+   process with a five-week HIGH spell and one-third occupancy has lag-1
+   correlation about 0.7 and only roughly 210 state-equivalent independent
+   observations out of 1,200. GVZ starts in 2009 and has fewer again.
+
+   An optimistic independent-rank calculation at alpha 0.000625 gives 80%
+   power only around AUC 0.62–0.67 for 64–127 V-on/V-off events; at the
+   five-week-spell example it is approximately 0.646 for V-on (80/720) and
+   0.654 for V-off (80/320). A balanced direction target with about 600/600
+   reaches approximately AUC 0.571. Serial dependence, missing weeks,
+   trace-specific start dates and selection make all of these lower bounds on
+   the detectable effect. Era-specific V transition estimates may contain only
+   15–30 events.
+
+   **Concrete proposed change:** Add a pre-run count-and-power table based on
+   risk weeks, events, completed spells and trace availability. Predeclare that
+   a null result for V-on/V-off excludes only large AUCs (roughly >=0.65 under a
+   plausible spell length), not weak-to-moderate predictability. Require minimum
+   event and non-event counts before any overall, era or regime metric is
+   printed.
+
+8. **Severity: high — Five-bin frequency models are neither uniformly fair nor
+   adequately specified.**
+
+   **Problem:** “Five bins” does not say quantile versus fixed edges, which
+   population sets edges, how ties/out-of-range values are handled, or what
+   smoothing applies. At a 260-calendar-week origin, V-off has only about 87
+   eligible weeks and perhaps 15–25 transitions: roughly 17 observations and
+   only a few events per bin. Binary flags cannot use five bins; month should
+   not. Expanding forever also makes a supposed current-regime model increasingly
+   dominated by old eras, contrary to the decay requirement. Different trace
+   start dates make raw accuracy comparisons unfair.
+
+   **Concrete proposed change:** Use one registered, regularised one-feature
+   probability model appropriate to each trace type (or at most three
+   quantile bins with beta-binomial shrinkage), fitted only on the eligible risk
+   set. Base readiness on minimum eligible events/non-events, not an arbitrary
+   260 calendar weeks. Freeze a trailing or decay-weighted window and an off
+   rule, or report expanding and fixed trailing windows as separately labelled
+   descriptive estimands. Give GVZ both its own available-sample result and a
+   common-sample comparison; never rank unlike sample periods as if equal.
+
+9. **Severity: high — “Hit rate at the top 20% alarm” is underdefined.**
+
+   **Problem:** Hit rate commonly means sensitivity, while the draft appears to
+   mean precision. A causal 80th-percentile alarm threshold, its tie rule, and
+   the population over which 20% is measured are not frozen. A five-bin model
+   produces many tied probabilities. Precision alone can look impressive when
+   the base rate is high, and “false-alarm rate” can mean either `FP/(FP+TN)` or
+   `FP/(TP+FP)`.
+
+   **Concrete proposed change:** At each origin set the threshold from past
+   eligible predictions only and freeze ties/randomisation. Report alarm
+   prevalence, base rate, precision, lift `precision/base`, sensitivity/event
+   capture, false-positive rate `FP/non-events`, false-discovery share
+   `FP/alarms`, and Brier/log score or calibration. A random 20% alarm has
+   expected precision equal to base rate, sensitivity 20% and false-positive
+   rate 20%. Put dependence-aware confidence intervals on every difference or
+   lift, and include confusion counts so the operator can see the small
+   numerator.
+
+10. **Severity: critical — Several as-of and leakage rules need to be explicit
+    before data are opened.**
+
+    **Problem:** “All known at the Friday cut” is not enough. The stored GVZ
+    file has dates but no historical publication timestamps or vintages; prior
+    review established that only the row dated no later than Thursday is
+    defensible. A coming-week realised short-week/bar-count flag is future
+    information unless it is an archived schedule known at the cut. The 52-week
+    high/low can leak an unfinished bar if bar-open timestamps are confused with
+    close timestamps. GVZ squared divided by realised variance needs a frozen
+    denominator and unit/annualisation convention.
+
+    **Concrete proposed change:** Create a trace dictionary with an equation,
+    exact source, release/as-of time, lag, units, lookback endpoints, missing
+    rule and first valid cut for all 21 traces. GVZ must be latest row dated
+    `<= Thursday`, with the vintage limitation disclosed; compare its one-week
+    change to the preceding admissible Thursday. Use only H1 bars whose close
+    time is `<= C_t`; compute the 52-week high/low over a half-open window ending
+    at the cut. Define the risk-premium denominator as last completed-week (or
+    through-Thursday) RV and keep that choice fixed. Rename an observed
+    just-completed-week short flag as `lag_short`; a coming-week flag may enter
+    only from a point-in-time holiday schedule frozen at the cut.
+
+11. **Severity: high — Invalid weeks and overlap are not part of the estimand
+    yet.**
+
+    **Problem:** Skipping an invalid week and then treating the adjacent valid
+    observations as consecutive creates false regime transitions, return
+    streaks and four-week trends. Compressing to the last 52 *valid* weeks can
+    turn a 52-calendar-week feature into a longer, variable horizon. Adjacent
+    D-rev labels reuse heavily overlapping four-week histories; most traces
+    also overlap, so ordinary binomial or iid AUC intervals are invalid.
+
+    **Concrete proposed change:** Retain the complete weekly calendar. Invalid
+    target weeks are unscored; an invalid current week makes V risk-set status
+    unknown; any gap breaks a run/streak/transition; four-week returns require
+    four consecutive valid calendar weeks. Specify the minimum valid count for
+    every 26/52-week feature without compressing time. Publish the valid and
+    missing denominator for every pair, and use block/episode uncertainty for
+    Stage 2 metrics.
+
+12. **Severity: high — D-rev is a counter-trend week, not an operationally
+    established direction reversal.**
+
+    **Problem:** Opposite sign to an unthresholded four-week cumulative return
+    calls a tiny down week after a tiny positive month a reversal, while one
+    large counter-week does not prove that direction changed rather than paused.
+    It also leaves “last 4 weeks' return” ambiguous between a cumulative
+    close-to-close return and four separate signs. D-up forecasts direction but
+    is not a change target. Zero returns, flats and price endpoints are not
+    specified.
+
+    **Concrete proposed change:** Keep the timely label only if renamed
+    `D-counterweek`, defined as the sign of the coming close-to-close weekly log
+    return versus the sign of the trailing four-week cumulative log return, and
+    require a predeclared causal trend-strength/deadband condition. Add a
+    separate confirmed direction-state transition target—for example a causal
+    UP/FLAT/DOWN trailing-trend state changing after the new week—and accept its
+    later scoring. Label D-up `next-week sign`, not reversal. Report all three
+    separately rather than claiming one answers “the market changes direction.”
+
+13. **Severity: high — The targets do not cover the operator's three-state
+    regime-change question.**
+
+    **Problem:** V-on/V-off only test entry to and exit from HIGH. They omit
+    LOW-to-MID, MID-to-LOW, direct LOW/HIGH jumps, and the general probability
+    that next week's LOW/MID/HIGH state differs. The 3 x 3 historical map and a
+    binary high boundary therefore answer different questions. No target tests
+    a change in the Part 1 trend state either.
+
+    **Concrete proposed change:** Add a causal three-state transition table and
+    at minimum `V-change = 1[state_{t+1} != state_t]`, with the same frozen
+    cut-time edges; report origin-to-destination counts and a multinomial
+    probability baseline. Retain V-on/off as operational high-risk subtargets.
+    If LOW/MID transitions are deliberately out of scope, narrow the operator
+    claim from “regime change” to “HIGH-volatility onset/offset.” Do not add
+    many pairwise significance tests without a new multiplicity and power plan.
+
+14. **Severity: medium — The descriptive map needs spell and uncertainty
+    conventions.**
+
+    **Problem:** A global-tercile map guarantees approximately one-third in
+    each volatility class overall, so class shares are not evidence of three
+    natural clusters. “Clearly separated” is not established by terciles. Mean
+    run length is biased if left/right-censored spells are treated as complete,
+    and invalid weeks can split or join spells. A 3 x 3 cell's “vol-level run”
+    is also different from a run of the full nine-state regime.
+
+    **Concrete proposed change:** Call the bins equal-frequency descriptive
+    bands, show their overlapping within-class distributions and boundary
+    sensitivity, and do not claim discovered natural regimes without a
+    separate clustering/stability analysis. Define vol-state and nine-state
+    spells separately; show median, quantiles, completed-spell count and
+    censoring, with gaps breaking spells. Put block-bootstrap intervals on
+    transition probabilities and spell summaries where they are compared.
+
+15. **Severity: critical — Part 3 has no current-evidence bridge and conflates
+    forecasting change with operating in an observed regime.**
+
+    **Problem:** “A survivor gets a tool” makes a historical discovery a tool
+    licence, contrary to Part 50's rule that current and forward evidence turns
+    an effect on. The converse is also wrong: failure to forecast next week's
+    transition does not prevent a separately tested risk/control tool from
+    operating in a regime already observed at the cut. The no-survivor sentence
+    therefore both overstates a historical null and unnecessarily blocks
+    regime-conditioned risk work.
+
+    **Concrete proposed change:** Separate two paths. A **change-alarm tool**
+    needs a registered prospective shadow record, calibration/decision metric,
+    minimum current sample, decay detector and automatic off rule. An
+    **observed-regime tool** may be researched from the causal current state
+    even if change is unpredictable, under its own preregistration and forward
+    confirmation. No trading setup or size increase follows from this map; at
+    most an unconfirmed alarm may remain shadow or reduce risk under a separately
+    frozen conservative rule.
+
+### What is missing for the operator's goal
+
+The operator needs one joined, cut-time table: current causal LOW/MID/HIGH and
+direction state; probabilities for each next-state transition; base rates;
+alarm confusion counts, lift and intervals; and rolling start/peak/decay dates
+for each trace. Add the general V-change/transition-matrix target, a defensible
+direction-state-change target, exact trace registry, fixed-valid denominators,
+rolling/prequential accuracy for every trace, and a prospective current-evidence
+gate. Drop the fiction that a full-history p-value proves a trace is live, drop
+numeric AUC/five-bin treatment of calendar categories, and drop D-up from the
+“change” label (it may remain as a separately named sign forecast). Do not add
+regime-specific setup searches until the observed-regime definition and the
+prospective activation/decay protocol are frozen.
+
+### Readiness
+
+**Not ready to run v1.** It becomes ready for a descriptive historical run
+after objections 1–2 and 10–14 are incorporated. It becomes ready for an
+inferential trace run only after the 21/84-test ledger, null/resampling method,
+power/count floor, prequential model, alarm metrics and post-selection handling
+in objections 3–9 are frozen and their null self-check passes. Even then the
+result is a historical trace atlas, not permission to build or activate a
+tool; the prospective bridge in objection 15 must be separately registered.
+
+## Round 8 — Claude responses
+
+All 15 objections accepted; nothing rebutted. The largest error was one of spirit
+as well as method: a full-history survivor gate is a persistence test, the very
+thing Part 50 renounced. v2 (docs/REGIME_MAP_PREREG.md) freezes one clock with
+the same causal edges for sigma_t and sigma_{t+1}; stamps Part 1 as full-sample
+description; replaces shift-null p-values and the survivor gate by prequential
+accuracy for all 126 pairs, rolling 5-year windows (birth/peak/decay), 26-week
+block-bootstrap intervals and a synthetic-trace self-check; types each trace
+(continuous/categorical/binary) with a shrunk bin-rate model; adds V-change and
+the full causal transition table; renames D-rev to D-counterweek with a
+deadband; adds a trend-state-change target and demotes next-week sign to a
+separate forecast; replaces the coming-week short flag with lag_short; writes a
+trace dictionary (docs/REGIME_TRACE_DICTIONARY.md); and splits Part 3 into a
+prospective change-alarm route and an observed-regime route, neither licensed
+by history.
