@@ -134,6 +134,13 @@ def main() -> int:
         run("outlook_shadow.py")
     except Exception as e:
         log(f"outlook shadow error: {e!r}")
+    try:  # paper-only selector record (docs/FOUNDRY_SHADOW_PREREG.md); never alters the report
+        r = subprocess.run([PY, str(ROOT / "research" / "foundry" / "selector_shadow.py")], cwd=ROOT,
+                           capture_output=True, text=True, encoding="utf-8",
+                           env={**os.environ, "PYTHONIOENCODING": "utf-8"}, timeout=3600)
+        log(f"selector_shadow.py exit {r.returncode}: {r.stdout.strip()[-400:]}")
+    except Exception as e:
+        log(f"selector shadow error: {e!r}")
     log("done")
     return rc
 

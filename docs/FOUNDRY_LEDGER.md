@@ -319,3 +319,14 @@ ATR is negative for most. H1 gold continuation is a few-hour effect, not a trend
 ## Batch `batch23` (registered 2026-09-30, before running)
 CONT_UNION_h6 and MOM_L6_z1.5 entries split by agreement with the D1 trend (previous completed
 day's close vs its SMA50): WITH / AGAINST; cells ALL, NOTCALM/*; both directions. 8 candidates.
+
+### Result `batch23` (8 candidates; cumulative 2,979)
+DISC pass 0. D1-trend alignment changes nothing (WITH t_R 1.73-1.79, AGAINST 1.44-1.88).
+
+## Forward shadow of the best tool (2026-09-30)
+Historical periods are exhausted or sealed, so the best WPWB-native tool (nomination 5) is now
+logged forward every Friday, paper only: `docs/FOUNDRY_SHADOW_PREREG.md`,
+`research/foundry/selector_shadow.py`. Dry run for the week of 2026-09-25: NORMAL, 36 variants
+selected, mostly long/trend (long bias after the 2024-26 rally, stated in the prereg).
+Engine change (no effect on earlier results): the regime grid now includes the next cut after
+the data so the coming week's class exists at a cut.

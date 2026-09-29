@@ -79,7 +79,7 @@ def regimes(t, c, h, l):
     """Per week k (cuts[k], cuts[k] + 7d]: vol cell from the B0 forecast known at cuts[k],
     trend cell from the 13 completed weeks before cuts[k]."""
     end = int(t[-1]) + 3600
-    cuts = np.arange(FIRST_CUT, end, WEEK, dtype=np.int64)
+    cuts = np.arange(FIRST_CUT, end + WEEK, WEEK, dtype=np.int64)   # includes the next cut after the data
     rv_raw, _, ret, nb = V.weekly_rv(t, c, h, l, cuts)
     rv = V.mask_invalid(rv_raw, nb)
     f = V.ewma_forecast(rv)
@@ -100,15 +100,8 @@ def regimes(t, c, h, l):
 _CACHE = {}
 
 
-def load():
-    if "bars" in _CACHE:
-        return _CACHE["bars"]
-    df = load_kind("hour")
-    t = df.index.astype("datetime64[s]").astype(np.int64).to_numpy()
-    o = ((df.o + df.ao) / 2).to_numpy(float); hh = ((df.h + df.ah) / 2).to_numpy(float)
-    ll = ((df.l + df.al) / 2).to_numpy(float); cc = ((df.c + df.ac) / 2).to_numpy(float)
-    sp = ((df.ao - df.o) / df.o * 1e4).to_numpy(float)
-    cuts, cell = regimes(t, df.c.to_numpy(float), df.h.to_numpy(float), df.l.to_numpy(float))
+def build(t, o, hh, ll, cc, sp, bid_c, bid_h, bid_l):
+    cuts, cell = regimes(t, bid_c, bid_h, bid_l)
     wk = np.searchsorted(cuts, t, side="left") - 1          # bar opening after cuts[k] -> week k
     idx = pd.to_datetime(t, unit="s")
     H = Bars(t, o, hh, ll, cc, _atr(hh, ll, cc, 14), wk, sp, idx.hour.to_numpy(), idx.dayofweek.to_numpy(),
@@ -125,8 +118,45 @@ def load():
               _atr(D.h.to_numpy(float), D.l.to_numpy(float), D.c.to_numpy(float), 20),
               np.searchsorted(cuts, dt, side="left") - 1, D.sp.to_numpy(float), np.zeros(len(D), int),
               pd.DatetimeIndex(didx).dayofweek.to_numpy(), pd.DatetimeIndex(didx).year.to_numpy(), 86400)
-    _CACHE["bars"] = (H, Dd, cuts, cell)
+    return H, Dd, cuts, cell
+
+
+def _dukascopy_arrays():
+    df = load_kind("hour")
+    t = df.index.astype("datetime64[s]").astype(np.int64).to_numpy()
+    o = ((df.o + df.ao) / 2).to_numpy(float); hh = ((df.h + df.ah) / 2).to_numpy(float)
+    ll = ((df.l + df.al) / 2).to_numpy(float); cc = ((df.c + df.ac) / 2).to_numpy(float)
+    sp = ((df.ao - df.o) / df.o * 1e4).to_numpy(float)
+    return t, o, hh, ll, cc, sp, df.c.to_numpy(float), df.h.to_numpy(float), df.l.to_numpy(float)
+
+
+def load():
+    if "bars" in _CACHE:
+        return _CACHE["bars"]
+    _CACHE["bars"] = build(*_dukascopy_arrays())
     return _CACHE["bars"]
+
+
+def load_spliced(until=None):
+    """Dukascopy H1 mid up to its last bar, then the live Exness H1 feed (bid + half the recorded
+    spread ~ mid; measured offset vs Dukascopy mid $0.04) for later bars. `until`: drop bars
+    opening at or after this epoch (so a forecast made at a cut cannot see later bars)."""
+    sys.path.insert(0, str(ROOT / "research" / "wpwb_weekly"))
+    import bars as BR
+    t, o, hh, ll, cc, sp, bc, bh, bl = _dukascopy_arrays()
+    m = BR.market(BR.load_bars(frozen=False))
+    te = np.asarray(m.t, np.int64)
+    k = te > t[-1]
+    half = np.asarray(m.sp_in, float)[k] / 2
+    eo, eh, el, ec = (np.asarray(getattr(m, a), float)[k] for a in ("o", "h", "l", "c"))
+    esp = (2 * half) / ec * 1e4
+    cat = lambda a, b: np.r_[a, b]
+    arrs = [cat(t, te[k]), cat(o, eo + half), cat(hh, eh + half), cat(ll, el + half), cat(cc, ec + half), cat(sp, esp),
+            cat(bc, ec), cat(bh, eh), cat(bl, el)]
+    if until is not None:
+        keep = arrs[0] < until
+        arrs = [a[keep] for a in arrs]
+    return build(*arrs)
 
 
 # ------------------------------------------------------------------ simulation
