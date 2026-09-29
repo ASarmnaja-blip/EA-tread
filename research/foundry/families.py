@@ -585,3 +585,25 @@ def batch22(H, D):
             x.stop = 2.0 * H.atr[x.ent]                    # stop distance in price for R units
             out.append(x)
     return out
+
+
+# ------------------------------------------------------------------ batch 23: H1 continuation x D1 trend alignment
+def d1_trend_at_h1(H, D, n=50):
+    """+1 / -1 if the previous completed D1 close is above / below its SMA(n), per H1 bar."""
+    sma = pd.Series(D.c).rolling(n).mean().to_numpy()
+    sgn = np.sign(D.c - sma)                                   # known at the end of day d
+    tday = (H.t - 22 * 3600) // 86400
+    dday = (D.t - 22 * 3600) // 86400
+    j = np.searchsorted(dday, tday, side="left") - 1           # last COMPLETED day before the H1 bar's day
+    out = np.where(j >= 0, sgn[np.clip(j, 0, len(sgn) - 1)], 0.0)
+    return np.nan_to_num(out)
+
+
+def batch23(H, D):
+    tr = d1_trend_at_h1(H, D)
+    out = []
+    for b_ in [cont_union(H, 6)] + [x for x in mom_h1(H) if x.name == "MOM_L6_z1.5"]:
+        al = tr[b_.ent] == b_.dirs
+        for nm, m in (("WITH", al), ("AGAINST", (tr[b_.ent] != 0) & ~al)):
+            out.append(Spec(f"{b_.name}@D1{nm}", "H1", b_.ent[m], b_.dirs[m], b_.stop[m], b_.tgt[m], b_.last[m]))
+    return out

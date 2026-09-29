@@ -311,3 +311,11 @@ Continuation profits come from a fat right tail that fixed holds cut off. Entrie
 SHOCK_CONT k2/k3 h6, MOM L6/L12 z1.5, PDHL_BRK, ASIA_BRK_t0; exit by an initial 2 ATR stop that
 ratchets to (best extreme so far - m ATR), m in {2, 3}, max 120 h; overlapping positions allowed
 (each trade 1R); cells ALL, NOTCALM/*, HIGH/*; both directions. 14 specs x 3 cells = 42 candidates.
+
+### Result `batch22` (42 candidates; cumulative 2,971)
+DISC pass 0. Trailing stops are worse than fixed holds: best t_R 1.94 (MOM_L6 trail 3 ATR); trail 2
+ATR is negative for most. H1 gold continuation is a few-hour effect, not a trend to ride.
+
+## Batch `batch23` (registered 2026-09-30, before running)
+CONT_UNION_h6 and MOM_L6_z1.5 entries split by agreement with the D1 trend (previous completed
+day's close vs its SMA50): WITH / AGAINST; cells ALL, NOTCALM/*; both directions. 8 candidates.
