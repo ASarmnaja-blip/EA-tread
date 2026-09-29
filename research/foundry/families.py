@@ -607,3 +607,66 @@ def batch23(H, D):
         for nm, m in (("WITH", al), ("AGAINST", (tr[b_.ent] != 0) & ~al)):
             out.append(Spec(f"{b_.name}@D1{nm}", "H1", b_.ent[m], b_.dirs[m], b_.stop[m], b_.tgt[m], b_.last[m]))
     return out
+
+
+# ------------------------------------------------------------------ batch 25: volume, spread and GVZ information
+def _hour_norm(x, hour, n=20):
+    """x divided by its trailing median at the same hour of day over the previous n occurrences."""
+    s = pd.Series(x)
+    med = s.groupby(hour).transform(lambda z: z.shift(1).rolling(n, min_periods=10).median())
+    return (s / med).to_numpy()
+
+
+def volume_split(H):
+    vr = _hour_norm(H.v, H.hour)                      # bar volume vs its usual level at that hour
+    out = []
+    bases = [cont_union(H, 6)] + [x for x in shock(H, follow=True) if x.name == "SHOCK_CONT_k2_h6"] \
+        + [x for x in mom_h1(H) if x.name == "MOM_L6_z1.5"]
+    for b in bases:
+        r = vr[b.ent - 1]                              # the signal bar's volume ratio (known at its close)
+        for nm, m in (("VOLHI", r >= 1.5), ("VOLLO", r < 1.0)):
+            out.append(Spec(f"{b.name}@{nm}", "H1", b.ent[m], b.dirs[m], b.stop[m], b.tgt[m], b.last[m]))
+    return out
+
+
+def spread_shock(H):
+    """Bar i-1 opened with a spread > 3x its usual level at that hour (a liquidity gap); at bar i
+    follow or fade bar i-1's move, hold 3 h, stop 2 ATR."""
+    sr = _hour_norm(H.spread_bp, H.hour)
+    r1 = np.r_[np.nan, np.diff(H.c)]
+    sig = (sr > 3) & np.isfinite(r1) & (np.abs(r1) > 0.5 * H.atr)
+    ent = np.flatnonzero(sig[:-1]) + 1
+    keep = nonoverlap(ent, ent + 2); ent = ent[keep]
+    a = H.atr[ent]; ok = np.isfinite(a); ent, a = ent[ok], a[ok]
+    d = np.sign(r1[ent - 1])
+    return [Spec("SPREAD_SHOCK_FOLLOW", "H1", ent, d, 2 * a, np.full(len(ent), np.nan), ent + 2),
+            Spec("SPREAD_SHOCK_FADE", "H1", ent, -d, 2 * a, np.full(len(ent), np.nan), ent + 2)]
+
+
+def gvz_jump(D):
+    """GVZ close of day d-1 (US close, before gold's next 22:00 UTC day starts... conservative: use
+    the GVZ row dated two calendar days before the D1 bar's label) up > +10 % day on day:
+    follow or fade gold's move of that day, hold 1 / 3 days, stop 2 ATR."""
+    g = pd.read_csv(E_ROOT / "data" / "external" / "GVZ_History.csv")
+    g["d"] = pd.to_datetime(g.DATE, format="%m/%d/%Y"); g = g.set_index("d").GVZ.astype(float)
+    chg = g.pct_change()
+    lab = pd.to_datetime(D.t + 2 * 3600, unit="s").normalize()           # trading-day label
+    known = chg.reindex(lab - pd.Timedelta(days=2), method="ffill").to_numpy()
+    r_prev = np.r_[np.nan, D.c[1:] - D.c[:-1]]                           # gold move of day d-1 (close to close)
+    sig = np.isfinite(known) & (known > 0.10) & np.isfinite(r_prev)
+    ent = np.flatnonzero(sig)
+    a = D.atr[ent]; ok = np.isfinite(a); ent, a = ent[ok], a[ok]
+    d = np.sign(r_prev[ent])
+    out = []
+    for hold in (1, 3):
+        out.append(Spec(f"GVZ_JUMP_FOLLOW_h{hold}", "D1", ent, d, 2 * a, np.full(len(ent), np.nan), ent + hold - 1))
+        out.append(Spec(f"GVZ_JUMP_FADE_h{hold}", "D1", ent, -d, 2 * a, np.full(len(ent), np.nan), ent + hold - 1))
+    return out
+
+
+from pathlib import Path as _P
+E_ROOT = _P(__file__).resolve().parents[2]
+
+
+def batch25(H, D):
+    return volume_split(H) + spread_shock(H) + gvz_jump(D)

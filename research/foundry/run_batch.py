@@ -43,7 +43,7 @@ def run_spec(sp, H, D, cellbar_H, cellbar_D, rng):
     return B, cb, gross, ctrl
 
 
-ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"], "batch5": ["ALL", "NOTCALM/*"], "batch18": ["ALL", "NOTCALM/*", "HIGH/*"], "batch19": ["ALL"], "batch22": ["ALL", "NOTCALM/*", "HIGH/*"], "batch23": ["ALL", "NOTCALM/*"]}   # WPWB router: only these pre-declared cells
+ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"], "batch5": ["ALL", "NOTCALM/*"], "batch18": ["ALL", "NOTCALM/*", "HIGH/*"], "batch19": ["ALL"], "batch22": ["ALL", "NOTCALM/*", "HIGH/*"], "batch23": ["ALL", "NOTCALM/*"], "batch25": ["ALL", "NOTCALM/*"]}   # WPWB router: only these pre-declared cells
 
 
 def disc_pass_R(r):

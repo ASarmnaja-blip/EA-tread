@@ -127,6 +127,7 @@ def _dukascopy_arrays():
     o = ((df.o + df.ao) / 2).to_numpy(float); hh = ((df.h + df.ah) / 2).to_numpy(float)
     ll = ((df.l + df.al) / 2).to_numpy(float); cc = ((df.c + df.ac) / 2).to_numpy(float)
     sp = ((df.ao - df.o) / df.o * 1e4).to_numpy(float)
+    _CACHE["vol"] = df.v.to_numpy(float)
     return t, o, hh, ll, cc, sp, df.c.to_numpy(float), df.h.to_numpy(float), df.l.to_numpy(float)
 
 
@@ -134,6 +135,7 @@ def load():
     if "bars" in _CACHE:
         return _CACHE["bars"]
     _CACHE["bars"] = build(*_dukascopy_arrays())
+    _CACHE["bars"][0].v = _CACHE["vol"]
     return _CACHE["bars"]
 
 

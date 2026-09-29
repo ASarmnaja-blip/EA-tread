@@ -340,3 +340,11 @@ Two selector variants on menu4, L104, top 20 %, equal risk per variant-week, NOR
 DISC pass 0: stress-cost ranking t_R 2.81, 4-week hold t_R 2.74. Plateau confirmed.
 Meta: a next VAL look needs p < 0.05/12 (t ~ 2.64 in 2015-20) while every selector gives t 1.3-1.5
 there; further selector tweaks are DISC descriptives only, not routes to a pass.
+
+## Batch `batch25` — information not used before (registered 2026-09-30, before running)
+(1) Volume: CONT_UNION_h6, SHOCK_CONT_k2_h6, MOM_L6_z1.5 split by the signal bar's tick volume
+relative to its usual level at that hour (>= 1.5x VOLHI, < 1.0x VOLLO). (2) Liquidity: an H1 bar
+opening with spread > 3x its usual level at that hour and moving > 0.5 ATR -> follow or fade next
+bar, hold 3 h. (3) GVZ: GVZ up > 10 % on the day (row dated two days before the D1 bar, conservative)
+-> follow or fade gold's previous-day move, hold 1 / 3 days. Cells ALL, NOTCALM/*; both directions.
+12 specs, 24 candidates.
