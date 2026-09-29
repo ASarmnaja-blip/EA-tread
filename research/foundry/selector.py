@@ -253,7 +253,7 @@ def main_ew(batch, menu_fn) -> int:
         MIN_COUNT = 5
     T, cuts, cell, names = menu_trades(menu_fn)
     rows, keep = [], {}
-    grid = ((52, True), (104, True)) if menu_fn != "menu1" else ((52, True), (104, True), (104, False))
+    grid = ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
     for L, ew in grid:
         name = f"TOPQ_L{L}{'_EW' if ew else ''}"
         S = run_portfolio(T, cuts, L, False)

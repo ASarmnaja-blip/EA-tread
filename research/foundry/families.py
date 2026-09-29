@@ -408,3 +408,32 @@ def menu3(H, D):
         if len(s.ent) and np.nanmedian(s.stop / ep * 1e4) >= 100:
             out.append(s)
     return out
+
+
+def hod(H):
+    """Hour-of-day variants: enter at the open of UTC hour h every weekday, hold 4 h, stop 2 ATR,
+    fixed direction (long and short separately)."""
+    out = []
+    for h in range(24):
+        ent = np.flatnonzero(H.hour == h)
+        ent = ent[ent + 3 < len(H.t)]
+        a = H.atr[ent]; ok = np.isfinite(a)
+        ent, a = ent[ok], a[ok]
+        for d, nm in ((1.0, "L"), (-1.0, "S")):
+            out.append(Spec(f"HOD_{h:02d}{nm}", "H1", ent, np.full(len(ent), d), 2 * a, np.full(len(ent), np.nan), ent + 3))
+    return out
+
+
+def dow(D):
+    out = []
+    for w in range(5):
+        lab = pd.to_datetime(D.t + 2 * 3600, unit="s").dayofweek.to_numpy()
+        ent = np.flatnonzero(lab == w)
+        a = D.atr[ent]; ok = np.isfinite(a); ent, a = ent[ok], a[ok]
+        for d, nm in ((1.0, "L"), (-1.0, "S")):
+            out.append(Spec(f"DOW_{w}{nm}", "D1", ent, np.full(len(ent), d), 2 * a, np.full(len(ent), np.nan), ent))
+    return out
+
+
+def menu4(H, D):
+    return menu2(H, D) + hod(H) + dow(D)

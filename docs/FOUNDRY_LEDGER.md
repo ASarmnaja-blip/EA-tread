@@ -187,3 +187,15 @@ excess t 0.83-0.85). Selection information lives in the intraday variants.
 ## Batch `batch12` (registered 2026-09-30, before running)
 WPWB-conditioned ranking: TOPQ_L104_EW on menu2, scoring each variant only on trades from past
 weeks with the same WPWB volatility class as the coming week (CALM / NORMAL / HIGH). 1 candidate.
+
+### Result `batch12` (1 candidate; cumulative 2,894)
+DISC pass 0. WPWB-conditioned ranking = unconditioned: t_R 2.56, excess t 3.76, +0.057 R, ~+42 R/yr.
+Knowing the week's volatility class does not improve which tools to pick.
+Diagnosis: selection alpha ~ IC x sqrt(breadth); menu2 is ~120 variants but many near-duplicates.
+More independent variants, including ones whose edge is known to switch on and off with the era
+(hour of day decayed after 2015, Part 49), are what a selector can exploit.
+
+## Batch `batch13` (registered 2026-09-30, before running)
+Menu `menu4` = menu2 + 48 hour-of-day variants (enter at the open of UTC hour h, hold 4 h, stop
+2 ATR, long and short) + 10 day-of-week variants (D1, one day, long and short). Candidates:
+TOPQ_L52_EW, TOPQ_L104_EW on menu4 (2).
