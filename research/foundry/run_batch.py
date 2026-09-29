@@ -17,16 +17,26 @@ sys.path.insert(0, str(HERE))
 import engine as E  # noqa: E402
 import families as FAM  # noqa: E402
 
-OUT = E.ROOT / "data" / "foundry"
+OUT = E.ROOT / "data" / "foundry" / ("trackB" if E.TRACK == "B" else "")
 STATE = OUT / "state.json"
 TRIALS = OUT / "trials.csv"
+GLOBAL_STATE = E.ROOT / "data" / "foundry" / "state.json"     # HOLD looks are shared across tracks
 MAX_VAL = 20
 
 
 def state():
-    if STATE.exists():
-        return json.loads(STATE.read_text())
-    return dict(m_val=0, hold_looks=0, disc_candidates=0, batches=[])
+    st = json.loads(STATE.read_text()) if STATE.exists() else dict(m_val=0, hold_looks=0, disc_candidates=0, batches=[])
+    if E.TRACK == "B":
+        st["hold_looks"] = json.loads(GLOBAL_STATE.read_text())["hold_looks"]
+    return st
+
+
+def save_state(st):
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    STATE.write_text(json.dumps(st, indent=1))
+    if E.TRACK == "B":
+        g = json.loads(GLOBAL_STATE.read_text()); g["hold_looks"] = st["hold_looks"]
+        GLOBAL_STATE.write_text(json.dumps(g, indent=1))
 
 
 def run_spec(sp, H, D, cellbar_H, cellbar_D, rng):
@@ -43,7 +53,7 @@ def run_spec(sp, H, D, cellbar_H, cellbar_D, rng):
     return B, cb, gross, ctrl
 
 
-ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"], "batch5": ["ALL", "NOTCALM/*"], "batch18": ["ALL", "NOTCALM/*", "HIGH/*"], "batch19": ["ALL"], "batch22": ["ALL", "NOTCALM/*", "HIGH/*"], "batch23": ["ALL", "NOTCALM/*"], "batch25": ["ALL", "NOTCALM/*"], "batch25b": ["ALL", "NOTCALM/*"], "batch1nr7fix": ["ALL"], "batch26": ["ALL", "NOTCALM/*", "HIGH/*"]}   # WPWB router: only these pre-declared cells
+ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"], "batch5": ["ALL", "NOTCALM/*"], "batch18": ["ALL", "NOTCALM/*", "HIGH/*"], "batch19": ["ALL"], "batch22": ["ALL", "NOTCALM/*", "HIGH/*"], "batch23": ["ALL", "NOTCALM/*"], "batch25": ["ALL", "NOTCALM/*"], "batch25b": ["ALL", "NOTCALM/*"], "batch1nr7fix": ["ALL"], "batch26": ["ALL", "NOTCALM/*", "HIGH/*"], "trackB1": ["ALL", "NOTCALM/*", "HIGH/*"]}   # WPWB router: only these pre-declared cells
 
 
 def disc_pass_R(r):
@@ -125,7 +135,7 @@ def main(batch) -> int:
                         + ([Hd.assign(stage="HOLD", batch=batch)] if len(Hd) else []))
     allrows.to_csv(TRIALS, mode="a", header=not TRIALS.exists(), index=False)
     st["batches"].append(batch)
-    STATE.write_text(json.dumps(st, indent=1))
+    save_state(st)
     pd.set_option("display.width", 250); pd.set_option("display.max_columns", 30)
     cols = ["cand", "cell", "n", "gross", "net", "t_net", "excess", "t_excess", "yr_pos", "long_share"]
     if useR:

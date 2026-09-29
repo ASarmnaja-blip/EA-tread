@@ -19,7 +19,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import engine as E  # noqa: E402
 import families as FAM  # noqa: E402
-from run_batch import OUT, STATE, TRIALS, state  # noqa: E402
+from run_batch import OUT, STATE, TRIALS, state, save_state  # noqa: E402
 
 WEEK = E.WEEK
 
@@ -140,7 +140,7 @@ def main(batch, menu_fn) -> int:
     for nm, S in keep.items():
         S.to_csv(OUT / f"{batch}_{nm}_trades.csv", index=False)
     st["batches"].append(batch)
-    STATE.write_text(json.dumps(st, indent=1))
+    save_state(st)
     # descriptive only: which champions the selector used in DISC
     best = R.sort_values("t_R", ascending=False).iloc[0].cand
     S = keep[best]
@@ -228,7 +228,7 @@ def main_portfolio(batch, menu_fn) -> int:
     for nm, S in keep.items():
         S.to_csv(OUT / f"{batch}_{nm}_trades.csv", index=False)
     st["batches"].append(batch)
-    STATE.write_text(json.dumps(st, indent=1))
+    save_state(st)
     return 0
 
 
@@ -330,7 +330,7 @@ def main_ew(batch, menu_fn) -> int:
     for nm, S in keep.items():
         S.to_csv(OUT / f"{batch}_{nm}_units.csv", index=False)
     st["batches"].append(batch)
-    STATE.write_text(json.dumps(st, indent=1))
+    save_state(st)
     return 0
 
 
@@ -363,7 +363,7 @@ def nominate_ew(tag, L, menu="menu1") -> int:
     pd.DataFrame(rows).assign(batch=tag).to_csv(TRIALS, mode="a", header=False, index=False)
     S.to_csv(OUT / f"nominate_{tag.replace(':', '_')}_units.csv", index=False)
     st.setdefault("nominated", []).append(tag)
-    STATE.write_text(json.dumps(st, indent=1))
+    save_state(st)
     return 0
 
 
@@ -426,7 +426,7 @@ def main_bar(batch, menu_fn) -> int:
     for nm, S in keep.items():
         S.to_csv(OUT / f"{batch}_{nm}_units.csv", index=False)
     st["batches"].append(batch)
-    STATE.write_text(json.dumps(st, indent=1))
+    save_state(st)
     return 0
 
 
@@ -485,7 +485,7 @@ def main_regime(batch, menu_fn) -> int:
     pd.concat(out).to_csv(TRIALS, mode="a", header=False, index=False)
     S.to_csv(OUT / f"{batch}_{name}_units.csv", index=False)
     st["batches"].append(batch)
-    STATE.write_text(json.dumps(st, indent=1))
+    save_state(st)
     return 0
 
 

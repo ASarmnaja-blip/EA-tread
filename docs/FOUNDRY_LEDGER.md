@@ -391,3 +391,12 @@ VAL, max 20 per batch - 4 NR4 were first). Session fades, NFP continuation, Mond
 
 ## Current-era test 1 (Amendment 3, registered 2026-09-30, before its HOLD number is seen)
 NR4_t1, both directions, cell NOTCALM/* (highest DISC t_R of the batch). HOLD look 3, alpha 0.00625.
+
+### Result current-era test 1
+HOLD **FAIL**: NR4_t1 NOTCALM 2021-26 343 trades, net -2.95 bp, -0.003 R, t_R -0.08, p 0.53
+(alpha 0.00625, look 3). Compression breakouts were a 2003-14 phenomenon; the current era is not a
+repeat of it for this family. Next HOLD alpha 0.003125.
+
+## Track B batch `trackB1` (registered 2026-09-30, before running; FOUNDRY_TRACK=B)
+Every family built so far (menu4 176 variants + batch26 + corrected GVZ jump) re-discovered on
+2015-20, cells ALL / NOTCALM/* / HIGH/*, both directions (mirrors cover the other side).

@@ -96,3 +96,13 @@ VAL may be tested on HOLD (2021-01..2026-08), spending the next alpha_j = 0.05 *
 HOLD look, with the same HOLD gate (net > 0 at 2 and 4 bp, excess > 0, p < alpha_j). A pass is
 reported as **era-specific** (failed 2015-20), needs an explicit on/off rule, and goes only to a
 Demo/paper forward test - never to real money without the operator.
+
+## Amendment 4 (2026-09-30) - Track B, recent-era discovery
+Every Track A finding came from 2003-14 and decayed (current-era test 1: NR4 in 2021-26 -0.003 R).
+CLAUDE.md section 5 asks for recent data first. Track B re-runs the search with DISC = 2015-01..
+2020-12 (the old VAL: burnt as validation, usable for discovery), VAL = 2021-01..2023-12,
+HOLD = 2024-01..2026-08, then the forward shadow. Same gates (R units), same leak test. Track B has
+its own VAL count M (state in data/foundry/trackB/) but **shares the global HOLD-look sequence**
+alpha_j = 0.05 * 2^-j with Track A (looks 1-3 already spent), so the total error budget stays 0.05.
+Known contamination: 2021-26 was seen by Track A for NR4_t1 NOTCALM and the void GVZ_JUMP rows, and
+the wider project mined 2021-26 on Exness M5 (Parts 18-50); Track B results carry that caveat.

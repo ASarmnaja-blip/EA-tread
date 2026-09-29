@@ -26,6 +26,11 @@ WEEK = 7 * 86400
 FIRST_CUT = int(np.datetime64("2003-05-09T22:15:00", "s").astype(np.int64))
 PERIODS = {"DISC": ("2003-05-01", "2015-01-01"), "VAL": ("2015-01-01", "2021-01-01"),
            "HOLD": ("2021-01-01", "2026-09-01")}
+import os as _os
+TRACK = _os.environ.get("FOUNDRY_TRACK", "A")
+if TRACK == "B":    # recent-era track (protocol Amendment 4)
+    PERIODS = {"DISC": ("2015-01-01", "2021-01-01"), "VAL": ("2021-01-01", "2024-01-01"),
+               "HOLD": ("2024-01-01", "2026-09-01")}
 CELLS = ["ALL"] + [f"{v}/{tr}" for v in ("CALM", "NORMAL", "HIGH") for tr in ("DOWN", "FLAT", "UP")]
 # marginal cells (added in batch2, docs/FOUNDRY_LEDGER.md): one axis only
 CELLS2 = CELLS + [f"{v}/*" for v in ("CALM", "NORMAL", "HIGH")] + [f"*/{tr}" for tr in ("DOWN", "FLAT", "UP")] + ["NOTCALM/*"]

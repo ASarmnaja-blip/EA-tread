@@ -58,7 +58,7 @@ def main(batch_fn, spec_name, cell) -> int:
     pd.DataFrame(rows).assign(batch=tag).to_csv(TRIALS, mode="a", header=False, index=False)
     pd.DataFrame(rows).to_csv(OUT / f"nominate_{spec_name}_{cell.replace('/', '-').replace('*', 'x')}.csv", index=False)
     st.setdefault("nominated", []).append(tag)
-    STATE.write_text(json.dumps(st, indent=1))
+    save_state(st)
     return 0
 
 

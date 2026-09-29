@@ -765,3 +765,13 @@ def batch26(H, D):
           session_fade(H, "FRIDAY_FADE", 7, 14, 20, 1.0, weekday=4),
           nfp_cont(H), monday_gap_cont(H)]
     return s
+
+
+def trackB1(H, D):
+    """Track B first batch: every setup family built so far (menu4 + batch26 + corrected GVZ jump),
+    re-discovered on 2015-20."""
+    seen, out = set(), []
+    for s in menu4(H, D) + batch26(H, D) + gvz_jump(D):
+        if s.name not in seen:
+            seen.add(s.name); out.append(s)
+    return out

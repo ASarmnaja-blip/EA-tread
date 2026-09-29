@@ -47,7 +47,7 @@ def main(batch_fn, spec_name, cell, dn) -> int:
     pd.DataFrame([dict(d, stage="DISC"), dict(h, stage="HOLD-current-era")]).assign(batch=tag).to_csv(
         TRIALS, mode="a", header=False, index=False)
     st.setdefault("current_era", []).append(tag)
-    STATE.write_text(json.dumps(st, indent=1))
+    save_state(st)
     return 0
 
 
