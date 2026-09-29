@@ -414,3 +414,36 @@ menu average), so no earlier gate decision is affected.
 ## Track B batch `trackB2` (registered 2026-09-30, before running)
 HOD (48), DOW (10), TOM long/short and their mirrors re-scored with the time-free control; cells ALL,
 NOTCALM/*, HIGH/*; both.
+
+### Result `trackB2` (182 candidates; Track B cumulative 713) - FIRST FULL PASS, under audit
+**HOD_21L, NOTCALM/*** (long at the 21:00 UTC H1 open, hold 4 h to the 00:00 bar's close, stop 2 ATR,
+only in weeks WPWB forecasts NORMAL or HIGH):
+| stage | period | trades | net bp | net R | t_R | p | gate |
+|---|---|---|---|---|---|---|---|
+| DISC | 2015-20 | 536 | +4.91 | +0.084 | 3.30 | - | pass (excess t 3.09, 100 % of years) |
+| VAL | 2021-23 | 225 | +3.95 | +0.080 | 2.98 | 0.0014 | pass (M = 1, needs < 0.05) |
+| HOLD | 2024-26 | 208 | +9.89 (4 bp: +7.89) | +0.142 | 3.03 | 0.0012 | pass (look 4, alpha 0.003125) |
+Consistent with Part 49 (overnight / Asian hours 21-04 UTC positive in 2003-15). NOT yet accepted:
+the cost model has **no swap**, and every trade holds across the daily rollover (Exness long swap
+-$0.5493/oz/night measured, triple on Wednesday, ~1.2 bp at $4,600, ~4 bp at $1,300); Part 50 found
+the all-hours rule did not replicate on Exness 2021-26; whether a 21:00 UTC bar is tradable at the
+broker all year is unchecked. Audit script: `research/foundry/check_hod21.py` (broker hours and
+spreads, swap-adjusted results, adjacent hours 18-00, per-year, and a replication on the live Exness
+feed with ask entry / bid exit and $0.10 slippage per fill).
+
+### Audit of HOD_21L (2026-09-30) - the pass is WITHDRAWN
+`research/foundry/check_hod21.py`, `check_hod21_swap.py`:
+1. **Broker hours:** Exness has a 21:00 UTC bar only Nov-Mar (418 of ~1,350 per other hour): in US
+   daylight time 21:00 UTC is the daily break. The rule is really "long in the last hour before the
+   daily break (16:00 New York) into the Asian open", winter only.
+2. **Swap was missing from the cost model.** Every trade holds across the rollover. With an era swap
+   (US 2y yield + markup calibrated to today's measured $0.5493/oz/night; x3 Wednesday):
+   DISC 2015-20 +4.35 bp, +0.071 R, t_R 2.81 (below the DISC bar 3.0); VAL 2021-23 +2.93 bp, t_R 2.31,
+   p 0.010 (would pass); HOLD 2024-26 +8.35 bp, +0.117 R, t_R 2.47, p 0.0068 > alpha 0.003125 -> FAIL.
+3. **Adjacent hours** do not agree: 22, 23, 00 UTC negative in all eras; 19-20 UTC positive only 2024-26.
+4. **Per year** (Dukascopy, pre-swap): 2004-14 around zero, then positive every year 2015-2026.
+5. **Vendor replication on the live Exness feed** (ask entry, bid exit, $0.10 slippage per fill,
+   2 ATR stop, NOTCALM, swap): 301 trades 2021-26, +2.88 bp, +0.028 R - but by year +1.1, **-11.6
+   (2022)**, +3.4, +1.2, +2.7, +26.4 (2026 partial): excluding 2026 it is about zero.
+Verdict: not a tool. Kept as a paper forward record HOD21-SHADOW-1 (zero alpha).
+Protocol Amendment 5 (below): swap is part of cost for any position held across the daily rollover.

@@ -106,3 +106,10 @@ its own VAL count M (state in data/foundry/trackB/) but **shares the global HOLD
 alpha_j = 0.05 * 2^-j with Track A (looks 1-3 already spent), so the total error budget stays 0.05.
 Known contamination: 2021-26 was seen by Track A for NR4_t1 NOTCALM and the void GVZ_JUMP rows, and
 the wider project mined 2021-26 on Exness M5 (Parts 18-50); Track B results carry that caveat.
+
+## Amendment 5 (2026-09-30, after the HOD_21L audit)
+Every gate is applied **after swap** for positions held across the daily rollover: long swap per
+night = (US 2y yield + markup) / 365 of price, markup calibrated so today's value equals the measured
+Exness swap ($0.5493/oz/night), x3 on Wednesday; before 2016 the 2016-01 yield is used. Short swap is
+set to 0 (not measured; conservative only if the true short swap is positive). A candidate that
+passes only without swap is reported as failed.

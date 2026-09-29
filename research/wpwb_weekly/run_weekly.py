@@ -141,6 +141,13 @@ def main() -> int:
         log(f"selector_shadow.py exit {r.returncode}: {r.stdout.strip()[-400:]}")
     except Exception as e:
         log(f"selector shadow error: {e!r}")
+    try:  # paper-only HOD21 record (docs/FOUNDRY_SHADOW_PREREG.md Amendment 2)
+        r = subprocess.run([PY, str(ROOT / "research" / "foundry" / "hod21_shadow.py")], cwd=ROOT,
+                           capture_output=True, text=True, encoding="utf-8",
+                           env={**os.environ, "PYTHONIOENCODING": "utf-8"}, timeout=1800)
+        log(f"hod21_shadow.py exit {r.returncode}: {r.stdout.strip()[-300:]}")
+    except Exception as e:
+        log(f"hod21 shadow error: {e!r}")
     log("done")
     return rc
 

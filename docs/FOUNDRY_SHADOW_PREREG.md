@@ -45,3 +45,12 @@ touched both levels was skipped; now the side nearer the bar's open is taken and
 first. `families.py` is corrected, so SELECTOR-SHADOW-1 runs with the corrected menu4 from the first
 forward cut. Recomputed history: DISC t_R 2.81, VAL +0.033 R, t_R 1.47 (was 2.89 / 1.48). The
 2026-09-25 dry-run selection was made before the fix and is not scored.
+
+## Amendment 2 (2026-09-30) - second paper record HOD21-SHADOW-1
+Rule frozen in `research/foundry/hod21_shadow.py`: at every Exness H1 bar opening 21:00 UTC (winter
+only) in a WPWB NORMAL/HIGH week, paper long at the ask + $0.10, stop 2 ATR14 on bid lows, else exit at
+the bid close of the 00:00 UTC bar - $0.10, swap $0.5493/oz/night (x3 Wed). Trades from the week
+starting 2026-10-02 22:15 UTC, recorded once each after they close, in
+`data/foundry/shadow/hod21_shadow_trades.csv`. History of record: Foundry Track B pass before swap,
+failed after swap (ledger). A check on 2021-26 history with the same code gave 301 trades, +2.88 bp,
++0.028 R, carried by 2026. Zero alpha, no orders.
