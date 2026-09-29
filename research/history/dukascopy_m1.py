@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import lzma
+import random
 import sys
 import time
 import urllib.error
@@ -30,7 +31,8 @@ CACHE = ROOT / "data" / "history" / "dukascopy" / "cache"
 BASE = "https://datafeed.dukascopy.com/datafeed/XAUUSD"
 DT = np.dtype([("s", ">i4"), ("o", ">i4"), ("c", ">i4"), ("l", ">i4"), ("h", ">i4"), ("v", ">f4")])
 START = date(2003, 5, 5)
-PAUSE = 1.5
+PAUSE = 1.0
+MAX_BACKOFF = 120        # observed: files clear after 1-2 retries; 600 s was pure waste
 
 
 def log(msg):
@@ -45,7 +47,7 @@ def get(url):
     request to slow down, so it gets a short fixed retry: doubling on those
     was costing minutes per file for no reason.
     """
-    slow = 30
+    slow = 20 + random.random() * 10      # jitter so retries do not lock step
     while True:
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -56,7 +58,7 @@ def get(url):
                 return np.zeros(0, DT)
             log(f"HTTP {e.code} on {url.split('XAUUSD/')[1]}; waiting {slow}s")
             time.sleep(slow)
-            slow = min(slow * 2, 600)
+            slow = min(slow * 2, MAX_BACKOFF)
         except Exception as e:
             time.sleep(5)
 
