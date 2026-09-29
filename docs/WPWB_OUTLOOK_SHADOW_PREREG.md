@@ -56,3 +56,39 @@ the risk report. A failure here is logged and never alters or blocks the
 risk report. A short Thai summary is written to
 `data/wpwb_weekly/outlook_shadow_latest.md` labelled "shadow — not used for
 sizing".
+
+## Amendment 1 (2026-09-29, after Codex round 11, before the first forward cut)
+All ten findings in `docs/CODEX_R11_OUTLOOK_SHADOW.md` accepted; the logger was rewritten.
+1. **Durable inputs (R11-1, R11-9).** Dukascopy weekly RV for week starts ≤ 2026-08-21 is frozen
+   once in `data/wpwb_weekly/outlook_rv_dukascopy_frozen.csv` (1,216 weeks, SHA-256
+   `9c1722e6…f471a`); the development GVZ file is pinned (SHA-256 `670e620d…bca13`). A changed
+   hash refuses the run. Each Exness week is written once to the append-only
+   `outlook_rv_archive.csv` when it is complete by the wall clock and by the feed; the model
+   reads only these two files, so the 60-day rolling fetch can no longer erase history. A week
+   the PC never archived (off > 60 days) stays missing, and HAR/MVOL then pause for 26 weeks.
+2. **Full scoring (R11-2):** CRPS, QLIKE, RPS, onset/exit Brier, 80 %/95 % coverage, on weeks
+   where all three models issued (status OK, run FORWARD), with calendar-block intervals.
+3. **Authenticated ensembles (R11-3):** draws saved atomically (temp file + rename) before the
+   row; the row stores the file name and SHA-256; scoring refuses a missing or changed file. A
+   lock file prevents two runs at once; an orphan file from a crash is kept, not overwritten.
+4. **Fixed schema (R11-4):** one frozen column list; an append with a different header is refused.
+5. **Lateness (R11-5):** a forward row counts as prospective only if generated before Sunday
+   22:00 UTC (cut + 47 h 45 m), i.e. before any bar of the target week; later runs are logged
+   as `LATE` and never scored. Skipped cuts are logged as `MISSED`; nothing is backfilled.
+   The normal Saturday 06:00 Bangkok run is about 45 minutes after the cut, with the market closed.
+6. **GVZ revisions (R11-6):** the used Thursday value is compared with every earlier snapshot
+   and the previous value and a revised flag are logged. Past G inputs are never rebuilt:
+   cuts ≤ 2026-08-21 use the pinned development file, later cuts the value archived in
+   `outlook_g_archive.csv` when first computed.
+7. **Completeness (R11-7):** a week is archived only after its end by the wall clock and with
+   the feed reaching end − 6 h; the development 80-bar rule is kept for parity, and the largest
+   internal gap is logged. Scoring uses only archived weeks.
+8. **Calendar parity (R11-8):** the residual pool is the last 104 weeks in which all three
+   models issued and the target was valid. On the development sample this equals per-model
+   pools (no missing week after the first common week, Part 52).
+9. **Bad downloads (R11-10):** the file is validated (columns, ≥ 4,000 rows, 5 ≤ GVZ ≤ 200,
+   last row within 10 days of the cut); otherwise MVOL is not issued. Any exception still writes
+   a row with status ERROR. The Thai summary is regenerated from the log on every run and now
+   says "ห้ามใช้ตัดสินขนาดไม้หรือทิศทาง" (must not be used for size or direction).
+Dry run 2026-09-25 (after the fix): status OK, pool 2024-09-27..2026-09-18, Thursday GVZ 22.58
+unrevised, rerun refused. A second GVZ download was made for this test (two in total today).
