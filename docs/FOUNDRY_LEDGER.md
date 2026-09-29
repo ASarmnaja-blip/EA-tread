@@ -335,3 +335,8 @@ the data so the coming week's class exists at a cut.
 Two selector variants on menu4, L104, top 20 %, equal risk per variant-week, NORMAL/HIGH weeks:
 (a) rank by R at the 4 bp stress cost (penalises cost-heavy variants); (b) hold each selection for
 4 weeks (IC is higher at 4-13 week horizons). 2 candidates.
+
+### Result `batch24` (2 candidates; cumulative 2,981)
+DISC pass 0: stress-cost ranking t_R 2.81, 4-week hold t_R 2.74. Plateau confirmed.
+Meta: a next VAL look needs p < 0.05/12 (t ~ 2.64 in 2015-20) while every selector gives t 1.3-1.5
+there; further selector tweaks are DISC descriptives only, not routes to a pass.
