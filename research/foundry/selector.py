@@ -568,7 +568,40 @@ def run_portfolio_v2(T, cuts, L, score_col="R", hold_weeks=1):
     return pd.DataFrame(out)
 
 
+
+def current_era_topfrac(tag, frac, L, menu):
+    """Amendment 3 for a selector: full DISC gate (after swap) -> one HOLD look at the next alpha."""
+    global TOP_FRAC
+    os.chdir(E.ROOT)
+    st = state()
+    if tag in st.get("current_era", []):
+        print("already tested"); return 1
+    T, cuts, cell, names = menu_trades(menu)
+    TOP_FRAC = frac
+    S = variant_week(run_portfolio(T, cuts, L, False))
+    TOP_FRAC = 0.2
+    d = stats(S, "DISC")
+    ok = bool(d["n"] >= 60 and d["net"] > 0 and d["net_R"] > 0 and d["excess_R"] > 0 and d["t_R"] >= 3.0
+              and d["t_excess_R"] >= 2.0 and d["yr_pos_R"] >= 0.6)
+    print("DISC (after swap)", {k: (round(x, 4) if isinstance(x, float) else x) for k, x in d.items()}, "full DISC pass:", ok)
+    st["disc_candidates"] += 1
+    rows = [dict(d, stage="DISC", cand=tag)]
+    if ok:
+        st["hold_looks"] += 1; alpha = 0.05 * 2 ** -st["hold_looks"]
+        h = stats(S, "HOLD"); h["p_net"] = E.one_sided_p(h["t_R"]); h["alpha"] = alpha
+        h["pass_hold"] = bool(h["n"] >= 20 and h["net"] > 0 and h["net_stress"] > 0 and h["net_R"] > 0
+                              and h["excess_R"] > 0 and h["p_net"] < alpha)
+        print(f"HOLD look {st['hold_looks']} alpha {alpha:.5f}", {k: (round(x, 4) if isinstance(x, float) else x) for k, x in h.items()})
+        rows.append(dict(h, stage="HOLD-current-era", cand=tag))
+        st.setdefault("current_era", []).append(tag)
+    pd.DataFrame(rows).assign(batch=tag).to_csv(TRIALS, mode="a", header=False, index=False)
+    save_state(st)
+    return 0
+
+
 if __name__ == "__main__":
+    if sys.argv[1] == "current_era":
+        sys.exit(current_era_topfrac(sys.argv[2], float(sys.argv[3]), int(sys.argv[4]), sys.argv[5]))
     if sys.argv[1] == "nominate":
         sys.exit(nominate_ew(sys.argv[2], int(sys.argv[3]), sys.argv[4] if len(sys.argv) > 4 else "menu1"))
     mode = sys.argv[3] if len(sys.argv) > 3 else ""

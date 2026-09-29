@@ -467,3 +467,11 @@ effect is confined to the one pre-break winter hour - more likely a microstructu
 The WPWB Champion/Challenger selector TOPQ_L104_EW_NOTCALM on menu4 (swap now included) judged on
 Track B periods: DISC 2015-20 (this period was Track A's VAL, already seen for the same selector
 without swap: +0.033 R, t 1.47), VAL 2021-23, HOLD 2024-26. 1 candidate.
+
+### Result `trackB_sel1`
+DISC (2015-20, with swap) +0.032 R, t_R 1.39, excess t 3.31: not eligible for nomination (t_R < 2).
+
+## Current-era test 2 (Amendment 3, registered 2026-09-30, before any number is seen)
+TOP5_L104_EW (menu4, top 5 %, equal risk per variant-week; Track A batch14 full DISC pass before
+swap, VAL fail). Condition: it must still pass the full DISC gate after swap (Amendment 5); only then
+one HOLD look (Track A HOLD 2021-26) at the next alpha (look 5, 0.0015625).
