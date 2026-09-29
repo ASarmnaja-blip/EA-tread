@@ -136,3 +136,16 @@ positive, ~+22 R/yr**; TOPQ_L104_EW t_R 2.78 / excess 3.98; TOPQ_L104 per trade 
 ## Nomination 2 (Amendment 2, registered 2026-09-30, before its VAL score is seen)
 TOPQ_L52_EW (menu1, top 20 % by trailing-52-week score, equal risk per selected variant per week,
 reselected every Friday cut). Chosen over L104_EW as the shorter memory with the same DISC evidence.
+
+### Result nomination 2
+VAL **FAIL** (M = 7, threshold p < 0.0071): 2015-20 2,246 variant-weeks, net +1.9 bp, **+0.030 R,
+t_R 0.97**, p 0.17, 4 bp stress -0.1 bp, 50 % of years positive, ~+11 R/yr. But the selection
+edge survives out of sample: **excess over the menu +0.045 R, t 2.09**. First candidate whose net
+stays above zero in VAL.
+Diagnosis: choosing works in both eras; the menu average after costs is below zero, so the top
+group is only slightly positive in 2015-20. CLAUDE.md: NO TRADE when the edge is unclear - so
+hold a variant only if its own trailing score clears an absolute bar.
+
+## Batch `batch9` (registered 2026-09-30, before running)
+TOPQ_L52_EW plus an absolute bar: of the top 20 %, keep only variants with trailing score
+(sum R / sqrt n, last 52 weeks) >= s; if none, NO TRADE that week. s in {1.5, 2.0, 3.0}: 3 candidates.
