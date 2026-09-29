@@ -27,6 +27,19 @@ FIRST_CUT = int(np.datetime64("2003-05-09T22:15:00", "s").astype(np.int64))
 PERIODS = {"DISC": ("2003-05-01", "2015-01-01"), "VAL": ("2015-01-01", "2021-01-01"),
            "HOLD": ("2021-01-01", "2026-09-01")}
 CELLS = ["ALL"] + [f"{v}/{tr}" for v in ("CALM", "NORMAL", "HIGH") for tr in ("DOWN", "FLAT", "UP")]
+# marginal cells (added in batch2, docs/FOUNDRY_LEDGER.md): one axis only
+CELLS2 = CELLS + [f"{v}/*" for v in ("CALM", "NORMAL", "HIGH")] + [f"*/{tr}" for tr in ("DOWN", "FLAT", "UP")] + ["NOTCALM/*"]
+
+
+def cell_mask(cl, cell):
+    if cell == "ALL":
+        return cl != ""
+    v, tr = cell.split("/")
+    vv = np.array([x.split("/")[0] if x else "" for x in cl], object)
+    tt = np.array([x.split("/")[1] if x else "" for x in cl], object)
+    mv = (vv != "") if v == "*" else ((vv != "") & (vv != "CALM")) if v == "NOTCALM" else (vv == v)
+    mt = (tt != "") if tr == "*" else (tt == tr)
+    return mv & mt
 
 
 @dataclass
@@ -210,7 +223,7 @@ def evaluate(name, B, cells_of_bar, ent, dirs, gross, ctrl, extra=None, periods=
         a, b = PERIODS[per]
         mp = (date >= a) & (date < b)
         for cell in (cells or CELLS):
-            m = mp & ((cl == cell) if cell != "ALL" else (cl != ""))
+            m = mp & cell_mask(cl, cell)
             n = int(m.sum())
             if n < 20:
                 rows.append(dict(cand=name, period=per, cell=cell, n=n))

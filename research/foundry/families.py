@@ -232,3 +232,67 @@ def batch1(H, D):
     s += donchian(D) + sma_trend(D) + rsi2(D)
     s += bb_rev(H) + nr7(H, D) + gap_fade(H) + tom(D)
     return s
+
+
+# ------------------------------------------------------------------ batch 2 (momentum after batch-1 diagnosis)
+def mom_h1(H):
+    """Intraday time-series momentum: |return over the last L hours| > z * ATR * sqrt(L)
+    -> follow at the next open, hold L hours, stop 2 ATR, no target."""
+    out = []
+    for L in (3, 6, 12, 24):
+        rL = np.r_[np.full(L, np.nan), H.c[L:] - H.c[:-L]]            # known at close of bar i-1 -> use index i-1
+        for z in (1.0, 1.5, 2.0):
+            sig = np.abs(rL) > z * H.atr * np.sqrt(L)
+            ent = np.flatnonzero(sig[:-1]) + 1
+            last = ent + L - 1
+            keep = nonoverlap(ent, last)
+            ent, last = ent[keep], last[keep]
+            d = np.sign(rL[ent - 1]); a = H.atr[ent]
+            ok = np.isfinite(a) & (d != 0)
+            out.append(Spec(f"MOM_L{L}_z{z}", "H1", ent[ok], d[ok], 2 * a[ok], np.full(ok.sum(), np.nan), last[ok]))
+    return out
+
+
+def pdhl_break(H, D):
+    """Break of the previous trading day's high/low (first H1 close beyond it), follow,
+    stop at the day's open-to-level midpoint distance = 1 ATR(H1)*2, exit at the day's last bar."""
+    tday, _, _ = _days(H)
+    dday = (D.t - 22 * 3600) // 86400
+    ph = pd.Series(D.h, index=dday).shift(1); pl = pd.Series(D.l, index=dday).shift(1)
+    lastb = pd.Series(np.arange(len(H.t))).groupby(tday).max()
+    df = pd.DataFrame(dict(td=tday, c=H.c, i=np.arange(len(H.c))))
+    df["ph"] = ph.reindex(df.td).to_numpy(); df["pl"] = pl.reindex(df.td).to_numpy()
+    b = df[(df.c > df.ph) | (df.c < df.pl)].groupby("td").head(1)
+    ent = b.i.to_numpy() + 1
+    last = lastb.reindex(b.td).to_numpy()
+    ok = np.isfinite(last) & (ent <= last)
+    ent, last = ent[ok], last[ok].astype(int)
+    d = np.where(b.c.to_numpy()[ok] > b.ph.to_numpy()[ok], 1.0, -1.0)
+    a = H.atr[ent]; g = np.isfinite(a)
+    return [Spec(f"PDHL_BRK_s{k}", "H1", ent[g], d[g], k * a[g], np.full(g.sum(), np.nan), last[g]) for k in (2, 4)]
+
+
+def week_break(H):
+    """Break of the previous week's high/low (weeks by Friday 22:15 cut), follow, hold to the
+    end of the current week, stop 1x or 2x the previous week's range."""
+    wk = (H.t - (22 * 3600 + 900) - 4 * 86400) // (7 * 86400)       # Friday-22:15-anchored week id
+    g = pd.DataFrame(dict(wk=wk, h=H.h, l=H.l, c=H.c, i=np.arange(len(H.c))))
+    agg = g.groupby("wk").agg(h=("h", "max"), l=("l", "min"), last=("i", "max"))
+    g["ph"] = agg.h.shift(1).reindex(g.wk).to_numpy(); g["pl"] = agg.l.shift(1).reindex(g.wk).to_numpy()
+    g["pr"] = (agg.h - agg.l).shift(1).reindex(g.wk).to_numpy()
+    b = g[(g.c > g.ph) | (g.c < g.pl)].groupby("wk").head(1)
+    ent = b.i.to_numpy() + 1
+    last = agg["last"].reindex(b.wk).to_numpy()
+    ok = ent <= last
+    d = np.where(b.c.to_numpy() > b.ph.to_numpy(), 1.0, -1.0)
+    out = []
+    for k in (0.5, 1.0):
+        out.append(Spec(f"WEEK_BRK_s{k}", "H1", ent[ok], d[ok], k * b.pr.to_numpy()[ok], np.full(ok.sum(), np.nan), last[ok]))
+    return out
+
+
+def batch2(H, D):
+    s = mom_h1(H) + pdhl_break(H, D) + week_break(H)
+    s += shock(H, follow=True)                       # re-scored on the new marginal cells
+    s += _range_break(H, "ASIA_BRK", list(range(0, 7)), list(range(7, 16)), 20, (0,))
+    return s

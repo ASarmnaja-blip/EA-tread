@@ -61,7 +61,8 @@ def main(batch) -> int:
             if dm.sum() < 20:
                 continue
             name = f"{sp.name}|{dn}"
-            rr = E.evaluate(name, B, cb, sp.ent[dm], sp.dirs[dm], gross[dm], ctrl[dm])
+            rr = E.evaluate(name, B, cb, sp.ent[dm], sp.dirs[dm], gross[dm], ctrl[dm],
+                            cells=E.CELLS if batch == "batch1" else E.CELLS2)
             rows += rr
             keep[name] = (B, cb, sp.ent[dm], sp.dirs[dm], gross[dm], ctrl[dm])
     R = pd.DataFrame(rows)
