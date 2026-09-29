@@ -687,3 +687,81 @@ def batch25(H, D):
 def batch1nr7fix(H, D):
     """NR7 re-run after the both-touch fix (correction; counted as new candidates)."""
     return nr7(H, D)
+
+
+# ------------------------------------------------------------------ batch 26: new calendar / session families
+def compression_oco(H, D, name, cond):
+    """Day d-1 satisfies cond (compression) -> OCO stop entries at its high/low during day d."""
+    tday, _, _ = _days(H)
+    dday = (D.t - 22 * 3600) // 86400
+    first = pd.Series(np.arange(len(H.t))).groupby(tday).min()
+    lastb = pd.Series(np.arange(len(H.t))).groupby(tday).max()
+    ents, dirs, stops, lasts, eps = [], [], [], [], []
+    for di in np.flatnonzero(cond[:-1]):
+        nxt = int(dday[di + 1])
+        if nxt not in first.index:
+            continue
+        a, b = int(first[nxt]), int(lastb[nxt])
+        hi_, lo_ = D.h[di], D.l[di]
+        for i in range(a, b + 1):
+            uh, dl = H.h[i] >= hi_, H.l[i] <= lo_
+            if uh and dl:
+                uh = abs(hi_ - H.o[i]) <= abs(H.o[i] - lo_); dl = not uh
+            if uh or dl:
+                ep = max(hi_, H.o[i]) if uh else min(lo_, H.o[i])
+                ents.append(i); dirs.append(1.0 if uh else -1.0); eps.append(ep)
+                stops.append(abs(ep - (lo_ if uh else hi_))); lasts.append(b)
+                break
+    e, d_, st, la, ep = map(np.asarray, (ents, dirs, stops, lasts, eps))
+    ok = st > 0
+    return [Spec(f"{name}_t{k}", "H1", e[ok], d_[ok], st[ok], st[ok] * k, la[ok], ep[ok]) for k in (1, 2)]
+
+
+def session_fade(H, name, from_hour, at_hour, exit_hour, k, weekday=None):
+    """At the open of `at_hour` UTC, fade the move since the open of `from_hour` the same calendar
+    day if it exceeds k * ATR(H1) * sqrt(hours); exit at the close of `exit_hour`; stop 2 ATR."""
+    _, cal, hr = _days(H)
+    df = pd.DataFrame(dict(cal=cal, hr=hr, o=H.o, i=np.arange(len(H.o))))
+    f = df[df.hr == from_hour].set_index("cal")
+    at = df[df.hr == at_hour].set_index("cal")
+    ex = df[df.hr == exit_hour].set_index("cal").i
+    j = f.index.intersection(at.index).intersection(ex.index)
+    ent = at.loc[j, "i"].to_numpy(); last = ex.loc[j].to_numpy()
+    mv = H.o[ent] - f.loc[j, "o"].to_numpy()
+    a = H.atr[ent]; hours = at_hour - from_hour
+    m = np.isfinite(a) & (np.abs(mv) > k * a * np.sqrt(hours)) & (last >= ent)
+    if weekday is not None:
+        m &= H.dow[ent] == weekday
+    return Spec(name, "H1", ent[m], -np.sign(mv[m]), 2 * a[m], np.full(m.sum(), np.nan), last[m])
+
+
+def nfp_cont(H):
+    """First Friday of the month (NFP proxy): follow the move of the 12:00-14:00 UTC bars (covers
+    13:30 winter / 12:30 summer releases) at the 14:00 open, hold 4 h, stop 2 ATR."""
+    idx = pd.to_datetime(H.t, unit="s")
+    first_fri = (idx.dayofweek == 4) & (idx.day <= 7)
+    ent = np.flatnonzero(first_fri & (idx.hour == 14))
+    ok = (ent >= 2) & (H.hour[ent - 2] == 12)
+    ent = ent[ok]
+    mv = H.o[ent] - H.o[ent - 2]
+    a = H.atr[ent]; m = np.isfinite(a) & (np.abs(mv) > 0.5 * a)
+    return Spec("NFP_CONT", "H1", ent[m], np.sign(mv[m]), 2 * a[m], np.full(m.sum(), np.nan), ent[m] + 3)
+
+
+def monday_gap_cont(H):
+    gapt = np.r_[0, np.diff(H.t)] > 24 * 3600
+    g = np.r_[np.nan, H.o[1:] - H.c[:-1]]
+    ent = np.flatnonzero(gapt & (np.abs(g) > H.atr))
+    a = H.atr[ent]; ok = np.isfinite(a)
+    return Spec("MONDAY_GAP_CONT", "H1", ent[ok], np.sign(g[ent][ok]), 2 * a[ok], np.full(ok.sum(), np.nan), ent[ok] + 11)
+
+
+def batch26(H, D):
+    rng_ = D.h - D.l
+    inside = np.r_[False, (D.h[1:] <= D.h[:-1]) & (D.l[1:] >= D.l[:-1])]
+    nr4 = pd.Series(rng_).rolling(4).apply(lambda x: float(x[-1] == x.min()), raw=True).to_numpy() == 1
+    s = compression_oco(H, D, "INSIDE_DAY", inside) + compression_oco(H, D, "NR4", nr4)
+    s += [session_fade(H, "LONDON_CLOSE_FADE", 7, 16, 20, 1.0),
+          session_fade(H, "FRIDAY_FADE", 7, 14, 20, 1.0, weekday=4),
+          nfp_cont(H), monday_gap_cont(H)]
+    return s

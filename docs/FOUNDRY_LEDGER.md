@@ -376,3 +376,10 @@ on the corrected menu4 (DISC and VAL; the VAL recomputation is counted as a new 
 - `batch25b` (GVZ jump, corrected): DISC pass 0; FOLLOW_h1 t_R 1.25, FADE negative. No GVZ-jump effect.
 - Nomination-5 selector on the corrected menu4: DISC +0.062 R, t_R 2.81 (was 2.89); VAL +0.033 R,
   t_R 1.47, p 0.070 (M = 16), excess t 3.32 - effectively unchanged. The bias was small for the selector.
+
+## Batch `batch26` (registered 2026-09-30, before running; leak test now mandatory in run_batch)
+INSIDE_DAY and NR4 compression OCO (next-day stop entries at the day's high/low, target 1R/2R,
+both-touch rule as fixed), LONDON_CLOSE_FADE (at 16:00 UTC fade the 07:00-16:00 move if > 1 ATR x
+sqrt(9), exit 20:00), FRIDAY_FADE (Friday 14:00 fade of 07:00-14:00 move > 1 ATR x sqrt(7), exit
+20:00), NFP_CONT (first Friday, follow the 12:00-14:00 UTC move > 0.5 ATR at 14:00, hold 4 h),
+MONDAY_GAP_CONT (weekend gap > 1 ATR, follow, hold 12 h). Cells ALL, NOTCALM/*, HIGH/*; both. 24.

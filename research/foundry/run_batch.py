@@ -43,7 +43,7 @@ def run_spec(sp, H, D, cellbar_H, cellbar_D, rng):
     return B, cb, gross, ctrl
 
 
-ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"], "batch5": ["ALL", "NOTCALM/*"], "batch18": ["ALL", "NOTCALM/*", "HIGH/*"], "batch19": ["ALL"], "batch22": ["ALL", "NOTCALM/*", "HIGH/*"], "batch23": ["ALL", "NOTCALM/*"], "batch25": ["ALL", "NOTCALM/*"], "batch25b": ["ALL", "NOTCALM/*"], "batch1nr7fix": ["ALL"]}   # WPWB router: only these pre-declared cells
+ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"], "batch5": ["ALL", "NOTCALM/*"], "batch18": ["ALL", "NOTCALM/*", "HIGH/*"], "batch19": ["ALL"], "batch22": ["ALL", "NOTCALM/*", "HIGH/*"], "batch23": ["ALL", "NOTCALM/*"], "batch25": ["ALL", "NOTCALM/*"], "batch25b": ["ALL", "NOTCALM/*"], "batch1nr7fix": ["ALL"], "batch26": ["ALL", "NOTCALM/*", "HIGH/*"]}   # WPWB router: only these pre-declared cells
 
 
 def disc_pass_R(r):
@@ -63,6 +63,9 @@ def main(batch) -> int:
     if batch in st["batches"]:
         print(f"batch {batch} already run; a changed batch needs a new name"); return 1
     t0 = time.time()
+    import leak_test
+    if not leak_test.run(batch):          # mandatory look-ahead test (added after batch25)
+        print("leak test failed: batch not run"); return 1
     H, D, cuts, cell = E.load()
     cellbar_H = np.where(H.week >= 0, cell[np.clip(H.week, 0, len(cell) - 1)], "")
     cellbar_D = np.where(D.week >= 0, cell[np.clip(D.week, 0, len(cell) - 1)], "")
