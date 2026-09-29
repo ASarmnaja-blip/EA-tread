@@ -166,3 +166,16 @@ L52_EW t_R 1.68. The mirrors roughly double the menu (109 distinct champions use
 
 ## Nomination 3 (Amendment 2, registered 2026-09-30, before its VAL score is seen)
 TOPQ_L104_EW on menu2 (DISC t_R 2.53, excess t_R 3.79, net +4.9 bp).
+
+### Result nomination 3
+VAL **FAIL** (M = 8, p < 0.00625 needed): 2015-20 4,670 units, net +2.35 bp, **+0.026 R, t_R 0.90**,
+p 0.18, 50 % of years, ~+20 R/yr; **excess over the menu +0.055 R, t 2.29** (second time the
+selection edge survives out of sample).
+Diagnosis: choosing adds about +0.05 R over the menu in both eras; the menu's average after costs
+is about -0.03 R in 2015-20. Cost (2 bp) is a large share of R for narrow-stop intraday variants.
+
+## Batch `batch11` (registered 2026-09-30, before running)
+Menu `menu3` = menu2 filtered by a cost rule only: median stop >= 100 bp (cost <= 2 % of R).
+26 variants (D1 trend/channel/RSI2/turn-of-month, weekly and prior-day breaks, with mirrors).
+Because these trade rarely, the score needs >= 5 trades (not 10) in the lookback. Candidates:
+TOPQ_L52_EW, TOPQ_L104_EW on menu3 (2).

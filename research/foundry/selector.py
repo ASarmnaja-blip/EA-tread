@@ -153,6 +153,9 @@ def main(batch, menu_fn) -> int:
 
 
 # ------------------------------------------------------------------ batch 7: top-quintile portfolio selector
+MIN_COUNT = 10
+
+
 def run_portfolio(T, cuts, L, need_pos):
     """At each cut: score all variants on trades exited in the last L weeks (count >= 10);
     hold the top 20 % (optionally only those with score > 0) for the coming week."""
@@ -169,7 +172,7 @@ def run_portfolio(T, cuts, L, need_pos):
         if len(idx) == 0:
             continue
         s = pd.DataFrame(dict(v=v[idx], R=R[idx])).groupby("v").R.agg(["sum", "count"])
-        s = s[s["count"] >= 10]
+        s = s[s["count"] >= MIN_COUNT]
         if len(s) < 10:
             continue
         score = (s["sum"] / np.sqrt(s["count"])).sort_values(ascending=False)
@@ -245,6 +248,9 @@ def main_ew(batch, menu_fn) -> int:
     st = state()
     if batch in st["batches"]:
         print("batch already run"); return 1
+    global MIN_COUNT
+    if menu_fn == "menu3":
+        MIN_COUNT = 5
     T, cuts, cell, names = menu_trades(menu_fn)
     rows, keep = [], {}
     grid = ((52, True), (104, True)) if menu_fn != "menu1" else ((52, True), (104, True), (104, False))

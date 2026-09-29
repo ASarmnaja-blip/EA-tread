@@ -396,3 +396,15 @@ def longer(H):
 def menu2(H, D):
     base = menu1(H, D) + longer(H)
     return base + [mirror(s) for s in base]
+
+
+def menu3(H, D):
+    """menu2 restricted by a COST rule only: keep variants whose median stop is >= 100 bp
+    (2 bp cost <= 2 % of R). No performance information is used to build it."""
+    out = []
+    for s in menu2(H, D):
+        B = H if s.tf == "H1" else D
+        ep = s.eprice if s.eprice is not None else B.o[s.ent]
+        if len(s.ent) and np.nanmedian(s.stop / ep * 1e4) >= 100:
+            out.append(s)
+    return out
