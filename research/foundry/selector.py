@@ -261,6 +261,14 @@ def main_ew(batch, menu_fn) -> int:
         keep["TOPQ_SHRUNK_MULTI_EW_NOTCALM"] = S
         r = stats(S, "DISC"); r["cand"] = "TOPQ_SHRUNK_MULTI_EW_NOTCALM"
         rows.append(r)
+    if batch == "batch21":
+        volk = np.array([c.split("/")[0] if c else "" for c in cell], object)
+        S = variant_week(run_portfolio(T, cuts, 104, False))
+        S = S[np.isin(volk[S.wk.to_numpy()], ["NORMAL", "HIGH"])]
+        S = weekly_budget(S)
+        keep["TOPQ_L104_WEEKBUDGET_NOTCALM"] = S
+        r = stats(S, "DISC"); r["cand"] = "TOPQ_L104_WEEKBUDGET_NOTCALM"
+        rows.append(r)
     if batch in ("batch15", "batch16", "batch20"):
         volk = np.array([c.split("/")[0] if c else "" for c in cell], object)
         S = variant_week(run_portfolio(T, cuts, 104, False))
@@ -277,7 +285,7 @@ def main_ew(batch, menu_fn) -> int:
             r = stats(S, "DISC"); r["cand"] = name
             rows.append(r)
         TOP_FRAC = 0.2
-    grid = () if batch in ("batch14", "batch15", "batch16", "batch17", "batch20") else ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
+    grid = () if batch in ("batch14", "batch15", "batch16", "batch17", "batch20", "batch21") else ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
     for L, ew in grid:
         name = f"TOPQ_L{L}{'_EW' if ew else ''}"
         S = run_portfolio(T, cuts, L, False)
@@ -508,6 +516,14 @@ def run_portfolio_shrunk(T, cuts, names, Ls=(52, 104, 156), k_shrink=50.0):
         for r in sel.itertuples():
             out.append(dict(wk=k, et=r.et, v=r.v, name=r.name, net=r.net, R=r.R, stress=r.stress, ctrl=ctrl, score=0.0))
     return pd.DataFrame(out)
+
+
+
+def weekly_budget(S):
+    """Fixed risk budget per week: the week's return = mean R of all selected units that week."""
+    g = S.groupby("wk").agg(et=("et", "min"), net=("net", "mean"), R=("R", "mean"), stress=("stress", "mean"),
+                            ctrl=("ctrl", "first"), v=("v", "nunique"), name=("name", "first")).reset_index()
+    return g
 
 
 if __name__ == "__main__":

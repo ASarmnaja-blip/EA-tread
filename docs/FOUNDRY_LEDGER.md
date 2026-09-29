@@ -293,3 +293,11 @@ different menu variants.
 ## Batch `batch20` (registered 2026-09-30, before running)
 Menu `menu6` = menu4 + session-split copies (ASIA / LONDON / NYAM / LATE / OPEN, >= 100 trades)
 of every continuation and breakout H1 variant, with mirrors. Candidate: TOPQ_L104_EW_NOTCALM (1).
+
+### Result `batch20` (1 candidate; cumulative 2,928)
+DISC pass 0: menu6 (414 variants) TOPQ_L104_EW_NOTCALM t_R 2.68, excess t 3.55 - breadth no longer helps.
+
+## Batch `batch21` (registered 2026-09-30, before running)
+Sizing inside WPWB's weekly risk frame: the nomination-5 selector (menu4, L104, top 20 %, NORMAL/HIGH
+weeks) with a FIXED risk budget per week split equally over every selected variant-week unit (the
+week's return = mean R of its units). 1 candidate.
