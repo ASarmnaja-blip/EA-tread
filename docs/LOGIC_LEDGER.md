@@ -1830,3 +1830,33 @@ entry price have no family-dependent denominator. Where a bracket is needed,
 the control must be drawn from bars matched on ATR percentile, not from all
 bars. The cost-share story (cost ate 90% then 33%) is a ratio of two R figures
 and inherits the same bias, so it is now unverified as well.
+
+## Part 46 — edge search in basis points with an ATR gate: 0 of 24 (2026-09-29)
+
+Pre-registered in `docs/EDGE_SEARCH_BP_PREREG.md` (commit 99f8bde, before the
+run), code `research/pilot/edge_search_bp.py`, output `data/edge_search_bp.xlsx`.
+Six families × H ∈ {1 h, 4 h} × {all ATR, top ATR third} = 24 tests, outcome in
+bp of entry price, no stop bracket, control matched on ATR decile × session,
+Demo90 cost, week-clustered bootstrap, Bonferroni α = 0.00208.
+
+- **0 of 24 pass in DEV; 0 candidates.** Pipeline self-check: random signals
+  reject 3% of the time (null ~5%); a planted +4 bp is found 100% of the time.
+- In DEV every family's net return is about −1.6 bp, i.e. minus the cost
+  (≈1.4 bp at 2021-23 prices): there is **no gross edge over the matched
+  control** in any family.
+- **The ATR gate is not supported.** Pooled over families the difference vs
+  the matched control does not grow with ATR: DEV bottom/middle/top third
+  +0.07/−0.36/0.00 bp at 1 h and −0.28/−0.77/+0.03 at 4 h; LATER
+  +0.10/−0.04/+0.10 and +0.52/+0.72/+0.64. Cost share does fall with ATR
+  (Part 45 follow-up: 9.5% vs 18% of one ATR in 2021-23, 4.6% vs 7.4% in
+  2024-26) but that is a smaller cost, not an edge.
+- **Only lead, not an edge:** vwap at 4 h in the top ATR third: DEV diff
+  +3.53 bp, 95% CI [−2.5, +9.2], p = 0.24, n = 250; LATER +4.35 bp; and it is
+  negative in the bottom ATR third in both eras (−3.06, −2.85) — a sign
+  pattern that grows with ATR. It is best-of-24 on a mined sample. Its
+  standard deviation per signal is ~47 bp, so confirming a 3.5 bp effect needs
+  ~1,400 signals ≈ 14 years at ~100 top-ATR vwap signals per year: not
+  confirmable forward alone, which is the general reason weekly-to-hourly
+  edges of this size have never been provable here.
+- Half-width of the tests: ±1.6 bp (all ATR) and ±2.6 bp (top third): a
+  per-trade difference below about 3 bp cannot be seen at these sample sizes.
