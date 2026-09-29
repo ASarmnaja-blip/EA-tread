@@ -355,3 +355,12 @@ def batch5(H, D):
     for b in base:
         out += by_session(H, b)
     return out
+
+
+def menu1(H, D):
+    """Selector menu v1: every variant of batches 1-2 plus CONT_UNION_h6, both directions, deduplicated."""
+    seen, out = set(), []
+    for s in batch1(H, D) + batch2(H, D) + [cont_union(H, 6)]:
+        if s.name not in seen:
+            seen.add(s.name); out.append(s)
+    return out

@@ -81,3 +81,21 @@ and Asia; LATE (17-21 UTC) and the Sunday open are negative. Splitting by sessio
 CONT_UNION_h6, cell ALL, both directions (DISC t_R 2.31, t_excess_R 4.02, net +4.0 bp). Chosen
 because it is the pooled form of the only effect seen in every batch, not the best-looking slice
 (the best slices were smaller subsets of it).
+
+### Result nomination 1
+VAL **FAIL**: 2015-20 n 739, net -2.86 bp, R -0.045, t_R -1.25, p 0.89 (M = 6). Note: the DISC
+excess t_R came out 3.10 on the nomination run vs 4.02 in batch4 - the matched random control has
+seed noise of about +/-1 in t; it still met the nomination bar.
+**Diagnosis across everything so far:** every effect found in 2003-14 (NR7, continuation, weekly
+breakout) is flat or negative in 2015-20. Edges are era-specific. That is the premise of
+CLAUDE.md (current-regime, Champion/Challenger) and of WPWB's weekly clock: a fixed setup is the
+wrong tool; a procedure that re-chooses the setup from recent evidence is the right one to test.
+
+## Batch `batch6` — WPWB Champion/Challenger selector v1 (registered 2026-09-30, before running)
+Menu `menu1`: all 59 distinct variants of batches 1-2 plus CONT_UNION_h6 (both directions). At each
+Friday cut: score_v = sum of net R over the variant's trades that EXITED within the last L weeks
+/ sqrt(count) (count >= 10); champion = argmax; trade the champion's entries of the coming week if
+score >= s, else NO TRADE. Grid L in {26, 52, 104} x s in {1, 2} x regime in {off, on} (on = score
+only trades from the same WPWB volatility class as the coming week): 12 candidates. Control =
+equal-weight average R of all menu variants' trades that week (does choosing beat holding the
+whole menu?). Same DISC/VAL/HOLD gates in R units.
