@@ -475,3 +475,14 @@ DISC (2015-20, with swap) +0.032 R, t_R 1.39, excess t 3.31: not eligible for no
 TOP5_L104_EW (menu4, top 5 %, equal risk per variant-week; Track A batch14 full DISC pass before
 swap, VAL fail). Condition: it must still pass the full DISC gate after swap (Amendment 5); only then
 one HOLD look (Track A HOLD 2021-26) at the next alpha (look 5, 0.0015625).
+
+### Result current-era test 2 - HOLD FAIL, and the selection edge is gone in 2021-26
+DISC after swap still a full pass (+0.088 R, t_R 3.14, excess t 4.18, 100 % of years). HOLD 2021-26
+(look 5, alpha 0.0016): 1,658 units, net -4.7 bp, **-0.053 R, t_R -1.54, 1 of 6 years positive,
+excess over the menu -0.011 R (t -0.34)**. The cross-sectional persistence that held in 2003-14 and
+2015-20 is absent in 2021-26. Consequence for SELECTOR-SHADOW-1 (top 20 % version, forward paper):
+its expected forward value is now low; it stays as a paper record (it costs nothing) but is no
+longer "the best candidate".
+Budget: 5 HOLD looks spent (0.025 + 0.0125 + 0.00625 + 0.003125 + 0.0015625 = 0.0484). The next
+look would need p < 0.00078 (t ~ 3.2). Historical confirmation is effectively exhausted; from here
+history can only nominate, and confirmation must come from forward weeks.
