@@ -383,3 +383,11 @@ both-touch rule as fixed), LONDON_CLOSE_FADE (at 16:00 UTC fade the 07:00-16:00 
 sqrt(9), exit 20:00), FRIDAY_FADE (Friday 14:00 fade of 07:00-14:00 move > 1 ATR x sqrt(7), exit
 20:00), NFP_CONT (first Friday, follow the 12:00-14:00 UTC move > 0.5 ATR at 14:00, hold 4 h),
 MONDAY_GAP_CONT (weekend gap > 1 ATR, follow, hold 12 h). Cells ALL, NOTCALM/*, HIGH/*; both. 24.
+
+### Result `batch26` (21 candidates; cumulative 3,036)
+Compression breakouts pass DISC strongly and die in VAL: NR4_t1 NOTCALM t_R 4.60 (91 % of years)
+-> VAL +0.007 R p 0.43; NR4 ALL t_R 4.17 -> VAL p 0.45; INSIDE_DAY HIGH t_R 3.1-3.2 (not reached
+VAL, max 20 per batch - 4 NR4 were first). Session fades, NFP continuation, Monday gap: DISC fail.
+
+## Current-era test 1 (Amendment 3, registered 2026-09-30, before its HOLD number is seen)
+NR4_t1, both directions, cell NOTCALM/* (highest DISC t_R of the batch). HOLD look 3, alpha 0.00625.

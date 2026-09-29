@@ -84,3 +84,15 @@ matched random entries, t_excess_R up to 4.0) sits at t_R 2-2.9, below the filte
 diagnosis-nominated candidate per iteration** may go to VAL directly if in DISC t_R >= 2.0,
 t_excess_R >= 3.0 and net bp > 0. It increments M exactly like a DISC survivor; the VAL and HOLD
 gates are unchanged. Nominations are logged in state.json and never repeated.
+
+## Amendment 3 (2026-09-30, after batch26, before any HOLD number of the chosen candidate is seen)
+VAL (2015-20) was designed as a "must also work in a different era" gate. CLAUDE.md section 1 says
+the operator does NOT require a tool to win in every era, only in the current one, provided it is
+checked on a recent period not used for tuning, live simulation and real costs. Batches 1-26 show
+one repeated pattern: breakout/compression/continuation tools pass DISC (2003-14, a high-volatility
+gold bull era) and are flat in VAL (2015-20, a quiet era); 2024-26 is again a high-volatility bull.
+**Current-era route:** at most one candidate per iteration that passed the FULL DISC gate but failed
+VAL may be tested on HOLD (2021-01..2026-08), spending the next alpha_j = 0.05 * 2^-j exactly like any
+HOLD look, with the same HOLD gate (net > 0 at 2 and 4 bp, excess > 0, p < alpha_j). A pass is
+reported as **era-specific** (failed 2015-20), needs an explicit on/off rule, and goes only to a
+Demo/paper forward test - never to real money without the operator.
