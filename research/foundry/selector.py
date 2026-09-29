@@ -280,7 +280,7 @@ def main_ew(batch, menu_fn) -> int:
             keep[nm] = S
             r = stats(S, "DISC"); r["cand"] = nm
             rows.append(r)
-    if batch in ("batch15", "batch16", "batch20"):
+    if batch in ("batch15", "batch16", "batch20", "trackB_sel1"):
         volk = np.array([c.split("/")[0] if c else "" for c in cell], object)
         S = variant_week(run_portfolio(T, cuts, 104, False))
         S = S[np.isin(volk[S.wk.to_numpy()], ["NORMAL", "HIGH"])]
@@ -296,7 +296,7 @@ def main_ew(batch, menu_fn) -> int:
             r = stats(S, "DISC"); r["cand"] = name
             rows.append(r)
         TOP_FRAC = 0.2
-    grid = () if batch in ("batch14", "batch15", "batch16", "batch17", "batch20", "batch21", "batch24") else ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
+    grid = () if batch in ("batch14", "batch15", "batch16", "batch17", "batch20", "batch21", "batch24", "trackB_sel1") else ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
     for L, ew in grid:
         name = f"TOPQ_L{L}{'_EW' if ew else ''}"
         S = run_portfolio(T, cuts, L, False)

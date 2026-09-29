@@ -462,3 +462,8 @@ DISC pass 0. OVERNIGHT_LONG (16:00 NY -> London open) +0.00 R, t_R 0.14; INTRADA
 mirrors negative. The broad "Asia up / West down" split is absent in 2015-20 after swap, so HOD_21L's
 effect is confined to the one pre-break winter hour - more likely a microstructure quirk of that bar
 (or luck) than an overnight-demand pattern.
+
+## Track B batch `trackB_sel1` (registered 2026-09-30, before running)
+The WPWB Champion/Challenger selector TOPQ_L104_EW_NOTCALM on menu4 (swap now included) judged on
+Track B periods: DISC 2015-20 (this period was Track A's VAL, already seen for the same selector
+without swap: +0.033 R, t 1.47), VAL 2021-23, HOLD 2024-26. 1 candidate.
