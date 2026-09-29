@@ -332,3 +332,26 @@ def cont_union(H, hold=6):
 
 def batch4(H, D):
     return [cont_union(H, 6)]
+
+
+# ------------------------------------------------------------------ batch 5: continuation by entry session
+SESSIONS = {"ASIA": range(0, 7), "LONDON": range(7, 12), "NYAM": range(12, 17), "LATE": range(17, 22), "OPEN": (22, 23)}
+
+
+def by_session(H, spec):
+    out = []
+    hr = H.hour[spec.ent]
+    for nm, hs in SESSIONS.items():
+        m = np.isin(hr, list(hs))
+        out.append(Spec(f"{spec.name}@{nm}", spec.tf, spec.ent[m], spec.dirs[m], spec.stop[m], spec.tgt[m], spec.last[m]))
+    return out
+
+
+def batch5(H, D):
+    base = [cont_union(H, 6)]
+    base += [x for x in shock(H, follow=True) if x.name == "SHOCK_CONT_k3_h6"]
+    base += [x for x in mom_h1(H) if x.name == "MOM_L6_z1.5"]
+    out = []
+    for b in base:
+        out += by_session(H, b)
+    return out

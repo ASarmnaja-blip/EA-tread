@@ -61,3 +61,14 @@ One pooled tool, CONT_UNION_h6: follow after a > 3 ATR H1 bar, or a 6 h move > 1
 or a 12 h move > 1.5 ATR*sqrt(12); hold 6 h; stop 2 ATR; no target; one position at a time; both
 directions only. Router cells pre-declared: HIGH/* (WPWB forecast HIGH weeks only), NOTCALM/*
 (every week except CALM), ALL. 3 candidates only.
+
+### Result `batch4` (3 candidates; cumulative 2,841)
+DISC pass 0. CONT_UNION_h6 ALL: 1,240 trades, net +4.0 bp, R +0.07, t_R 2.31, **excess over matched
+random t_R 4.02**; NOTCALM t_R 1.58; HIGH t_R 1.35 (only 407 trades). Pooling beat random entries
+clearly but not zero after costs, and restricting to WPWB HIGH weeks cost more power than it gained.
+Diagnosis: the timing information is real relative to random entries; the net edge is small
+relative to its noise. Next: is it concentrated in the liquid sessions?
+
+## Batch `batch5` (registered 2026-09-30, before running)
+CONT_UNION_h6, SHOCK_CONT_k3_h6, MOM_L6_z1.5 split by entry hour UTC: ASIA 0-6, LONDON 7-11,
+NYAM 12-16, LATE 17-21, OPEN 22-23; cells ALL and NOTCALM/*; both directions. 30 candidates.
