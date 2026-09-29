@@ -437,3 +437,14 @@ def dow(D):
 
 def menu4(H, D):
     return menu2(H, D) + hod(H) + dow(D)
+
+
+def extend_hold(sp, factor=4):
+    """Same entries and direction, holding `factor` times longer, stop 1.5x wider, no target."""
+    last = sp.ent + (sp.last - sp.ent + 1) * factor - 1
+    return Spec(sp.name + f"^x{factor}", sp.tf, sp.ent, sp.dirs, sp.stop * 1.5, np.full(len(sp.ent), np.nan), last, sp.eprice)
+
+
+def menu5(H, D):
+    base = menu4(H, D)
+    return base + [extend_hold(s) for s in base if s.tf == "H1"]

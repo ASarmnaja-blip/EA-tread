@@ -243,3 +243,8 @@ VAL; this subset has not been, and it counts as a new VAL look (M = 11).
 VAL **FAIL** (M = 11, p < 0.0045 needed): 2015-20 6,963 units, net +3.57 bp (stress +1.57),
 **+0.034 R, t_R 1.48, p 0.069**, 67 % of years, ~+39 R/yr; excess +0.063 R, t 3.32.
 Status summary for the operator: `docs/FOUNDRY_STATUS.md`.
+
+## Batch `batch16` (registered 2026-09-30, before running)
+Menu `menu5` = menu4 + a copy of every H1 variant held 4x longer with a 1.5x wider stop and no
+target (cost becomes a smaller share of R; the selector decides which horizon is working).
+Candidate: TOPQ_L104_EW_NOTCALM on menu5 (1).
