@@ -149,3 +149,13 @@ hold a variant only if its own trailing score clears an absolute bar.
 ## Batch `batch9` (registered 2026-09-30, before running)
 TOPQ_L52_EW plus an absolute bar: of the top 20 %, keep only variants with trailing score
 (sum R / sqrt n, last 52 weeks) >= s; if none, NO TRADE that week. s in {1.5, 2.0, 3.0}: 3 candidates.
+
+### Result `batch9` (3 candidates; cumulative 2,889)
+DISC pass 0. An absolute bar hurts: s 1.5 t_R 2.02, s 2.0 t_R 1.06, s 3.0 t_R -0.08. The hottest
+variants do not keep winning; the information is in the rank, not the level of the score.
+
+## Batch `batch10` (registered 2026-09-30, before running)
+Menu `menu2` = menu1 + 6 longer-hold continuation variants (SHOCK_CONT k2/k3 hold 24/48 h, MOM
+L6/L12 hold 4L, stop 3 ATR) + the mirror (opposite direction, same timing, stop and hold) of every
+variant, so the selector can fade what is failing. Candidates: TOPQ_L52_EW and TOPQ_L104_EW on
+menu2 (2).

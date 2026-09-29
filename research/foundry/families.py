@@ -364,3 +364,35 @@ def menu1(H, D):
         if s.name not in seen:
             seen.add(s.name); out.append(s)
     return out
+
+
+def mirror(sp):
+    return Spec(sp.name + "~INV", sp.tf, sp.ent, -sp.dirs, sp.stop, sp.tgt, sp.last, sp.eprice)
+
+
+def longer(H):
+    """Longer-hold continuation (cost is a smaller share of the move)."""
+    out = []
+    r1 = np.r_[np.nan, np.diff(H.c)]
+    for k in (2, 3):
+        for hold in (24, 48):
+            sig = np.abs(r1) > k * H.atr
+            ent = np.flatnonzero(sig[:-1]) + 1
+            last = ent + hold - 1
+            keep = nonoverlap(ent, last); ent, last = ent[keep], last[keep]
+            d = np.sign(r1[ent - 1]); a = H.atr[ent]; ok = np.isfinite(a) & (d != 0)
+            out.append(Spec(f"SHOCK_CONT_k{k}_h{hold}", "H1", ent[ok], d[ok], 3 * a[ok], np.full(ok.sum(), np.nan), last[ok]))
+    for L in (6, 12):
+        rL = np.r_[np.full(L, np.nan), H.c[L:] - H.c[:-L]]
+        sig = np.abs(rL) > 1.5 * H.atr * np.sqrt(L)
+        ent = np.flatnonzero(sig[:-1]) + 1
+        last = ent + 4 * L - 1
+        keep = nonoverlap(ent, last); ent, last = ent[keep], last[keep]
+        d = np.sign(rL[ent - 1]); a = H.atr[ent]; ok = np.isfinite(a) & (d != 0)
+        out.append(Spec(f"MOM_L{L}_z1.5_h{4 * L}", "H1", ent[ok], d[ok], 3 * a[ok], np.full(ok.sum(), np.nan), last[ok]))
+    return out
+
+
+def menu2(H, D):
+    base = menu1(H, D) + longer(H)
+    return base + [mirror(s) for s in base]
