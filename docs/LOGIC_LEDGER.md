@@ -1793,3 +1793,40 @@ forward scoring joins by date. 10/10 tests. Drawdown sizing claims narrowed:
 persistent or biased direction or unrounded lots; stop-out modelled only at
 zero equity. P2-A router dropped (alpha 0). Verdict: NO TRADE on direction;
 WPWB is a risk report.
+
+## Part 45 — the R-geometry audit Part 11 flagged: CONFIRMED, and it biases every R figure (2026-09-29)
+
+Part 11 warned that R = move / (k x ATR) is not a neutral unit if a family
+fires preferentially at particular ATR levels, and recorded the check as "not
+yet done". `research/pilot/audit_r_geometry.py` runs it on all six declared
+families, 2021-07..2026-09 (51,374 signals). The skew is real and large:
+
+| family | median ATR pct-rank at signal (all bars = 49) | bottom ATR third | top third | R bias vs an unmatched control |
+|---|---|---|---|---|
+| breakout | 72.5 | 3% | 59% | **R deflated 12%** |
+| pullback | 59.5 | 23% | 41% | deflated 7% |
+| failed | 59.5 | 20% | 40% | −1% |
+| vwap | 61.5 | 29% | 46% | −1% |
+| sweep | 47.0 | 37% | 32% | inflated 4% |
+| **expansion** | **23.0** | **78%** | **0.3%** | **R inflated 36%** |
+
+Readings:
+1. **expansion fires almost only into low volatility** (78% of signals in the
+   bottom ATR third, 0.3% in the top). Its stop denominator is 27% smaller
+   than average, so the same dollar move is recorded as a 36% larger R than an
+   unmatched control scores. CLAUDE.md appendix item 9 already recorded that
+   expansion's apparent high-RR edge was directional drift; this is a second,
+   independent reason its R numbers were never trustworthy.
+2. **breakout is the mirror image** — it fires into high volatility, so its R
+   was *understated* by about 12%. A family that looked flat in R may not be
+   flat in money.
+3. Therefore the gross-edge figures in Parts 6 and Amendments 23-29
+   (+0.1308 R and +0.1686 R per trade) mix families whose R units are biased
+   between −12% and +36%. They cannot be compared with each other, and a
+   basket that reselects among them silently reweights the biases.
+
+**Consequence for all future work: stop measuring edge in R.** Basis points of
+entry price have no family-dependent denominator. Where a bracket is needed,
+the control must be drawn from bars matched on ATR percentile, not from all
+bars. The cost-share story (cost ate 90% then 33%) is a ratio of two R figures
+and inherits the same bias, so it is now unverified as well.
