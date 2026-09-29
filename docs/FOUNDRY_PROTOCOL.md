@@ -113,3 +113,16 @@ night = (US 2y yield + markup) / 365 of price, markup calibrated so today's valu
 Exness swap ($0.5493/oz/night), x3 on Wednesday; before 2016 the 2016-01 yield is used. Short swap is
 set to 0 (not measured; conservative only if the true short swap is positive). A candidate that
 passes only without swap is reported as failed.
+
+## Amendment 6 (2026-09-30) - forward panel: history nominates, forward weeks confirm
+The historical HOLD budget is spent (5 looks, 0.0484 of 0.05). New rule: candidates are NOMINATED
+from the most recent data (CLAUDE.md section 5) and CONFIRMED only on forward weeks.
+Nomination (one-time, `research/foundry/forward_panel.py --nominate`): every variant of trackB1 +
+overnight_split, cells ALL / NOTCALM / HIGH, after 2 bp cost and swap; score t_R on the last 104
+weeks of data; keep only those with net R > 0 and net bp > 0 there AND mean R > 0 on 2021-01..2024-08;
+take the top 5 by t_R from distinct families; freeze names, cells and a SHA-256 of the code.
+Confirmation: from the week starting 2026-10-02 22:15 UTC, weekly R = mean R of the candidate's
+trades entered that week (0 if none); e-process E_t = prod(1 + 0.2 * clip(week R, -1, 1)); a
+candidate is confirmed when E_t >= 1 / (0.01 / 5) = 500. Alpha 0.01 for the whole panel, recorded
+in `docs/ALPHA_LEDGER.md` as H-FOUNDRY-PANEL-1. Paper only; a confirmed candidate goes to the
+operator as a proposal for a Demo test, never straight to real money.
