@@ -420,8 +420,10 @@ def hod(H):
         ent = ent[ent + 3 < len(H.t)]
         a = H.atr[ent]; ok = np.isfinite(a)
         ent, a = ent[ok], a[ok]
+        # R12-4: clock-based exit = last bar opening within 3 h of the entry (skips a missing break hour)
+        last = np.searchsorted(H.t, H.t[ent] + 3 * 3600, side="right") - 1
         for d, nm in ((1.0, "L"), (-1.0, "S")):
-            out.append(Spec(f"HOD_{h:02d}{nm}", "H1", ent, np.full(len(ent), d), 2 * a, np.full(len(ent), np.nan), ent + 3))
+            out.append(Spec(f"HOD_{h:02d}{nm}", "H1", ent, np.full(len(ent), d), 2 * a, np.full(len(ent), np.nan), last))
     return out
 
 

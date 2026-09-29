@@ -54,3 +54,10 @@ starting 2026-10-02 22:15 UTC, recorded once each after they close, in
 `data/foundry/shadow/hod21_shadow_trades.csv`. History of record: Foundry Track B pass before swap,
 failed after swap (ledger). A check on 2021-26 history with the same code gave 301 trades, +2.88 bp,
 +0.028 R, carried by 2026. Zero alpha, no orders.
+
+## Amendment 3 (2026-09-30, after Codex round 12, before the first forward week)
+Both paper records are now append-only and score a week (or trade) only once, after it has fully
+closed, with a hash of the bars used. SELECTOR-SHADOW-1 includes swap (DST-aware) and logs MISSED
+cuts on a late first run. HOD21-SHADOW-1 exits at the close of the 00:00 UTC bar (Exness has no 22:00
+bar in winter; the earlier code exited at 01:00), and trades recorded more than 8 days after their exit
+are LATE and not scored. The spliced feed is a paper index, not broker execution.

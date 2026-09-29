@@ -495,3 +495,24 @@ SHOCK_CONT_k2_h48~INV ALL (fade after a > 2 ATR bar for 48 h; +0.18, t 1.44, che
 ASIA_BRK_t2 ALL (+0.05, t 1.22, check +0.01), NR7_t2 ALL (+0.10, t 1.06, check +0.07).
 These historical numbers are nominations, not evidence (440 tries). Confirmation: e-process >= 500
 per candidate on forward weeks from 2026-10-02. Hooked into the Saturday job.
+
+## Corrections after Codex round 12 (2026-09-30)
+- **batch26 entry was wrong (R12-8):** INSIDE_DAY did reach VAL (8 candidates went, M = 24):
+  INSIDE_DAY_t2 HIGH/* 52 trades +7.7 bp, R +0.069, t_R 0.57, p 0.29; INSIDE_DAY_t1 HIGH/* +0.073 R,
+  t_R 0.71, p 0.24 - both FAIL. The forward panel's INSIDE_DAY nomination therefore follows a seen VAL
+  failure (2015-20); stated here.
+- **Overstatements withdrawn (R12-14):** "the timing information is real" (batch4) is a discovery-sample
+  statement after thousands of trials, not an established fact; "the selection edge confirmed out of
+  sample three/four times" refers to related selector variants repeatedly adapted and scored on the
+  same 2015-20 block - not independent confirmations - and the edge was absent in 2021-26 (current-era
+  test 2).
+- **All historical p-values are approximate (R12-6)** and Track B / current-era results are exploratory
+  (R12-7).
+- **HOD_21L after the exit-bar fix and DST swap:** on Dukascopy the last-104-week number fell from
+  +0.130 R (t 2.24) to +0.033 R (t 1.08): part of the earlier result came from Friday 21:00 entries
+  that spanned the weekend under the old i+3 rule. On the Exness feed with the 00:00 exit, 2021-26 by
+  year: -1.9, -5.8, +1.0, +0.3, +2.2, +14.2 bp (2026 partial).
+- **Forward panel re-frozen** with the corrected code (same rule, same 440 variant-cells; 31 positive in
+  both windows): INSIDE_DAY_t2 ALL (+0.307 R, t 2.98), SHOCK_CONT_k2_h48~INV ALL (+0.177, t 1.44),
+  ASIA_BRK_t2 ALL (+0.046, t 1.12), HOD_21L ALL (+0.033, t 1.08), NR7_t2 ALL (+0.102, t 1.04).
+  Nominations only; e-process lambda 0.1; forward from 2026-10-02 22:15 UTC.

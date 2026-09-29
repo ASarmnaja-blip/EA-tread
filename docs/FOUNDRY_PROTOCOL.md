@@ -126,3 +126,30 @@ trades entered that week (0 if none); e-process E_t = prod(1 + 0.2 * clip(week R
 candidate is confirmed when E_t >= 1 / (0.01 / 5) = 500. Alpha 0.01 for the whole panel, recorded
 in `docs/ALPHA_LEDGER.md` as H-FOUNDRY-PANEL-1. Paper only; a confirmed candidate goes to the
 operator as a proposal for a Demo test, never straight to real money.
+
+## Amendment 7 (2026-09-30, after Codex round 12, before the first forward week) - all 14 findings accepted
+`docs/CODEX_R12_FOUNDRY_FORWARD.md`.
+- **Status of the historical tracks (R12-3, R12-6, R12-7).** Under `docs/ALPHA_LEDGER.md` rule 1 all
+  data up to 2026-09-28 is development evidence. The Foundry's HOLD "alpha" (5 looks, 0.0484) was an
+  internal screening budget, not project confirmatory alpha: a HOLD pass could only have sent a tool to
+  a forward paper test, never to Demo promotion. Amendments 3-4 changed rules after seeing failures;
+  Track B and the current-era tests are **exploratory**, and every historical p-value in the ledger is
+  approximate (week clusters are treated as independent although multi-day holds, rolling rankings and
+  regime persistence create dependence across weeks). Only forward weeks confirm.
+- **e-process (R12-1).** E_t = prod(1 + 0.1 * week R), no clipping; null = the conditional mean of
+  week R given the past is <= 0 each week; valid while week R > -10 R, otherwise the candidate fails
+  (E = 0). lambda is read from the frozen panel file.
+- **Immutability (R12-2, R12-5, R12-11).** Forward scores are append-only: each completed week (or
+  trade) is scored once, after all of its trades have closed, with a hash of the bars used; a change
+  of code after freezing stops panel scoring; HOD21 trades recorded > 8 days after their exit are LATE
+  and not scored; a late first selector run logs MISSED cuts.
+- **Code fixes:** HOD exits at the last bar opening within 3 h of entry (the 00:00 bar; Exness has no
+  22:00 winter bar and Friday entries no longer span the weekend) (R12-4); swap rollover at 17:00 New
+  York (DST-aware), each night at its own date's rate, also in trailing-stop controls and the selector
+  shadow (R12-10); matched-control outcomes stay aligned with their own trades (R12-13); seeds from
+  SHA-256 instead of Python's salted hash (R12-13); the leak test also compares targets and exit bars
+  and uses more cut points (R12-12).
+- **Splice (R12-9).** The Dukascopy -> Exness spliced series is a defined paper index (bid + half the
+  recorded entry spread, flat 2 bp cost), not broker-replicated execution.
+- The panel was re-frozen with the corrected code (the first freeze is archived in
+  `data/foundry/shadow/archive/`); no forward week had been observed.

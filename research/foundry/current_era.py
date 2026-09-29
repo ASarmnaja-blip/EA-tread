@@ -28,7 +28,7 @@ def main(batch_fn, spec_name, cell, dn) -> int:
     cbH = np.where(H.week >= 0, cell_arr[np.clip(H.week, 0, len(cell_arr) - 1)], "")
     cbD = np.where(D.week >= 0, cell_arr[np.clip(D.week, 0, len(cell_arr) - 1)], "")
     sp = [s for s in getattr(FAM, batch_fn)(H, D) if s.name == spec_name][0]
-    rng = np.random.default_rng(abs(hash(tag)) % 2 ** 32)
+    rng = np.random.default_rng(int(__import__("hashlib").sha256(tag.encode()).hexdigest()[:8], 16))
     B, cb, gross, ctrl = run_spec(sp, H, D, cbH, cbD, rng)
     dm = {"both": np.ones(len(sp.dirs), bool), "long": sp.dirs > 0, "short": sp.dirs < 0}[dn]
     sb = (sp.stop / (sp.eprice if sp.eprice is not None else B.o[sp.ent]) * 1e4)[dm]

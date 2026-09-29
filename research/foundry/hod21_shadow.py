@@ -4,7 +4,9 @@ Rule, frozen 2026-09-30: on the live Exness feed, at the open of every H1 bar op
 forecast class is NORMAL or HIGH: paper long at the ask (bid open + recorded spread) + $0.10
 slippage; stop 2 x ATR14 (Exness H1 bid, known at the open) checked on bid lows; otherwise exit at
 the bid close of the 4th bar (00:00 UTC bar) - $0.10 slippage; swap $0.5493/oz/night (x3 Wednesday).
-No order is ever sent. Each trade is recorded once (keyed by its bar time) after it has closed."""
+No order is ever sent. Each trade is recorded once (keyed by its bar time) after its exit bar has
+closed (R12-5); a trade recorded more than 8 days after its exit is labelled LATE and not scored.
+Exit = the bar opening at 00:00 UTC (Exness has no 22:00 bar in winter; R12-4)."""
 from __future__ import annotations
 
 import csv
@@ -41,9 +43,19 @@ def main() -> int:
     vol = np.array([x.split("/")[0] if x else "" for x in cell], object)
     done = set(pd.read_csv(LOG).bar_epoch.astype(int)) if LOG.exists() else set()
     new = []
-    for i in np.flatnonzero((pd.to_datetime(t, unit="s").hour == 21) & (t > FORWARD)):
-        if int(t[i]) in done or i + 3 >= len(t) or t[i + 3] - t[i] > 6 * 3600 or not np.isfinite(atr[i]):
+    now = int(time.time())
+    feed_end = int(t[-1]) + 3600
+    hours = pd.to_datetime(t, unit="s").hour
+    for i in np.flatnonzero((hours == 21) & (t > FORWARD)):
+        if int(t[i]) in done or not np.isfinite(atr[i]):
             continue
+        j0 = np.flatnonzero((t > t[i]) & (t <= t[i] + 4 * 3600) & (hours == 0))
+        if not len(j0):
+            continue                                          # no 00:00 bar within 4 h (weekend): no trade
+        x = int(j0[0])
+        if t[x] + 3600 > min(now, feed_end):
+            continue                                          # exit bar not closed yet
+        late = now - (t[x] + 3600) > 8 * 86400
         k = int(np.searchsorted(cuts, t[i], side="left") - 1)
         cls = vol[k] if 0 <= k < len(vol) else ""
         if cls not in ("NORMAL", "HIGH"):
@@ -52,11 +64,13 @@ def main() -> int:
             continue
         ep = o[i] + sp[i] + SLIP
         stop = ep - 2 * atr[i]
-        exit_px, kind, xi = c[i + 3] - SLIP, "TIME", i + 3
-        for j in range(i, i + 4):
+        exit_px, kind, xi = c[x] - SLIP, "TIME", x
+        for j in range(i, x + 1):
             if l[j] <= stop:
                 exit_px = (min(o[j], stop) if j > i else stop) - SLIP; kind, xi = "STOP", j
                 break
+        if late:
+            kind = "LATE_" + kind
         nights = 3 if pd.to_datetime(t[i], unit="s").dayofweek == 2 else 1
         swap_bp = SWAP_USD * nights / ep * 1e4
         gross = (exit_px / ep - 1) * 1e4
@@ -76,7 +90,7 @@ def main() -> int:
                 r["recorded_utc"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
                 w.writerow({k: r.get(k, "") for k in FIELDS})
     L = pd.read_csv(LOG) if LOG.exists() else pd.DataFrame()
-    tr = L[L.exit_kind.isin(["TIME", "STOP"])] if len(L) else L
+    tr = L[L.exit_kind.isin(["TIME", "STOP"])] if len(L) else L          # LATE_* rows are not scored
     print(f"{VERSION}: {len(new)} new rows; forward trades {len(tr)}, mean net {tr.net_bp.mean() if len(tr) else float('nan'):+.2f} bp, "
           f"{tr.net_R.mean() if len(tr) else float('nan'):+.3f} R (descriptive)")
     return 0

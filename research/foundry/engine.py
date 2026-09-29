@@ -244,10 +244,11 @@ def matched_control(B, cell_of_bar, ent, dirs, stop_atr, tgt_atr, hold, rng, rep
         ce = np.minimum(ce, len(B.o) - 2)
         a = B.atr[ce]
         ok = np.isfinite(a)
-        ce, d_, a = ce[ok], dirs[ok], a[ok]
-        g, ex_ = simulate(B, ce, d_, stop_atr[ok] * a, tgt_atr[ok] * a, ce + hold[ok])
-        g = g - swap_bp(B, ce, ex_, d_)
-        out.append(np.r_[g, np.full((~ok).sum(), np.nan)])
+        row = np.full(len(ce), np.nan)
+        c2, d_, a2 = ce[ok], dirs[ok], a[ok]
+        g, ex_ = simulate(B, c2, d_, stop_atr[ok] * a2, tgt_atr[ok] * a2, c2 + hold[ok])
+        row[ok] = g - swap_bp(B, c2, ex_, d_)                 # R12-13: keep each control on its own trade
+        out.append(row)
     return np.nanmean(np.vstack(out), axis=0)
 
 
@@ -336,8 +337,10 @@ def matched_control_trail(B, cell_of_bar, ent, dirs, init_mult, trail_mult, max_
     for _ in range(reps):
         ce = np.minimum(np.array([rng.choice(groups[k_]) for k_ in ekey], int), len(B.o) - 2)
         a = B.atr[ce]; ok = np.isfinite(a)
-        g, _ = simulate_trail(B, ce[ok], dirs[ok], a[ok], init_mult, trail_mult, max_bars)
-        out.append(np.r_[g, np.full((~ok).sum(), np.nan)])
+        row = np.full(len(ce), np.nan)
+        g, ex_ = simulate_trail(B, ce[ok], dirs[ok], a[ok], init_mult, trail_mult, max_bars)
+        row[ok] = g - swap_bp(B, ce[ok], ex_, dirs[ok])      # R12-10 swap, R12-13 alignment
+        out.append(row)
     return np.nanmean(np.vstack(out), axis=0)
 
 
@@ -360,20 +363,27 @@ def _swap_rate_series():
 
 
 def swap_bp(B, ent, ex, dirs):
-    """Long positions pay one night per daily rollover (taken at 21:30 UTC) between the entry open and
-    the exit bar's close; the Wednesday rollover counts 3 nights. Shorts: 0."""
+    """Long positions pay one night per daily rollover between the entry open and the exit bar's close.
+    Rollover = 17:00 New York (21:00 UTC in US daylight time, 22:00 UTC otherwise; R12-10); the
+    Wednesday rollover counts 3 nights; weekend days have none; each night uses its own date's rate.
+    Shorts: 0."""
     s, s0 = _swap_rate_series()
-    ent = np.asarray(ent, int); ex = np.asarray(ex, int)
-    t0 = B.t[ent]; t1 = B.t[ex] + B.step
-    r0 = (t0 - 21 * 3600 - 1800) // 86400 + 1                     # first rollover day index after entry
-    r1 = (t1 - 21 * 3600 - 1800) // 86400                         # last rollover day index before exit close
+    ent = np.asarray(ent, int); ex = np.asarray(ex, int); dirs = np.asarray(dirs, float)
     out = np.zeros(len(ent))
-    days = pd.to_datetime(t0, unit="s").normalize()
+    idx = np.flatnonzero(dirs > 0)
+    if not len(idx):
+        return out
+    t0 = B.t[ent[idx]]; t1 = B.t[ex[idx]] + B.step
+    d0 = pd.to_datetime(t0.min() - 86400 * 2, unit="s").normalize(); d1 = pd.to_datetime(t1.max() + 86400 * 2, unit="s").normalize()
+    days = pd.date_range(d0, d1, freq="D")
+    roll = (days.tz_localize("America/New_York") + pd.Timedelta(hours=17)).tz_convert("UTC")
+    roll_ep = (roll.tz_localize(None).astype("datetime64[s]").astype(np.int64)).to_numpy()
+    dow = days.dayofweek.to_numpy()
+    nights = np.where(dow == 2, 3, np.where(dow >= 5, 0, 1)).astype(float)
     rate = s.reindex(days, method="ffill").to_numpy()
     rate = np.where(np.isfinite(rate), rate, s0)
-    for i in np.flatnonzero((np.asarray(dirs) > 0) & (r1 >= r0)):
-        dd = np.arange(r0[i], r1[i] + 1)
-        dow = (dd + 3) % 7                                        # epoch day 0 = Thursday -> Monday = 0
-        nights = np.where(dow == 2, 3, np.where(dow >= 5, 0, 1)).sum()
-        out[i] = rate[i] / 100 / 365 * nights * 1e4
+    cost = nights * rate / 100 / 365 * 1e4                         # bp for that rollover
+    cum = np.r_[0.0, np.cumsum(cost)]
+    a = np.searchsorted(roll_ep, t0, side="right"); b_ = np.searchsorted(roll_ep, t1, side="right")
+    out[idx] = cum[b_] - cum[a]
     return out

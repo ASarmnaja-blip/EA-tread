@@ -24,11 +24,15 @@ def sig(specs, H, D, tj):
         B = H if s.tf == "H1" else D
         m = (B.t[s.ent] < tj) if s.eprice is not None else (B.t[s.ent] <= tj)
         ep = s.eprice[m] if s.eprice is not None else np.full(m.sum(), np.nan)
-        out[s.name] = (B.t[s.ent][m], s.dirs[m], np.round(s.stop[m], 6), np.round(ep, 6))
+        last_t = B.t[np.minimum(s.last[m], len(B.t) - 1)]
+        # the exit bar index may only be compared when it lies before the cut
+        last_t = np.where(last_t < tj, last_t, -1)
+        out[s.name] = (B.t[s.ent][m], s.dirs[m], np.round(s.stop[m], 6), np.round(ep, 6),
+                       np.round(np.nan_to_num(s.tgt[m], nan=-1.0), 6), last_t)
     return out
 
 
-def run(batch_fn, n_points=3, seed=7) -> bool:
+def run(batch_fn, n_points=8, seed=7) -> bool:
     arrs = list(E._dukascopy_arrays())
     t = arrs[0]
     H0, D0, _, _ = E.build(*arrs); H0.v = E._CACHE["vol"]
@@ -41,7 +45,7 @@ def run(batch_fn, n_points=3, seed=7) -> bool:
         if not len(s.ent):
             continue
         B = H0 if s.tf == "H1" else D0
-        for e in rng.choice(s.ent, min(2, len(s.ent)), replace=False):
+        for e in rng.choice(s.ent, min(3, len(s.ent)), replace=False):
             pts.add(int(np.searchsorted(t, B.t[e])))
     for j in sorted(pts):
         if j >= len(t) - 2:

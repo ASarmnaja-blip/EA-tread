@@ -4,8 +4,13 @@
                freeze them (names + code hash) in data/foundry/shadow/forward_panel.json
   (default)    weekly: paper-trade the frozen panel on the spliced Dukascopy->Exness feed for weeks
                starting at or after the first forward cut; per candidate an e-process
-               E_t = prod(1 + lam * clip(week_R, -1, 1)), lam = 0.2, rejects "mean <= 0" when
-               E_t >= 1 / alpha_i, alpha_i = 0.01 / 5. No order is ever sent."""
+               E_t = prod(1 + lam * week_R), lam = 0.1, no clipping (R12-1). Null: the conditional
+               mean of week_R given the past is <= 0 each week. Valid while 1 + lam * week_R > 0,
+               i.e. week_R > -10 R; if that ever fails the candidate is declared failed (E = 0).
+               Reject the null when E_t >= 1 / alpha_i, alpha_i = 0.01 / 5.
+               Append-only (R12-2): each completed week is scored once, with the hash of the bars it
+               used, and never rewritten; a code change after freezing stops scoring.
+               No order is ever sent."""
 from __future__ import annotations
 
 import hashlib
@@ -27,7 +32,7 @@ import families as FAM  # noqa: E402
 PANEL = E.ROOT / "data" / "foundry" / "shadow" / "forward_panel.json"
 SCORES = E.ROOT / "data" / "foundry" / "shadow" / "forward_panel_weeks.csv"
 FORWARD = int(np.datetime64("2026-10-02T22:15:00", "s").astype(np.int64))
-K, ALPHA, LAM = 5, 0.01, 0.2
+K, ALPHA, LAM = 5, 0.01, 0.1
 CELLS = ["ALL", "NOTCALM/*", "HIGH/*"]
 
 
@@ -99,30 +104,45 @@ def score():
         print("no panel"); return 0
     P = json.loads(PANEL.read_text())
     if code_hash() != P["code_sha256"]:
-        print("WARNING: code changed since the panel was frozen; scores are computed with the current code")
+        print("STOP: code changed since the panel was frozen; no forward week is scored (R12-2)"); return 1
+    lam = float(P["lam"])
     H, D, cuts, cell = E.load_spliced()
-    names = {c["name"] for c in P["candidates"]}
-    T = trades(H, D, cell, [s for s in universe(H, D) if s.name in names])
     end = int(H.t[-1]) + 3600
     now = int(time.time())
-    out = []
+    names = {c["name"] for c in P["candidates"]}
+    T = trades(H, D, cell, [s for s in universe(H, D) if s.name in names])
+    old = pd.read_csv(SCORES) if SCORES.exists() and SCORES.stat().st_size > 0 else pd.DataFrame()
+    done = set(zip(old.name, old.week)) if len(old) else set()
+    new = []
     for c in P["candidates"]:
-        g = T[(T.name == c["name"]) & E.cell_mask(T.cell.to_numpy(), c["cell"]) & (T.et > FORWARD) & (T.xt <= end)]
-        e = 1.0
-        k = FORWARD
+        g = T[(T.name == c["name"]) & E.cell_mask(T.cell.to_numpy(), c["cell"])]
+        prev = old[old.name == c["name"]] if len(old) else old
+        e = float(prev.E.iloc[-1]) if len(prev) else 1.0
+        k = FORWARD + (len(prev) * E.WEEK)
+        # a week is scored once every trade entered in it has closed (max hold 48 h + 20 d guard)
         while k + E.WEEK <= min(now, end):
+            wk = str(pd.to_datetime(k, unit="s"))
+            if (c["name"], wk) in done:
+                k += E.WEEK; continue
             w = g[(g.et > k) & (g.et <= k + E.WEEK)]
+            if len(w) and (w.xt > end).any():
+                break                                          # a trade of this week is still open
+            bars = (H.t > k - 400 * 3600) & (H.t <= min(k + E.WEEK + 60 * 3600, end))
+            bh = hashlib.sha256(np.round(np.c_[H.t[bars], H.o[bars], H.h[bars], H.l[bars], H.c[bars]], 4).tobytes()).hexdigest()[:16]
             wr = float(w.R.mean()) if len(w) else 0.0
-            e *= 1 + LAM * float(np.clip(wr, -1, 1))
-            out.append(dict(name=c["name"], cell=c["cell"], week=str(pd.to_datetime(k, unit="s")), trades=len(w), week_R=wr, E=e,
-                            reject=e >= 1 / P["alpha_each"]))
+            f = 1 + lam * wr
+            e = e * f if f > 0 and e > 0 else 0.0
+            new.append(dict(name=c["name"], cell=c["cell"], week=wk, trades=len(w), week_R=wr, E=e,
+                            reject=bool(e >= 1 / P["alpha_each"]), failed=bool(e == 0.0), bars_sha=bh,
+                            recorded_utc=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")))
             k += E.WEEK
-    S = pd.DataFrame(out)
-    S.to_csv(SCORES, index=False)
-    last = S.groupby("name").tail(1) if len(S) else S
-    print(f"forward panel: {len(P['candidates'])} candidates, {S.week.nunique() if len(S) else 0} forward weeks")
-    if len(last):
-        print(last[["name", "cell", "E", "reject"]].to_string(index=False))
+    if new:
+        pd.DataFrame(new).to_csv(SCORES, mode="a", header=not (SCORES.exists() and SCORES.stat().st_size > 0), index=False)
+    S = pd.read_csv(SCORES) if SCORES.exists() and SCORES.stat().st_size > 0 else pd.DataFrame()
+    print(f"forward panel: {len(P['candidates'])} candidates, {len(new)} new week-rows, "
+          f"{S.week.nunique() if len(S) else 0} forward weeks recorded")
+    if len(S):
+        print(S.groupby("name").tail(1)[["name", "cell", "E", "reject", "failed"]].to_string(index=False))
     return 0
 
 

@@ -62,6 +62,7 @@ def trades(H, D, cuts, cell):
     for vi, sp in enumerate(specs):
         B, cb = (H, cbH) if sp.tf == "H1" else (D, cbD)
         g, ex = E.simulate(B, sp.ent, sp.dirs, sp.stop, sp.tgt, sp.last, sp.eprice)
+        g = g - E.swap_bp(B, sp.ent, ex, sp.dirs)             # R12-10
         ep = sp.eprice if sp.eprice is not None else B.o[sp.ent]
         net = g - E.COST_BP
         T.append(pd.DataFrame(dict(v=vi, name=sp.name, et=B.t[sp.ent], xt=B.t[ex] + B.step, xbar=ex, nbars=len(B.t),
@@ -88,8 +89,8 @@ def log_cut(now):
     old = pd.read_csv(target) if target.exists() else pd.DataFrame()
     if len(old) and (old.cut_epoch.astype(int) == C).any():
         print(f"cut {utc(C)} already logged; refusing to rewrite"); return
-    if target == LOG and len(old):
-        k = int(old.cut_epoch.max()) + WEEK
+    if target == LOG:                                           # R12-11: late first run logs MISSED too
+        k = int(old.cut_epoch.max()) + WEEK if len(old) else FORWARD
         while k < C:
             append_row(LOG, dict(cut_utc=utc(k), cut_epoch=k, version=VERSION, run="MISSED", status="MISSED"))
             k += WEEK
@@ -121,35 +122,43 @@ def log_cut(now):
 
 
 def score_all(now):
+    """Append-only (R12-11): a FORWARD week is scored once, after every trade entered in it has closed,
+    with the hash of the bars used; rows are never rewritten."""
     L = pd.read_csv(LOG) if LOG.exists() else pd.DataFrame()
     L = L[(L.run == "FORWARD")] if len(L) else L
     if not len(L):
         print("no forward rows yet"); return
+    old = pd.read_csv(SCORES) if SCORES.exists() and SCORES.stat().st_size > 0 else pd.DataFrame()
+    done = set(old.cut_utc) if len(old) else set()
+    todo = [r for r in L.itertuples() if r.cut_utc not in done and now >= int(r.cut_epoch) + WEEK]
+    if not todo:
+        print("nothing new to score"); return
     H, D, cuts, cell = E.load_spliced()
     end = int(H.t[-1]) + 3600
     T, _ = trades(H, D, cuts, cell)
     rows = []
-    for r in L.itertuples():
+    for r in todo:
         C = int(r.cut_epoch)
-        if now < C + WEEK or end < C + WEEK - 6 * 3600:
-            continue
+        base = dict(cut_utc=r.cut_utc, recorded_utc=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"))
         if r.status != "SELECTED":
-            rows.append(dict(cut_utc=r.cut_utc, status=r.status, week_R=0.0, units=0)); continue
-        f = DIR / r.selection_file
-        body = f.read_bytes()
+            rows.append(dict(base, status=r.status, week_R=0.0, units=0)); continue
+        body = (DIR / r.selection_file).read_bytes()
         if hashlib.sha256(body).hexdigest() != r.selection_sha256:
-            rows.append(dict(cut_utc=r.cut_utc, status="SELECTION HASH MISMATCH")); continue
+            rows.append(dict(base, status="SELECTION HASH MISMATCH")); continue
         names = [x["name"] for x in json.loads(body)["selected"]]
         wk = T[(T.et > C) & (T.et <= C + WEEK) & T.name.isin(names)]
-        # a trade still open at the data end is not scored yet
-        wk = wk[wk.xt <= end]
+        if (wk.xt > end).any():
+            continue                                               # a trade is still open: score later
+        bars = (H.t > C - 400 * 3600) & (H.t <= C + WEEK + 60 * 3600)
+        bh = hashlib.sha256(np.round(np.c_[H.t[bars], H.o[bars], H.h[bars], H.l[bars], H.c[bars]], 4).tobytes()).hexdigest()[:16]
         u = wk.groupby("name").R.mean()
-        rows.append(dict(cut_utc=r.cut_utc, status="SCORED", units=len(u), trades=len(wk),
+        rows.append(dict(base, status="SCORED", units=len(u), trades=len(wk), bars_sha=bh,
                          week_R=float(u.mean()) if len(u) else 0.0, week_R_sum=float(u.sum()) if len(u) else 0.0))
-    S = pd.DataFrame(rows)
-    S.to_csv(SCORES, index=False)
-    sc = S[S.status == "SCORED"] if len(S) else S
-    print(f"scored {len(sc)} forward weeks; mean week R {sc.week_R.mean() if len(sc) else float('nan'):+.3f} (descriptive)")
+    if rows:
+        pd.DataFrame(rows).to_csv(SCORES, mode="a", header=not (SCORES.exists() and SCORES.stat().st_size > 0), index=False)
+    S = pd.read_csv(SCORES)
+    sc = S[S.status == "SCORED"]
+    print(f"scored {len(sc)} forward weeks in total; mean week R {sc.week_R.mean() if len(sc) else float('nan'):+.3f} (descriptive)")
 
 
 def main() -> int:

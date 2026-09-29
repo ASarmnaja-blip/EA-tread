@@ -83,7 +83,7 @@ def main(batch) -> int:
     cellbar_H = np.where(H.week >= 0, cell[np.clip(H.week, 0, len(cell) - 1)], "")
     cellbar_D = np.where(D.week >= 0, cell[np.clip(D.week, 0, len(cell) - 1)], "")
     specs = getattr(FAM, batch)(H, D)
-    rng = np.random.default_rng(abs(hash(batch)) % 2 ** 32)
+    rng = np.random.default_rng(int(__import__("hashlib").sha256(batch.encode()).hexdigest()[:8], 16))
     rows, keep = [], {}
     for sp in specs:
         B, cb, gross, ctrl = run_spec(sp, H, D, cellbar_H, cellbar_D, rng)
