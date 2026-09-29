@@ -230,3 +230,11 @@ NORMAL +0.062 (t 2.17), HIGH +0.065 (t 1.93).
 ## Batch `batch15` (registered 2026-09-30, before running)
 WPWB overlay: TOPQ_L104_EW on menu4 traded only in weeks WPWB forecasts NORMAL or HIGH (stand
 aside in CALM). 1 candidate.
+
+### Result `batch15` (1 candidate; cumulative 2,899)
+DISC pass 0 but close: TOPQ_L104_EW_NOTCALM 10,757 units, +0.063 R, **t_R 2.89**, excess t 3.86,
+91 % of years, ~+62 R/yr.
+
+## Nomination 5 (Amendment 2, registered 2026-09-30, before its VAL score is seen)
+TOPQ_L104_EW_NOTCALM on menu4. Note: nomination 4 (same selector, all weeks) was already seen in
+VAL; this subset has not been, and it counts as a new VAL look (M = 11).

@@ -317,6 +317,9 @@ def nominate_ew(tag, L, menu="menu1") -> int:
         print("already nominated"); return 1
     T, cuts, cell, names = menu_trades(menu)
     S = variant_week(run_portfolio(T, cuts, L, False))
+    if "NOTCALM" in tag:
+        volk = np.array([c.split("/")[0] if c else "" for c in cell], object)
+        S = S[np.isin(volk[S.wk.to_numpy()], ["NORMAL", "HIGH"])]
     d = stats(S, "DISC")
     assert d["t_R"] >= 2.0 and d["t_excess_R"] >= 3.0 and d["net"] > 0, d
     st["m_val"] += 1; M = st["m_val"]
