@@ -84,6 +84,16 @@ confirmation. No setup, no size increase and no activation follows from this
 atlas; an unconfirmed alarm may at most stay shadow or reduce risk under a
 separately frozen conservative rule.
 
+## v2 Amendment 1 (2026-09-29, before the self-check or any real result was run)
+The self-check band "1-10% of Brier-skill intervals excluding 0" was badly
+specified: a noise trace fed to a shrunk bin model has *negative* expected
+skill, so intervals below 0 are not false discoveries, and a two-sided band
+could fail a sound pipeline. Replacement: the self-check counts **false
+positives only** — intervals whose lower bound is above 0 — over 40 synthetic
+AR(1) traces × the 6 targets (expanding window), and passes if that share is
+**≤ 5%**. The same "lower bound > 0" is what the real atlas reports as a
+positive-skill interval.
+
 ## v2 stated in advance
 Volatility change targets: modest skill expected (clustering, GVZ). Direction
 targets: none expected. Power (Codex): a null excludes only roughly AUC ≥ 0.65
