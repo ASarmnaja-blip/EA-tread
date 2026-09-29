@@ -150,5 +150,84 @@ def main(batch, menu_fn) -> int:
     return 0
 
 
+
+
+# ------------------------------------------------------------------ batch 7: top-quintile portfolio selector
+def run_portfolio(T, cuts, L, need_pos):
+    """At each cut: score all variants on trades exited in the last L weeks (count >= 10);
+    hold the top 20 % (optionally only those with score > 0) for the coming week."""
+    out = []
+    et, xt, v, R = T.et.to_numpy(), T.xt.to_numpy(), T.v.to_numpy(), T.R.to_numpy()
+    by_wk = T.groupby("wk").indices
+    order = np.argsort(xt); xs = xt[order]
+    for k in range(len(cuts)):
+        if k not in by_wk:
+            continue
+        cut = cuts[k]
+        lo = np.searchsorted(xs, cut - L * WEEK, side="right"); hi = np.searchsorted(xs, cut, side="right")
+        idx = order[lo:hi]
+        if len(idx) == 0:
+            continue
+        s = pd.DataFrame(dict(v=v[idx], R=R[idx])).groupby("v").R.agg(["sum", "count"])
+        s = s[s["count"] >= 10]
+        if len(s) < 10:
+            continue
+        score = (s["sum"] / np.sqrt(s["count"])).sort_values(ascending=False)
+        top = score.iloc[:max(1, int(np.ceil(0.2 * len(score))))]
+        if need_pos:
+            top = top[top > 0]
+        wk_rows = T.iloc[by_wk[k]]
+        ctrl = wk_rows.groupby("v").R.mean().mean()
+        sel = wk_rows[wk_rows.v.isin(top.index)]
+        for r in sel.itertuples():
+            out.append(dict(wk=k, et=r.et, v=r.v, name=r.name, net=r.net, R=r.R, stress=r.stress, ctrl=ctrl, score=float(top.iloc[0])))
+    return pd.DataFrame(out)
+
+
+def main_portfolio(batch, menu_fn) -> int:
+    os.chdir(E.ROOT)
+    st = state()
+    if batch in st["batches"]:
+        print("batch already run"); return 1
+    T, cuts, cell, names = menu_trades(menu_fn)
+    rows, keep = [], {}
+    for L in (26, 52):
+        for need_pos in (False, True):
+            name = f"TOPQ_L{L}{'_pos' if need_pos else ''}"
+            S = run_portfolio(T, cuts, L, need_pos)
+            keep[name] = S
+            r = stats(S, "DISC"); r["cand"] = name
+            rows.append(r)
+    R = pd.DataFrame(rows)
+    st["disc_candidates"] += len(R)
+    R["pass_disc"] = [bool(r.get("n", 0) >= 60 and r["net"] > 0 and r["net_R"] > 0 and r["excess_R"] > 0 and r["t_R"] >= 3.0
+                           and r["t_excess_R"] >= 2.0 and r["yr_pos_R"] >= 0.6) for r in R.to_dict("records")]
+    pd.set_option("display.width", 250); pd.set_option("display.max_columns", 30)
+    print(R.round(3).to_string(index=False))
+    out = [R.assign(stage="DISC", batch=batch)]
+    for _, r in R[R.pass_disc].sort_values("t_R", ascending=False).iterrows():
+        st["m_val"] += 1; M = st["m_val"]
+        v = stats(keep[r.cand], "VAL"); v["cand"] = r.cand
+        v["p_net"] = E.one_sided_p(v.get("t_R", np.nan)); v["M"] = M
+        v["pass_val"] = bool(v.get("n", 0) >= 20 and v["net"] > 0 and v["net_R"] > 0 and v["excess_R"] > 0 and v["p_net"] < 0.05 / M)
+        print("VAL", {k: (round(x, 4) if isinstance(x, float) else x) for k, x in v.items()})
+        out.append(pd.DataFrame([v]).assign(stage="VAL", batch=batch))
+        if v["pass_val"]:
+            st["hold_looks"] += 1; alpha = 0.05 * 2 ** -st["hold_looks"]
+            h = stats(keep[r.cand], "HOLD"); h["cand"] = r.cand
+            h["p_net"] = E.one_sided_p(h.get("t_R", np.nan)); h["alpha"] = alpha
+            h["pass_hold"] = bool(h.get("n", 0) >= 20 and h["net"] > 0 and h["net_stress"] > 0 and h["net_R"] > 0
+                                  and h["excess_R"] > 0 and h["p_net"] < alpha)
+            print("HOLD", {k: (round(x, 4) if isinstance(x, float) else x) for k, x in h.items()})
+            out.append(pd.DataFrame([h]).assign(stage="HOLD", batch=batch))
+    pd.concat(out).to_csv(TRIALS, mode="a", header=False, index=False)
+    for nm, S in keep.items():
+        S.to_csv(OUT / f"{batch}_{nm}_trades.csv", index=False)
+    st["batches"].append(batch)
+    STATE.write_text(json.dumps(st, indent=1))
+    return 0
+
+
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1], sys.argv[2]))
+    fn = main_portfolio if (len(sys.argv) > 3 and sys.argv[3] == "portfolio") else main
+    sys.exit(fn(sys.argv[1], sys.argv[2]))

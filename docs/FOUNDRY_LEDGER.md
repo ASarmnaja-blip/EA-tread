@@ -99,3 +99,18 @@ score >= s, else NO TRADE. Grid L in {26, 52, 104} x s in {1, 2} x regime in {of
 only trades from the same WPWB volatility class as the coming week): 12 candidates. Control =
 equal-weight average R of all menu variants' trades that week (does choosing beat holding the
 whole menu?). Same DISC/VAL/HOLD gates in R units.
+
+### Result `batch6` (12 candidates; cumulative 2,879)
+DISC pass 0. Best SELECT_L104_s1.0: t_R 1.44, +3.6 R/yr, 19 different champions; regime-conditioned
+scoring is worse (t_R -1.8..+0.3). Top-1 champion choice is too noisy.
+Diagnostic (DISC only, `research/foundry/persistence.py`): performance does persist - rank IC
+between trailing-L-week and next-H-week mean R across variants is +0.03..+0.105 with intervals
+above 0, strongest for L = 52, H = 4-13. Future mean R by trailing-score quintile (L52, H13):
+Q1 -0.077, Q2 -0.017, Q3 -0.004, Q4 +0.018, Q5 +0.039 R per trade - monotonic. The information is
+in holding the whole top group, not in one champion.
+
+## Batch `batch7` — WPWB top-quintile portfolio selector (registered 2026-09-30, before running)
+At every Friday cut: score each menu1 variant = sum R / sqrt(count) over trades exited in the last
+L weeks (count >= 10, >= 10 variants eligible); trade every variant in the top 20 % during the
+coming week. L in {26, 52} x {all top 20 %, only those with score > 0}: 4 candidates. Control =
+equal-weight menu average that week. Same gates in R units.
