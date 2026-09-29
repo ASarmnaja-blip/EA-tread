@@ -1893,3 +1893,44 @@ cost and short samples hide.
 useful for sizing, stop distance and when-not-to-trade — and no direction
 instrument. Not tested here: cross-asset intraday lead-lag (DXY, US500, silver,
 USDJPY, EURUSD → gold), whose M5 data exist only from 2023-09.
+
+### Part 46 — corrections after Codex Round 7 (2026-09-29; wording superseded, numbers unchanged)
+
+Codex audited `edge_search_bp.py` and Part 46. Verdict: the negative decision is
+safe; the mechanics mostly implement the frozen design; the wording overstated.
+Superseding statements:
+1. **Not "every family's net return is about −1.6 bp".** The broad-family DEV
+   means cluster near −1.5 bp, but individual cells range from −2.5 to +2.0 bp
+   (e.g. vwap 1 h all-ATR −0.32, vwap 4 h top-third +2.00). The defensible
+   statement: no cell passed the registered gate.
+2. **Not "no gross edge".** It is "no statistically validated gross edge";
+   several point estimates are positive.
+3. **The ATR-gate conclusion is narrower than stated.** None of the evaluable
+   top-ATR-third family × horizon tests passed and the pooled descriptive
+   gradient was not increasing in DEV. That rejects promotion of this gate; it
+   does not show ATR can never condition an edge. The pooled figure is a
+   count-weighted mix of overlapping outcomes and expansion contributes nothing
+   to the top third.
+4. **Honest count: 0 passes among 22 evaluable cells**, plus 2 structurally
+   empty cells (expansion/top third: DEV n = 0). "0/24" is grid bookkeeping.
+5. **The vwap "only lead" label was selective.** vwap 1 h top-third is also
+   positive and net-positive in both eras (DEV +1.88 bp, p = 0.10; LATER +2.20).
+   Both fail. Several mined vwap point estimates are positive and none merits
+   confirmation.
+6. **The control is descriptive and ex-post**, not a causal random-entry
+   benchmark: full-era bin means use future bars and the signals' own outcomes.
+   Causal confirmation would need past-only rolling controls repeated inside the
+   bootstrap.
+7. **The self-check is not adequate validation** (30 trials at α = 0.05, one
+   horizon, 800 draws, no acceptance band); it says the machinery is not
+   grossly biased, nothing more.
+8. **Undeclared boundary defect, verified:** signal-to-entry contiguity was not
+   checked, so a signal on the last bar before a gap enters after it: 668 of
+   93,750 evaluated signal-horizon pairs (0.09%–1.24% by family; vwap 0.30%).
+   The era-boundary exit defect touches 0 bars (both era ends fall on a weekend
+   or after the data). Neither can move a p-value near the gate, so no rerun is
+   planned; a rerun would be a new version.
+9. **vwap forward alpha = 0.** Confirming a 3.5 bp effect needs ~1,100 signals
+   even spending the whole 0.05 reserve (~11 years at ~98 top-third signals a
+   year), ~14 years at α 0.025, ~18 years at α 0.01. Dropped as a promotion
+   hypothesis; it may stay a zero-alpha passive log at no cost.

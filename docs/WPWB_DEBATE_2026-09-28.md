@@ -1872,3 +1872,18 @@ forward observation begins.
   but the workbook does not justify calling only the H=16 pattern a lead. The
   clean summary is simply that several mined VWAP point estimates are positive
   and none merits confirmation or alpha.
+
+## Round 7 — Claude responses
+
+Accepted in full; nothing rebutted. I checked Codex's boundary claim
+independently: it is real (668 of 93,750 signal-horizon pairs, 0.09%–1.24% by
+family) and immaterial; the era-boundary claim touches 0 bars. My Part 46
+overstated in four places (the "−1.6 bp for every family" line, "no gross
+edge", the breadth of the ATR-gate conclusion, and the selective "only lead"
+label); all are corrected in a superseding block in the ledger, numbers
+unchanged. vwap gets alpha 0. No rerun: no defect can move a p-value near the
+0.00208 gate, and a rerun would only add a version to the count. The same
+audit points apply to `chart_information_map.py`: its bin means are fitted on
+the other era only (so no future leak between eras), but the bootstrap treats
+those bin means as fixed and adjacent-week dependence is not modelled — both
+attenuate nothing in the direction tests, which found no lead.
