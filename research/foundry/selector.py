@@ -228,10 +228,7 @@ def main_portfolio(batch, menu_fn) -> int:
     return 0
 
 
-if __name__ == "__main__":
-    mode = sys.argv[3] if len(sys.argv) > 3 else ""
-    fn = {"portfolio": main_portfolio, "ew": main_ew}.get(mode, main)
-    sys.exit(fn(sys.argv[1], sys.argv[2]))
+
 
 
 # ------------------------------------------------------------------ batch 8: equal risk per selected variant per week
@@ -286,3 +283,9 @@ def main_ew(batch, menu_fn) -> int:
     st["batches"].append(batch)
     STATE.write_text(json.dumps(st, indent=1))
     return 0
+
+
+if __name__ == "__main__":
+    mode = sys.argv[3] if len(sys.argv) > 3 else ""
+    fn = {"portfolio": main_portfolio, "ew": main_ew}.get(mode, main)
+    sys.exit(fn(sys.argv[1], sys.argv[2]))
