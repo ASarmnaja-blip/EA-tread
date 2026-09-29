@@ -562,3 +562,26 @@ def menu6(H, D):
                 if len(x.ent) >= 100:
                     extra.append(x); extra.append(mirror(x))
     return base + extra
+
+
+# ------------------------------------------------------------------ batch 22: continuation with trailing stops
+def with_trail(sp, init_mult, trail_mult, max_bars=120):
+    x = Spec(f"{sp.name}|TR{trail_mult}", sp.tf, sp.ent, sp.dirs, init_mult * np.ones(len(sp.ent)), np.full(len(sp.ent), np.nan),
+             sp.ent + max_bars - 1)
+    x.trail = (init_mult, trail_mult, max_bars)
+    return x
+
+
+def batch22(H, D):
+    base = [cont_union(H, 6)]
+    base += [x for x in shock(H, follow=True) if x.name in ("SHOCK_CONT_k2_h6", "SHOCK_CONT_k3_h6")]
+    base += [x for x in mom_h1(H) if x.name in ("MOM_L6_z1.5", "MOM_L12_z1.5")]
+    base += pdhl_break(H, D)[:1]
+    base += _range_break(H, "ASIA_BRK", list(range(0, 7)), list(range(7, 16)), 20, (0,))
+    out = []
+    for b_ in base:
+        for tm in (2.0, 3.0):
+            x = with_trail(b_, 2.0, tm)
+            x.stop = 2.0 * H.atr[x.ent]                    # stop distance in price for R units
+            out.append(x)
+    return out

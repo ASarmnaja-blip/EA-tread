@@ -301,3 +301,13 @@ DISC pass 0: menu6 (414 variants) TOPQ_L104_EW_NOTCALM t_R 2.68, excess t 3.55 -
 Sizing inside WPWB's weekly risk frame: the nomination-5 selector (menu4, L104, top 20 %, NORMAL/HIGH
 weeks) with a FIXED risk budget per week split equally over every selected variant-week unit (the
 week's return = mean R of its units). 1 candidate.
+
+### Result `batch21` (1 candidate; cumulative 2,929)
+DISC pass 0: fixed weekly risk budget t 2.55 over 411 weeks (annual Sharpe ~0.9), excess t 3.95.
+Sizing does not change the size of the edge.
+
+## Batch `batch22` — continuation with trailing stops (registered 2026-09-30, before running)
+Continuation profits come from a fat right tail that fixed holds cut off. Entries of CONT_UNION_h6,
+SHOCK_CONT k2/k3 h6, MOM L6/L12 z1.5, PDHL_BRK, ASIA_BRK_t0; exit by an initial 2 ATR stop that
+ratchets to (best extreme so far - m ATR), m in {2, 3}, max 120 h; overlapping positions allowed
+(each trade 1R); cells ALL, NOTCALM/*, HIGH/*; both directions. 14 specs x 3 cells = 42 candidates.

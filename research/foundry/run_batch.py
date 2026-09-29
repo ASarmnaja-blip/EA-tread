@@ -31,13 +31,19 @@ def state():
 
 def run_spec(sp, H, D, cellbar_H, cellbar_D, rng):
     B, cb, key = (H, cellbar_H, "hour") if sp.tf == "H1" else (D, cellbar_D, "dow")
+    if getattr(sp, "trail", None):
+        im, tm, mb = sp.trail
+        a = B.atr[sp.ent]
+        gross, ex = E.simulate_trail(B, sp.ent, sp.dirs, a, im, tm, mb)
+        ctrl = E.matched_control_trail(B, cb, sp.ent, sp.dirs, im, tm, mb, rng, key=key)
+        return B, cb, gross, ctrl
     gross, ex = E.simulate(B, sp.ent, sp.dirs, sp.stop, sp.tgt, sp.last, sp.eprice)
     a = B.atr[sp.ent]
     ctrl = E.matched_control(B, cb, sp.ent, sp.dirs, sp.stop / a, sp.tgt / a, sp.last - sp.ent, rng, key=key)
     return B, cb, gross, ctrl
 
 
-ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"], "batch5": ["ALL", "NOTCALM/*"], "batch18": ["ALL", "NOTCALM/*", "HIGH/*"], "batch19": ["ALL"]}   # WPWB router: only these pre-declared cells
+ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"], "batch5": ["ALL", "NOTCALM/*"], "batch18": ["ALL", "NOTCALM/*", "HIGH/*"], "batch19": ["ALL"], "batch22": ["ALL", "NOTCALM/*", "HIGH/*"]}   # WPWB router: only these pre-declared cells
 
 
 def disc_pass_R(r):

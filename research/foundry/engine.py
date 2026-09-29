@@ -250,3 +250,54 @@ def evaluate(name, B, cells_of_bar, ent, dirs, gross, ctrl, extra=None, periods=
                              net_dukas=(g - B.spread_bp[ent][m] - 0.5).mean(),
                              long_share=float((dirs[m] > 0).mean()), **rx, **(extra or {})))
     return rows
+
+
+def simulate_trail(B, ent, dirs, atr_e, init_mult, trail_mult, max_bars):
+    """Trailing-stop exit. Initial stop init_mult*ATR; from the bar after entry the stop ratchets to
+    (highest high of bars ent..t-1) - trail_mult*ATR for longs (mirror for shorts), never loosening.
+    Stop checked on each bar's low/high (gap -> bar open); time exit at ent+max_bars-1 close."""
+    ent = np.asarray(ent, int); dirs = np.asarray(dirs, float); atr_e = np.asarray(atr_e, float)
+    n = len(ent)
+    if n == 0:
+        return np.zeros(0), np.zeros(0, int)
+    last = np.minimum(ent + max_bars - 1, len(B.o) - 1)
+    Hm = max_bars
+    j = np.minimum(ent[:, None] + np.arange(Hm)[None, :], len(B.o) - 1)
+    valid = (ent[:, None] + np.arange(Hm)[None, :]) <= last[:, None]
+    hi, lo, op = B.h[j], B.l[j], B.o[j]
+    ep = B.o[ent]
+    up = dirs[:, None] > 0
+    fav = np.where(up, hi, -lo)                              # favourable extreme per bar
+    run = np.maximum.accumulate(fav, axis=1)
+    prev = np.concatenate([np.full((n, 1), -np.inf), run[:, :-1]], axis=1)   # extreme of bars before t
+    init = np.where(dirs > 0, ep - init_mult * atr_e, -(ep + init_mult * atr_e))[:, None]
+    trail = prev - trail_mult * atr_e[:, None]
+    stop_lvl = np.maximum(init, trail)                       # in "favourable" coordinates
+    stop_lvl = np.maximum.accumulate(stop_lvl, axis=1)
+    adverse = np.where(up, lo, -hi)
+    hit = valid & (adverse <= stop_lvl)
+    big = Hm + 5
+    fs = np.where(hit.any(1), hit.argmax(1), big)
+    r = np.arange(n)
+    f_idx = np.minimum(fs, Hm - 1)
+    lvl = stop_lvl[r, f_idx]
+    o_f = np.where(dirs > 0, op[r, f_idx], -op[r, f_idx])
+    fill_f = np.where((o_f < lvl) & (fs > 0), o_f, lvl)
+    fill = np.where(dirs > 0, fill_f, -fill_f)
+    exit_px = np.where(fs < big, fill, B.c[last])
+    ex = np.where(fs < big, ent + fs, last)
+    return dirs * (exit_px / ep - 1) * 1e4, ex
+
+
+def matched_control_trail(B, cell_of_bar, ent, dirs, init_mult, trail_mult, max_bars, rng, reps=5, key="hour"):
+    kk = B.hour if key == "hour" else B.dow
+    keyarr = pd.Series(list(zip(B.year, kk, cell_of_bar)))
+    groups = {i: g.to_numpy() for i, g in pd.Series(np.arange(len(B.o))).groupby(keyarr)}
+    ekey = list(zip(B.year[ent], kk[ent], cell_of_bar[ent]))
+    out = []
+    for _ in range(reps):
+        ce = np.minimum(np.array([rng.choice(groups[k_]) for k_ in ekey], int), len(B.o) - 2)
+        a = B.atr[ce]; ok = np.isfinite(a)
+        g, _ = simulate_trail(B, ce[ok], dirs[ok], a[ok], init_mult, trail_mult, max_bars)
+        out.append(np.r_[g, np.full((~ok).sum(), np.nan)])
+    return np.nanmean(np.vstack(out), axis=0)
