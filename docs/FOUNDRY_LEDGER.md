@@ -72,3 +72,12 @@ relative to its noise. Next: is it concentrated in the liquid sessions?
 ## Batch `batch5` (registered 2026-09-30, before running)
 CONT_UNION_h6, SHOCK_CONT_k3_h6, MOM_L6_z1.5 split by entry hour UTC: ASIA 0-6, LONDON 7-11,
 NYAM 12-16, LATE 17-21, OPEN 22-23; cells ALL and NOTCALM/*; both directions. 30 candidates.
+
+### Result `batch5` (26 candidates; cumulative 2,867)
+DISC pass 0. Continuation lives in New York morning (CONT_UNION@NYAM 614 trades, +7.6 bp, t_net 2.46)
+and Asia; LATE (17-21 UTC) and the Sunday open are negative. Splitting by session costs power.
+
+## Nomination 1 (Amendment 2, registered 2026-09-30, before its VAL score is seen)
+CONT_UNION_h6, cell ALL, both directions (DISC t_R 2.31, t_excess_R 4.02, net +4.0 bp). Chosen
+because it is the pooled form of the only effect seen in every batch, not the best-looking slice
+(the best slices were smaller subsets of it).

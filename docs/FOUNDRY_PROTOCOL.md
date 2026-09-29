@@ -76,3 +76,11 @@ excess > 0, t_R >= 3.0, t_excess_R >= 2.0, >= 60 % of years positive in R. VAL/H
 t_R and additionally require net bp > 0 (and net at 4 bp > 0 for HOLD). bp numbers stay reported.
 Batches 1-2 keep their original bp gate. Re-scoring a family under the new metric is a new look and
 counts as new candidates.
+
+## Amendment 2 (2026-09-30, after batch5, before any nominated candidate is scored in VAL)
+The DISC gate (t_R >= 3) is a filter for efficiency; the real tests are VAL and HOLD, which a DISC
+selection cannot contaminate. After batches 1-5 the only consistent finding (continuation beats
+matched random entries, t_excess_R up to 4.0) sits at t_R 2-2.9, below the filter. So: **at most one
+diagnosis-nominated candidate per iteration** may go to VAL directly if in DISC t_R >= 2.0,
+t_excess_R >= 3.0 and net bp > 0. It increments M exactly like a DISC survivor; the VAL and HOLD
+gates are unchanged. Nominations are logged in state.json and never repeated.
