@@ -179,3 +179,11 @@ Menu `menu3` = menu2 filtered by a cost rule only: median stop >= 100 bp (cost <
 26 variants (D1 trend/channel/RSI2/turn-of-month, weekly and prior-day breaks, with mirrors).
 Because these trade rarely, the score needs >= 5 trades (not 10) in the lookback. Candidates:
 TOPQ_L52_EW, TOPQ_L104_EW on menu3 (2).
+
+### Result `batch11` (2 candidates; cumulative 2,893)
+DISC pass 0: the cost-filtered D1/weekly menu carries no selection information (t_R 0.79-0.90,
+excess t 0.83-0.85). Selection information lives in the intraday variants.
+
+## Batch `batch12` (registered 2026-09-30, before running)
+WPWB-conditioned ranking: TOPQ_L104_EW on menu2, scoring each variant only on trades from past
+weeks with the same WPWB volatility class as the coming week (CALM / NORMAL / HIGH). 1 candidate.

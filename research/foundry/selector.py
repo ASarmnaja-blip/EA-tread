@@ -385,9 +385,68 @@ def main_bar(batch, menu_fn) -> int:
     return 0
 
 
+def run_portfolio_regime(T, cuts, cell, L):
+    """Top 20 % where each variant is scored only on its trades from past weeks whose WPWB
+    volatility class equals the class forecast for the coming week."""
+    out = []
+    vol = np.array([c.split("/")[0] if c else "" for c in cell], object)
+    tvol = np.array([c.split("/")[0] if c else "" for c in T.cell], object)
+    et, xt, v, R = T.et.to_numpy(), T.xt.to_numpy(), T.v.to_numpy(), T.R.to_numpy()
+    by_wk = T.groupby("wk").indices
+    order = np.argsort(xt); xs = xt[order]
+    for k in range(len(cuts)):
+        if k not in by_wk or not vol[k]:
+            continue
+        cut = cuts[k]
+        lo = np.searchsorted(xs, cut - L * WEEK, side="right"); hi = np.searchsorted(xs, cut, side="right")
+        idx = order[lo:hi]
+        idx = idx[tvol[idx] == vol[k]]
+        if len(idx) == 0:
+            continue
+        s = pd.DataFrame(dict(v=v[idx], R=R[idx])).groupby("v").R.agg(["sum", "count"])
+        s = s[s["count"] >= MIN_COUNT]
+        if len(s) < 10:
+            continue
+        score = (s["sum"] / np.sqrt(s["count"])).sort_values(ascending=False)
+        top = score.iloc[:max(1, int(np.ceil(0.2 * len(score))))]
+        wk_rows = T.iloc[by_wk[k]]
+        ctrl = wk_rows.groupby("v").R.mean().mean()
+        sel = wk_rows[wk_rows.v.isin(top.index)]
+        for r in sel.itertuples():
+            out.append(dict(wk=k, et=r.et, v=r.v, name=r.name, net=r.net, R=r.R, stress=r.stress, ctrl=ctrl, score=float(top.iloc[0])))
+    return pd.DataFrame(out)
+
+
+def main_regime(batch, menu_fn) -> int:
+    os.chdir(E.ROOT)
+    st = state()
+    if batch in st["batches"]:
+        print("batch already run"); return 1
+    T, cuts, cell, names = menu_trades(menu_fn)
+    name = "TOPQ_L104_EW_regime"
+    S = variant_week(run_portfolio_regime(T, cuts, cell, 104))
+    r = stats(S, "DISC"); r["cand"] = name
+    st["disc_candidates"] += 1
+    ok = bool(r.get("n", 0) >= 60 and r["net"] > 0 and r["net_R"] > 0 and r["excess_R"] > 0 and r["t_R"] >= 3.0
+              and r["t_excess_R"] >= 2.0 and r["yr_pos_R"] >= 0.6)
+    print({k: (round(x, 4) if isinstance(x, float) else x) for k, x in r.items()}, "pass_disc", ok)
+    out = [pd.DataFrame([r]).assign(stage="DISC", batch=batch, pass_disc=ok)]
+    if ok:
+        st["m_val"] += 1; M = st["m_val"]
+        v = stats(S, "VAL"); v["cand"] = name; v["p_net"] = E.one_sided_p(v["t_R"]); v["M"] = M
+        v["pass_val"] = bool(v["n"] >= 20 and v["net"] > 0 and v["net_R"] > 0 and v["excess_R"] > 0 and v["p_net"] < 0.05 / M)
+        print("VAL", v)
+        out.append(pd.DataFrame([v]).assign(stage="VAL", batch=batch))
+    pd.concat(out).to_csv(TRIALS, mode="a", header=False, index=False)
+    S.to_csv(OUT / f"{batch}_{name}_units.csv", index=False)
+    st["batches"].append(batch)
+    STATE.write_text(json.dumps(st, indent=1))
+    return 0
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "nominate":
         sys.exit(nominate_ew(sys.argv[2], int(sys.argv[3]), sys.argv[4] if len(sys.argv) > 4 else "menu1"))
     mode = sys.argv[3] if len(sys.argv) > 3 else ""
-    fn = {"portfolio": main_portfolio, "ew": main_ew, "bar": main_bar}.get(mode, main)
+    fn = {"portfolio": main_portfolio, "ew": main_ew, "bar": main_bar, "regime": main_regime}.get(mode, main)
     sys.exit(fn(sys.argv[1], sys.argv[2]))
