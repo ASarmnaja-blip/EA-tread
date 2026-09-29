@@ -8,6 +8,8 @@ Thai time, after the Friday 22:15 UTC cut). Operator-approved 2026-09-28.
    prompt) it is logged and the report says the calendar is stale.
 2. Start MT5 normally again (the operator's terminal is restored).
 3. weekly_report.py --fetch (read-only bars) and episodes.py.
+4. outlook_shadow.py: shadow log of next-week volatility forecasts (downloads the
+   Cboe GVZ file once; operator permission 2026-09-29). Changes no sizing.
 Everything is logged to data/wpwb_weekly/run_logs/<date>.log. Nothing here
 can place an order.
 """
@@ -128,6 +130,10 @@ def main() -> int:
     ensure_terminal()
     rc = run("weekly_report.py", "--fetch")
     run("episodes.py")
+    try:  # shadow only (docs/WPWB_OUTLOOK_SHADOW_PREREG.md): never alters or blocks the report
+        run("outlook_shadow.py")
+    except Exception as e:
+        log(f"outlook shadow error: {e!r}")
     log("done")
     return rc
 
