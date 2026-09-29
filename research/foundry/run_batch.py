@@ -49,11 +49,13 @@ def run_spec(sp, H, D, cellbar_H, cellbar_D, rng):
         return B, cb, gross, ctrl
     gross, ex = E.simulate(B, sp.ent, sp.dirs, sp.stop, sp.tgt, sp.last, sp.eprice)
     a = B.atr[sp.ent]
+    if sp.name.split("~")[0].startswith(("HOD_", "DOW_", "TOM_")):
+        key = "none"        # time-defined variants: a same-hour/weekday control would equal the variant itself
     ctrl = E.matched_control(B, cb, sp.ent, sp.dirs, sp.stop / a, sp.tgt / a, sp.last - sp.ent, rng, key=key)
     return B, cb, gross, ctrl
 
 
-ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"], "batch5": ["ALL", "NOTCALM/*"], "batch18": ["ALL", "NOTCALM/*", "HIGH/*"], "batch19": ["ALL"], "batch22": ["ALL", "NOTCALM/*", "HIGH/*"], "batch23": ["ALL", "NOTCALM/*"], "batch25": ["ALL", "NOTCALM/*"], "batch25b": ["ALL", "NOTCALM/*"], "batch1nr7fix": ["ALL"], "batch26": ["ALL", "NOTCALM/*", "HIGH/*"], "trackB1": ["ALL", "NOTCALM/*", "HIGH/*"]}   # WPWB router: only these pre-declared cells
+ROUTER_CELLS = {"batch4": ["HIGH/*", "NOTCALM/*", "ALL"], "batch5": ["ALL", "NOTCALM/*"], "batch18": ["ALL", "NOTCALM/*", "HIGH/*"], "batch19": ["ALL"], "batch22": ["ALL", "NOTCALM/*", "HIGH/*"], "batch23": ["ALL", "NOTCALM/*"], "batch25": ["ALL", "NOTCALM/*"], "batch25b": ["ALL", "NOTCALM/*"], "batch1nr7fix": ["ALL"], "batch26": ["ALL", "NOTCALM/*", "HIGH/*"], "trackB1": ["ALL", "NOTCALM/*", "HIGH/*"], "trackB2": ["ALL", "NOTCALM/*", "HIGH/*"]}   # WPWB router: only these pre-declared cells
 
 
 def disc_pass_R(r):

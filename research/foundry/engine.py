@@ -232,7 +232,7 @@ def matched_control(B, cell_of_bar, ent, dirs, stop_atr, tgt_atr, hold, rng, rep
     """Random entries in the same year x hour (or weekday) x regime cell; same direction,
     stop/target in the same ATR units, same holding length in bars."""
     strat = pd.Series(np.arange(len(B.o)))
-    kk = B.hour if key == "hour" else B.dow
+    kk = B.hour if key == "hour" else (B.dow if key == "dow" else np.zeros(len(B.o), int))   # "none": time-free
     keyarr = pd.Series(list(zip(B.year, kk, cell_of_bar)))
     groups = {}
     for i, g in strat.groupby(keyarr):

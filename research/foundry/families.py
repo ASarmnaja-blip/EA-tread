@@ -775,3 +775,9 @@ def trackB1(H, D):
         if s.name not in seen:
             seen.add(s.name); out.append(s)
     return out
+
+
+def trackB2(H, D):
+    """Time-defined variants re-scored with a time-free control (design correction)."""
+    base = hod(H) + dow(D) + tom(D)
+    return base + [mirror(s) for s in tom(D)]

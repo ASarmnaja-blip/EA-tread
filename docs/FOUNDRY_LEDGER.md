@@ -400,3 +400,17 @@ repeat of it for this family. Next HOLD alpha 0.003125.
 ## Track B batch `trackB1` (registered 2026-09-30, before running; FOUNDRY_TRACK=B)
 Every family built so far (menu4 176 variants + batch26 + corrected GVZ jump) re-discovered on
 2015-20, cells ALL / NOTCALM/* / HIGH/*, both directions (mirrors cover the other side).
+
+### Result `trackB1` (531 candidates, Track B cumulative 531)
+DISC (2015-20) pass 0. Only 32 % of candidates have net R > 0; 5 of 474 have t_R > 2. Best:
+HOD_21L (long 21:00-01:00 UTC) NOTCALM t_R 3.30, 100 % of years, but excess ~0 - see below.
+Mean reversion is negative in this era too (BB_REV t_R -4.4).
+**Design flaw found:** for time-defined variants (HOD, DOW, TOM) the matched control is drawn from the
+same hour/weekday, i.e. it IS the variant, so excess ~ 0 by construction and they can never pass.
+Correction: time-defined variants get a time-free control (same year x regime cell, same direction,
+stop and hold). Earlier Track A batches used HOD/DOW only inside selector menus (whose control is the
+menu average), so no earlier gate decision is affected.
+
+## Track B batch `trackB2` (registered 2026-09-30, before running)
+HOD (48), DOW (10), TOM long/short and their mirrors re-scored with the time-free control; cells ALL,
+NOTCALM/*, HIGH/*; both.
