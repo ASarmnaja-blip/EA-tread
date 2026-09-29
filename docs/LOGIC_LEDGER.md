@@ -1934,3 +1934,30 @@ Superseding statements:
    even spending the whole 0.05 reserve (~11 years at ~98 top-third signals a
    year), ~14 years at α 0.025, ~18 years at α 0.01. Dropped as a promotion
    hypothesis; it may stay a zero-alpha passive log at no cost.
+
+## Part 48 — cross-asset intraday lead-lag into gold: 0 of 36 leads, 0 tradeable (2026-09-29)
+
+Pre-registered in `docs/CROSS_ASSET_LEADLAG_PREREG.md` (commit 4ed0b85, before
+the run); code `research/pilot/cross_asset_leadlag.py`; output
+`data/cross_asset_leadlag.xlsx`. 215,533 aligned M5 bars 2023-09..2026-09;
+instruments DXY, silver, US500, USDJPY, EURUSD (each as its causal residual
+against gold's own move over 5/15/30 min) plus gold's own return; outcome gold
+15 and 30 min ahead; out-of-era transfer DEV (2023-09..2025-03) ↔ LATER
+(2025-04..2026-09); 36 tests, α = 0.00139.
+
+- **0 of 36 leads; 0 tradeable.** Largest |ρ| = 0.0144. Round-trip cost is
+  0.64 bp; at a mean 15-30 min SD of 19.8 bp, a signal needs ρ ≈ 0.04 just to
+  cover cost. The best signal's implied gross edge is 0.19 bp.
+- Three cells were significant DEV → LATER (silver 5 min → 15 and 30 min,
+  p = 0.0002 and 0.0012; DXY 15 min → 15 min, p = 0.0007) but **none
+  reproduces LATER → DEV** (p = 0.17, 0.19, 0.88), and all carry 0.13-0.19 bp
+  of implied gross edge against 0.64 bp of cost: informative about how markets
+  co-move, untradeable.
+- Self-check: circular-shift null rejected 3% (acceptance band 1-10%). A planted
+  raw ρ = 0.05 came back as transfer ρ = 0.028 (decile-mean prediction
+  attenuates) with p = 0.0012: the test is only marginally able to see a raw
+  ρ of 0.05, so it can rule out tradeable leads (raw ρ ≥ 0.04 needed) only
+  approximately, not decisively.
+- Together with Parts 30-47 this closes the last intraday trace class that the
+  project's data can measure. What remains is not another feature but more
+  independent history: see the ledger note in `docs/WPWB_DEBATE_2026-09-28.md`.
