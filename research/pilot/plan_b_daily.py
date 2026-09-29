@@ -19,8 +19,7 @@ from build_all_tf import load_kind  # noqa: E402
 HORIZONS = (1, 5, 20)
 N_TESTS = 30
 ALPHA = 0.05 / N_TESTS
-B_REPS = 10000
-BLOCK_DAYS = 10          # Amendment 1 replaces this after null calibration
+N_SHIFT = 2000          # Amendment 1: empirical shift-null p-values
 MIN_BARS = 12
 CATEGORICAL = ("dow", "month")
 CLEAN = (2003, 2015)
@@ -72,61 +71,69 @@ def bins_fn(name, x_train):
     return lambda v: np.searchsorted(edges, v)
 
 
-def crossfit(x, name, y, ok, years, order, H, y_plant=None):
-    """Leave-one-year-out over CLEAN years. Returns pooled (pred, target, day-index, year)."""
-    yy = y if y_plant is None else y + y_plant
-    P, T, I, Y = [], [], [], []
-    valid = ok & np.isfinite(x) & np.isfinite(yy)
+def _bin_index(name, x, train_idx, test_idx):
+    """Bin index for training and test days; edges from the training days only."""
+    if name in CATEGORICAL:
+        return x[train_idx].astype(int), x[test_idx].astype(int), 12 if name == "month" else 7
+    edges = np.unique(np.quantile(x[train_idx], np.linspace(0.1, 0.9, 9)))
+    return np.searchsorted(edges, x[train_idx]), np.searchsorted(edges, x[test_idx]), len(edges) + 1
+
+
+def crossfit_rho(x, name, yy, valid_base, years, H):
+    """Leave-one-year-out over CLEAN years (fast, bincount). Returns pooled rho,
+    per-year rhos and n. Bin means come from the training years only."""
+    valid = valid_base & np.isfinite(x)
+    S = np.zeros(6)
+    per = []
     for yr in range(CLEAN[0], CLEAN[1] + 1):
+        first = np.flatnonzero(years == yr)
         test = valid & (years == yr)
-        first_test = np.flatnonzero(years == yr)
-        if len(first_test) == 0 or test.sum() < 50:
+        if len(first) == 0 or test.sum() < 50:
             continue
         train = valid & (years >= CLEAN[0]) & (years <= CLEAN[1]) & (years != yr)
-        # embargo: training days whose forward window reaches into the test year
-        lo = first_test[0] - (H + 1)
-        train[max(lo, 0):first_test[0]] = False
+        train[max(first[0] - (H + 1), 0):first[0]] = False        # embargo
         it, ie = np.flatnonzero(train), np.flatnonzero(test)
-        bn = bins_fn(name, x[it])
+        bt, be, K = _bin_index(name, x, it, ie)
         mu = yy[it].mean()
-        means = pd.Series(yy[it] - mu).groupby(bn(x[it])).mean()
-        p = means.reindex(bn(x[ie])).to_numpy()
+        cnt = np.bincount(bt, minlength=K + 1)
+        sm = np.bincount(bt, weights=yy[it] - mu, minlength=K + 1)
+        mean = np.where(cnt > 0, sm / np.maximum(cnt, 1), np.nan)
+        p = mean[be]
         g = np.isfinite(p)
-        P.append(p[g]); T.append((yy[ie] - mu)[g]); I.append(ie[g]); Y.append(np.full(g.sum(), yr))
-    if not P:
-        return None
-    return np.concatenate(P), np.concatenate(T), np.concatenate(I), np.concatenate(Y)
-
-
-def pooled_stats(p, y, idx, days, H, reps):
-    blk = (days[idx] - days[0]) // BLOCK_DAYS
-    ub, inv = np.unique(blk, return_inverse=True)
-    S = np.stack([np.bincount(inv, weights=v) for v in (p, y, p * p, y * y, p * y, np.ones_like(p))], 1)
-
-    def corr(s):
+        if g.sum() < 30:
+            continue
+        p, y = p[g], (yy[ie] - mu)[g]
+        s = np.array([p.sum(), y.sum(), (p * p).sum(), (y * y).sum(), (p * y).sum(), len(p)])
+        S += s
         n_, sp, sy, spp, syy, spy = s[5], s[0], s[1], s[2], s[3], s[4]
-        return (n_ * spy - sp * sy) / math.sqrt(max((n_ * spp - sp * sp) * (n_ * syy - sy * sy), 1e-18))
-    obs = corr(S.sum(0))
-    ix = RNG.integers(0, len(ub), (reps, len(ub)))
-    tot = S[ix].sum(1)
-    n_, sp, sy, spp, syy, spy = (tot[:, q] for q in (5, 0, 1, 2, 3, 4))
-    boot = (n_ * spy - sp * sy) / np.sqrt(np.maximum((n_ * spp - sp * sp) * (n_ * syy - sy * sy), 1e-18))
-    dev = boot - boot.mean()
-    return obs, (np.sum(np.abs(dev) >= abs(obs)) + 1) / (reps + 1)
+        per.append((n_ * spy - sp * sy) / math.sqrt(max((n_ * spp - sp * sp) * (n_ * syy - sy * sy), 1e-18)))
+    n_, sp, sy, spp, syy, spy = S[5], S[0], S[1], S[2], S[3], S[4]
+    rho = (n_ * spy - sp * sy) / math.sqrt(max((n_ * spp - sp * sp) * (n_ * syy - sy * sy), 1e-18))
+    return rho, np.array(per), int(n_)
 
 
-def run_test(x, name, fwd, ok, years, days, H, reps, plant=None):
-    r = crossfit(x, name, fwd[H], ok[H], years, None, H, plant)
-    if r is None:
+def null_rhos(x, name, yy, valid_base, years, H, K, rng):
+    n = len(x)
+    out = np.empty(K)
+    for k in range(K):
+        s = int(rng.integers(260, n - 260))
+        out[k] = crossfit_rho(np.roll(x, s), name, yy, valid_base, years, H)[0]
+    return out
+
+
+def run_test(x, name, fwd, ok, years, days, H, K=None, plant=None):
+    K = K or N_SHIFT
+    yy = fwd[H] if plant is None else fwd[H] + plant
+    valid_base = ok[H] & np.isfinite(yy)
+    rho, per, n = crossfit_rho(x, name, yy, valid_base, years, H)
+    if n < 300:
         return None
-    p, y, idx, yrs = r
-    rho, pv = pooled_stats(p, y, idx, days, H, reps)
-    per = [np.corrcoef(p[yrs == yr], y[yrs == yr])[0, 1] for yr in np.unique(yrs) if (yrs == yr).sum() > 30]
-    per = np.array(per)
+    null = null_rhos(x, name, yy, valid_base, years, H, K, RNG)
+    p = (1 + np.sum(np.abs(null) >= abs(rho))) / (1 + K)
     same = int(np.sum(np.sign(per) == np.sign(rho)))
-    sd = float(np.std(y))
-    return dict(rho=rho, p=pv, years_same_sign=same, years=len(per), sd=sd,
-                sharpe=0.8 * rho * math.sqrt(252 / H) if H else np.nan, n=len(p))
+    sd = float(np.nanstd(yy[valid_base & (years >= CLEAN[0]) & (years <= CLEAN[1])]))
+    return dict(rho=rho, p=p, years_same_sign=same, years=len(per), sd=sd,
+                sharpe=0.8 * rho * math.sqrt(252 / H), n=n, null_mean=float(null.mean()), null_sd=float(null.std()))
 
 
 def later_sign(x, name, fwd, ok, years, H):
@@ -146,17 +153,19 @@ def later_sign(x, name, fwd, ok, years, H):
 
 
 def self_check(feats, fwd, ok, years, days):
+    """40 pseudo-real draws (a shifted feature stands in for the real one), each
+    against 400 further shifts, must reject near 5%; a planted rho ~0.10 must be found."""
     x, name, H = feats["ret5"], "ret5", 5
     n = len(x)
     rej = 0
-    for _ in range(60):
-        s = int(RNG.integers(260, n - 260))
-        r = run_test(np.roll(x, s), name, fwd, ok, years, days, H, reps=300)
+    for _ in range(40):
+        s0 = int(RNG.integers(260, n - 260))
+        r = run_test(np.roll(x, s0), name, fwd, ok, years, days, H, K=400)
         rej += bool(r and r["p"] < 0.05)
     sd = np.nanstd(fwd[H])
     plant = np.where(np.isfinite(x), 0.10 * sd * (x - np.nanmean(x)) / np.nanstd(x), 0.0)
-    r = run_test(x, name, fwd, ok, years, days, H, reps=1000, plant=plant)
-    return rej / 60, r["p"], r["rho"]
+    r = run_test(x, name, fwd, ok, years, days, H, K=400, plant=plant)
+    return rej / 40, r["p"], r["rho"]
 
 
 def main() -> int:
@@ -167,14 +176,14 @@ def main() -> int:
     print(f"daily bars {len(d):,} ({d.index[0]:%Y-%m-%d}..{d.index[-1]:%Y-%m-%d}); clean era ends {last_clean:%Y-%m-%d}; "
           f"days in clean era {int(((years >= CLEAN[0]) & (years <= CLEAN[1])).sum()):,}")
     rej, pp, rp = self_check(feats, fwd, ok, years, days)
-    print(f"self-check: circular-shift null rejection {rej:.0%} (band 1%-10%); planted rho~0.10 -> rho {rp:.3f}, p {pp:.4f}", flush=True)
+    print(f"self-check: pseudo-real null rejection {rej:.0%} (band 1%-10%); planted rho~0.10 -> rho {rp:.3f}, p {pp:.4f}", flush=True)
     assert 0.01 <= rej <= 0.10, "self-check failed"
     if "--selfcheck-only" in sys.argv:
         return 0
     rows = []
     for name, x in feats.items():
         for H in HORIZONS:
-            r = run_test(x, name, fwd, ok, years, days, H, B_REPS)
+            r = run_test(x, name, fwd, ok, years, days, H)
             if r is None:
                 continue
             r.update(feature=name, H_days=H, later_rho=later_sign(x, name, fwd, ok, years, H))
