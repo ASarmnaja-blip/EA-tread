@@ -127,3 +127,41 @@ agreement the weakest of the three.
 Whatever the result, the next step is a separately registered forward shadow
 log (one immutable forecast object per cut with input hashes, B0 and every
 model side by side). No model replaces B0 on history.
+
+## Amendment 1 (2026-09-29, after Codex round 10, before any score was computed)
+All ten findings in `docs/CODEX_R10_OUTLOOK_V2.md` accepted:
+1. **No operational route from history (R10-1).** The sentence in section 0
+   about `min(scale_B0, scale_model)` is withdrawn. Historical results may not
+   change `vol_scale` or `effective_scale` in any form. Any operational use
+   needs its own later pre-registration, prospective evidence and the
+   operator's explicit approval.
+2. **Distributional parity (R10-2).** Every model's residual pool is exactly
+   its most recent **104** out-of-sample residuals (not an expanding pool);
+   scoring starts only when all core models have a full pool, so from then on
+   the pools cover the same calendar weeks. B1 stays the 52-week climatology.
+3. Printed MVOL coefficients are those actually used at the last scored cut
+   (rows j < k only) (R10-3).
+4. **Vendor audit (R10-4).** Only weeks where Dukascopy and Exness have the
+   identical set of H1 open times are paired. Added: median |log range ratio|
+   ≤ 0.10 and median |log bid-only Y3 ratio| ≤ 0.10 (Exness carries bid OHLC
+   only, so Y3 is compared bid-only). Each vendor's m_k comes from its own
+   full series; Exness class comparison therefore starts ~52 weeks after its
+   data begin. **If the audit fails, no Dukascopy-fitted model may be carried
+   to the Exness feed**; a forward shadow would then have to be fitted on Exness
+   data alone.
+5. **Bootstrap on calendar weeks (R10-5):** circular blocks of 8 (and 26)
+   consecutive calendar weeks; statistic = sum of paired differences in the
+   drawn weeks ÷ their count, so sparse risk sets keep their calendar spacing.
+6. m_k, its first/last source cut and the RV input hash are written to the
+   workbook (R10-6). This freezes it from now on; it cannot recreate the
+   vintage of past data.
+7. PIT is the randomised rank PIT, (#{e < y} + U·(#{e = y} + 1)) / (n + 1),
+   per model and period; tail shares below p5 / above p95 and 80 %/95 %
+   coverage are printed with calendar-block intervals (R10-7).
+8. Alarm flags are computed once over each model's whole causal history and
+   then summarised per period (R10-8).
+9. Missing forecasts are counted per model with reason: target invalid,
+   missing input, no point forecast otherwise, no distribution (R10-9).
+10. **RPS convention (R10-10):** four ordered classes, RPS = (1/3) Σ_{j=1..3}
+    (F_j − O_j)², F = cumulative forecast probability, O = cumulative outcome.
+Also: Y3 entry is the first H1 bar whose **open** is after the cut.
