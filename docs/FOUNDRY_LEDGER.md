@@ -330,3 +330,8 @@ logged forward every Friday, paper only: `docs/FOUNDRY_SHADOW_PREREG.md`,
 selected, mostly long/trend (long bias after the 2024-26 rally, stated in the prereg).
 Engine change (no effect on earlier results): the regime grid now includes the next cut after
 the data so the coming week's class exists at a cut.
+
+## Batch `batch24` (registered 2026-09-30, before running)
+Two selector variants on menu4, L104, top 20 %, equal risk per variant-week, NORMAL/HIGH weeks:
+(a) rank by R at the 4 bp stress cost (penalises cost-heavy variants); (b) hold each selection for
+4 weeks (IC is higher at 4-13 week horizons). 2 candidates.

@@ -37,7 +37,7 @@ def menu_trades(menu_fn):
         sb = sp.stop / ep * 1e4
         net = g - E.COST_BP
         T.append(pd.DataFrame(dict(v=vi, name=sp.name, et=B.t[sp.ent], xt=B.t[ex] + B.step, net=net, R=net / sb,
-                                   stress=g - E.STRESS_BP, cell=cb[sp.ent])))
+                                   stress=g - E.STRESS_BP, cell=cb[sp.ent], sb=sb)))
     T = pd.concat(T, ignore_index=True)
     T["wk"] = np.searchsorted(cuts, T.et.to_numpy(), side="left") - 1
     T = T[T.wk >= 0]
@@ -269,6 +269,16 @@ def main_ew(batch, menu_fn) -> int:
         keep["TOPQ_L104_WEEKBUDGET_NOTCALM"] = S
         r = stats(S, "DISC"); r["cand"] = "TOPQ_L104_WEEKBUDGET_NOTCALM"
         rows.append(r)
+    if batch == "batch24":
+        volk = np.array([c.split("/")[0] if c else "" for c in cell], object)
+        T["R_stress"] = T.stress / T.sb
+        for nm, kw in (("TOPQ_L104_STRESSRANK_EW_NOTCALM", dict(score_col="R_stress")),
+                       ("TOPQ_L104_HOLD4_EW_NOTCALM", dict(hold_weeks=4))):
+            S = variant_week(run_portfolio_v2(T, cuts, 104, **kw))
+            S = S[np.isin(volk[S.wk.to_numpy()], ["NORMAL", "HIGH"])]
+            keep[nm] = S
+            r = stats(S, "DISC"); r["cand"] = nm
+            rows.append(r)
     if batch in ("batch15", "batch16", "batch20"):
         volk = np.array([c.split("/")[0] if c else "" for c in cell], object)
         S = variant_week(run_portfolio(T, cuts, 104, False))
@@ -285,7 +295,7 @@ def main_ew(batch, menu_fn) -> int:
             r = stats(S, "DISC"); r["cand"] = name
             rows.append(r)
         TOP_FRAC = 0.2
-    grid = () if batch in ("batch14", "batch15", "batch16", "batch17", "batch20", "batch21") else ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
+    grid = () if batch in ("batch14", "batch15", "batch16", "batch17", "batch20", "batch21", "batch24") else ((52, True), (104, True)) if menu_fn not in ("menu1",) else ((52, True), (104, True), (104, False))
     for L, ew in grid:
         name = f"TOPQ_L{L}{'_EW' if ew else ''}"
         S = run_portfolio(T, cuts, L, False)
@@ -524,6 +534,37 @@ def weekly_budget(S):
     g = S.groupby("wk").agg(et=("et", "min"), net=("net", "mean"), R=("R", "mean"), stress=("stress", "mean"),
                             ctrl=("ctrl", "first"), v=("v", "nunique"), name=("name", "first")).reset_index()
     return g
+
+
+
+def run_portfolio_v2(T, cuts, L, score_col="R", hold_weeks=1):
+    """Top 20 % by trailing score on `score_col` (R or R at stress cost); the selection made at
+    cut k is held for hold_weeks weeks (re-selected every hold_weeks)."""
+    out = []
+    xt = T.xt.to_numpy(); v = T.v.to_numpy(); X = T[score_col].to_numpy()
+    by_wk = T.groupby("wk").indices
+    order = np.argsort(xt); xs = xt[order]
+    top = None
+    for k in range(len(cuts)):
+        if k % hold_weeks == 0 or top is None:
+            cut = cuts[k]
+            lo = np.searchsorted(xs, cut - L * WEEK, side="right"); hi = np.searchsorted(xs, cut, side="right")
+            idx = order[lo:hi]
+            top = None
+            if len(idx):
+                s = pd.DataFrame(dict(v=v[idx], X=X[idx])).groupby("v").X.agg(["sum", "count"])
+                s = s[s["count"] >= MIN_COUNT]
+                if len(s) >= 10:
+                    sc = (s["sum"] / np.sqrt(s["count"])).sort_values(ascending=False)
+                    top = sc.iloc[:max(1, int(np.ceil(TOP_FRAC * len(sc))))].index
+        if top is None or k not in by_wk:
+            continue
+        wk_rows = T.iloc[by_wk[k]]
+        ctrl = wk_rows.groupby("v").R.mean().mean()
+        sel = wk_rows[wk_rows.v.isin(top)]
+        for r in sel.itertuples():
+            out.append(dict(wk=k, et=r.et, v=r.v, name=r.name, net=r.net, R=r.R, stress=r.stress, ctrl=ctrl, score=0.0))
+    return pd.DataFrame(out)
 
 
 if __name__ == "__main__":
