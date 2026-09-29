@@ -369,3 +369,10 @@ they are re-run below as corrections, counted as new candidates.
 `batch1nr7fix` (NR7_t1/t2 corrected, cell ALL, both/long/short) and `batch25b` (GVZ_JUMP with the
 previous day's move, cells ALL, NOTCALM/*, both directions). Then the nomination-5 selector recomputed
 on the corrected menu4 (DISC and VAL; the VAL recomputation is counted as a new VAL look).
+
+### Results of the corrections
+- `batch1nr7fix`: NR7_t1 both DISC t_R 4.53 (was t_net 4.00) -> VAL fail again (-0.001 R, p 0.51);
+  NR7_t2 VAL +0.011 R, p 0.44 (M = 15). The skip bias was not what made NR7 look good in 2003-14.
+- `batch25b` (GVZ jump, corrected): DISC pass 0; FOLLOW_h1 t_R 1.25, FADE negative. No GVZ-jump effect.
+- Nomination-5 selector on the corrected menu4: DISC +0.062 R, t_R 2.81 (was 2.89); VAL +0.033 R,
+  t_R 1.47, p 0.070 (M = 16), excess t 3.32 - effectively unchanged. The bias was small for the selector.

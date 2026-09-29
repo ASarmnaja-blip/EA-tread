@@ -38,3 +38,10 @@ long-biased. Its forward record will partly measure gold's direction until its r
 ## Operation
 Runs in the Saturday 06:00 Bangkok job (`run_weekly.py`) after the outlook shadow; a failure is
 logged and never blocks the risk report.
+
+## Amendment 1 (2026-09-30, before the first forward cut)
+The Foundry leak test found an optimistic bias in the stop-entry families (NR7 in menu4): a bar that
+touched both levels was skipped; now the side nearer the bar's open is taken and the stop is checked
+first. `families.py` is corrected, so SELECTOR-SHADOW-1 runs with the corrected menu4 from the first
+forward cut. Recomputed history: DISC t_R 2.81, VAL +0.033 R, t_R 1.47 (was 2.89 / 1.48). The
+2026-09-25 dry-run selection was made before the fix and is not scored.
