@@ -37,7 +37,7 @@ N_SYN = 40
 RNG = np.random.default_rng(20260929)
 OUT = ROOT / "data" / "regime_atlas.xlsx"
 TARGETS = ("V-change", "V-on", "V-off", "D-counterweek", "D-state-change", "Next-sign")
-CATEGORICAL = ("month", "week_of_month", "qend_flag", "lag_short")
+CATEGORICAL = ("month", "week_of_month", "qend_flag", "lag_short", "news_tier1")
 STATE = {0: "LOW", 1: "MID", 2: "HIGH"}
 ERAS = {"2003-2008": ("2003", "2009"), "2009-2014": ("2009", "2015"),
         "2015-2020": ("2015", "2021"), "2021-2026": ("2021", "2027")}
@@ -278,7 +278,7 @@ def metrics(pred, base, y, alarm, sel, boot=True):
         pos = k - k.min()
         span = pos.max() + 1
         nb = int(math.ceil(span / BLOCK))
-        starts = RNG.integers(0, max(span - BLOCK, 1), (B_REPS, nb))
+        starts = RNG.integers(0, max(span - BLOCK + 1, 1), (B_REPS, nb))
         order = np.argsort(pos)
         pos_sorted = pos[order]
         sk, lf = np.empty(B_REPS), np.empty(B_REPS)
@@ -351,7 +351,7 @@ def part1(cuts, sig, ret, rv):
     boots = []
     nblk = int(math.ceil(len(a) / BLOCK))
     for _ in range(1000):
-        st = RNG.integers(0, len(a) - BLOCK, nblk)
+        st = RNG.integers(0, len(a) - BLOCK + 1, nblk)
         sel = np.concatenate([np.arange(s0, s0 + BLOCK) for s0 in st])
         sel = sel[ok[sel]]
         Mb = np.zeros((3, 3))
@@ -371,7 +371,7 @@ def part1(cuts, sig, ret, rv):
 
 
 # ------------------------------------------------------------------ main
-def run_pairs(T, Y, cur, years, windows=(None, TRAIL), boot=True):
+def run_pairs(T, Y, cur, years, windows=(None, TRAIL), boot=True, cuts=None):
     rows, roll = [], []
     for tn, y in Y.items():
         for name, x in T.items():
@@ -380,6 +380,8 @@ def run_pairs(T, Y, cur, years, windows=(None, TRAIL), boot=True):
                 pred, base = prequential(x, y, cat, w)
                 al = alarms(pred)
                 wl = "expanding" if w is None else f"trailing {w}"
+                sc = np.flatnonzero(np.isfinite(pred) & np.isfinite(y))
+                first_scored = (pd.to_datetime(cuts[sc[0]], unit="s").date() if cuts is not None and len(sc) else None)
                 strata = {"all": np.ones(len(x), bool)}
                 if tn == "V-on":
                     strata.update({"state LOW": cur == 0, "state MID": cur == 1})
@@ -389,21 +391,21 @@ def run_pairs(T, Y, cur, years, windows=(None, TRAIL), boot=True):
                     m = metrics(pred, base, y, al, sel, boot=boot and sn == "all")
                     if m is None:
                         continue
-                    rows.append(dict(target=tn, trace=name, window=wl, stratum=sn, **m))
+                    rows.append(dict(target=tn, trace=name, window=wl, stratum=sn, first_scored=first_scored, **m))
                 if w is None:
                     roll.append(dict(target=tn, trace=name, **rolling_skill(pred, base, y, years)))
     return pd.DataFrame(rows), pd.DataFrame(roll)
 
 
-def self_check(template, Y, cur, years):
+def self_check(template, Y, cur, years, windows=(None,), n_syn=N_SYN):
     n = len(template)
     hits = total = 0
-    for _ in range(N_SYN):
+    for _ in range(n_syn):
         z = np.zeros(n); e = RNG.normal(size=n)
         for i in range(1, n):
             z[i] = 0.9 * z[i - 1] + e[i]
         z[~np.isfinite(template)] = np.nan
-        R, _ = run_pairs({"syn": z}, Y, cur, years, windows=(None,), boot=True)
+        R, _ = run_pairs({"syn": z}, Y, cur, years, windows=windows, boot=True)
         R = R[(R.stratum == "all") & R.printed.astype(bool)]
         hits += int((R.skill_lo > 0).sum()); total += len(R)
     return hits, total
@@ -420,6 +422,11 @@ def main() -> int:
         assert big == 0 and pd.to_datetime(t[-1], unit="s") >= pd.Timestamp("2026-09-01"), "cache incomplete: run later"
     Y, cur, nxt, q = targets(sig, rv, ret)
     T = traces(h, t, cuts, rv, rng, ret, sig, nbar)
+    import external_traces as X  # noqa: E402
+    T_ext = X.build(cuts)
+    T.update(T_ext)                       # 21 internal + 14 external = 35 traces
+    print(f"traces: {len(T)} ({len(T_ext)} external); external coverage (weeks with a value):")
+    print(X.coverage(T_ext, cuts).to_string(index=False))
     cnt = []
     for tn, y in Y.items():
         for name, x in T.items():
@@ -436,23 +443,39 @@ def main() -> int:
     if SMOKE:
         print("smoke: counts only, no accuracy figure computed")
         return 0
-    hits, total = self_check(T["sig_ratio"], Y, cur, years)
-    print(f"\nself-check: {hits}/{total} synthetic intervals with lower bound > 0 ({hits / max(total, 1):.1%}; must be <= 5%)")
-    assert hits / max(total, 1) <= 0.05, "self-check failed"
+    for label, tmpl, wins, ns in (("internal missingness, expanding", T["sig_ratio"], (None,), N_SYN),
+                                  ("nominal-yield missingness (2016+), expanding + trailing", T["y2_lvl"], (None, TRAIL), 20)):
+        hits, total = self_check(tmpl, Y, cur, years, wins, ns)
+        print(f"\nself-check [{label}]: {hits}/{total} synthetic intervals with lower bound > 0 "
+              f"({hits / max(total, 1):.1%}; must be <= 5%)")
+        assert hits / max(total, 1) <= 0.05, "self-check failed"
     (q1, q2), dist, sens, spells, trans, era = part1(cuts, sig, ret, rv)
     print(f"\nPART 1 (full-sample, descriptive) bands: LOW < {q1:.0f} <= MID < {q2:.0f} <= HIGH (bp/week)")
     print(dist.round(1).to_string(index=False)); print(sens.to_string(index=False))
     print(spells.to_string(index=False)); print(trans.to_string()); print(era.round(3).to_string(index=False))
-    R, RL = run_pairs(T, Y, cur, years)
-    pos = R[(R.stratum == "all") & R.printed.astype(bool) & (R.skill_lo > 0)]
-    print(f"\nPART 2: {len(R[R.stratum == 'all'])} pair-window results; positive-skill intervals (lower > 0): {len(pos)}")
-    cols = ["target", "trace", "window", "weeks", "events", "base_rate", "brier_skill", "skill_lo", "skill_hi",
-            "AUC", "alarms", "precision", "lift", "lift_lo", "lift_hi", "sensitivity", "FPR"]
+    R, RL = run_pairs(T, Y, cur, years, cuts=cuts)
+    A = R[(R.stratum == "all") & R.printed.astype(bool)]
+    pos = A[A.skill_lo > 0]
+    npairs = len(T) * len(Y)
+    print(f"\nPART 2: {npairs} trace-target pairs x 2 windows = {2 * npairs} pair-window intervals "
+          f"(~{0.025 * 2 * npairs:.0f} lower bounds > 0 expected by chance if one-sided 2.5%); "
+          f"assessed (>=20 events and non-events after burn-in): {len(A)}; lower bound > 0: {len(pos)}")
+    print("EXPLORATORY: nothing below licenses a tool, a size change or an activation (REGIME_MAP v2 Amendment 2).")
+    cols = ["target", "trace", "window", "first_scored", "weeks", "events", "base_rate", "brier_skill", "skill_lo", "skill_hi",
+            "AUC", "alarms", "precision", "lift", "lift_lo", "lift_hi", "sensitivity", "FPR", "FDR"]
     print(pos[cols].round(3).to_string(index=False) if len(pos) else "none")
-    best = (R[(R.stratum == "all") & R.printed.astype(bool) & (R.window == "expanding")]
-            .sort_values("brier_skill", ascending=False).groupby("target").head(3))
-    print("\nbest 3 per target by skill (expanding window)")
-    print(best[cols].round(3).to_string(index=False))
+    # traces that could not be assessed at all for a target (fewer than 20 events or non-events after burn-in)
+    done = set(zip(A.target, A.trace))
+    na = [(tn, nm) for tn in Y for nm in T if (tn, nm) not in done]
+    print(f"\nNOT ASSESSED (no printable cell in either window): {len(na)} of {npairs} pairs")
+    for nm in T_ext:
+        miss = [tn for tn in Y if (tn, nm) in set(na)]
+        if miss:
+            print(f"  {nm}: {', '.join(miss)}")
+    for tn in Y:
+        top = A[(A.target == tn) & (A.window == "expanding")].sort_values("brier_skill", ascending=False).head(5)
+        print(f"\ntop 5 by Brier skill, {tn} (expanding; full table in workbook)")
+        print(top[cols].round(3).to_string(index=False))
     with pd.ExcelWriter(OUT) as xw:
         C.to_excel(xw, sheet_name="counts", index=False)
         tc.to_excel(xw, sheet_name="causal transitions")
@@ -460,6 +483,14 @@ def main() -> int:
         spells.to_excel(xw, sheet_name="P1 spells", index=False); trans.to_excel(xw, sheet_name="P1 transitions")
         era.to_excel(xw, sheet_name="P1 eras", index=False)
         R.to_excel(xw, sheet_name="P2 all pairs", index=False); RL.to_excel(xw, sheet_name="P2 rolling 5y", index=False)
+        for tn in Y:
+            (R[(R.target == tn) & (R.stratum == "all")].sort_values("brier_skill", ascending=False)
+             .to_excel(xw, sheet_name=f"T {tn}"[:31], index=False))
+        pd.DataFrame({"README": ["EXPLORATORY. Nothing in this workbook licenses a tool, a size change or an activation.",
+                                 "Intervals (26-week moving blocks) exist only for Brier skill and lift; AUC, precision, sensitivity, FPR, FDR are descriptive.",
+                                 "External traces have short samples; cells with < 20 events or non-events after the 30/30 burn-in are not printed (NOT ASSESSED).",
+                                 "See docs/REGIME_MAP_PREREG.md v2 Amendment 2 and docs/EXTERNAL_TRACE_PREREG.md Amendment 2."]}
+                     ).to_excel(xw, sheet_name="README", index=False)
     print(f"\nsaved {OUT}")
     return 0
 

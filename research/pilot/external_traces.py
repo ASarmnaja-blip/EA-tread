@@ -50,10 +50,15 @@ def treasury(kind):
 
 
 def cftc():
-    """Managed-money net for GOLD from the disaggregated futures-only files.
-    Returns a frame indexed by report (Tuesday) date with the net position and
-    the release date (Friday 15:30 ET = 19:30/20:30 UTC; we use Friday 20:30 UTC,
-    which is before the 22:15 cut, and require the report date + 3 days <= cut)."""
+    """Managed-money net for GOLD (disaggregated futures-only). Each Tuesday report is
+    matched to its OWN release timestamp taken from the MT5 calendar row
+    'CFTC Gold Non-Commercial Net Positions' (legacy and disaggregated reports are
+    published together), so holiday/disruption delays are honoured (R9 defect 2).
+    Reports with no calendar release time (before 2022-01-03) are dropped, not guessed."""
+    sys.path.insert(0, str(ROOT / "research" / "pilot"))
+    import calendar_feed
+    cal = calendar_feed.load_calendar(str(ROOT / "data" / "calendar.csv"))
+    rel = np.sort(cal[cal.event == "CFTC Gold Non-Commercial Net Positions"].epoch.unique().astype(np.int64))
     rows = []
     for z in sorted(EXT.glob("cftc_fut_disagg_*.zip")):
         with zipfile.ZipFile(z) as zf:
@@ -72,10 +77,16 @@ def cftc():
         g = df.loc[df[code].astype(str).str.strip() == "088691", [date, lon, sho]]
         rows.extend({"report": pd.Timestamp(d), "net": float(a) - float(b)}
                     for d, a, b in zip(g[date], g[lon], g[sho]))
-    if not rows:
+    if not rows or len(rel) == 0:
         return None
     out = pd.DataFrame(rows).dropna().drop_duplicates("report").sort_values("report").set_index("report")
-    out["release"] = out.index + pd.Timedelta(days=3, hours=20, minutes=30)   # Tue book -> Fri 20:30 UTC
+    rep = out.index.astype("datetime64[s]").astype(np.int64).to_numpy()
+    # release = first calendar release strictly after the report date + 2 days (Tuesday book),
+    # accepted only if within 21 days and the calendar already covers that period
+    j = np.minimum(np.searchsorted(rel, rep + 2 * 86400, side="right"), len(rel) - 1)
+    ok = (rel[j] > rep + 2 * 86400) & (rel[j] <= rep + 21 * 86400) & (rep >= rel[0] - 5 * 86400)
+    out = out[ok]
+    out["release"] = pd.to_datetime(rel[j[ok]], unit="s")
     return out
 
 
@@ -84,7 +95,8 @@ def calendar_tier1():
     import calendar_feed
     cal = calendar_feed.load_calendar(str(ROOT / "data" / "calendar.csv"))
     d = cal[(cal.currency == "USD") & cal.event.isin(TIER1)]
-    return np.sort(d.epoch.unique().astype(np.int64)), int(cal.epoch.min()), int(cal.epoch.max())
+    d = d.drop_duplicates(["epoch", "event"])
+    return np.sort(d.epoch.to_numpy(np.int64)), int(cal.epoch.min()), int(cal.epoch.max())
 
 
 def cross_asset():
@@ -94,7 +106,10 @@ def cross_asset():
         if not f.exists():
             continue
         z = np.load(f)
-        s = pd.Series(z["c"], index=pd.to_datetime(z["t"], unit="s")).resample("1h").last().dropna()
+        # bar time = OPEN time; bucket [T-1h, T) is labelled T (its end) so a value
+        # labelled <= cut contains only M5 bars that had closed by the cut (R9 defect 1)
+        s = (pd.Series(z["c"], index=pd.to_datetime(z["t"], unit="s"))
+             .resample("1h", closed="left", label="right").last().dropna())
         out[sym] = s
     return out
 
@@ -156,12 +171,13 @@ def build(cuts):
                 net = mm.net.to_numpy(float)
                 T["mm_net"][k] = net[j] / 1000.0
                 lo = max(j - 51, 0)
-                if j - lo >= 25:
-                    T["mm_pct"][k] = float((net[lo:j + 1] < net[j]).mean() * 100)
+                if j - lo >= 25:   # >= 26 observations including the current report
+                    w_ = net[lo:j + 1]
+                    T["mm_pct"][k] = float(((w_ < net[j]).sum() + 0.5 * (w_ == net[j]).sum()) / len(w_) * 100)
                 if j >= 4:
                     T["mm_chg4"][k] = (net[j] - net[j - 4]) / 1000.0
         # --- scheduled tier-1 releases in the coming week
-        if cal_lo - WEEK <= cut <= cal_hi - WEEK:
+        if cal_lo <= cut <= cal_hi - WEEK:
             T["news_tier1"][k] = float(((t1 > cut) & (t1 <= cut + WEEK)).sum())
         # --- cross-asset weekly volatility ratio and return z (52-week baseline)
         rv, rz = [], []
@@ -169,7 +185,7 @@ def build(cuts):
             v = xa_v[sym]
             lo_i = np.searchsorted(ts, cut - WEEK, side="right")
             hi_i = np.searchsorted(ts, cut, side="right")
-            if hi_i - lo_i < 50:
+            if hi_i - lo_i < 50 or ts[hi_i - 1] < cut - 6 * 3600:
                 continue
             r = np.diff(np.log(v[lo_i:hi_i]))
             week_rv = float(np.sum(r * r))

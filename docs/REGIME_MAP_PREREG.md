@@ -179,3 +179,17 @@ edge.
   to "no strong trace".
 - Categorical traces (month, week of month) use a G statistic instead of AUC;
   each is tested against its own shift null.
+
+
+## v2 Amendment 2 (2026-09-29, after Codex round 9, before any real result)
+Part 3 (v2.6) said an unconfirmed alarm "may at most stay shadow or reduce risk
+under a separately frozen conservative rule". **The words "or reduce risk" are
+withdrawn.** Codex R9-7 is right that this lets a historically selected alarm
+touch live sizing before prospective confirmation, which contradicts "no tool
+from history". Until a separate pre-registration is confirmed prospectively, an
+alarm from this atlas may only be **logged in shadow**; it changes no size, no
+filter and no activation. The workbook now carries an EXPLORATORY / no-licence
+README sheet, and the console prints the same line above the results.
+Also see `EXTERNAL_TRACE_PREREG.md` Amendment 2 for the multiplicity unit
+(420 pair-window intervals), interval coverage (Brier skill and lift only) and
+the corrected bootstrap block range.

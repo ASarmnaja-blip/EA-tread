@@ -101,3 +101,70 @@ Consequences fixed now:
   `Report_Date_as_YYYY-MM-DD` contains dashes, so `itertuples` renamed it and
   the first version silently produced zero rows. Fixed by indexing by label;
   299 weekly gold reports 2021-01-05..2026-09-22 now load.
+
+
+## Amendment 2 (2026-09-29, after Codex round 9, before any real result)
+Codex R9 (`docs/CODEX_R9_EXTERNAL_TRACES.md`) found three blocking defects and
+several smaller ones. All are corrected below, in code or in text, before the
+real run. No accuracy figure for any external trace had been computed.
+
+Code corrected (`research/pilot/external_traces.py`, `regime_atlas.py`):
+1. **Cross-asset post-cut data (R9-1).** Hourly bars were labelled by bucket
+   start, so the 22:00 value could hold M5 bars up to 22:55. Now the bucket
+   [T-1h, T) is labelled T and only bars closed by the cut are used; a value
+   older than 6 h at the cut is treated as missing.
+2. **CFTC release times were invented (R9-2).** Each Tuesday report is now
+   matched to its own release timestamp from the MT5 calendar row
+   "CFTC Gold Non-Commercial Net Positions" (published together with the
+   disaggregated report). Holiday and disruption delays are honoured (checked:
+   lags of 3.8 d normally, up to 17.9 d in Feb 2023). Reports before the
+   calendar begins (2022-01-03) are **dropped, not guessed**, so CFTC traces now
+   start 2022-01-07, not 2021-01-08 as Amendment 1 stated.
+3. **External study now runs end to end (R9-3).** `regime_atlas.py` builds the 14
+   external traces and scores them with the 21 internal ones (35 traces x 6
+   targets = 210 pairs).
+4. `news_tier1`: counts distinct (timestamp, event) pairs; no zero-fill before
+   the calendar's first row (R9-12). `news_tier1` is treated as categorical
+   (exact count) because it takes few integer values.
+5. `mm_pct`: window = up to 52 reports including the current one, at least 26
+   observations, ties count half (R9-10). Amendment 1's "26 prior reports" is
+   replaced by "26 observations including the current report".
+6. Moving-block bootstrap start range off by one, in both the accuracy
+   intervals and the transition intervals (R9-13); fixed.
+
+Text corrected:
+- **Vintage limits (R9-4, R9-8), stated not solved.** `news_tier1` uses the
+  calendar as it stands today, not the schedule as known at each cut;
+  reschedules and late additions are known retrospectively. The four releases
+  are mostly scheduled long ahead, so the effect is probably small, but it is
+  unmeasured. Treasury yields are read from present-day files with no vintage
+  metadata; later corrections cannot be excluded. Both are a limitation on any
+  finding, not a demonstrated leak.
+- **Cross-asset definitions (R9-9).** `xasset_ret` is last week's return divided
+  by the square root of the past-52-week median weekly realised variance (a
+  volatility-scaled return; no mean removed, no z-score). Requirement: at least
+  30 usable past weeks per asset and **at least 2 of the 3** assets (DXY,
+  US500, XAG), not all three. Amendment 1's wording is superseded.
+- **Power (R9-5). Amendment 1's "smallest AUC detectable" column is withdrawn
+  as a statement about the implemented procedure.** It counted every covered
+  onset with an ordinary AUC approximation, but predictions only begin after 30
+  prior events and 30 prior non-events, and the decision quantity is a
+  bootstrapped Brier-skill interval. Real consequence: news and cross-asset
+  V-on will have too few scored events to print; real-yield and CFTC V-on
+  almost none. The run prints a **NOT ASSESSED** list; a blank there means "no
+  test happened", never "no effect".
+- **Multiplicity (R9-6).** 210 pairs x 2 windows = **420 pair-window
+  intervals**. If the intervals behave as one-sided 2.5% each, about 10 lower
+  bounds above 0 are expected by chance. Strata, rolling windows and the
+  top-5 lists add further looks. The self-check now also runs the trailing
+  window and the nominal-yield missingness pattern (expanding + trailing).
+- **Reporting (R9-11).** Bootstrap intervals exist only for Brier skill and
+  lift; AUC, precision, sensitivity, FPR and FDR are descriptive. "First scored
+  week" is now the first week with a prediction after the 30/30 burn-in. The
+  workbook holds one complete sorted table per target; the console shows the
+  positive-interval rows and the top 5 per target. FDR is printed.
+- **Gaps (R9-14).** The run asserts no gap longer than 8 days; shorter outages
+  are handled by the weekly rule (a week with fewer than 80 H1 bars is invalid
+  and excluded), not by demanding a gap-free cache.
+- **No licence (R9-7).** See `REGIME_MAP_PREREG.md` Amendment 2: the phrase
+  allowing an unconfirmed alarm to "reduce risk" is withdrawn.
