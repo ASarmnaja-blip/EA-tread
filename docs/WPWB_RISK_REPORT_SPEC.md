@@ -198,3 +198,51 @@ review before restarting; and that this is **not** a guarantee against a 45%
 drawdown (~1% of i.i.d. random-direction paths breach it, 3–15% with
 persistent or one-sided errors; broker margin stop-out not yet modelled).
 The forecast and log specification stays v2 (log rows unchanged).
+
+## v3 (2026-09-29) — frozen rules that close H2, H3, H4
+
+Operator direction: close the holes. Code `research/wpwb_weekly/riskrules.py`,
+tests `test_riskrules.py` (8 pass), evidence `backtest_rules.py` →
+`data/wpwb_weekly/backtest_rules.xlsx`. Every rule can only refuse or reduce;
+none opens a position, picks a direction, or raises size.
+
+### The rules
+
+| id | rule | constant | where the constant comes from |
+|---|---|---|---|
+| **H2** | at each H1 close from bar 20 of the week, if realised variance since the reopen exceeds **1.5×** the forecast pace: halve the position and open nothing more that week | K = 1.5 | reuses the NORMAL→HIGH variance class edge already frozen in spec v2 — no new tuned number |
+| **H3a** | carry nothing across a Friday cut into a week forecast **HIGH or EXTREME** | — | measured: median weekend gap by forecast class is 4.1 / 10.2 / 17.0 / 29.4 bp for CALM / NORMAL / HIGH / EXTREME, p95 63 / 55 / 94 / **184** bp. The forecast does predict gap size |
+| **H3b** | otherwise cap lots so a **p99 adverse weekend gap (175 bp)** costs at most the per-trade budget | 175.1 bp | 273 weekends 2021-07..2026-09; p95 91.5, max 306.4 (2026-01-30) |
+| **H4** | do not hold through a tier-1 release (NFP, CPI, FOMC, core PCE) unless the stop is wider than the **p95 one-minute move (158 bp)**; otherwise flatten before it | 158.3 bp | 14 tier-1 releases of tick history: median **89.2**, max 177.5 bp. n = 14 is thin — treat as "wider than almost anything observed" and re-measure as ticks accumulate |
+| **H6** | broker margin stop-out | **not measured** | MT5 is blocked by a pending Windows update prompt; the code refuses to invent leverage or stop-out level and falls back to the zero-equity rule. **H6 stays open.** |
+
+### What the rules do (development evidence, one gold path 2022-07..2026-09)
+
+Weekly hold of gold, long or short, compounding, 0.03 lot/$10k × vol_scale,
+Demo90 costs. Read the risk columns; return differences are **not** an edge.
+
+| side · rules | final $ | max DD | worst week | left tail 1% | weekly SD |
+|---|---|---|---|---|---|
+| long · none | 18,060 | −13.9% | −1,039 | −558 | 234 |
+| long · H2 | 16,569 | −11.3% | −1,039 | −372 | 173 |
+| long · H3 | 14,000 | **−4.6%** | **−245** | −223 | 86 |
+| long · H4 | 16,688 | −13.8% | −969 | −514 | 214 |
+| long · all | 12,373 | **−4.6%** | **−165** | **−150** | 64 |
+| short · none | 5,453 | −49.5% | −316 | −272 | 92 |
+| short · all | 7,524 | **−25.7%** | −232 | −191 | 53 |
+
+Readings:
+- **H3 is the strongest risk rule by far**: long max drawdown 13.9% → 4.6% and
+  worst week −$1,039 → −$245, at the cost of skipping 67 of 221 weeks and
+  about a fifth of the return. On the short side it improved both risk and
+  return, which on a single path is luck, not evidence.
+- **H2 fires 66 times** and mainly cuts the left tail (−558 → −372) and the
+  weekly SD; it is the only rule that acts inside the week, which is the hole
+  the Saturday forecast structurally cannot cover.
+- **H4 does almost nothing for a week-long hold** and costs spread on 179
+  re-entries. That is an honest negative result: the news-minute rule matters
+  for intraday positions with tight stops, not for weekly exposure. It stays
+  frozen because the measured risk (median 89 bp in one minute) is real for
+  the trades WPWB would eventually place, not for this test's exposure.
+- Skipping 30% of weeks is a large exposure change; on one path its return
+  effect cannot be separated from luck. Only the risk columns are claimed.

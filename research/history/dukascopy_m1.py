@@ -38,8 +38,14 @@ def log(msg):
 
 
 def get(url):
-    """Return decoded array, or empty array for 404/empty. Retries politely."""
-    delay = 30
+    """Return decoded array, or empty array for 404/empty. Retries politely.
+
+    A 503 is the server rate-limiting us, so it earns a long doubling backoff.
+    A dropped connection (URLError/timeout) is transient flakiness, not a
+    request to slow down, so it gets a short fixed retry: doubling on those
+    was costing minutes per file for no reason.
+    """
+    slow = 30
     while True:
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -48,11 +54,11 @@ def get(url):
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 return np.zeros(0, DT)
-            log(f"HTTP {e.code} on {url.split('XAUUSD/')[1]}; waiting {delay}s")
+            log(f"HTTP {e.code} on {url.split('XAUUSD/')[1]}; waiting {slow}s")
+            time.sleep(slow)
+            slow = min(slow * 2, 600)
         except Exception as e:
-            log(f"{type(e).__name__} on {url.split('XAUUSD/')[1]}; waiting {delay}s")
-        time.sleep(delay)
-        delay = min(delay * 2, 600)
+            time.sleep(5)
 
 
 def jobs(kind, today):
