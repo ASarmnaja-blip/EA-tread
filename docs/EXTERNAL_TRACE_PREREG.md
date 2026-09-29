@@ -73,3 +73,31 @@ change; yields, positioning and the news count carry little about the *change*
 (as opposed to the level); nothing carries direction. Expected outcome: a
 handful of positive-skill intervals on short samples that cannot be separated
 from chance, and the honest next step is the prospective log.
+
+## Amendment 1 (2026-09-29, measured before any result)
+Coverage on the 1,220-week cut grid, and the smallest effect each sample can
+detect for V-on (80% power, two-sided 5%, onset rate 15.5% of the risk set as
+measured in the smoke run):
+
+| trace group | weeks | onsets it sees | smallest AUC detectable |
+|---|---|---|---|
+| internal H1 price (21 traces) | 1,220 | ~125 | **0.58** |
+| Treasury nominal yields (6) | 559 | ~57 | 0.62 |
+| Treasury real yields, CFTC (5) | 298 | ~30 | 0.66 |
+| scheduled tier-1 news count (1) | 247 | ~25 | 0.68 |
+| cross-asset vol/return (2) | 129 | ~13 | **0.74** |
+
+Consequences fixed now:
+- The cross-asset traces start 2024-04 on this grid (the M5 files begin
+  2023-09 but a 52-week volatility baseline is required first). With ~13 onsets
+  they can only see an enormous effect; they are reported as **exploratory,
+  not tested**, and their cells are printed only if ≥ 20 events exist, which
+  they will not reach for V-on. This is stated now so it is not read later as
+  a finding.
+- CFTC uses only reports **released** before the cut (Tuesday book, Friday
+  20:30 UTC release), so the first usable week is 2021-01-08 and mm_pct needs
+  26 prior reports (2021-07-02).
+- A loader defect found and fixed before any result: the CFTC column
+  `Report_Date_as_YYYY-MM-DD` contains dashes, so `itertuples` renamed it and
+  the first version silently produced zero rows. Fixed by indexing by label;
+  299 weekly gold reports 2021-01-05..2026-09-22 now load.
