@@ -317,6 +317,20 @@ docs/                        RESEARCH_FINDINGS.md, BACKTEST.md,
     คลังช่วงผันผวนอยู่ที่ `docs/WPWB_VOLATILITY_LOG.md`; ข้อ 2 (P2-A volatility
     router) รอถก Codex รอบ 5
 
+11. **(2026-09-30) Tool Foundry** (`docs/FOUNDRY_PROTOCOL.md`, `docs/FOUNDRY_LEDGER.md`,
+    `docs/FOUNDRY_STATUS.md` สรุปภาษาไทย, โค้ด `research/foundry/`) — ลองมาแล้ว ~3,800 แบบ
+    ยังไม่มีเครื่องมือตัวไหนผ่าน หลังรวม spread, slippage และ swap สิ่งที่ได้ระหว่างทาง:
+    - setup ทะลุกรอบและตามแรงใช้ได้เฉพาะช่วง 2003–14 การเลือก setup แบบ top-quintile
+      ได้ผลช่วง 2003–20 แต่ใช้ไม่ได้ในช่วง 2021–26
+    - swap ต้องรวมอยู่ในต้นทุนเสมอ
+    - ต้องรัน `leak_test.py` ก่อนทุก batch
+    - งบ HOLD ของข้อมูลย้อนหลังหมดแล้ว (ใช้คัดผู้สมัครเท่านั้น) การยืนยันต้องมาจากสัปดาห์จริง
+      ผ่านบันทึกกระดาษทุกวันเสาร์ (`run_weekly.py`):
+      - `forward_panel.py` 5 ตัว, α 0.01 (H-FOUNDRY-PANEL-1)
+      - `selector_shadow.py`
+      - `hod21_shadow.py`
+      - สรุปภาษาไทยที่ `data/wpwb_weekly/forward_summary_th.md`
+
 ---
 
 ## สิทธิ์ทดสอบ Execution บนบัญชี Demo (อนุญาต 2026-09-21)
