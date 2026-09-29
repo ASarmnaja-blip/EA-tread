@@ -348,3 +348,24 @@ opening with spread > 3x its usual level at that hour and moving > 0.5 ATR -> fo
 bar, hold 3 h. (3) GVZ: GVZ up > 10 % on the day (row dated two days before the D1 bar, conservative)
 -> follow or fade gold's previous-day move, hold 1 / 3 days. Cells ALL, NOTCALM/*; both directions.
 12 specs, 24 candidates.
+
+### Result `batch25` — INVALID (look-ahead bug), and a second bias found by the new leak test
+GVZ_JUMP_FOLLOW passed DISC, VAL and HOLD (+80..+160 bp per trade, t_R 4-10). Implausible, so
+audited: **the trade direction was the sign of the ENTRY day's own close-to-close move** (a
+look-ahead in my code; direction matched the same-day sign 100 %). The result is void. The two HOLD
+looks it consumed stay spent (state hold_looks = 2), so the next HOLD alpha is 0.05/8.
+Volume and spread-shock rows of batch25 were valid and all failed DISC (VOLHI vs VOLLO no difference).
+New tool: `research/foundry/leak_test.py` - garbages every H1 value from bar j on (keeping bar j's
+open), rebuilds D1, and requires identical entries up to j, with cut points placed AT real entries.
+It flagged GVZ_JUMP and also **NR7, WPWB_OCO and PACE_BRK**: these stop-entry families skipped a
+trade when one bar touched both levels. A real resting OCO would have filled one side and usually
+been stopped in that bar, so skipping removed losers - an optimistic bias (it likely inflated NR7's
+batch1 DISC t 4.9). Fix: both touched -> the side nearer the bar's open, then stop-first. After the
+fix every family generator of batches 1-25 and menu4 passes the leak test. Consequence: NR7 results
+of batch1, and every menu4 selector result (NR7 variants were among the champions), were optimistic;
+they are re-run below as corrections, counted as new candidates.
+
+## Corrections registered 2026-09-30 (before running)
+`batch1nr7fix` (NR7_t1/t2 corrected, cell ALL, both/long/short) and `batch25b` (GVZ_JUMP with the
+previous day's move, cells ALL, NOTCALM/*, both directions). Then the nomination-5 selector recomputed
+on the corrected menu4 (DISC and VAL; the VAL recomputation is counted as a new VAL look).

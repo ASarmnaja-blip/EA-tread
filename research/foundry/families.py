@@ -185,8 +185,8 @@ def nr7(H, D):
         hi_, lo_ = D.h[di], D.l[di]
         for i in range(a, b + 1):
             uh, dl = H.h[i] >= hi_, H.l[i] <= lo_
-            if uh and dl:
-                break
+            if uh and dl:                      # order unknown: nearer side to the open, stop-first later
+                uh = abs(hi_ - H.o[i]) <= abs(H.o[i] - lo_); dl = not uh
             if uh or dl:
                 dirs.append(1.0 if uh else -1.0)
                 ep = max(hi_, H.o[i]) if uh else min(lo_, H.o[i])
@@ -479,9 +479,13 @@ def wpwb_oco(H):
             up, dn = C * (1 + k * s), C * (1 - k * s)
             hu = hi >= up; hd = lo <= dn
             j = np.flatnonzero(hu | hd)
-            if not len(j) or (hu[j[0]] and hd[j[0]]):
+            if not len(j):
                 continue
-            j = int(j[0]); d = 1.0 if hu[j] else -1.0
+            j = int(j[0])
+            if hu[j] and hd[j]:                # order unknown: nearer side to the open, stop-first later
+                d = 1.0 if abs(up - H.o[i0 + j]) <= abs(H.o[i0 + j] - dn) else -1.0
+            else:
+                d = 1.0 if hu[j] else -1.0
             ep = max(up, H.o[i0 + j]) if d > 0 else min(dn, H.o[i0 + j])
             for sm in (1, 2):
                 L = out[(k, sm)]
@@ -536,9 +540,13 @@ def pace_brk(H):
                     up, dn = Cc * (1 + k * srem), Cc * (1 - k * srem)
                     hu = H.h[ic:i1 + 1] >= up; hd = H.l[ic:i1 + 1] <= dn
                     j = np.flatnonzero(hu | hd)
-                    if not len(j) or (hu[j[0]] and hd[j[0]]):
+                    if not len(j):
                         continue
-                    j = int(j[0]); d = 1.0 if hu[j] else -1.0
+                    j = int(j[0])
+                    if hu[j] and hd[j]:
+                        d = 1.0 if abs(up - H.o[ic + j]) <= abs(H.o[ic + j] - dn) else -1.0
+                    else:
+                        d = 1.0 if hu[j] else -1.0
                     ep = max(up, H.o[ic + j]) if d > 0 else min(dn, H.o[ic + j])
                     L = res.setdefault((day, p_star, k), ([], [], [], [], []))
                     L[0].append(ic + j); L[1].append(d); L[2].append(k * srem * Cc); L[3].append(i1); L[4].append(ep)
@@ -652,7 +660,7 @@ def gvz_jump(D):
     chg = g.pct_change()
     lab = pd.to_datetime(D.t + 2 * 3600, unit="s").normalize()           # trading-day label
     known = chg.reindex(lab - pd.Timedelta(days=2), method="ffill").to_numpy()
-    r_prev = np.r_[np.nan, D.c[1:] - D.c[:-1]]                           # gold move of day d-1 (close to close)
+    r_prev = np.r_[np.nan, np.nan, D.c[1:-1] - D.c[:-2]]                 # gold move of day d-1 (FIX: was day d)
     sig = np.isfinite(known) & (known > 0.10) & np.isfinite(r_prev)
     ent = np.flatnonzero(sig)
     a = D.atr[ent]; ok = np.isfinite(a); ent, a = ent[ok], a[ok]
@@ -668,5 +676,14 @@ from pathlib import Path as _P
 E_ROOT = _P(__file__).resolve().parents[2]
 
 
+def batch25b(H, D):
+    return gvz_jump(D)
+
+
 def batch25(H, D):
     return volume_split(H) + spread_shock(H) + gvz_jump(D)
+
+
+def batch1nr7fix(H, D):
+    """NR7 re-run after the both-touch fix (correction; counted as new candidates)."""
+    return nr7(H, D)
