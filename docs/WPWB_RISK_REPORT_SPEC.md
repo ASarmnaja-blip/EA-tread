@@ -246,3 +246,21 @@ Readings:
   the trades WPWB would eventually place, not for this test's exposure.
 - Skipping 30% of weeks is a large exposure change; on one path its return
   effect cannot be separated from luck. Only the risk columns are claimed.
+
+### H6 closed (2026-09-29): broker stop-out is at zero equity
+
+Read from MT5 (Exness-MT5Trial7, demo): **leverage 1:2000, margin_so_so = 0%**
+(stop-out), margin_so_call = 30% (a warning, not a liquidation). 0.03 lot at
+$4,133 gold requires **$6.20** of margin.
+
+Consequence: margin is never the binding constraint at the adopted size — the
+account dies from equity reaching zero, not from a margin call. The
+zero-equity liquidation already used in `backtest_compound.py` is therefore
+the correct model for this broker, and the drawdown figures published earlier
+stand as computed. Codex's Round 5 objection was right in general and turns
+out to be immaterial for this account.
+
+Two things to keep watching: a live account may carry different leverage or a
+non-zero stop-out (re-measure before any live use), and a 0% stop-out relies
+on the broker's negative-balance protection when a gap jumps straight through
+zero — the 306 bp weekend gap of 2026-01-30 is the kind of event that tests it.

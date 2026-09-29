@@ -31,8 +31,10 @@ BARS_PER_WEEK = 115          # typical complete week (median of the frozen histo
 GAP_P99_BP: float | None = 175.1        # |weekend gap| p99, n=273 weekends 2021-07..2026-09
 GAP_P95_BP: float | None = 91.5         # p95 (max seen 306.4 on 2026-01-30)
 NEWS_JUMP_P95_BP: float | None = 158.3  # tier-1 1-minute |move| p95 -- n=14 ONLY, see below
-LEVERAGE: int | None = None             # NOT MEASURED YET: MT5 blocked by a pending
-STOP_OUT_PCT: float | None = None       # Windows update prompt; H6 stays open until then
+LEVERAGE: int | None = 2000             # Exness-MT5Trial7, read from MT5 2026-09-29
+STOP_OUT_PCT: float | None = 0.0        # margin_so_so = 0%: the broker liquidates only
+MARGIN_CALL_PCT: float = 30.0           # when equity reaches zero. margin_so_call = 30%
+                                        # is a warning, not a liquidation level.
 
 # NEWS_JUMP_P95_BP rests on 14 tier-1 releases of tick history (Jun-Sep 2026):
 # median 89.2, p95 158.3, max 177.5 bp. A p95 from n=14 is barely more than the

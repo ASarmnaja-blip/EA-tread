@@ -56,19 +56,20 @@ def test_tier1_window():
     assert RR.tier1_in_window(ev, 150, 250) == []
 
 
-def test_margin_falls_back_safely_while_unmeasured():
-    # LEVERAGE / STOP_OUT_PCT are not measured yet: the code must not invent
-    # them, and must fall back to the old zero-equity rule.
-    assert RR.LEVERAGE is None and RR.STOP_OUT_PCT is None
-    assert not RR.frozen()
-    assert np.isnan(RR.margin_required(0.1, 4300.0))
+def test_broker_specs_measured_and_stopout_is_zero_equity():
+    # Read from MT5 on 2026-09-29: 1:2000, stop-out 0%, margin call 30%.
+    assert RR.LEVERAGE == 2000 and RR.STOP_OUT_PCT == 0.0
+    assert RR.frozen()
+    # 0.03 lot at $4,133 needs $6.20 margin -- margin is never the binding
+    # constraint here; a 0% stop-out means liquidation at zero equity.
+    assert abs(RR.margin_required(0.03, 4132.885) - 6.20) < 0.01
     assert RR.stopped_out(-1.0, 0.1, 4300.0)
+    assert RR.stopped_out(0.0, 0.1, 4300.0)
+    assert not RR.stopped_out(0.01, 0.1, 4300.0)     # any positive equity survives
     assert not RR.stopped_out(5000.0, 0.1, 4300.0)
-    # with specs supplied, the margin-level rule bites before equity hits zero
-    # 0.1 lot at $4,300 with 1:2000 needs $21.50 margin; 50% stop-out bites at $10.75
+    # a broker with a 50% stop-out would bite far earlier on the same position
     assert RR.stopped_out(10.0, 0.1, 4300.0, leverage=2000, so_pct=50.0)
     assert not RR.stopped_out(20.0, 0.1, 4300.0, leverage=2000, so_pct=50.0)
-    assert not RR.stopped_out(5000.0, 0.1, 4300.0, leverage=2000, so_pct=50.0)
 
 
 def test_floor_lot():
