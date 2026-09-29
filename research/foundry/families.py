@@ -496,3 +496,54 @@ E_FIRST_CUT = int(np.datetime64("2003-05-09T22:15:00", "s").astype(np.int64))
 
 def batch18(H, D):
     return wpwb_oco(H)
+
+
+# ------------------------------------------------------------------ batch 19: WPWB pace-compression breakout
+def pace_brk(H):
+    """Checkpoint Tue or Wed 22:00 UTC. pace = RV so far / (F * bars_so_far / 115), F = WPWB B0
+    forecast. If pace < p*: OCO stops at Cc(1 +/- k * sqrt(F * (1 - frac))) around the last close,
+    first touch wins, stop back at Cc, exit at the week's last bar."""
+    import vol as V
+    cuts = np.arange(E_FIRST_CUT, int(H.t[-1]), 7 * 86400, dtype=np.int64)
+    rv_raw, _, _, nb = V.weekly_rv(H.t, H.c, H.h, H.l, cuts)
+    f = V.ewma_forecast(V.mask_invalid(rv_raw, nb))
+    close_t = H.t + 3600
+    lr = np.r_[np.nan, np.diff(np.log(H.c))]
+    res = {}
+    for w in range(1, len(cuts)):
+        if not np.isfinite(f[w]):
+            continue
+        a = cuts[w]
+        i0 = np.searchsorted(H.t, a, side="right"); i1 = np.searchsorted(close_t, a + 7 * 86400, side="right") - 1
+        if i1 - i0 < 80:
+            continue
+        for day, off in (("TUE", 3 * 86400 + 23 * 3600 + 45 * 60), ("WED", 4 * 86400 + 23 * 3600 + 45 * 60)):
+            tc = a + off
+            ic = np.searchsorted(close_t, tc, side="right")          # first bar closing after tc
+            if ic <= i0 + 10 or ic >= i1:
+                continue
+            nso = ic - i0
+            rv_so = float(np.nansum(lr[i0 + 1:ic] ** 2) * 1e8)
+            frac = min(nso / 115.0, 0.95)
+            pace = rv_so / (f[w] * frac)
+            Cc = H.c[ic - 1]
+            srem = np.sqrt(f[w] * (1 - frac)) / 1e4
+            for p_star in (0.6, 0.8):
+                if pace >= p_star:
+                    continue
+                for k in (0.25, 0.5):
+                    up, dn = Cc * (1 + k * srem), Cc * (1 - k * srem)
+                    hu = H.h[ic:i1 + 1] >= up; hd = H.l[ic:i1 + 1] <= dn
+                    j = np.flatnonzero(hu | hd)
+                    if not len(j) or (hu[j[0]] and hd[j[0]]):
+                        continue
+                    j = int(j[0]); d = 1.0 if hu[j] else -1.0
+                    ep = max(up, H.o[ic + j]) if d > 0 else min(dn, H.o[ic + j])
+                    L = res.setdefault((day, p_star, k), ([], [], [], [], []))
+                    L[0].append(ic + j); L[1].append(d); L[2].append(k * srem * Cc); L[3].append(i1); L[4].append(ep)
+    return [Spec(f"PACE_BRK_{d}_p{p}_k{k}", "H1", e, dd, st, np.full(len(e), np.nan), la, ep)
+            for (d, p, k), (e, dd, st, la, ep) in sorted(res.items())]
+
+
+def batch19(H, D):
+    return pace_brk(H)

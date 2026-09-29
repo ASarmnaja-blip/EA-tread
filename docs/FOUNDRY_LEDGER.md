@@ -270,3 +270,13 @@ C = open of the week's first H1 bar; buy stop at C(1 + k s), sell stop at C(1 - 
 wins (both in one bar: skip); stop back at C (distance k s) or at the opposite level (2 k s); exit at
 the week's last bar. k in {0.25, 0.5, 1.0} x stop {C, opposite}; cells ALL, NOTCALM/*, HIGH/*; both
 directions only. 18 candidates.
+
+### Result `batch18` (18 candidates; cumulative 2,919)
+DISC pass 0. WPWB forecast-scaled weekly OCO is flat: best t_R 0.93 (k 0.5, stop at C, HIGH weeks),
+ALL cells -0.8..+0.8. Weekly horizon: no directional information, as the regime atlas found.
+
+## Batch `batch19` — WPWB pace-compression breakout (registered 2026-09-30, before running)
+Registry trace S6 (intraweek RV vs forecast pace). Checkpoint Tue or Wed 22:00 UTC; pace = RV so far
+/ (B0 forecast x elapsed share of ~115 H1 bars); if pace < 0.6 or < 0.8, OCO stops at the last close
++/- k x the forecast's remaining weekly sigma (k 0.25 / 0.5), first touch wins, stop back at the
+reference, exit at week end. 8 candidates, cell ALL, both directions.
