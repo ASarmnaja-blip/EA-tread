@@ -2025,3 +2025,52 @@ so). The hour-of-day result is the concrete example: real in 2003-2015, gone by
 regime, and how long it lasts (decay), never as a persistence gate; (2) the
 evidence that turns an effect on is current and forward, with decay monitoring;
 (3) no design may require the same sign in every era.
+
+
+## Part 51 - Regime atlas, first and only real run (2026-09-29; log `data/atlas_run.log`, workbook `data/regime_atlas.xlsx`, both gitignored)
+Run after Codex R9 fixes (commits 3dcf05c, 049398a). 141,464 H1 bars 2003-05-05..2026-08-31,
+1,216 weeks all valid, no gap > 8 days. Self-check passed twice (0/240 and 0/240 false positives;
+limit 5%). 35 traces x 6 targets = 210 pairs, 420 pair-window intervals, 372 assessable.
+
+**Part 1 (descriptive, full-sample terciles, so the three bands are separated BY CONSTRUCTION,
+not discovered as clusters - no cluster test was run):** LOW < 173 <= MID < 234 <= HIGH bp/week.
+Next-week persistence LOW 0.68, MID 0.48, HIGH 0.68; direct LOW->HIGH 0.07, HIGH->LOW 0.05.
+Median completed spell 1.0-1.5 weeks (max 47-50): the label flickers, especially near an edge.
+Era shares of HIGH: 2003-08 50%, 2009-14 39%, 2015-20 17%, 2021-26 29%; LOW 58% in 2015-20.
+
+**Part 2 (exploratory, no licence):** 35 of 372 assessed intervals have lower bound > 0 against
+~10 expected by chance; the rows are strongly dependent (same trace in two windows, correlated
+volatility traces), so no p-value can be stated. Where they sit:
+- Volatility traces on volatility-state targets: V-change (7 rows), V-on (3), V-off (13).
+  Best V-off: gvz_lvl skill 0.28 [0.21, 0.35], AUC 0.78, 33 alarms at precision 0.82 (base 0.40),
+  scored from 2015-10 (190 weeks). ewma_ratio V-off AUC 0.72. V-on is weak: sig_ratio AUC 0.635,
+  precision 0.275 vs base 0.185, i.e. 72% of alarms wrong.
+- D-state-change (10 rows) from trend traces (r13z, r26z, dist_ma) and yield levels.
+- D-counterweek: 2 rows, y10r_lvl only (skill 0.043 but AUC 0.49 and ZERO alarms).
+- Next-sign (direction): nothing. Every interval includes 0; best skill 0.002.
+
+**Reading, with the limits stated:**
+1. sig_ratio / ewma_ratio / sig4_26 are close to the same variable as the state edges (both
+   built from the trailing-52-week sigma distribution), so their V-* skill is partly
+   definitional (distance to the tercile edge). Not counted as independent evidence.
+2. r13z / r26z / dist_ma vs D-state-change: the target is itself a state of the 13-week
+   return z, so the same caveat applies.
+3. y10r_lvl (D-counterweek) and y2/y10 levels (D-state-change, trailing) look like TIME
+   PROXIES: positive Brier skill with AUC ~0.5 or no alarms means the trace tracks a shift in
+   the base rate, not information. Not counted.
+4. gvz_lvl is the only external-information row that stands out, but it is a one-feature
+   model that has not been tested for value ADDED beyond own realised volatility.
+5. External macro traces are mostly NOT ASSESSED after the 30/30 burn-in (24 of 210 pairs, all
+   V-on/V-off for real yields, CFTC, news, cross-asset, plus D-state-change for CFTC/news
+   and D-counterweek/D-state-change for cross-asset). Silence there means "no test", not "no
+   effect". Where assessed (nominal yields, news on D-counterweek n=84) nothing distinguishable
+   from zero.
+6. Prior stated in advance held: GVZ/volatility carry information on volatility change; macro
+   traces nothing usable; no direction.
+7. Data caveats: news uses today's calendar, not the schedule known at each cut; Treasury files
+   have no vintage. The 4 weeks after 2026-08-28 are not scored (Dukascopy month lag).
+8. numpy "All-NaN slice" RuntimeWarnings appear in the log (empty windows); no effect on output.
+
+**Consequence:** nothing here licenses a tool. The only defensible next work is volatility-side:
+(a) a pre-registered incremental test of gvz_lvl beyond sig_ratio for V-off/V-on, then (b) a
+prospective shadow log of the alarm, per REGIME_MAP v2 Part 3 as amended. No direction tool.
