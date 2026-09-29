@@ -34,7 +34,7 @@ previous 52 weeks' σ):**
 - **D-rev:** the week's return has the opposite sign of the last 4 weeks' return
   (direction reversal).
 - **D-up:** the week's return is positive (direction; base rate reported).
-**Traces (20, frozen):** σ_{t-1}/median52; σ4/σ26; spec-v2 EWMA ratio; range
+**Traces (21, frozen):** σ_{t-1}/median52; σ4/σ26; spec-v2 EWMA ratio; range
 expansion of last week; Thursday-Friday acceleration; GVZ level vs its 1-year
 median; GVZ 1-week change; GVZ² ÷ realised variance (from 2009-09); 4-, 13-,
 26-week return z-scores; distance to 50- and 200-day mean; distance to the 52-
@@ -44,8 +44,8 @@ short-week flag (trading days in the week).
 **Stage 1 — detection (all weeks):** rank AUC of every trace against every
 target (sign free, |AUC − 0.5|). p from the shift null: the trace series is
 circularly shifted by ≥ 52 weeks, 5,000 times, and the same statistic recomputed;
-p = (1 + #{|AUC_shift − 0.5| ≥ |AUC − 0.5|}) / 5,001. Tests: 20 × 4 = 80, α =
-0.05 / 80 = 0.000625. Traces with p < α are **survivors**.
+p = (1 + #{|AUC_shift − 0.5| ≥ |AUC − 0.5|}) / 5,001. Tests: 21 × 4 = 84, α =
+0.05 / 84 = 0.000595. Traces with p < α are **survivors**.
 **Stage 2 — accuracy over time (survivors only):** walk-forward from week 260:
 at each week the trace's bin-frequency model (5 bins, edges and frequencies from
 past weeks only) issues a probability; report AUC, hit rate at the top-20%
@@ -65,3 +65,14 @@ Prior: V-on and V-off show weak-to-moderate survivors (volatility clusters, GVZ
 carries information); D-rev and D-up show none. If direction has none, the
 map still gives the regime-specific risk tools; it does not give a direction
 edge.
+
+## Amendment 1 (2026-09-29, before any real-data run)
+- The trace list has **21** entries (I miscounted 20): tests = 21 × 4 = **84**,
+  α = 0.05 / 84 = **0.000595**. The code already used 84.
+- Smoke run on the cached part (2003-05..2017-07, counts only): V-on 75 events of
+  455 defined weeks, V-off 75 of 226, D-rev 337 of 681, D-up 389 of 681. With
+  ~1,200 weeks expect ~120 events each for V-on / V-off, so Stage 1 can detect
+  roughly AUC ≥ 0.60 and will miss weaker signals; a null is therefore limited
+  to "no strong trace".
+- Categorical traces (month, week of month) use a G statistic instead of AUC;
+  each is tested against its own shift null.
