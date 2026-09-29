@@ -20,6 +20,7 @@ HORIZONS = (1, 5, 20)
 N_TESTS = 30
 ALPHA = 0.05 / N_TESTS
 B_REPS = 10000
+BLOCK_DAYS = 10          # Amendment 1 replaces this after null calibration
 MIN_BARS = 12
 CATEGORICAL = ("dow", "month")
 CLEAN = (2003, 2015)
@@ -52,7 +53,7 @@ def make(d):
     f["vol_ratio"] = sd20 / sd250
     f["dow"] = d.index.weekday.to_numpy().astype(float)
     f["month"] = d.index.month.to_numpy().astype(float)
-    days = d.index.astype("datetime64[D]").astype(np.int64).to_numpy() if hasattr(d.index, "astype") else None
+    days = (d.index.astype("datetime64[s]").astype(np.int64).to_numpy() // 86400)
     fwd, ok = {}, {}
     n = len(c)
     for H in HORIZONS:
@@ -98,7 +99,7 @@ def crossfit(x, name, y, ok, years, order, H, y_plant=None):
 
 
 def pooled_stats(p, y, idx, days, H, reps):
-    blk = (days[idx] - days[0]) // max(7, 2 * H)
+    blk = (days[idx] - days[0]) // BLOCK_DAYS
     ub, inv = np.unique(blk, return_inverse=True)
     S = np.stack([np.bincount(inv, weights=v) for v in (p, y, p * p, y * y, p * y, np.ones_like(p))], 1)
 

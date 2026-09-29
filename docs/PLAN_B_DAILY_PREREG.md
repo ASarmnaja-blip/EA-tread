@@ -51,3 +51,24 @@ most informative cells are h = 1 and h = 5.
 - LEAD → freeze a rule (new pre-registration), run on 2016-2026, log forward.
 - Nothing → Plan C (panel of instruments), then the honest conclusion in the
   H1 document.
+
+## Amendment 1 (2026-09-29) — made BEFORE any real Plan B result was read
+
+The frozen self-check gate failed: with the block bootstrap the circular-shift
+null rejected 22% of the time (allowed band 1%-10%). `plan_b_calibrate.py`
+(null data only) shows the rate stays at 13-22% for block lengths from 10 to 180
+days, so block length is not the cause. The cause is structural: leave-one-year-
+out cross-fitting makes the pooled ρ negatively biased under the null (the
+held-out year's mean opposes the training years' mean), and a two-sided test of
+that biased ρ over-rejects. Replacement, everything else unchanged:
+
+- **p-value from the empirical shift null of the whole pipeline:** shift the
+  feature series circularly by K = 2,000 random offsets of at least 260 trading
+  days, rerun the full leave-one-year-out cross-fit each time, and take
+  p = (1 + #{|ρ_shift| ≥ |ρ_obs|}) / (1 + K). This inherits the bias, the
+  overlap and the regime persistence of the real statistic.
+- The block bootstrap is dropped. LEAD needs the shift-null p < α = 0.05/30,
+  ≥ 10 of 13 held-out years with the pooled sign, and the same sign in 2016+.
+- Self-check (gate, unchanged band 1%-10%): 40 pseudo-real draws (a shifted
+  feature treated as the real one) each tested against 400 further shifts must
+  reject at nominal 5% within the band, and a planted ρ ≈ 0.10 must be found.
