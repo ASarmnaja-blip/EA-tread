@@ -66,3 +66,13 @@ HOLD; a changed candidate is a new candidate and starts again at DISC.
 
 The Risk Manager rules, the WPWB risk report and the Demo-only order
 permission are unchanged by anything here.
+
+## Amendment 1 (2026-09-30, after batch2, registered before batch3)
+Diagnosis of batches 1-2: continuation is positive almost everywhere but t stays below 3 because
+per-trade variance in bp is dominated by the 2008-2013 high-volatility years. A trader sizes to a
+fixed risk per trade, so from batch3 on the **primary statistic is in risk units**:
+R = net bp / stop distance bp (fixed-risk sizing). DISC gate: n >= 60, net bp > 0, net R > 0,
+excess > 0, t_R >= 3.0, t_excess_R >= 2.0, >= 60 % of years positive in R. VAL/HOLD p-values use
+t_R and additionally require net bp > 0 (and net at 4 bp > 0 for HOLD). bp numbers stay reported.
+Batches 1-2 keep their original bp gate. Re-scoring a family under the new metric is a new look and
+counts as new candidates.

@@ -296,3 +296,10 @@ def batch2(H, D):
     s += shock(H, follow=True)                       # re-scored on the new marginal cells
     s += _range_break(H, "ASIA_BRK", list(range(0, 7)), list(range(7, 16)), 20, (0,))
     return s
+
+
+def batch3(H, D):
+    """Continuation families from batches 1-2 re-scored in risk units (R = net bp / stop bp)."""
+    s = shock(H, follow=True) + mom_h1(H) + pdhl_break(H, D) + week_break(H)
+    s += _range_break(H, "ASIA_BRK", list(range(0, 7)), list(range(7, 16)), 20, (0,))
+    return s

@@ -213,7 +213,7 @@ def matched_control(B, cell_of_bar, ent, dirs, stop_atr, tgt_atr, hold, rng, rep
     return np.nanmean(np.vstack(out), axis=0)
 
 
-def evaluate(name, B, cells_of_bar, ent, dirs, gross, ctrl, extra=None, periods=("DISC",), cells=None):
+def evaluate(name, B, cells_of_bar, ent, dirs, gross, ctrl, extra=None, periods=("DISC",), cells=None, stop_bp=None):
     """Rows per (period, cell) for one candidate family/params."""
     rows = []
     date = pd.to_datetime(B.t[ent], unit="s")
@@ -233,11 +233,20 @@ def evaluate(name, B, cells_of_bar, ent, dirs, gross, ctrl, extra=None, periods=
             exc = g - ctrl[m]
             ok = np.isfinite(exc)
             yrs = pd.Series(net).groupby(B.year[ent][m]).mean()
+            rx = {}
+            if stop_bp is not None:
+                sb = stop_bp[m]
+                nr = net / sb; er = exc / sb
+                yr_r = pd.Series(nr).groupby(B.year[ent][m]).mean()
+                rx = dict(net_R=nr.mean(), t_R=cluster_t(nr, wk[m]),
+                          excess_R=er[ok].mean() if ok.any() else np.nan,
+                          t_excess_R=cluster_t(er[ok], wk[m][ok]) if ok.sum() > 2 else np.nan,
+                          yr_pos_R=float((yr_r > 0).mean()), stop_bp_med=float(np.median(sb)))
             rows.append(dict(cand=name, period=per, cell=cell, n=n, gross=g.mean(), net=net.mean(),
                              net_stress=(g - STRESS_BP).mean(), t_net=cluster_t(net, wk[m]),
                              excess=exc[ok].mean() if ok.any() else np.nan,
                              t_excess=cluster_t(exc[ok], wk[m][ok]) if ok.sum() > 2 else np.nan,
                              yr_pos=float((yrs > 0).mean()), years=len(yrs),
                              net_dukas=(g - B.spread_bp[ent][m] - 0.5).mean(),
-                             long_share=float((dirs[m] > 0).mean()), **(extra or {})))
+                             long_share=float((dirs[m] > 0).mean()), **rx, **(extra or {})))
     return rows

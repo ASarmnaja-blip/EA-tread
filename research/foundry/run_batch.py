@@ -37,6 +37,11 @@ def run_spec(sp, H, D, cellbar_H, cellbar_D, rng):
     return B, cb, gross, ctrl
 
 
+def disc_pass_R(r):
+    return (r.get("n", 0) >= 60 and r["net"] > 0 and r.get("net_R", -1) > 0 and r["excess"] > 0
+            and r.get("t_R", 0) >= 3.0 and r.get("t_excess_R", 0) >= 2.0 and r.get("yr_pos_R", 0) >= 0.6)
+
+
 def disc_pass(r):
     return (r.get("n", 0) >= 60 and r["net"] > 0 and r["excess"] > 0 and r["t_net"] >= 3.0
             and r["t_excess"] >= 2.0 and r["yr_pos"] >= 0.6)
@@ -61,16 +66,18 @@ def main(batch) -> int:
             if dm.sum() < 20:
                 continue
             name = f"{sp.name}|{dn}"
+            sb = (sp.stop / (sp.eprice if sp.eprice is not None else B.o[sp.ent]) * 1e4)[dm]
             rr = E.evaluate(name, B, cb, sp.ent[dm], sp.dirs[dm], gross[dm], ctrl[dm],
-                            cells=E.CELLS if batch == "batch1" else E.CELLS2)
+                            cells=E.CELLS if batch == "batch1" else E.CELLS2, stop_bp=sb)
             rows += rr
-            keep[name] = (B, cb, sp.ent[dm], sp.dirs[dm], gross[dm], ctrl[dm])
+            keep[name] = (B, cb, sp.ent[dm], sp.dirs[dm], gross[dm], ctrl[dm], sb)
     R = pd.DataFrame(rows)
     R["batch"] = batch
     ok = R[R.n >= 20].copy()
-    ok["pass_disc"] = ok.apply(lambda r: disc_pass(r.to_dict()), axis=1)
+    useR = batch not in ("batch1", "batch2")
+    ok["pass_disc"] = ok.apply(lambda r: (disc_pass_R if useR else disc_pass)(r.to_dict()), axis=1)
     st["disc_candidates"] += int(len(ok))
-    surv = ok[ok.pass_disc].sort_values("t_net", ascending=False).head(MAX_VAL)
+    surv = ok[ok.pass_disc].sort_values("t_R" if useR else "t_net", ascending=False).head(MAX_VAL)
     print(f"batch {batch}: {len(specs)} specs, {len(ok)} DISC candidates (cumulative {st['disc_candidates']}); "
           f"DISC pass {int(ok.pass_disc.sum())}; sent to VAL {len(surv)}  [{time.time() - t0:.0f}s]")
     val_rows, hold_rows = [], []
@@ -78,18 +85,19 @@ def main(batch) -> int:
         st["m_val"] += len(surv)
         M = st["m_val"]
         for _, r in surv.iterrows():
-            B, cb, ent, dirs, gross, ctrl = keep[r.cand]
-            v = E.evaluate(r.cand, B, cb, ent, dirs, gross, ctrl, periods=("VAL",), cells=[r.cell])[0]
-            v["p_net"] = E.one_sided_p(v.get("t_net", np.nan))
-            v["pass_val"] = bool(v.get("n", 0) >= 20 and v["net"] > 0 and v["excess"] > 0 and v["p_net"] < 0.05 / M)
+            B, cb, ent, dirs, gross, ctrl, sb = keep[r.cand]
+            v = E.evaluate(r.cand, B, cb, ent, dirs, gross, ctrl, periods=("VAL",), cells=[r.cell], stop_bp=sb)[0]
+            v["p_net"] = E.one_sided_p(v.get("t_R" if useR else "t_net", np.nan))
+            v["pass_val"] = bool(v.get("n", 0) >= 20 and v["net"] > 0 and v["excess"] > 0 and v["p_net"] < 0.05 / M
+                                 and (not useR or v.get("net_R", -1) > 0))
             v["M"] = M
             val_rows.append(v)
             if v["pass_val"]:
                 st["hold_looks"] += 1
                 j = st["hold_looks"]
                 alpha = 0.05 * 2 ** -j
-                h = E.evaluate(r.cand, B, cb, ent, dirs, gross, ctrl, periods=("HOLD",), cells=[r.cell])[0]
-                h["p_net"] = E.one_sided_p(h.get("t_net", np.nan))
+                h = E.evaluate(r.cand, B, cb, ent, dirs, gross, ctrl, periods=("HOLD",), cells=[r.cell], stop_bp=sb)[0]
+                h["p_net"] = E.one_sided_p(h.get("t_R" if useR else "t_net", np.nan))
                 h["alpha"] = alpha
                 h["pass_hold"] = bool(h.get("n", 0) >= 20 and h["net"] > 0 and h["net_stress"] > 0
                                       and h["excess"] > 0 and h["p_net"] < alpha)
@@ -105,19 +113,21 @@ def main(batch) -> int:
     STATE.write_text(json.dumps(st, indent=1))
     pd.set_option("display.width", 250); pd.set_option("display.max_columns", 30)
     cols = ["cand", "cell", "n", "gross", "net", "t_net", "excess", "t_excess", "yr_pos", "long_share"]
+    if useR:
+        cols = ["cand", "cell", "n", "net", "t_net", "net_R", "t_R", "excess_R", "t_excess_R", "yr_pos_R", "stop_bp_med", "long_share"]
     print("\nDISC survivors:" if len(surv) else "\nno DISC survivor")
     if len(surv):
         print(surv[cols].round(2).to_string(index=False))
     if len(V_):
-        print("\nVAL:"); print(V_[["cand", "cell", "n", "net", "t_net", "excess", "p_net", "M", "pass_val"]].round(4).to_string(index=False))
+        print("\nVAL:"); print(V_[[c for c in ["cand", "cell", "n", "net", "t_net", "net_R", "t_R", "excess", "p_net", "M", "pass_val"] if c in V_]].round(4).to_string(index=False))
     if len(Hd):
-        print("\nHOLD:"); print(Hd[["cand", "cell", "n", "net", "net_stress", "t_net", "excess", "p_net", "alpha", "pass_hold"]].round(4).to_string(index=False))
+        print("\nHOLD:"); print(Hd[[c for c in ["cand", "cell", "n", "net", "net_stress", "t_net", "net_R", "t_R", "excess", "p_net", "alpha", "pass_hold"] if c in Hd]].round(4).to_string(index=False))
     # diagnosis material (DISC only): per family variant, ALL cell
     a = ok[(ok.cell == "ALL")].copy()
     a["family"] = a.cand.str.split("|").str[0]
     print("\nDISC diagnosis, ALL cell (gross, net, excess in bp per trade):")
-    print(a[["cand", "n", "gross", "net", "t_net", "excess", "t_excess", "net_dukas", "yr_pos"]].round(2).to_string(index=False))
-    best = ok.sort_values("t_net", ascending=False).head(15)
+    print(a[[c for c in ["cand", "n", "gross", "net", "t_net", "net_R", "t_R", "excess", "t_excess", "net_dukas", "yr_pos"] if c in a]].round(2).to_string(index=False))
+    best = ok.sort_values("t_R" if useR else "t_net", ascending=False).head(15)
     print("\nDISC top 15 by t_net (any cell):")
     print(best[cols].round(2).to_string(index=False))
     return 0

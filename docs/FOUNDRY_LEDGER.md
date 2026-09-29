@@ -36,3 +36,14 @@ stop 2/4 ATR), WEEK_BRK (break of the previous week's high/low, follow to the we
 0.5/1 x last week's range), plus SHOCK_CONT (6) and ASIA_BRK_t0 re-scored on the new cells.
 Each x {both, long, short}. SHOCK_CONT and ASIA_BRK_t0 were already seen in DISC; their re-score
 is a new look and counts as new candidates.
+
+### Result `batch2` (1,054 DISC candidates; cumulative 1,784)
+DISC pass 0. Continuation again positive nearly everywhere (MOM L6/L12 at z >= 1.5 +5..+13 bp,
+SHOCK_CONT k3 +10..+26 bp in HIGH/*), best t_net 2.93 (WEEK_BRK long */UP, excess t 1.5 = drift),
+SHOCK_CONT_k3_h6 both t 2.91 / excess t 2.73. Mean-reversion and CALM results unchanged.
+Diagnosis: the effect is consistent in sign but its t is capped by bp-variance from the 2008-13
+high-volatility years; fixed-risk sizing is how it would be traded -> protocol Amendment 1 (R units).
+
+## Batch `batch3` (registered 2026-09-30, before running)
+SHOCK_CONT (6), MOM (12), PDHL_BRK (2), WEEK_BRK (2), ASIA_BRK_t0 (1) re-scored in R units on the
+17 cells x {both, long, short}. NR7 is excluded (it already failed VAL; re-sending it would reuse VAL).
