@@ -456,3 +456,9 @@ map and by the HOD_21L audit**, so its DISC/VAL/HOLD numbers are not clean evide
 record would be. OVERNIGHT_LONG: long at the 16:00 New York H1 bar open (DST-aware), exit at the close
 of the bar before 08:00 London, stop 3 ATR. INTRADAY_SHORT: short 08:00 London -> close of the 15:00
 New York bar, stop 3 ATR. Plus mirrors. Time-free control, swap included. Cells ALL, NOTCALM/*, HIGH/*.
+
+### Result `trackB3` (12 candidates; Track B cumulative 725)
+DISC pass 0. OVERNIGHT_LONG (16:00 NY -> London open) +0.00 R, t_R 0.14; INTRADAY_SHORT -0.04 R;
+mirrors negative. The broad "Asia up / West down" split is absent in 2015-20 after swap, so HOD_21L's
+effect is confined to the one pre-break winter hour - more likely a microstructure quirk of that bar
+(or luck) than an overnight-demand pattern.
