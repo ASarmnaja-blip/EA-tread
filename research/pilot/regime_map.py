@@ -316,6 +316,24 @@ def main() -> int:
         assert big == 0 and t[-1] > np.datetime64("2026-09-01").astype("datetime64[s]").astype(np.int64), \
             "the Dukascopy cache is not yet complete to 2026-09: run later"
     df, reg, levels, trans, eras, (q1, q2) = regime_map(cuts, rv, ret)
+    if "--part1" in sys.argv:            # descriptive preview only; no Part 2 statistic is computed
+        pd.set_option("display.width", 220); pd.set_option("display.max_columns", 30)
+        print()
+        print("PART 1 PREVIEW (partial data) - LEVEL CUT-OFFS (weekly sigma, bp): "
+              f"LOW <= {q1:.0f} < MID <= {q2:.0f} < HIGH")
+        print(levels.round(1).to_string(index=False))
+        print()
+        print("9 regimes")
+        print(reg.round(3).to_string(index=False))
+        print()
+        print("week-to-week transition of the vol level")
+        print(trans.round(3).to_string())
+        print()
+        print("share of weeks by era")
+        print(eras.round(3).to_string(index=False))
+        _plot(df, q1, q2)
+        print(f"saved {PNG}")
+        return 0
     high = causal_high(sig)
     T = traces(h, t, cuts, rv, rng, ret, sig, nbar)
     Y = targets(sig, ret, high)
@@ -388,11 +406,11 @@ def _plot(df, q1, q2):
         m = df.lvl == L
         ax[0].scatter(df.date[m], df.sigma[m], s=6, color=col[L], label=("ต่ำ", "กลาง", "สูง")[L])
     ax[0].axhline(q1, color="k", lw=0.6, ls=":"); ax[0].axhline(q2, color="k", lw=0.6, ls=":")
-    ax[0].set_yscale("log"); ax[0].set_ylabel("ความผันผวนรายสัปดาห์ σ (bp)")
-    ax[0].set_title("แผนที่สภาพตลาดทอง 2003-2026 — ต่ำ / กลาง / สูง (แบ่งด้วย tercile ของ σ ตลอดประวัติ)")
+    ax[0].set_yscale("log"); ax[0].set_ylabel("ความผันผวนรายสัปดาห์ (bp, สเกลลอการิทึม)")
+    ax[0].set_title("แผนที่สภาพตลาดทอง 2003-2026 — ต่ำ / กลาง / สูง (แบ่งเป็น 3 ส่วนเท่ากันตามความผันผวนรายสัปดาห์ตลอดประวัติ)")
     ax[0].legend(loc="upper right")
     yr = df[df.lvl.notna()].groupby([df.date.dt.year, "lvl"]).size().unstack(fill_value=0)
-    yr = yr.div(yr.sum(1), axis=0)
+    yr = yr.div(yr.sum(axis=1), axis=0)
     yr.plot(kind="bar", stacked=True, ax=ax[1], color=[col[0], col[1], col[2]], legend=False, width=0.9)
     ax[1].set_ylabel("สัดส่วนสัปดาห์"); ax[1].set_xlabel("ปี")
     fig.tight_layout(); fig.savefig(PNG, dpi=110)
