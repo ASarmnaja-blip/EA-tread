@@ -238,3 +238,8 @@ DISC pass 0 but close: TOPQ_L104_EW_NOTCALM 10,757 units, +0.063 R, **t_R 2.89**
 ## Nomination 5 (Amendment 2, registered 2026-09-30, before its VAL score is seen)
 TOPQ_L104_EW_NOTCALM on menu4. Note: nomination 4 (same selector, all weeks) was already seen in
 VAL; this subset has not been, and it counts as a new VAL look (M = 11).
+
+### Result nomination 5
+VAL **FAIL** (M = 11, p < 0.0045 needed): 2015-20 6,963 units, net +3.57 bp (stress +1.57),
+**+0.034 R, t_R 1.48, p 0.069**, 67 % of years, ~+39 R/yr; excess +0.063 R, t 3.32.
+Status summary for the operator: `docs/FOUNDRY_STATUS.md`.
