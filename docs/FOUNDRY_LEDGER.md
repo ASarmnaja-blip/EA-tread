@@ -199,3 +199,10 @@ More independent variants, including ones whose edge is known to switch on and o
 Menu `menu4` = menu2 + 48 hour-of-day variants (enter at the open of UTC hour h, hold 4 h, stop
 2 ATR, long and short) + 10 day-of-week variants (D1, one day, long and short). Candidates:
 TOPQ_L52_EW, TOPQ_L104_EW on menu4 (2).
+
+### Result `batch13` (2 candidates; cumulative 2,896)
+DISC pass 0. menu4 L104_EW: 15,612 units, +0.048 R, t_R 2.73, **excess t_R 4.40**, 83 % of years,
+~+62 R/yr; L52_EW t_R 1.79 / excess 3.74. Breadth raised the excess t (3.79 -> 4.40).
+
+## Nomination 4 (Amendment 2, registered 2026-09-30, before its VAL score is seen)
+TOPQ_L104_EW on menu4.
