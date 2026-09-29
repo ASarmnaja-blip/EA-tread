@@ -229,5 +229,60 @@ def main_portfolio(batch, menu_fn) -> int:
 
 
 if __name__ == "__main__":
-    fn = main_portfolio if (len(sys.argv) > 3 and sys.argv[3] == "portfolio") else main
+    mode = sys.argv[3] if len(sys.argv) > 3 else ""
+    fn = {"portfolio": main_portfolio, "ew": main_ew}.get(mode, main)
     sys.exit(fn(sys.argv[1], sys.argv[2]))
+
+
+# ------------------------------------------------------------------ batch 8: equal risk per selected variant per week
+def variant_week(S):
+    """Collapse a portfolio trade list to one unit per (week, variant): R = mean R of that
+    variant's trades that week (1R risk budget per selected variant per week)."""
+    g = S.groupby(["wk", "v"]).agg(et=("et", "min"), net=("net", "mean"), R=("R", "mean"), stress=("stress", "mean"),
+                                   ctrl=("ctrl", "first"), score=("score", "first"), name=("name", "first")).reset_index()
+    return g
+
+
+def main_ew(batch, menu_fn) -> int:
+    os.chdir(E.ROOT)
+    st = state()
+    if batch in st["batches"]:
+        print("batch already run"); return 1
+    T, cuts, cell, names = menu_trades(menu_fn)
+    rows, keep = [], {}
+    for L, ew in ((52, True), (104, True), (104, False)):
+        name = f"TOPQ_L{L}{'_EW' if ew else ''}"
+        S = run_portfolio(T, cuts, L, False)
+        if ew:
+            S = variant_week(S)
+        keep[name] = S
+        r = stats(S, "DISC"); r["cand"] = name
+        rows.append(r)
+    R = pd.DataFrame(rows)
+    st["disc_candidates"] += len(R)
+    R["pass_disc"] = [bool(r.get("n", 0) >= 60 and r["net"] > 0 and r["net_R"] > 0 and r["excess_R"] > 0 and r["t_R"] >= 3.0
+                           and r["t_excess_R"] >= 2.0 and r["yr_pos_R"] >= 0.6) for r in R.to_dict("records")]
+    pd.set_option("display.width", 250); pd.set_option("display.max_columns", 30)
+    print(R.round(3).to_string(index=False))
+    out = [R.assign(stage="DISC", batch=batch)]
+    for _, r in R[R.pass_disc].sort_values("t_R", ascending=False).iterrows():
+        st["m_val"] += 1; M = st["m_val"]
+        v = stats(keep[r.cand], "VAL"); v["cand"] = r.cand
+        v["p_net"] = E.one_sided_p(v.get("t_R", np.nan)); v["M"] = M
+        v["pass_val"] = bool(v.get("n", 0) >= 20 and v["net"] > 0 and v["net_R"] > 0 and v["excess_R"] > 0 and v["p_net"] < 0.05 / M)
+        print("VAL", {k: (round(x, 4) if isinstance(x, float) else x) for k, x in v.items()})
+        out.append(pd.DataFrame([v]).assign(stage="VAL", batch=batch))
+        if v["pass_val"]:
+            st["hold_looks"] += 1; alpha = 0.05 * 2 ** -st["hold_looks"]
+            h = stats(keep[r.cand], "HOLD"); h["cand"] = r.cand
+            h["p_net"] = E.one_sided_p(h.get("t_R", np.nan)); h["alpha"] = alpha
+            h["pass_hold"] = bool(h.get("n", 0) >= 20 and h["net"] > 0 and h["net_stress"] > 0 and h["net_R"] > 0
+                                  and h["excess_R"] > 0 and h["p_net"] < alpha)
+            print("HOLD", {k: (round(x, 4) if isinstance(x, float) else x) for k, x in h.items()})
+            out.append(pd.DataFrame([h]).assign(stage="HOLD", batch=batch))
+    pd.concat(out).to_csv(TRIALS, mode="a", header=False, index=False)
+    for nm, S in keep.items():
+        S.to_csv(OUT / f"{batch}_{nm}_units.csv", index=False)
+    st["batches"].append(batch)
+    STATE.write_text(json.dumps(st, indent=1))
+    return 0

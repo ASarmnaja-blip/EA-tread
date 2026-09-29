@@ -114,3 +114,16 @@ At every Friday cut: score each menu1 variant = sum R / sqrt(count) over trades 
 L weeks (count >= 10, >= 10 variants eligible); trade every variant in the top 20 % during the
 coming week. L in {26, 52} x {all top 20 %, only those with score > 0}: 4 candidates. Control =
 equal-weight menu average that week. Same gates in R units.
+
+### Result `batch7` (4 candidates; cumulative 2,883)
+DISC pass 0 (the score > 0 filter never bit: top-20 % scores were always positive, so _pos = plain).
+TOPQ_L52: 10,782 trades in 604 weeks, net +3.3 bp, **+0.047 R per trade, about +42 R per year,
+t_R 2.18, excess over the menu t_R 2.97, 92 % of years positive**. TOPQ_L26 +0.038 R, t_R 1.83.
+Not nominated: Amendment 2 needs excess t_R >= 3.0 and 2.97 is below it; not re-run for a luckier
+control seed. Diagnosis: 10,782 trades collapse to ~600 weekly clusters; variants that fire often
+(many near-duplicate continuation variants) dominate the per-trade weighting and their trades in a
+week move together.
+
+## Batch `batch8` (registered 2026-09-30, before running)
+Equal risk per selected variant per week (one unit = mean R of a variant's trades in that week):
+TOPQ_L52_EW, TOPQ_L104_EW, and TOPQ_L104 per trade. 3 candidates, same gates.
