@@ -155,6 +155,13 @@ def main() -> int:
         log(f"forward_panel.py exit {r.returncode}: {r.stdout.strip()[-500:]}")
     except Exception as e:
         log(f"forward panel error: {e!r}")
+    try:  # one Thai page for the operator
+        r = subprocess.run([PY, str(ROOT / "research" / "foundry" / "weekly_summary_th.py")], cwd=ROOT,
+                           capture_output=True, text=True, encoding="utf-8",
+                           env={**os.environ, "PYTHONIOENCODING": "utf-8"}, timeout=600)
+        log(f"weekly_summary_th.py exit {r.returncode}: {r.stdout.strip()[-200:]}")
+    except Exception as e:
+        log(f"summary error: {e!r}")
     log("done")
     return rc
 
