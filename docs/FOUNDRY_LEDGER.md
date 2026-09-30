@@ -926,3 +926,17 @@ H4 Family 2 and H1 Family 2 with 4 sessions all identical. Silver tables: Family
 - Reading: chosen without look-ahead, the Family 2 selections have about zero gross edge; the large in-sample gross (+58 to +189 R on gold) is
   selection-inflated. Cheaper execution alone cannot make WRWR-F2 profitable. Next ideas need other information than H1-D1 price patterns:
   docs/DEEP_RESEARCH_2026-09-30_TH.md.
+
+## Hypothesis batch 1 (2026-10-01; docs/HYPOTHESIS_BATCH1_PREREG.md, research/hyp/batch1.py, data/hyp_batch1.log): 0 of 8 PASS
+Net R per trade after C4 cost and swap (DEV gold 2004-15 / CHECK gold 2016-26 / SILVER 2010-26):
+| id | DEV | CHECK | SILVER | note |
+|---|---|---|---|---|
+| A3 weekend gap fill | +0.113 (p 0.25) | -0.094 | -0.085 | gross ~0 after 2016 |
+| A4 first-hour reversal | -0.129 | +0.028 | -0.071 | gross +0.12..+0.15 R, cost 0.12..0.25 R eats it |
+| A5 Friday 17:00 UTC to close (DEV sign long) | +0.025 | -0.055 | -0.165 | none |
+| C1 round-number first touch, fade | -0.422 | -0.299 | -0.294 | round WORSE than the control grid (delta -0.27 / -0.10 / -0.08) |
+| C2 round-number cross, follow | -0.282 | -0.125 | -0.325 | round minus control +0.118 (p 0.052) / +0.083 (p 0.077) / +0.003: Osler-consistent relative effect on gold, not tradable |
+| D3 GVZ VRP weekly (DEV sign -1) | +0.063 | -0.068 | +0.009 | none |
+| I2 52-week high, long 20 D1 | **+0.780 (p 0.006, Holm reject)** | +0.233 (p 0.19) | +1.151 (p 0.011) | vs an always-long control: excess +0.605 / **+0.004** / +1.071 -> recent gold = drift |
+| I3 all-time high, long 20 D1 | +0.603 (n 17) | +0.498 (n 18) | +0.496 (n 3) | excess vs always-long +0.43 / +0.27; too few trades |
+Reading: nothing passes; the only persistent effects are trend/drift (I2, I3) and a relative round-number cascade (C2) that costs cannot pay.

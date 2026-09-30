@@ -1,4 +1,4 @@
-"""HistData XAUUSD M1 (2009-2021, New York local time with DST, bar-open labels; price ~ bid) -> UTC mid M1, spliced
+"""HistData XAUUSD M1 (2009-2021; local time per histdata_time.py: New York to 2018, EST + EU summer time from 2019; bar-open labels; price ~ bid) -> UTC mid M1, spliced
 with the live Exness M5 feed from 2021-01-01 (bars.load_bars, bid + half spread). Mid adjustment: HistData + the median
 (Dukascopy H1 mid close - HistData hourly close) per calendar year. Writes data/history/histdata/XAUUSD_M1_2009_2020_utc.npz
 and data/history/XAUUSD_M5_2009_2026_spliced.npz. Operator approved the download 2026-09-30."""
@@ -15,6 +15,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "research" / "foundry"), str(ROOT / "research" / "wpwb_weekly")]
 import engine as E  # noqa: E402
+sys.path.insert(0, str(ROOT / "research" / "history"))
+from histdata_time import histdata_utc  # noqa: E402
 
 H, _, _, _ = E.load()
 dh = pd.Series(H.c, index=pd.to_datetime(H.t, unit="s"))
@@ -23,8 +25,8 @@ for y in range(2009, 2021):
     z = zipfile.ZipFile(ROOT / "data" / "history" / "histdata" / f"XAUUSD_M1_{y}.zip")
     n = [x for x in z.namelist() if x.endswith(".csv")][0]
     d = pd.read_csv(io.BytesIO(z.read(n)), sep=";", header=None, names=["ts", "o", "h", "l", "c", "v"])
-    t = pd.to_datetime(d.ts, format="%Y%m%d %H%M%S").dt.tz_localize("America/New_York", ambiguous="NaT", nonexistent="NaT")
-    d = d[t.notna().to_numpy()].copy(); d["t"] = t[t.notna()].dt.tz_convert("UTC").dt.tz_localize(None).to_numpy()
+    tu = histdata_utc(d.ts)                                   # New York time to 2018, EST + EU summer time from 2019 (histdata_time.py)
+    d = d[tu.notna().to_numpy()].copy(); d["t"] = pd.to_datetime(tu.dropna().astype("int64").to_numpy(), unit="s")
     s = pd.Series(d.c.to_numpy(), index=d.t).resample("1h").last().dropna()
     j = s.index.intersection(dh.index)
     off = float((dh[j] - s[j]).median())
