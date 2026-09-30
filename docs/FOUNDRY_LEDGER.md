@@ -954,3 +954,15 @@ MT5 clock verified = UTC (MAD 0.17 bp at shift 0 vs 9.7 bp at +-1 h against Duka
 - **Lead-lag map (H1, 2016/2019-2026):** same-hour correlation with gold: DXY -0.41, AUDUSD +0.42, EURUSD +0.37, USDCHF -0.38, USDJPY -0.32,
   USDCNH -0.32, US500 +0.19, BTC +0.13, JP225 +0.11, USOIL +0.03, silver +0.78; at lags of 1-4 hours every |corr| <= 0.015. Nothing leads gold by
   an hour: cross-asset information is priced within the same hour.
+
+## Hypothesis batch 3: trend and calendar (2026-10-01; docs/HYPOTHESIS_BATCH3_PREREG.md, research/hyp/batch3.py, data/hyp_batch3.log): 0 of 4 PASS
+| id | DEV | CHECK | SILVER | excess vs drift control (DEV / CHECK / SILVER) |
+|---|---|---|---|---|
+| T1 12-month time-series momentum, 21 D1 blocks | +0.147 (p 0.035) | +0.034 (p 0.36) | +0.150 (p 0.027) | +0.117 / -0.049 / +0.162 |
+| K1 autumn (Sep, Nov) | +0.389 (n 24, p 0.06) | -0.101 | -0.034 | +0.285 / -0.307 / -0.095 |
+| K2 turn of the year (5th-last Dec bar, 10 D1) | +0.165 (n 12) | +0.518 (n 10, p 0.038) | +0.248 (n 16, p 0.056) | +0.115 / +0.425 / +0.228 |
+| K3 before Chinese New Year (10 D1) | -0.107 | +0.260 | +0.012 | -0.157 / +0.167 / -0.008 |
+- TSMOM with 1 / 3 / 6-month lookbacks: all small (+0.006 to +0.091 R), none significant. The 12-month trend paid on gold 2004-15 and on
+  silver but not on gold 2016-26 (below the drift control), consistent with the earlier finding that breakout/trend setups worked mainly
+  in 2003-14. The autumn effect has decayed. The turn of the year is positive and above drift in all three periods but has one trade a year
+  (12 / 10 / 16 trades): kept as a watch item, not a rule.
