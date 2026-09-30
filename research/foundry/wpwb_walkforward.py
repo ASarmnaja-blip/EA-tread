@@ -27,6 +27,7 @@ if SPLICED:     # Dukascopy H1 to its end, then the live Exness feed (engine.loa
     H, _, cuts, cell = E.load_spliced()
     H.v = np.r_[_v, np.full(len(H.t) - len(_v), np.median(_v[-6000:]))]     # Exness tick volume is on another scale
 TF = __import__("os").environ.get("TF", "H1")
+TF_SUFFIX = ""
 if True:                        # resampler (H4 / D1 from Dukascopy H1, M15 from Exness M5)
     def _rs(B, step):
         k = (B.t - (22 * 3600 if step == 86400 else 0)) // step
@@ -45,14 +46,21 @@ if True:                        # resampler (H4 / D1 from Dukascopy H1, M15 from
         H = _rs(H, 4 * 3600 if TF == "H4" else 86400)
 if TF in ("M5", "M15"):         # operator 2026-09-30 "เอา tf เล็ก m5/m15": live Exness M5 mid (2021-01 ..), same cuts
     import bars as _BR
-    _b5 = _BR.load_bars(frozen=False)
-    _half = np.asarray(_b5.sp, float) / 2
-    _o, _h, _l, _c = (np.asarray(getattr(_b5, x), float) + _half for x in ("o", "h", "l", "c"))
-    _t = np.asarray(_b5.t, np.int64)
+    if __import__("os").environ.get("HIST") == "1":     # HistData 2009-2020 + Exness 2021- (research/history/build_histdata.py)
+        _z = np.load(E.ROOT / "data" / "history" / "XAUUSD_M5_2009_2026_spliced.npz")
+        _t, _o, _h, _l, _c = _z["t"].astype(np.int64), _z["o"], _z["h"], _z["l"], _z["c"]
+        _sp = np.where(np.isfinite(_z["sp_bp"]), _z["sp_bp"], np.nanmedian(_z["sp_bp"])); _v = _z["v"]
+    else:
+        _b5 = _BR.load_bars(frozen=False)
+        _half = np.asarray(_b5.sp, float) / 2
+        _o, _h, _l, _c = (np.asarray(getattr(_b5, x), float) + _half for x in ("o", "h", "l", "c"))
+        _t = np.asarray(_b5.t, np.int64); _sp = np.asarray(_b5.sp, float) / _c * 1e4; _v = np.asarray(_b5.v, float)
     _i = pd.to_datetime(_t, unit="s")
     H = E.Bars(_t, _o, _h, _l, _c, E._atr(_h, _l, _c, 14), np.searchsorted(cuts, _t, side="left") - 1,
-               np.asarray(_b5.sp, float) / _c * 1e4, _i.hour.to_numpy(), _i.dayofweek.to_numpy(), _i.year.to_numpy(), 300)
-    H.v = np.asarray(_b5.v, float)
+               _sp, _i.hour.to_numpy(), _i.dayofweek.to_numpy(), _i.year.to_numpy(), 300)
+    H.v = _v
+    if __import__("os").environ.get("HIST") == "1":
+        TF_SUFFIX = "L"
     if TF == "M15":
         H = _rs(H, 900)
 N = len(H.t)
@@ -104,7 +112,7 @@ def sequential(ent, ex):
     return np.asarray(keep, int)
 
 
-CACHE = E.ROOT / "data" / "foundry" / (("wpwb_walkforward_cache_spliced" if SPLICED else "wpwb_walkforward_cache") + ("" if TF == "H1" else f"_{TF}") + ".npz")
+CACHE = E.ROOT / "data" / "foundry" / (("wpwb_walkforward_cache_spliced" if SPLICED else "wpwb_walkforward_cache") + ("" if TF == "H1" else f"_{TF}{TF_SUFFIX}") + ".npz")
 cands, S1, S2_, NN, E1, EN = [], [], [], [], [], []
 for name, (sl, ss) in ({} if CACHE.exists() else base).items():
     il, is_ = np.flatnonzero(sl[:-1]), np.flatnonzero(ss[:-1])
@@ -232,7 +240,7 @@ best = Sm.sort_values(["p_vs_samecfg", "total_R_sized"], ascending=[True, False]
 bk = (int(best.window) if best.window.isdigit() else best.window, best.score, int(best.champions))
 picks = pd.DataFrame([(C.label[c_], n) for c_, n in pick_count.get(bk, {}).items()], columns=["candidate", "weeks_as_champion"])
 picks = picks.sort_values("weeks_as_champion", ascending=False)
-out = E.ROOT / "data" / "foundry" / (("wpwb_walkforward_spliced" if SPLICED else "wpwb_walkforward") + ("" if TF == "H1" else f"_{TF}") + ".xlsx")
+out = E.ROOT / "data" / "foundry" / (("wpwb_walkforward_spliced" if SPLICED else "wpwb_walkforward") + ("" if TF == "H1" else f"_{TF}{TF_SUFFIX}") + ".xlsx")
 with pd.ExcelWriter(out) as xw:
     pd.DataFrame({"อ่านก่อน": [
         "เดินทีละแท่งบน H1 ทองคำ 2003-2026 · 2,232 ตัวเลือก (31 อินดิเคเตอร์ × ตาม/สวน × SL 1-2 ATR × TP 9 แบบ × ถือ 24/72 ชม.) รันเงาทุกตัวตลอด",
@@ -261,5 +269,5 @@ for key, L in weekly_logs.items():
 ax.axhline(0, color="k", lw=.7)
 ax.set_title("WPWB walk-forward: cumulative sized net R of all 20 selection rules (H1 gold, 2004-2026)")
 ax.set_ylabel("cumulative R (x vol_scale)"); ax.legend()
-fig.tight_layout(); fig.savefig(E.ROOT / "data" / "foundry" / (("wpwb_walkforward_spliced" if SPLICED else "wpwb_walkforward") + ("" if TF == "H1" else f"_{TF}") + ".png"), dpi=110)
+fig.tight_layout(); fig.savefig(E.ROOT / "data" / "foundry" / (("wpwb_walkforward_spliced" if SPLICED else "wpwb_walkforward") + ("" if TF == "H1" else f"_{TF}{TF_SUFFIX}") + ".png"), dpi=110)
 print("-> wpwb_walkforward.xlsx / .png")

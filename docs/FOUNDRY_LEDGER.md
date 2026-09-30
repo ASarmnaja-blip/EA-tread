@@ -687,3 +687,12 @@ f in 0.25-3% per trade; "best" = highest CAGR with max DD <= 30% over 144 select
 | ALL 5 TF | 6.4% | 29.1% (DD 26%, x3.6) | 57.7% (DD 26%, x3.9) | 8.3% / 34.1% |
 Best single TF recently = H4; over 2004-26 = H1; pooling all five TFs is best in every window. All "best" figures are
 hindsight settings; pre-registered-rule figures are not tuned.
+
+## Registered 2026-09-30 before running: M5/M15 unseen-history holdout (HistData 2009-03 .. 2020-12)
+The M5/M15 caches so far cover Exness 2021-01..2026-09 only; every M5/M15 selector setting above was chosen on that span.
+HistData M1 (2009-03..2020-12, New York time with DST -> UTC, shifted to Dukascopy mid, offset -0.08..+0.26 $) has never
+been used. Same 2,232 candidates per TF, same engine (2 bp + swap, stop-first). Settings tested, fixed now:
+(a) pre-registered 52w LCB z1 top2 WRWR-sized; (b) M5 best-compounding 78w z1 top1 sized; (c) M15 best-compounding 78w z1
+top5 unsized 26w equity filter; (d) v3 "M15+H1" 52w LCB z2 top8 unsized 13w equity filter. Read-out: net R, R/yr, positive
+52-week blocks and 1%-risk CAGR / max DD over 2009-03..2020-12 per setting. Pass = net R > 0 and CAGR > 0; this spends no
+alpha and is descriptive, but it is the first genuinely unseen test of any M5/M15 rule.
