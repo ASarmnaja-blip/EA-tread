@@ -209,7 +209,7 @@ def candidate_hash(tf, setup, mode, k_atr, exit_label, hold, code_sha):
     return hashlib.sha256(json.dumps([tf, setup, mode, float(k_atr), exit_label, int(hold), code_sha]).encode()).hexdigest()
 
 
-def validate_seam(a, b, seam_t, hol=None, max_gap_h=3.0, strict=True):
+def validate_seam(a, b, seam_t, hol=None, max_gap_h=3.0, strict=True, cost_floor_bp=None, slip_bp=SLIPPAGE_BP):
     """C5 splice checks for a seam between source A (before) and B (after). a, b: dicts with numpy arrays t (bar OPEN
     time), c (close), o (open), sp (spread bp); both H1-level (or finer, but then only the gap test is meaningful).
     Window = 4 weeks either side of seam_t. Checks: timestamps strictly increasing inside each source and across the
@@ -240,7 +240,14 @@ def validate_seam(a, b, seam_t, hol=None, max_gap_h=3.0, strict=True):
         bad += 1
     res["gaps"] = (bad == 0, bad)
     spa = np.asarray(a["sp"], float)[ma]; spb = np.asarray(b["sp"], float)[mb]
-    ratio = float(np.nanmedian(spb) / np.nanmedian(spa)) if len(spa) and len(spb) else float("nan")
+    raw = float(np.nanmedian(spb) / np.nanmedian(spa)) if len(spa) and len(spb) else float("nan")
+    if cost_floor_bp is None:                                     # v5 rule: ratio of the recorded spreads
+        ratio = raw
+    else:                                                         # v8 rule: ratio of the CHARGED round-trip cost max(floor, sp + slippage)
+        ca_ = np.maximum(cost_floor_bp, np.where(np.isfinite(spa), spa, 0.0) + slip_bp)
+        cb_ = np.maximum(cost_floor_bp, np.where(np.isfinite(spb), spb, 0.0) + slip_bp)
+        ratio = float(np.median(cb_) / np.median(ca_))
+        res["raw_spread_ratio_info"] = (True, raw)                # informational, not a gate
     res["spread_ratio"] = (bool(0.5 <= ratio <= 2.0), ratio)
     lo = seam_t - W
     oa = (ta >= lo) & (ta < seam_t); ob = (tb >= lo) & (tb < seam_t)

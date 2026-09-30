@@ -253,3 +253,13 @@ the risk of a failed run more than it improves precision. Stage F is therefore r
 benchmark SE <= 0.002 R per week); nothing else changes: same seeds (paths 0..1,999 of each configuration), same Reality Check
 (block 10, K = 999; blocks 4 and 26 as sensitivities) and the same pass rule (p <= 0.05). BASE alone stays at 10,000 paths (done).
 This amendment lowers precision only, cannot change the threshold, and is recorded before Stage F results exist.
+
+## v8 amendment - splice cost test (2026-09-30; disclosed: the v5 rule FAILED on the real seam first)
+`research/wrwr/splice_check.py` on the real Dukascopy H1 -> Exness H1 seam (2026-09-01): timestamps monotonic, no gaps, source offset on the
+460-bar overlap median +0.013 bp / MAD 0.31 bp, seam return 0.0026 % (limit 1.6 %), but the v5 raw-spread test FAILED: median recorded
+spread ratio Exness / Dukascopy = 0.14 (Exness quotes about $0.08-0.26 against Dukascopy's about $0.6). The purpose of the test is cost
+continuity of the accounting, and what is charged is max(2.0 bp, spread + 1.0 bp); the spread test is therefore applied to the CHARGED
+cost (`validate_seam(..., cost_floor_bp=2.0)`), ratio must stay in [0.5, 2.0], and the raw ratio is reported as information. Result:
+charged-cost ratio 0.815 -> PASS, so the splice is accepted for the forward record. Consequence recorded openly: for 2021-26 the backtest
+charges Dukascopy-quoted spreads (cost about 2.5-3 bp) whereas the traded Exness account would be charged the 2.0 bp floor, so the
+backtest is somewhat pessimistic there (about 0.5-1 bp per trade).

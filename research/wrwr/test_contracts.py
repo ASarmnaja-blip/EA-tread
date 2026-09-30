@@ -143,6 +143,13 @@ def test_validate_seam():
         A2, B2, seam2 = _synth(**kw)
         r2 = K.validate_seam(A2, B2, seam2, strict=False)
         assert not all(v[0] for v in r2.values()), (nm, r2)
+    # v8: the spread test compares the CHARGED cost max(floor, sp + slippage); raw spreads 1 vs 0.2 differ 5x but cost 2.0 vs 2.0 does not
+    A4, B4, seam4 = _synth(sp_b=0.2)
+    assert not K.validate_seam(A4, B4, seam4, strict=False)["spread_ratio"][0]                    # raw rule fails
+    r4 = K.validate_seam(A4, B4, seam4, strict=False, cost_floor_bp=2.0)
+    assert r4["spread_ratio"][0] and "raw_spread_ratio_info" in r4, r4
+    A5, B5, seam5 = _synth(sp_b=5.0)                                                              # cost 6.0 vs 2.0 = 3x still fails
+    assert not K.validate_seam(A5, B5, seam5, strict=False, cost_floor_bp=2.0)["spread_ratio"][0]
     A3, B3, seam3 = _synth(dup=True)
     try:
         K.validate_seam(A3, B3, seam3); raise AssertionError("duplicate timestamps must be rejected")
