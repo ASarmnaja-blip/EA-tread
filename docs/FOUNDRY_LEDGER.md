@@ -982,3 +982,21 @@ HistData changed its clock convention in 2019 (EST + European summer time); from
 -24.4 / +13.5 / +3.4 / -39.9 R (first run -34.2 / -0.1 / +12.5 / -30.7), all beat the random router (Holm), all cost gates FAIL, PBO 0.877;
 zoo BASE -251.3 R FAIL. The conclusions are unchanged; that a one-hour label shift in 8 % of the weeks moves single-configuration totals by
 10-14 R is another sign of how unstable the choice of configuration is.
+
+## Hypothesis batch 4: regime-conditional champion selection (2026-10-01; docs/HYPOTHESIS_BATCH4_PREREG.md, research/hyp/batch4_regime.py): FAIL
+Exact-equivalence check passed (one class for every week reproduces WRWR v2 bit for bit, gold and silver). Out-of-sample yearly procedure
+(largest trailing t of weekly net R), 1 % risk:
+| family | gold 2010-26 total (mean/wk) | silver 2012-26 total (mean/wk) | minus v2 per week (p) gold / silver |
+|---|---|---|---|
+| v2 (unconditional) | -42.4 R (-0.049) | -31.4 R (-0.043) | - |
+| V: volatility class | -35.6 R (-0.041) | -14.8 R (-0.020) | +0.008 (0.49) / +0.023 (0.33) |
+| T: trend class | **+3.4 R (+0.004)** | **+17.2 R (+0.024), equity x1.14** | +0.053 (0.25) / +0.067 (0.09) |
+- Both variants FAIL (gold Holm not significant). Full-sample totals of the SHADOW configuration indices collapse under conditioning (for
+  example gold F2-78 +87.4 -> -211.8 R under V): splitting the shadow history by regime leaves too few trades per class and the scores become
+  noise. The trend-class procedure improves the out-of-sample result on both metals by about +46 / +49 R but not significantly: a watch item.
+
+## Hypothesis batch 6 (2026-10-01; docs/HYPOTHESIS_BATCH6_PREREG.md, research/hyp/batch6.py)
+- P1 gold/silver ratio mean reversion: DEV -0.283 R (n 19), CHECK +0.175 R (n 19, p 0.28): FAIL.
+- R1 weekend de-risking (halve positions into weekends of a high-gap regime, 28 % of weekends): over the 8 SHADOW runs the 1st-percentile week
+  improves +0.018 R, max drawdown -0.57 R, total -13.6 R (limit -27.3 R) -> meets the pre-registered adoption rule for a Risk Manager
+  CANDIDATE. The effect is small (the worst weeks are not weekend weeks). Not deployed: Risk Manager rules change only with the operator.

@@ -100,7 +100,7 @@ def run_sym(sym):
     print(f"  shadow parts ({time.time() - t0:.0f}s)", flush=True)
     # equivalence check: one class covering every active week must reproduce WRWR v2 exactly (same champions, same weekly R)
     z0 = np.load(FAMFILE[sym], allow_pickle=False)
-    one = np.where(active, "A", "").astype(object)
+    one = np.full(NW, "A", object)                                   # every week in one class = v2 (v2 counts trades of inactive weeks too)
     sc1 = conditional_scores(parts, one, ("A",), NW, [(52, 1.0)], RF.MINN)
     j66 = [c for c in fam if (c["window"], c["lcb_z"], c["pool"], c["m"], c["equity_filter"]) == (52, 1.0, "H1", 2, 0)]
     R1, _, _, _ = RF.run(0.01, P, vs, active, pools, sc1, j66)
