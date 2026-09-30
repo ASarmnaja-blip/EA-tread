@@ -823,21 +823,3 @@ def overnight_split(H):
 
 def trackB3(H, D):
     return overnight_split(H)
-
-
-# ------------------------------------------------------------------ Panel-2 candidate (Amendment 9)
-def shock_fade_clock(H, k=2.5, hold_h=72, stop_atr=3.0):
-    """Fade an H1 bar whose close-to-close move exceeds k ATR: enter at the next open against it,
-    exit at the last bar opening within hold_h-1 clock hours, stop stop_atr ATR, one at a time."""
-    r1 = np.r_[np.nan, np.diff(H.c)]
-    sig = np.abs(r1) > k * H.atr
-    ent = np.flatnonzero(sig[:-1]) + 1
-    last = np.searchsorted(H.t, H.t[ent] + (hold_h - 1) * 3600, side="right") - 1
-    keep = nonoverlap(ent, last); ent, last = ent[keep], last[keep]
-    d = -np.sign(r1[ent - 1]); a = H.atr[ent]; ok = np.isfinite(a) & (d != 0)
-    return Spec(f"SHOCK_FADE_k{k}_h{hold_h}_s{stop_atr}", "H1", ent[ok], d[ok], stop_atr * a[ok],
-                np.full(ok.sum(), np.nan), last[ok])
-
-
-def panel2(H, D):
-    return [shock_fade_clock(H)]

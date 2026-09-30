@@ -29,11 +29,22 @@ def main():
     lat = ROOT / "data" / "wpwb_weekly" / "outlook_shadow_latest.md"
     L += ["## 1. พยากรณ์ความผันผวนสัปดาห์หน้า (Outlook)", ""]
     L += (lat.read_text(encoding="utf-8").splitlines()[2:] if lat.exists() else ["ยังไม่มีข้อมูล"]) + [""]
-    # forward panel
-    L += ["## 2. แผงทดสอบล่วงหน้า 5 ตัว (H-FOUNDRY-PANEL-1)", "",
-          "ผ่านเมื่อค่า E ถึง 500 (เริ่มที่ 1 ทุกตัว ถ้าต่ำกว่า 1 แปลว่ากำลังแพ้)", ""]
-    P = read(SH / "forward_panel_weeks.csv")
-    panel = json.loads((SH / "forward_panel.json").read_text()) if (SH / "forward_panel.json").exists() else None
+    # forward panels
+    for js, sc, title in [(SH / "forward_panel.json", SH / "forward_panel_weeks.csv", "แผงทดสอบล่วงหน้า 1 (H-FOUNDRY-PANEL-1)")] + \
+            [(j, SH / (j.stem + "_weeks.csv"), f"แผงทดสอบล่วงหน้า {j.stem.split('panel')[-1]} (H-FOUNDRY-PANEL-{j.stem.split('panel')[-1]})")
+             for j in sorted(SH.glob("forward_panel*.json")) if j.name != "forward_panel.json"]:
+        if js.exists():
+            L += _panel_section(js, sc, title)
+    L += _rest()
+    OUT.write_text("\n".join(L) + "\n", encoding="utf-8")
+    print("wrote", OUT)
+
+
+def _panel_section(js, sc, title):
+    L = []
+    panel = json.loads(js.read_text())
+    L += [f"## {title}", "", f"ผ่านเมื่อค่า E ถึง {1 / panel['alpha_each']:.0f} (เริ่มที่ 1 ถ้าต่ำกว่า 1 แปลว่ากำลังแพ้)", ""]
+    P = read(sc)
     if panel:
         L += ["| setup | สภาพตลาด | สัปดาห์ที่นับ | ไม้ทั้งหมด | R เฉลี่ยต่อสัปดาห์ | ค่า E | สถานะ |", "|---|---|---|---|---|---|---|"]
         for c in panel["candidates"]:
@@ -44,10 +55,15 @@ def main():
             else:
                 L.append(f"| {c['name']} | {c['cell']} | 0 | 0 | – | 1.00 | รอสัปดาห์แรก |")
         L.append("")
+    return L
+
+
+def _rest():
+    L = []
     # selector
     S = read(SH / "selector_shadow_log.csv")
     Sc = read(SH / "selector_shadow_scores.csv")
-    L += ["## 3. ตัวเลือก setup รายสัปดาห์ (SELECTOR-SHADOW-1)", ""]
+    L += ["## ตัวเลือก setup รายสัปดาห์ (SELECTOR-SHADOW-1)", ""]
     if len(S):
         r = S.iloc[-1]
         L.append(f"สัปดาห์ล่าสุด {r.cut_utc} UTC: {r.status}, เลือก {r.n_selected} setup, สภาพ {r.vol_class}")
@@ -60,15 +76,14 @@ def main():
     L += ["", "หมายเหตุ: ในข้อมูลย้อนหลังช่วง 2021–2026 ตัวเลือกแบบนี้ขาดทุน จึงไม่ได้คาดหวังสูง", ""]
     # hod21
     T = read(SH / "hod21_shadow_trades.csv")
-    L += ["## 4. HOD21 (Buy ชั่วโมงก่อนตลาดพักรายวัน ช่วงฤดูหนาว)", ""]
+    L += ["## HOD21 (Buy ชั่วโมงก่อนตลาดพักรายวัน ช่วงฤดูหนาว)", ""]
     tr = T[T.exit_kind.isin(["TIME", "STOP"])] if len(T) else T
     if len(tr):
         L.append(f"ไม้ที่ปิดแล้ว {len(tr)} ไม้, สุทธิเฉลี่ย {tr.net_bp.mean():+.2f} bp ({tr.net_R.mean():+.3f} R) หลังต้นทุนและ swap")
     else:
         L.append("ยังไม่มีไม้ (แท่ง 21:00 UTC มีเฉพาะ พ.ย.–มี.ค. และเริ่มนับ 2 ต.ค.)")
     L.append("")
-    OUT.write_text("\n".join(L) + "\n", encoding="utf-8")
-    print("wrote", OUT)
+    return L
 
 
 if __name__ == "__main__":

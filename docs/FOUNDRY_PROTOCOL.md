@@ -162,3 +162,16 @@ fixed-lambda freeze is archived). Power check, replaying the scoring code over t
 nomination weeks (not evidence - these are the weeks the candidates were picked on): the best E
 reached 5.6 (INSIDE_DAY_t2), the others 1.2-2.0. At these effect sizes confirmation at
 alpha 0.002 needs roughly 8+ years of forward weeks; the panel is a long-run record, not a fast gate.
+
+## Amendment 9 (2026-09-30) - frozen code snapshots, and forward panel 2
+- Every forward panel is scored from its own frozen copy of families.py / engine.py /
+  forward_panel.py (`research/foundry_frozen_<label>/`), whose SHA-256 is in the panel's JSON. Panel 1's
+  snapshot is taken from commit 8e0fb93 (hash verified equal to its JSON). Later edits to
+  `research/foundry/` therefore cannot change or stop an existing panel.
+- **Panel 2 (H-FOUNDRY-PANEL-2, alpha 0.005):** one pre-specified candidate, SHOCK_FADE_k2.5_h72_s3.0
+  (fade an H1 bar whose close-to-close move exceeds 2.5 ATR, enter at the next open, exit at the last
+  bar opening within 71 clock hours, stop 3 ATR, one position at a time, all weeks). Chosen as the
+  CENTRE of the one contiguous positive ridge in `shock_fade_surface.py` (k 2.5-3.0 x hold 72 h x stop
+  2-4 ATR positive in both 2021-23 and 2024-26; ~0 in 2015-20; negative in 2003-14), not its best
+  point. It is a recent-era effect selected on seen data: nomination only. Same mixture e-process,
+  threshold 1 / 0.005 = 200, forward from the week of 2026-10-02 22:15 UTC.
