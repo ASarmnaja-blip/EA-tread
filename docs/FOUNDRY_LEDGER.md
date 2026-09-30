@@ -796,3 +796,17 @@ same-exit-configuration eligible candidate; 4 workers, 345 s) and `analyze_gates
   D1 1,296 candidates, all signal tests and leak tests pass), selector family run (descriptive, before any gate): best of 144 at
   f = 1 %: 52w LCB z1 H1+H4+D1 m2 +87.4 R (3.9 R/yr, max DD 63 R, last 3 years +19.7 R); BASE-equivalent (52w z1 H1 m2) +67.5 R;
   none reaches 10 R/yr.
+
+## WRWR gates: zoo Stage F and Family 2 Stage S (2026-09-30)
+- **Zoo family, Stage F (2,000 paths x 144 configurations; v7 amendment): Reality Check p = 0.111 (block 10), 0.086 (block 4), 0.103
+  (block 26) -> endpoint 2 NOT PASSED (needs <= 0.05).** Same top configurations as Stage S (78w LCB z2 on H4: mean d +0.151 R/week,
+  t 3.06; 78w z2 H1+H4+D1 +0.086; 26w z0.5 H4 m1 +0.114). BASE alone at 2,000 paths: d +0.026 R/week, p 0.370. The zoo shows a
+  weak single-configuration effect on H4 that does not survive the 144-configuration family test.
+- **Family 2 (SMC / levels / calendar / volatility), Stage S (500 paths x 144):** Reality Check **p = 0.003 (block 10), 0.001 (4),
+  0.002 (26); V = 4.72** (by the frozen rule Stage F must run and decides alone). Top: 78w LCB z2 H4 m2 (mean d +0.133 R/week,
+  t 4.72, mean R +0.006, benchmark -0.127); 52w z2 H4 m2 (+0.117, t 4.31); the BASE-equivalent 52w z1 H1 m2: mean R +0.058 R/week
+  vs random router -0.203, d +0.261 R/week, one-sided p 0.001, 95% lower bound +0.116 (endpoint 1 pattern passed for Family 2's BASE).
+  Caveat before any reading as edge: selection from trailing performance can be capturing the persistence of gold's drift
+  (long-biased clock / level candidates) rather than a setup; diagnostics follow, and endpoints 3-4 (PBO, cost gate) and Stage F
+  (2,000 paths) are pending. Two families have now been tested; with a Bonferroni split of alpha across the two pre-registered
+  families the family-claim threshold would be 0.025.
