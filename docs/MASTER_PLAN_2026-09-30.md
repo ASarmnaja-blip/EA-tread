@@ -139,3 +139,28 @@ M5 ต่อเนื่อง 2009–2026, tick Exness จาก MT5 ตั้�
 - ขั้น 2: placebo ต้องให้ BASE ≈ 0R; โค้ดเดียวกันทั้งจริงและ placebo; Codex review ปิดครบ
 - ขั้น 4: dry-run dispatcher ก่อน cut แรก ต้องไม่ต่อท้ายบันทึก; hash ตรงกับ manifest
 - ขั้น 5: placebo held-out ผ่านก่อนอ่านผลจริง
+
+---
+
+## Amendment 1 — response to Codex R18 (`docs/CODEX_R18_MASTER_PLAN.md`, verdict NOT OK TO START)
+All 12 findings accepted; the contracts they ask for are frozen in `docs/WRWR_CONTRACT_PREREG.md` before any code change.
+| R18 | decision | where |
+|---|---|---|
+| 1 B1-B5 real, fixes incomplete (BLOCKING) | accepted: one event-driven portfolio simulator with trade tables, handover rule, chronological sizing, skip below 0.01 lot | contract C2 |
+| 2 cut boundary (BLOCKING) | accepted: half-open intervals + synthetic boundary tests on every TF | C1 |
+| 3 vol_scale uses future B_REF; weekly_rv 1-h offset (BLOCKING) | accepted: causal rolling B_REF for history, unsized also reported; RV only from H1 | C3 |
+| 4 pools/cache/splice/labels (IMPORTANT) | accepted: np.isin pools, versioned caches, splice checks, day/bar labels; ledger corrected (H4+D1 pool in v3 included M5/M15) | C5 |
+| 5 XAG needs its own cost/swap (BLOCKING) | accepted: per-symbol table from MT5 (read 2026-09-30) | C4 |
+| 6 order | accepted: contracts + tests first; XAG downloaded early but unopened; paper logging starts right after the corrected freeze, alpha-bearing test only after XAG | revised order below |
+| 7 per-bar flip placebo, K=20 (BLOCKING) | accepted: primary = SPA / reality check with stationary bootstrap K=999 over the whole family vs a matched benchmark; path null = week-block flips, K=199, supporting | C6 |
+| 8 gates too permissive | accepted: PBO upper bound <= 0.20, bootstrap lower-bound cost gate, XAG primary p <= 0.05, maxT/Holm for secondaries | C6, C7 |
+| 9 sieve diagnosis (BLOCKING) | accepted: recompute regimes on placebo, centre, matched contrasts, HAC / non-overlap, maxT with >= 999 seeds | C11 |
+| 10 forward estimand / alpha (BLOCKING) | accepted: payoff = actual portfolio R floored at -4 under a -3R weekly stop; alpha per hypothesis; weeks 13/26 safety only | C8 |
+| 11 target table incoherent | accepted: Calmar-based tiers | C10 |
+| 12 champions / scope / roles / prereg | accepted: deployable m <= 2; WRWR = H1-D1 router + risk overlay; role artefacts; hashes in prereg | scope, C2, C9 |
+
+**Revised order:** 0 urgent MT5 fix for Saturday -> 1 contracts + synthetic tests -> 2 event-driven simulator and
+versioned trade-table caches (H1/H4/D1) with every fix -> 3 Codex read-only re-audit + old/new reconciliation ->
+4 SPA / PBO / cost gates (path null in background) -> 5 freeze candidate hashes and rules; start paper logging (SHADOW) ->
+6 XAG readout (downloaded in step 1, opened only now) -> 7 alpha request to the operator if gates pass -> 8 sieve.
+Step −1 is closed when Codex confirms no BLOCKING item remains at plan level (R18b).

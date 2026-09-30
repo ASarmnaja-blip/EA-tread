@@ -709,3 +709,9 @@ Long-history caches (HistData + Exness, leak check PASS). `research/foundry/wrwr
 Every setting that relies on M5/M15 loses on the unseen years; (d) is positive in R only through its H1 half and still
 compounds negatively at 1% per trade (8 concurrent champions -> large weekly swings). The 2021-26 M5/M15 results were a
 fit to one bull-market span. Verdict: no M5/M15 WRWR setting is usable; small-TF candidates are dropped from the WRWR pool.
+
+## Correction (2026-09-30, Codex R18-4): v3 "H4+D1" pools were defined as tf != "H1" and therefore also contained M5
+and M15 once those caches were loaded; the v3 statement "best 3-year return/DD = H4+D1 SL2 pool" is withdrawn. Other
+known defects of the WRWR numbers above (entry-week equity filter, EN>0 week filter, future-derived B_REF in vol_scale,
+shadow-vs-live position state, weekly compounding) are listed in docs/CODEX_R18_MASTER_PLAN.md; every WRWR figure in
+this ledger before this note is provisional until the corrected simulator (docs/WRWR_CONTRACT_PREREG.md) reruns it.
