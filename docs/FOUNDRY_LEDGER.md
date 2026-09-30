@@ -560,3 +560,10 @@ SHOCK_FADE_k2.5_h72_s3.0; portfolio = the six. Hashes: `docs/FOUNDRY_FROZEN_MANI
 ## Re-freeze under Amendment 12 (after Codex round 14, 2026-09-30)
 Same six candidates and portfolio; settlement-window gap check, frozen-module binding, lockstep and
 post-append validation, fail-closed portfolio, exact hashing, run-log-based LATE. Manifest re-issued.
+
+## News proximity of the panel candidates (descriptive, 2022-26) - `news_proximity.py`
+Pooled, trades starting 0-2 h after a HIGH USD release earn +0.149 R (n 478; mostly the shock / news fades,
+which enter after releases by design), within 1 h before a release +0.071 R (n 124), away from releases
++0.062 R (n 1,799): no general harm near news. Breakouts entered in the hour BEFORE a release do worse
+(ASIA_BRK_t2 -0.212 R n 56 vs +0.036 away; NR7_t2 -0.207 R n 15 vs +0.087): noted in the news playbook as
+a weak protective rule, not applied to any frozen candidate.

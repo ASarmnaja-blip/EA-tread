@@ -326,10 +326,12 @@ docs/                        RESEARCH_FINDINGS.md, BACKTEST.md,
     - ต้องรัน `leak_test.py` ก่อนทุก batch
     - งบ HOLD ของข้อมูลย้อนหลังหมดแล้ว (ใช้คัดผู้สมัครเท่านั้น) การยืนยันต้องมาจากสัปดาห์จริง
       ผ่านบันทึกกระดาษทุกวันเสาร์ (`run_weekly.py`):
-      - `forward_panel.py` 5 ตัว, α 0.01 (H-FOUNDRY-PANEL-1)
+      - `forward_panel.py` แผง 1 (5 ตัว, α 0.01), แผง 2 (SHOCK_FADE, α 0.005), แผง 3 (NEWS_ACCEPT_FADE, α 0.005),
+        พอร์ตรวม 6 ตัว (α 0.01); สำเนาโค้ดล็อกใน `research/foundry_frozen_*`, hash ใน `docs/FOUNDRY_FROZEN_MANIFEST.md`
       - `selector_shadow.py`
       - `hod21_shadow.py`
       - สรุปภาษาไทยที่ `data/wpwb_weekly/forward_summary_th.md`
+    - คู่มือข่าว 8 สถานการณ์ (ช่องว่างข้อ 6): `docs/NEWS_PLAYBOOK_TH.md`; แผนที่สภาพตลาด × setup: `docs/FOUNDRY_REGIME_MAP_TH.md`
 
 ---
 
