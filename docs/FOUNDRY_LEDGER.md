@@ -919,3 +919,10 @@ H4 Family 2 and H1 Family 2 with 4 sessions all identical. Silver tables: Family
   configuration beats the same-exit random router), but it pays no profit after cost on either metal and the choice among configurations is
   overfit (PBO 0.83). Random picks lose heavily to cost (silver random router -0.09 to -0.39 R per week), and the selector mostly avoids that drag.
   No alpha; Family 2 stays SHADOW only; the forward record continues unchanged (SHADOW digest re-checked: unchanged).
+
+### Out-of-sample gross vs cost of the year-by-year procedure (2026-09-30; data/wrwr/oos_cost_breakeven.log)
+- Gold Test A P1 (2011-26, 624 trades): gross **-32.1 R**, cost -47.7 R, swap -2.0 R, net -81.8 R. Silver exploratory P1 (2014-26, 456 trades):
+  gross **+8.7 R**, cost -51.9 R, swap -0.4 R, net -43.6 R.
+- Reading: chosen without look-ahead, the Family 2 selections have about zero gross edge; the large in-sample gross (+58 to +189 R on gold) is
+  selection-inflated. Cheaper execution alone cannot make WRWR-F2 profitable. Next ideas need other information than H1-D1 price patterns:
+  docs/DEEP_RESEARCH_2026-09-30_TH.md.
