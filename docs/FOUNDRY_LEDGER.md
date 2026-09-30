@@ -585,3 +585,14 @@ a weak protective rule, not applied to any frozen candidate.
   relative to the fixed cost. Most consistent: RSI14 30/70 exit FADED (better than random in all four
   eras at every k and hold, +0.08 R vs random, net about 0), Stochastic/Williams %R OB-OS faded,
   Donchian 55 and Keltner breakouts followed - still net <= ~0.02 R after cost.
+
+## RR 1:1 to 1:10 on everything (operator request 2026-09-30) - `zoo_rr.py`, `data/foundry/zoo_rr.xlsx`
+2,604 indicator setups (31 indicators x FOLLOW/FADE x stop 1/2 ATR x RR 1, 1.5, 2, 3, 5, 7, 10 x hold
+24/72/240 h) + 42 random, all kept. Best net R per trade rises with RR (1:1 +0.03, 1:3 +0.17, 1:10 +0.36
+RSI2 FOLLOW 1 ATR 240 h, n 810, win 15 %), worst stays ~-0.2 to -0.25; the average goes from -0.07 (1:1)
+to +0.01 (1:10) and the random baseline from -0.09 to -0.01. Cost is 0.06 R per trade on average at every
+RR (it depends on the stop, not the target). At 1:10 most trades end on the 10-day time exit, so these are
+really "stop + hold" trades; random 1:10/240 h swings -0.22..+0.26 R between eras, i.e. the high-RR rows
+are dominated by a few large winners and are noisy. Setups net positive in all four eras: 113 of 2,604,
+fewer than the ~163 a coin flip per era would give at 1:10's 53 % positive share - the best rows are the
+upper tail of noise, not established edges.
