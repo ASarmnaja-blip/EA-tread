@@ -516,3 +516,12 @@ per candidate on forward weeks from 2026-10-02. Hooked into the Saturday job.
   both windows): INSIDE_DAY_t2 ALL (+0.307 R, t 2.98), SHOCK_CONT_k2_h48~INV ALL (+0.177, t 1.44),
   ASIA_BRK_t2 ALL (+0.046, t 1.12), HOD_21L ALL (+0.033, t 1.08), NR7_t2 ALL (+0.102, t 1.04).
   Nominations only; e-process lambda 0.1; forward from 2026-10-02 22:15 UTC.
+
+## Diagnostics after the panel (no gate, no alpha)
+- `cost_share.py` (last 104 weeks): 47 % of variants have gross R > 0, 29 % net R > 0; cost is ~0.03 R
+  and swap ~0.002 R at the median. The gross-positive list is dominated by LONG hour-of-day variants -
+  gold's 2024-26 rally, not setup timing. A limit entry would save at most ~0.015 R.
+- `gross_consistency.py`: 17 of 169 variants have gross R and excess > 0 in all three eras 2015-20,
+  2021-23, 2024-26 - fewer than the ~21 a coin flip per era would give. Standouts with net > 0 in all
+  three: SHOCK_CONT_k2_h48~INV (+0.04 / +0.13 / +0.20 R: fade a > 2 ATR H1 bar for 48 h),
+  SHOCK_CONT_k3_h48~INV, INSIDE_DAY_t1/t2, NR7_t2 - three of these are already in the forward panel.

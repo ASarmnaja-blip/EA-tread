@@ -153,3 +153,12 @@ operator as a proposal for a Demo test, never straight to real money.
   recorded entry spread, flat 2 bp cost), not broker-replicated execution.
 - The panel was re-frozen with the corrected code (the first freeze is archived in
   `data/foundry/shadow/archive/`); no forward week had been observed.
+
+## Amendment 8 (2026-09-30, before the first forward week)
+The panel e-process becomes a mixture: E_t = mean over lambda in {0.05, 0.1, 0.2} of
+prod(1 + lambda * week R) (an average of e-processes is an e-process; a component whose factor is
+<= 0 is set to 0). Threshold unchanged (500). Panel re-frozen with the same five candidates (the
+fixed-lambda freeze is archived). Power check, replaying the scoring code over the 107 in-sample
+nomination weeks (not evidence - these are the weeks the candidates were picked on): the best E
+reached 5.6 (INSIDE_DAY_t2), the others 1.2-2.0. At these effect sizes confirmation at
+alpha 0.002 needs roughly 8+ years of forward weeks; the panel is a long-run record, not a fast gate.
