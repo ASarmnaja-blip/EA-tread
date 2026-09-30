@@ -218,3 +218,29 @@ These supersede any conflicting wording above.
 - **R19-8 decomposition.** Conclusions about why BASE changed are drawn only from the full factorial
   {flat 2 bp, C4 costs} x {weekly stop off, on} run after the R19-1..3 fixes, with champions both fixed to the
   flat-cost run and re-selected, reporting direct and interaction effects.
+
+## v6 gate implementation details (2026-09-30, written before any benchmark path or gate statistic is computed)
+Implementation choices the v4/v5 text left open; none of them changes a threshold.
+- **Benchmark slot sets.** For configuration j, cut k and champion rank r with actual champion c_r, the random replacement
+  is drawn uniformly from S_{k,r} = {candidates i in j's pool with enough shadow trades at cut k (n >= 10) and the same exit
+  configuration (tf, stop k, exit label, hold) as c_r}, sorted by candidate hash; slot 2 is drawn without replacement
+  (redraw on collision). Seeds: numpy `default_rng([j, path])` with j the configuration index in the frozen family
+  order. The activation of j (which weeks trade and how many champions) is its ACTUAL cut-known activation, including
+  the equity filter's own decisions; stand-aside weeks give d = 0.
+- **Staging (frozen now).** Stage S (screen): K_B = 500 paths per configuration. If the stage-S family Reality Check
+  p >= 0.20 the family claim is recorded as NOT PASSED at the screening level and Stage F is not run; otherwise Stage F
+  (K_B = 10,000) runs and alone decides. BASE alone is always run at K_B = 10,000.
+- **Reality Check (studentized).** d_{j,k} on the T = 1,164 active calendar weeks; t_j = mean(d_j) / (sd(d_j) / sqrt(T));
+  V = max_j t_j. Bootstrap: Politis-Romano stationary bootstrap, mean block 10 weeks, the SAME resampled week indices for
+  all configurations, K = 999 (sensitivities: block 4 and 26); t*_{b,j} = (mean(d*_bj) - mean(d_j)) / (sd(d*_bj) / sqrt(T));
+  V*_b = max_j t*_{b,j}; p = (1 + #{V*_b >= V}) / (K + 1). BASE alone: one-sided p from mean(d*) - mean(d) >= mean(d);
+  95% lower bound = mean(d) - q_0.95(mean(d*) - mean(d)).
+- **PBO (CSCV).** T x 144 matrix of weekly R at f = 1 %; 16 contiguous blocks of equal length (remainder weeks dropped
+  from the front); all C(16,8) = 12,870 splits; in-sample = the 8 training blocks with a 5-week embargo removed from each
+  training block edge that touches a test block; the in-sample best configuration by mean weekly R; omega = its
+  out-of-sample mean-R rank / (144 + 1); lambda = ln(omega / (1 - omega)); PBO = share of splits with lambda <= 0. Upper
+  95% bound: 999 stationary-bootstrap resamples (mean block 10 weeks) of the week axis, PBO recomputed on each, 95th
+  percentile.
+- **Cost gate.** For the configuration under test: one-sided 95% stationary-bootstrap lower bound (block 10, K = 999)
+  of the mean weekly net R at base cost > 0; and at +2 bp (`simulate(stress=True)`: R - 2 bp / stop, entry cost +2 bp
+  in the mark-to-market) a positive point estimate and max drawdown <= 1.25 x the base-cost drawdown.
