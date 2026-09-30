@@ -975,3 +975,10 @@ MT5 clock verified = UTC (MAD 0.17 bp at shift 0 vs 9.7 bp at +-1 h against Duka
 | W1 Monday D1 (DEV sign short) | -0.013 | -0.029 | -0.018 | +0.022 / +0.022 / +0.009 |
 - J2 ensemble (descriptive): the equal-weight mean of all 144 Family 2 configurations: gold 2004-26 -19.7 R (equity x0.81), median configuration
   -13.2 R, best in-sample +87.4 R, 33 % of configurations positive; silver (corrected clock) -10.2 R (x0.90), median -8.1 R, best +46.1 R, 35 %.
+
+## Test B rerun after the HistData clock fix (2026-10-01; docs/WRWR_HISTORY_OOS_PREREG.md Amendment 1)
+HistData changed its clock convention in 2019 (EST + European summer time); from 2019 about four weeks a year were 1 h early in the silver bars
+(and in the gold HistData M5 file, rebuilt). Corrected silver: Reality Check Stage F **p 0.001 (V 7.07) PASS**; F2-66 / 78 / 134 / 86 total
+-24.4 / +13.5 / +3.4 / -39.9 R (first run -34.2 / -0.1 / +12.5 / -30.7), all beat the random router (Holm), all cost gates FAIL, PBO 0.877;
+zoo BASE -251.3 R FAIL. The conclusions are unchanged; that a one-hour label shift in 8 % of the weeks moves single-configuration totals by
+10-14 R is another sign of how unstable the choice of configuration is.

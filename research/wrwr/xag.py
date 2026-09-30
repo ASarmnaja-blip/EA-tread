@@ -54,17 +54,34 @@ def check_raw():
     return _C["raw"]
 
 
+HD_RULE_SWITCH = pd.Timestamp("2019-01-01")
+
+
+def histdata_utc(ts):
+    """HistData local time -> UTC epoch seconds (Amendment 1 of docs/WRWR_HISTORY_OOS_PREREG.md). Every DST transition window was
+    classified against gold (Dukascopy UTC) and, from 2023-09, Exness: 2009-2018 follow New York time with US summer time; from 2019
+    the files are EST (UTC-5) plus one hour while EUROPE is on summer time. Ambiguous / nonexistent New York times are dropped."""
+    local = pd.to_datetime(ts, format="%Y%m%d %H%M%S")
+    old = local < HD_RULE_SWITCH
+    out = pd.Series(np.nan, index=local.index)
+    ny = local[old].dt.tz_localize("America/New_York", ambiguous="NaT", nonexistent="NaT").dt.tz_convert("UTC").dt.tz_localize(None)
+    out[old] = ny.astype("datetime64[s]").astype("int64").where(ny.notna(), np.nan)
+    utc0 = local[~old] + pd.Timedelta(hours=5)
+    eu = (utc0.dt.tz_localize("UTC").dt.tz_convert("Europe/London").dt.tz_localize(None) - utc0) == pd.Timedelta(hours=1)
+    out[~old] = (utc0 - pd.to_timedelta(eu.astype(int), unit="h")).astype("datetime64[s]").astype("int64")
+    return out
+
+
 def read_m1():
     parts, dropped = [], 0
     for f in sorted(HD.glob("XAGUSD_M1_*.zip")):
         z = zipfile.ZipFile(f)
         n = [x for x in z.namelist() if x.endswith(".csv")][0]
         d = pd.read_csv(io.BytesIO(z.read(n)), sep=";", header=None, names=["ts", "o", "h", "l", "c", "v"])
-        t = pd.to_datetime(d.ts, format="%Y%m%d %H%M%S").dt.tz_localize("America/New_York", ambiguous="NaT", nonexistent="NaT")
-        ok = t.notna().to_numpy()
-        d = d[ok].copy()
-        d["t"] = t[ok].dt.tz_convert("UTC").dt.tz_localize(None).to_numpy().astype("datetime64[s]").astype(np.int64)
-        parts.append(d[["t", "o", "h", "l", "c"]]); dropped += int((~ok).sum())
+        d["t"] = histdata_utc(d.ts)
+        ok = d.t.notna().to_numpy(); dropped += int((~ok).sum())
+        d = d[ok].copy(); d["t"] = d.t.astype(np.int64)
+        parts.append(d[["t", "o", "h", "l", "c"]])
     M = pd.concat(parts).drop_duplicates("t").sort_values("t", kind="stable")
     return M, dropped
 
@@ -148,9 +165,13 @@ def tzcheck():
     e = e[e.n >= 10]
     et = e.index.to_numpy(np.int64) * 3600; ec = e.c.to_numpy()
     summer = _dst(et)
+    u = pd.to_datetime(et, unit="s")
+    eu = np.asarray((u.tz_localize("UTC").tz_convert("Europe/London").tz_localize(None) - u) == pd.Timedelta(hours=1))
     ok = True
-    print("(i) HistData H1 close at T + s vs Exness H1 close at T, MAD of the difference (bp):")
-    for half, m in (("summer", summer), ("winter", ~summer)):
+    print("(i) HistData H1 close at T + s vs Exness H1 close at T, MAD of the difference (bp); Amendment 1 adds the transition weeks:")
+    for half, m in (("summer", summer & eu), ("winter", ~summer & ~eu), ("US summer / EU winter", summer & ~eu), ("US winter / EU summer", ~summer & eu)):
+        if m.sum() < 50:
+            print(f"   {half}: {int(m.sum())} hours (not assessed)"); continue
         mads, meds = {}, {}
         for s in (-2, -1, 0, 1, 2):
             v = hs.reindex(et[m] + s * 3600).to_numpy()

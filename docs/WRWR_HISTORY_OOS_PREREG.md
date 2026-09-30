@@ -77,3 +77,18 @@ Family 2 selection skill found on gold (Reality Check p = 0.003) exists on silve
 - Reported alongside, never as a pass: PBO (16 blocks, embargo 5), eras 2010-14 / 2015-20 / 2021-26, long / short split, total R.
 Reading: B1 PASS with a Holm-significant B2 configuration = the gold selection skill replicates on silver (still no alpha; the next
 step would be asking the operator about a forward allocation). B1 FAIL = it does not replicate; Family 2 stays SHADOW only.
+
+## Amendment 1 (2026-10-01, after the first Test B run; disclosed): HistData clock rule
+While generating hypotheses, a lead-lag check showed silver H1 returns correlating 0.2-0.6 with gold returns ONE HOUR LATER in March and late
+October / early November of 2019-2026. Classifying every US/EU daylight-saving transition window against Dukascopy gold (UTC) and Exness showed
+that HistData files up to 2018 follow New York time with US summer time, but from 2019 they are EST (UTC-5) plus one hour while EUROPE is on
+summer time; the pre-registered New York conversion was therefore 1 h early in about four weeks a year from 2019 (gold HistData 2019-2021
+confirms it: best shift -1 h in those weeks, MAD 0.09-0.39 bp). The pre-registered timezone check (i) pooled those weeks into "summer" and
+missed it; it now tests the transition weeks separately. Fix: research/history/histdata_time.py (same rule in research/wrwr/xag.py). Test B
+was rerun end to end with unchanged rules. Both results are reported; the corrected run is the reference:
+| | first run (clock bug) | corrected run |
+|---|---|---|
+| B1 Reality Check (Stage F) | p 0.001, V 6.87 | **p 0.001, V 7.07: PASS** |
+| B2 totals F2-66 / 78 / 134 / 86 | -34.2 / -0.1 / +12.5 / -30.7 R | -24.4 / +13.5 / +3.4 / -39.9 R (all Holm-significant vs random, all cost gates FAIL) |
+| PBO | 0.830 | 0.877 |
+| B3 zoo BASE (C7) | -250.3 R, FAIL | -251.3 R, FAIL |
