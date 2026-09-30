@@ -616,3 +616,13 @@ rows as the multi-TF run; stop kept at k ATR (= 1 R), target = 1 R / RR (RR 1:1,
 - Gross R before cost is already negative on average (−0.02 to −0.04 R): the stop-first same-bar rule and 1 R losses outweigh
   the small targets. Cost per trade is unchanged (M5 0.263 R … D1 0.011 R) but at 10:1 it equals 2.6 targets on M5.
 - Best rows overall are the 1:1 cells (D1 +0.23 R n 59, H4 +0.22 R n 135) - small samples, not tools.
+
+## Era champions (operator 2026-09-30: "ต้องการหาตัวเต็งแต่ละยุค")
+multi_tf.py now also writes n_<era>; both runs re-run (same seed). data/foundry/multi_tf_era_champions.xlsx: top 10 per TF x era
+(n in era >= 30, normal + inverted pooled, inverted 1:1 dropped as duplicate) and how each era's picks did in the NEXT era.
+- Era #1 in the next era: positive in 5 of 12 TF x era steps (H1 3/3 small: +0.07, +0.24, −0.08; H4 0/3: −0.43, −0.56, −0.59).
+- Top 5% of an era, next era mean: M5 −0.13, M15 −0.07, M30 −0.04, H1 −0.01 to +0.02, H4 −0.05 to +0.06, D1 −0.10 to +0.16.
+  Better than the all-setup mean every step, but mostly by picking cheap configs (SL 2 ATR, long hold): rank_corr is highest on M5
+  (0.80) where cost dominates and lowest on H4/D1 (0.16-0.35) where cost is small - rank persistence = cost persistence.
+- Era champions are almost all 1:10 / hold 240 bars = the highest-variance cells; winner's curse. Only D1 2015-20 -> 2021-26
+  top 5% held up (+0.16, 82% positive), which coincides with the 2021-26 gold rally on long holds.

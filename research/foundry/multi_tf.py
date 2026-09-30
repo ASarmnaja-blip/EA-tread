@@ -126,6 +126,7 @@ for tf, (B, srcname) in load_all().items():
                         for e, (a0, a1) in ERAS.items():
                             m = (dt >= a0) & (dt < a1)
                             r[f"net_{e}"] = float(net[m].mean()) if m.sum() >= 20 else np.nan
+                            r[f"n_{e}"] = int(m.sum())
                         rows.append(r)
 X = pd.DataFrame(rows)
 base = X[X["mode"] == "RANDOM"].set_index(["tf", "k_atr", "rr", "hold_bars"]).net_R
