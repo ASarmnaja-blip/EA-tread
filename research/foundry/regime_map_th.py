@@ -51,4 +51,4 @@ lines += ["", "ตระกูลที่เห็นบ่อย: SHOCK = ต�
           "ASIA_BRK = ทะลุกรอบเอเชีย, HOD = ชั่วโมงคงที่ของวัน, DONCH/SMA_TREND = ตามเทรนด์รายวัน, (กลับทิศ) = เล่นฝั่งตรงข้ามของ setup นั้น", ""]
 out = E.ROOT / "docs" / "FOUNDRY_REGIME_MAP_TH.md"
 out.write_text("\n".join(lines) + "\n", encoding="utf-8")
-print("\n".join(lines))
+print("wrote", out)
