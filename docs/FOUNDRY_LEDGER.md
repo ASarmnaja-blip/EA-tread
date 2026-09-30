@@ -777,3 +777,22 @@ same-exit-configuration eligible candidate; 4 workers, 345 s) and `analyze_gates
   exit structures it selects (mostly 1:10 targets on H1 stops) lose after cost whoever picks the entry.
 - Benchmark Monte Carlo SE: 0.0246 R per single week, 0.0009 R for the time-averaged weekly benchmark (contract target < 0.01 R is read as
   the SE of the time-averaged benchmark, which is what enters d's mean; a 0.01 R SE per single week would need about 58,000 paths).
+
+## WRWR gates, endpoints 2-4 for the zoo family (2026-09-30; manifest frozen before; `analyze_gates.py`)
+- **Stage S (500 paths x 144 configurations), Reality Check over d = R - B (studentized, stationary bootstrap K = 999):**
+  V = 3.09, **p = 0.105 (block 10)**, 0.071 (block 4), 0.097 (block 26); benchmark time-averaged SE <= 0.004 R per week.
+  Best configurations: 78-week LCB z 2 on H4 (m 2: mean d +0.153 R/week, t 3.09, own p 0.005; m 1: +0.091, t 2.99), 78w z2 H1+H4+D1
+  (+0.088, t 2.94), 78w z2 D1 m1 (+0.025, t 2.61), 26w z0.5 H4 m1 (+0.112, t 2.35). Their own mean R is small positive
+  (+0.016 to +0.057 R/week) while their random-router benchmarks are negative (-0.02 to -0.13 R/week), i.e. within the zoo the
+  conservative (z 2, long-window) selection on H4 beats random picks by more than chance at the single-configuration level, but
+  the family-wise test (144 configurations) does not reject at 0.05. By the frozen rule (p < 0.20) Stage F runs (v7: 2,000 paths).
+- **Endpoint 3, PBO (CSCV, 16 blocks, 5-week embargo) of the 144 weekly-R series: 0.537** (about a coin flip: the in-sample best
+  configuration is as often below as above the median out of sample). The 999-replicate outer stationary bootstrap returns
+  0.537 as its 95% value, but its resamples repeat weeks across the train / test blocks (leakage), so the bootstrap values
+  (mean 0.27, range 0-0.77 in a 60-replicate check) are biased low and the bound is reported with that caveat; either way the
+  robust criterion (upper <= 0.20) is not met. **Endpoint 3 NOT PASSED.**
+- **Endpoint 4, cost gate for BASE: FAIL** (base mean -0.189 R/week, 95% lower bound -0.333; at +2 bp -0.279 R/week, DD 93 % -> 97 %).
+- **Family 2** (SMC / levels / calendar / volatility candidates, docs/WRWR_FAMILY2_PREREG.md): tables built (H1 5,328, H4 1,296,
+  D1 1,296 candidates, all signal tests and leak tests pass), selector family run (descriptive, before any gate): best of 144 at
+  f = 1 %: 52w LCB z1 H1+H4+D1 m2 +87.4 R (3.9 R/yr, max DD 63 R, last 3 years +19.7 R); BASE-equivalent (52w z1 H1 m2) +67.5 R;
+  none reaches 10 R/yr.
