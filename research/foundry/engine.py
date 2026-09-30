@@ -176,7 +176,7 @@ def load_spliced(until=None):
 
 
 # ------------------------------------------------------------------ simulation
-def simulate(B, ent, dirs, stop, tgt, last, eprice=None):
+def simulate(B, ent, dirs, stop, tgt, last, eprice=None, stop_first=True):
     """Vectorised first passage. ent/last: bar indices (inclusive window ent..last).
     stop/tgt: price distances (NaN = none). eprice: entry level (NaN = open of ent).
     Returns gross bp per trade and exit bar index."""
@@ -206,8 +206,12 @@ def simulate(B, ent, dirs, stop, tgt, last, eprice=None):
     exit_px = B.c[last].copy()
     ex = last.copy()
     r = np.arange(n)
-    sfirst = (fs <= ft) & (fs < big)
-    tfirst = (ft < fs) & (ft < big)
+    if stop_first:                          # conservative: a bar touching both levels counts as stopped
+        sfirst = (fs <= ft) & (fs < big)
+        tfirst = (ft < fs) & (ft < big)
+    else:                                   # optimistic bound (diagnostics only): target first on a tie
+        sfirst = (fs < ft) & (fs < big)
+        tfirst = (ft <= fs) & (ft < big)
     # stop fill: the stop level, or the bar open if the bar opened beyond it (gap); not on the entry bar's open
     so = op[r, np.minimum(fs, H - 1)]
     sl = sp_[r, 0]

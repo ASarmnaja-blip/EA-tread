@@ -567,3 +567,21 @@ which enter after releases by design), within 1 h before a release +0.071 R (n 1
 +0.062 R (n 1,799): no general harm near news. Breakouts entered in the hour BEFORE a release do worse
 (ASIA_BRK_t2 -0.212 R n 56 vs +0.036 away; NR7_t2 -0.207 R n 15 vs +0.087): noted in the news playbook as
 a weak protective rule, not applied to any frozen candidate.
+
+## Random 1:1 baseline and the indicator zoo (operator request 2026-09-30; descriptive, nothing filtered)
+- `random_1to1.py`: 240 random-entry 1:1 setups (direction LONG/SHORT/COIN x stop = target 0.5-3 ATR x
+  hold 4-72 h x session). Net R > 0 over 2003-26 in 1 %. Gross R is ~0 for stops >= 1 ATR; at 0.5 ATR the
+  simulator's conservative intrabar rule (a bar touching both levels = stop) makes gross -0.10 R
+  (target-first bound +0.09 R) - tight stops are penalised by the simulator, for every setup equally.
+  Cost is 0.03-0.16 R per trade (stop 3 -> 0.5 ATR).
+- `indicator_zoo.py` / `zoo_wpwb.py`: 31 textbook indicators and candle patterns (SMA/EMA crosses, MACD,
+  RSI14/RSI2, Stochastic, CCI, Williams %R, ROC, Aroon, Bollinger, Keltner, Donchian 20/55, ADX/DI,
+  Parabolic SAR, Supertrend, Ichimoku TK and cloud, daily VWAP, OBV, Heikin-Ashi, engulfing, pin bar,
+  inside bar), each FOLLOW and FADE x k 1/2 ATR x hold 24/72 h = 248 setups, 697,116 trades, all kept in
+  `data/foundry/zoo_all_wpwb.xlsx` with era and WPWB-regime breakdowns next to random entries.
+  Net R > 0 over 2003-26: 3 %; better than random: 46 %; better than random in all four eras: 22 (~16 by
+  chance); net > 0 in all four eras: 0. By WPWB regime the share better than random is 42-55 % in every
+  cell (coin flip); high-volatility cells lose less (-0.05 R vs -0.08 R) because ATR stops are wider
+  relative to the fixed cost. Most consistent: RSI14 30/70 exit FADED (better than random in all four
+  eras at every k and hold, +0.08 R vs random, net about 0), Stochastic/Williams %R OB-OS faded,
+  Donchian 55 and Keltner breakouts followed - still net <= ~0.02 R after cost.
