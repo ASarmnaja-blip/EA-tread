@@ -735,3 +735,13 @@ fb28ac097eee30b5904185dec3e5771b5d620eae616955722707c6b055b6bf59 (144 deployable
 - Best of the 144 (descriptive, not a gate): 78w LCB z2 H1 m2 +107 R (4.8 R/yr, max DD 96 R, last 5 years -41 R);
   26w z0.5 H4 m1 +77 R (3.5 R/yr, DD 28 R, last 3 years +44 R); 78w z2 H1+H4+D1 m2 +63 R (DD 28 R). None reaches the
   C10 "usable" tier (10 R/yr).
+
+### The other side of corrected BASE (operator: "ติดลบขนาดนี้แล้วอีกฝั่งจะเป็นยังไง"; `research/wrwr/counterparty_base.py`)
+Per-trade R of the original stop, unit size, 3,850 live trades 2004-26:
+| side | gross R | cost R | swap R | net R |
+|---|---|---|---|---|
+| BASE | +168.8 | -427.1 | -22.4 | -280.7 |
+| exact counterparty (opposite direction, stop/target swapped, same lots) | -177.0 | -427.1 | -19.7 | -623.8 |
+Both sides lose: the selection has a positive gross (+0.044 R/trade) but costs are 0.111 R/trade on H1 stops, paid by
+either side. By era the counterparty is worse in 2004-20 and less bad only in 2021-26 (BASE -101 R vs -39 R; BASE's
+gross was negative there). FADE/FOLLOW twins of the same champions through the C2 portfolio: -266.1 R (BASE -224.1 R).
