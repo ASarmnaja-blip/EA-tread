@@ -696,3 +696,16 @@ been used. Same 2,232 candidates per TF, same engine (2 bp + swap, stop-first). 
 top5 unsized 26w equity filter; (d) v3 "M15+H1" 52w LCB z2 top8 unsized 13w equity filter. Read-out: net R, R/yr, positive
 52-week blocks and 1%-risk CAGR / max DD over 2009-03..2020-12 per setting. Pass = net R > 0 and CAGR > 0; this spends no
 alpha and is descriptive, but it is the first genuinely unseen test of any M5/M15 rule.
+
+### Result: M5/M15 unseen-history holdout (HistData 2009-03 .. 2020-12) - FAIL
+Long-history caches (HistData + Exness, leak check PASS). `research/foundry/wrwr_holdout.py` -> data/foundry/wrwr_holdout.xlsx.
+| setting | holdout net R (R/yr) | positive 52w blocks | CAGR @1% / max DD |
+|---|---|---|---|
+| (a) pre-registered, M5 | -609 (-51.5) | 0/11 | -46.6% / 99.9% |
+| (a) pre-registered, M15 | -558 (-47.3) | 2/11 | -46.1% / 99.9% |
+| (b) M5 best-compounding | -177 (-15.0) | 2/11 | -18.4% / 92.8% |
+| (c) M15 best-compounding | -176 (-14.9) | 2/11 | -28.8% / 98.9% |
+| (d) M15+H1 (H1 half is NOT unseen) | +214 (+18.1) | 6/11 | -7.7% / 93.1% |
+Every setting that relies on M5/M15 loses on the unseen years; (d) is positive in R only through its H1 half and still
+compounds negatively at 1% per trade (8 concurrent champions -> large weekly swings). The 2021-26 M5/M15 results were a
+fit to one bull-market span. Verdict: no M5/M15 WRWR setting is usable; small-TF candidates are dropped from the WRWR pool.
