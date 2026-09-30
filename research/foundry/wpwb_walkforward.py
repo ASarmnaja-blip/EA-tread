@@ -21,6 +21,11 @@ src = (HERE / "indicator_zoo.py").read_text(encoding="utf-8")
 NS = {"__file__": str(HERE / "indicator_zoo.py"), "__name__": "zoo_defs"}
 exec(compile(src[: src.index("rng = np.random.default_rng(7)")], "zoo_defs", "exec"), NS)
 H, cuts, cell = NS["H"], NS["cuts"], NS["cell"]
+SPLICED = __import__("os").environ.get("SPLICED") == "1"
+if SPLICED:     # Dukascopy H1 to its end, then the live Exness feed (engine.load_spliced) - to name the current champion
+    _v = np.asarray(H.v, float)
+    H, _, cuts, cell = E.load_spliced()
+    H.v = np.r_[_v, np.full(len(H.t) - len(_v), np.median(_v[-6000:]))]     # Exness tick volume is on another scale
 N = len(H.t)
 EXITS = [("1:1", 1.0), ("1:2", 2.0), ("1:3", 3.0), ("1:5", 5.0), ("1:10", 10.0),
          ("2:1", 1 / 2), ("3:1", 1 / 3), ("5:1", 1 / 5), ("10:1", 1 / 10)]      # target = mult x stop
@@ -69,7 +74,7 @@ def sequential(ent, ex):
     return np.asarray(keep, int)
 
 
-CACHE = E.ROOT / "data" / "foundry" / "wpwb_walkforward_cache.npz"
+CACHE = E.ROOT / "data" / "foundry" / ("wpwb_walkforward_cache_spliced.npz" if SPLICED else "wpwb_walkforward_cache.npz")
 cands, S1, S2_, NN, E1, EN = [], [], [], [], [], []
 for name, (sl, ss) in ({} if CACHE.exists() else base).items():
     il, is_ = np.flatnonzero(sl[:-1]), np.flatnonzero(ss[:-1])
@@ -195,7 +200,7 @@ best = Sm.sort_values(["p_vs_samecfg", "total_R_sized"], ascending=[True, False]
 bk = (int(best.window) if best.window.isdigit() else best.window, best.score, int(best.champions))
 picks = pd.DataFrame([(C.label[c_], n) for c_, n in pick_count.get(bk, {}).items()], columns=["candidate", "weeks_as_champion"])
 picks = picks.sort_values("weeks_as_champion", ascending=False)
-out = E.ROOT / "data" / "foundry" / "wpwb_walkforward.xlsx"
+out = E.ROOT / "data" / "foundry" / ("wpwb_walkforward_spliced.xlsx" if SPLICED else "wpwb_walkforward.xlsx")
 with pd.ExcelWriter(out) as xw:
     pd.DataFrame({"อ่านก่อน": [
         "เดินทีละแท่งบน H1 ทองคำ 2003-2026 · 2,232 ตัวเลือก (31 อินดิเคเตอร์ × ตาม/สวน × SL 1-2 ATR × TP 9 แบบ × ถือ 24/72 ชม.) รันเงาทุกตัวตลอด",
@@ -224,5 +229,5 @@ for key, L in weekly_logs.items():
 ax.axhline(0, color="k", lw=.7)
 ax.set_title("WPWB walk-forward: cumulative sized net R of all 20 selection rules (H1 gold, 2004-2026)")
 ax.set_ylabel("cumulative R (x vol_scale)"); ax.legend()
-fig.tight_layout(); fig.savefig(E.ROOT / "data" / "foundry" / "wpwb_walkforward.png", dpi=110)
+fig.tight_layout(); fig.savefig(E.ROOT / "data" / "foundry" / ("wpwb_walkforward_spliced.png" if SPLICED else "wpwb_walkforward.png"), dpi=110)
 print("-> wpwb_walkforward.xlsx / .png")

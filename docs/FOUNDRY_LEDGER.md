@@ -642,3 +642,20 @@ WPWB vol_scale sizing. Leak check PASS. 20 rules, 1,131-1,156 weeks each.
 - The NO TRADE gate (best score <= 0) never fired: with 2,232 candidates one always looks positive - a weakness of the
   rule, to fix before any forward use (require a margin over the same-config pool).
 - Verdict: no rule nominated. Not added to any forward panel.
+
+## WRWR system (WPWB renamed WRWR by the operator) - optimiser and weekly champions (2026-09-30)
+Operator: "เมื่อย้อนหลังมาแล้วระบบต้องทำให้ได้กำไร" / "ผมต้องการตัวเต็งทุกสัปดาห์ตามหลักคิด wrwr".
+`research/foundry/wrwr_optimize.py` -> data/foundry/wrwr_system.{xlsx,png}: 134,400 selector configurations over the cached
+shadow trades (window 8-104 w, LCB z 0-2, min trades, top 1-5, NO TRADE margin, pool, WRWR sizing, equity filter,
+skipped vol classes). No Grid/Martingale/averaging; sizes only shrink.
+- Baseline (pre-registered 52w LCB top2) reproduced: +182.6 R, 8.2 R/yr, all eras positive, worst year -48.9 R, max DD 107 R.
+- (1) WALK-FORWARD over configurations (each year uses the best config of the prior 4 years): -44.3 R over 2008-26
+  (-2.3 R/yr), 42% positive years; +261 R in 2009-14 then -265 R (2015-20) and -193 R (2021-26). Choosing the selector
+  from recent history does not carry forward.
+- (2) IN-SAMPLE (hindsight, a curve fit): 14,411 configs positive in every era; best = 52w LCB z1, SL 2 ATR pool, top 5,
+  equity filter (stand aside while the rule's own last 26 weeks are negative), no sizing: +896 R (40.5 R/yr), 0.123 R/trade,
+  7,299 trades, max DD 123 R, worst year -55 R, 61% positive years; eras +231 / +280 / +259 / +126 R.
+`research/foundry/wrwr_champions.py` (spliced Dukascopy + live Exness cache to 2026-09-28) -> data/foundry/wrwr_champions.xlsx,
+wrwr_champion_now.md: every week's WRWR regime, vol_scale and champions for BASE and IS. Week of the 2026-09-25 cut:
+NORMAL/FLAT, vol_scale 0.63; BASE trades ParabolicSAR_flip FOLLOW SL2 1:5 72h + MACD_signal_cross FOLLOW SL1 1:10 24h;
+IS stands aside (its last 26 weeks are negative). Paper only.

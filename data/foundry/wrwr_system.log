@@ -1,0 +1,50 @@
+525 score tables ready
+134,400 configurations
+  0
+  20,000
+  40,000
+  60,000
+  80,000
+  100,000
+  120,000
+C:\Users\66985\Documents\EA-tread\research\foundry\wrwr_optimize.py:102: Pandas4Warning: Starting with pandas version 4.0 all arguments of all will be keyword-only.
+  eras_pos = (cfg[[f"R_{e}" for e in ERAS]] > 0).all(1)
+
+baseline (pre-registered 52w LCB top2):
+window                     52
+lcb_z                     1.0
+min_trades                 10
+pool                      ALL
+top_m                       2
+no_trade_margin           0.0
+wrwr_sizing              True
+equity_filter           False
+skip                     none
+total_R            182.631369
+R_per_year           8.243689
+R_per_trade          0.033008
+trades                 5533.0
+max_dd_R           106.553786
+pos_years            0.521739
+worst_year_R       -48.873461
+R_2004-08             5.45454
+R_2009-14          112.190921
+R_2015-20           42.858767
+R_2021-26           22.127141
+
+(1) WALK-FORWARD over configs (year uses best of the prior 4 years): total -44.3 R over 19 years (-2.3 R/yr), positive years 42%
+year  2008.0  2009.0  2010.0  2011.0  2012.0  2013.0  2014.0  2015.0  2016.0  2017.0  2018.0  2019.0  2020.0  2021.0  2022.0  2023.0  2024.0  2025.0  2026.0
+R      152.6   126.7    47.2    36.5    31.7    21.3    -2.0  -235.2    71.0  -135.3  -145.9   -23.1   203.2   -99.5   -23.0    -4.3   -22.6   -14.7   -28.8
+   2004-08: +152.6 R
+   2009-14: +261.3 R
+   2015-20: -265.3 R
+   2021-26: -192.9 R
+
+(2) IN-SAMPLE (hindsight) - 14,411 of 134,400 configs positive in every era; top 5:
+ window  lcb_z  min_trades   pool  top_m  no_trade_margin  wrwr_sizing  equity_filter skip  total_R  R_per_year  R_per_trade  trades  max_dd_R  pos_years  worst_year_R  R_2004-08  R_2009-14  R_2015-20  R_2021-26
+     52    1.0          10 SL2ATR      5             0.00        False           True none  896.358      40.460        0.123  7299.0   122.992      0.609       -55.073    230.947    279.812    259.213    126.386
+     52    1.0          20 SL2ATR      5             0.00        False           True none  896.358      40.460        0.123  7299.0   122.992      0.609       -55.073    230.947    279.812    259.213    126.386
+     52    0.5          10 SL2ATR      5             0.10        False           True none  894.054      40.356        0.138  6464.0   121.912      0.609       -83.941    329.639    219.273    230.812    114.329
+     52    0.5          20 SL2ATR      5             0.10        False           True none  894.054      40.356        0.138  6464.0   121.912      0.609       -83.941    329.639    219.273    230.812    114.329
+     52    1.5          20 SL2ATR      5             0.05        False           True none  892.436      40.283        0.115  7757.0    92.464      0.696       -59.034    265.623    347.048    182.618     97.147
+-> wrwr_system.xlsx / .png
