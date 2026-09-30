@@ -1,5 +1,5 @@
-# WRWR contracts and gates — pre-registration v2 (2026-09-30, before any code change)
-v1 answered Codex R18; this v2 answers Codex R18b (`docs/CODEX_R18b_MASTER_PLAN.md`). v2 replaces v1 entirely.
+# WRWR contracts and gates — pre-registration v3 (2026-09-30, before any code change)
+v1 answered Codex R18, v2 answered R18b, v3 closes the six PARTIAL items of R18c (`docs/CODEX_R18c_MASTER_PLAN.md`).
 This document and MASTER_PLAN Amendments 1-2 supersede every conflicting rule in the plan body.
 
 **Scope.** WRWR = weekly higher-timeframe router + risk overlay for XAUUSD on H1 / H4 / D1. It does not complete the
@@ -10,8 +10,8 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
 - Cut k = Friday 22:15:00 UTC (`engine.regimes`). Bar close time = open time + bar length.
 - A decision at cut k (features, regimes, vol_scale, selection, equity filter) may use only bars with close_time <=
   cut_k and trades with exit_time <= cut_k (exit_time = close time of the exit bar).
-- Entries attributed to week k: entry-bar open_time in (cut_k, cut_{k+1}]; the earliest possible entry after a decision
-  is the first bar opening strictly after the cut.
+- Entries attributed to week k: entry-bar open_time in the OPEN interval (cut_k, cut_{k+1}). A signal whose entry bar
+  opens exactly at a cut is rejected (logged, zero return); the earliest entry after a decision opens strictly after it.
 - Event order at one timestamp: exits -> cut processing (selection) -> entries.
 - Synthetic tests before any rerun, on M5, M15, H1, H4 and D1: bars / exits at cut - 1 s, cut, cut + 1 s, and a bar that
   straddles the cut (e.g. H1 opened 22:00, closes 23:00) must not inform the decision at 22:15.
@@ -19,8 +19,9 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
 ## C2 Event-driven portfolio (one implementation for BASE, optimiser, holdouts, compounding and the forward record)
 - **Potential-signal table** per candidate: every signal, simulated independently (entry at the next bar open; exit at
   stop, target or max hold; stop-first on same-bar ties; gap through a stop fills at the open), with entry/exit time,
-  gross bp, cost bp and swap bp. The **shadow ledger** (selection statistics) is the chronological one-position filter
-  of that table, as today; the **live ledger** is derived from it by the rules below.
+  gross bp, cost bp and swap bp. The **shadow ledger** (selection statistics: the chronological one-position filter, as
+  today) and the **live ledger** (the rules below) each consume the potential-signal table independently; neither is
+  derived from the other. Any skipped live signal, for any reason, leaves that candidate live-flat.
 - Deployable m in {1, 2} champions (CLAUDE.md §3); m > 2 is a research ensemble, reported separately, never deployed,
   and outside the primary family claim.
 - Weekly R unit U_k = f x equity at cut_k. Weekly R = (sum of net $ P&L of all exits in (cut_k, cut_{k+1}], inherited
@@ -45,7 +46,8 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
   scale 0.50; never looks back beyond 260 weeks. vol_scale_k = clip(sqrt(B_REF_k / F_k), 0.50, 1.00).
 - Forward keeps the frozen spec B_REF (known now). RV only from H1 bars; `weekly_rv` takes the bar length explicitly.
 
-## C4 Symbol contracts (MT5 read 2026-09-30, fields hashed sha256 7e493567d5c9a20e; account leverage 1:2000 demo)
+## C4 Symbol contracts (MT5 read 2026-09-30; `data/foundry/mt5_symbols_20260930.json`, sha256
+4627adb587949264f4cd3ae8921f5df4b5ab7265f20d04e00298a5b70c4161bf; account leverage 1:2000 demo)
 | field | XAUUSD | XAGUSD |
 |---|---|---|
 | contract / point / tick size / tick value | 100 oz / 0.001 / 0.001 / $0.1 | 5,000 oz / 0.001 / 0.001 / $5 |
@@ -57,13 +59,21 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
 | rollover | 17:00 New York, Wednesday x3 | same |
 - spread_bp = the dataset's recorded ask-minus-bid of the entry bar, charged once per round trip; slippage exactly
   1.0 bp total. Same-bar SL/TP ties: stop-first is primary; tick/M1-resolved (HistData 2009+) is a sensitivity.
+- Historical swap (longs only; shorts 0) is a fixed ANNUAL RATE of notional, never a fixed dollar charge: for the
+  rollover at 17:00 New York on calendar day d, rate_d = (US 2y par yield of the latest Treasury date strictly before d)
+  + markup (XAU +0.02, XAG -0.20 % per year), clipped at >= 0; before the first 2016 Treasury value, that first value.
+  bp charged = nights_d x rate_d / 100 / 365 x 1e4 with nights = 3 on Wednesday, 1 on Monday / Tuesday / Thursday /
+  Friday, 0 on Saturday / Sunday; charged for every rollover in (entry open time, exit bar close time]. The only
+  change from `engine.swap_bp` is the one-day publication lag.
 
 ## C5 Caches and splices
 - Cache metadata: schema version; sha256 of the producing code (engine, zoo, walk-forward), of the ordered raw-source
   manifest and canonical array bytes, of the cut vector; cost version; data end. Loaders reject mismatches; stacking
   TFs asserts identical cuts and widths. Pools by explicit TF lists (`np.isin`). Labels carry bar units (D1 = days).
+- Every series: timestamps strictly increasing and unique (a duplicate or a decrease = reject).
 - Splice checks on 4 weeks either side of every seam (Dukascopy -> Exness, HistData -> Exness): H1 gaps <= 3 h except
-  weekends <= 72 h and a whitelist of exchange holidays; median spread ratio in [0.5, 2.0]; source offset on the overlap
+  weekends <= 72 h and weekdays in the frozen holiday list (pandas USFederalHolidayCalendar 2003-2026 + Good Friday by
+  the Easter algorithm + 24, 26 and 31 December + 2 January; the generated list is hashed in the manifest); median spread ratio in [0.5, 2.0]; source offset on the overlap
   |median| <= 2 bp and MAD <= 1 bp; seam |log return| < 10 x median |H1 log return| (seam excluded).
 
 ## C6 Nulls and gates (gold)
@@ -71,15 +81,22 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
   x pool {H1, H4, D1, H1+H4+D1} x m {1, 2} x equity filter {none, 26 weeks realised-by-cut} x causal WRWR sizing, min
   trades 10, NO TRADE when the best score <= 0: 144 configurations. Dedup key = that tuple. BASE = (52, 1, H1, 2, none).
 - **Benchmark B_{j,k} (random router, configuration-specific):** for configuration j, a full C2 event-driven path in
-  which, at every cut where j trades, each champion slot is replaced by a candidate drawn uniformly without replacement
+  which, at every cut where j is active (cut-known: j selects n_k = the number of candidates with score > 0, capped at
+  m; n_k = 0 is a stand-aside week), each of the n_k champion slots is replaced by a candidate drawn uniformly without replacement
   from the point-in-time eligible candidates (known at the cut) that share that champion's exit configuration; same m,
   handover, sizing, costs and admission rules; weeks where j stands aside are stand-aside weeks. 10,000 frozen-seed paths
   per configuration (seeds 0..9,999, ties broken by candidate hash); more paths until the Monte Carlo SE of the benchmark
   mean weekly R < 0.01 R. d_{j,k} = R_{j,k} - B_{j,k}.
+- **Bootstrap object:** the T x 144 matrix of weekly (R_{j,k}, B_{j,k}) pairs, resampled jointly across configurations
+  in stationary blocks. Each configuration is a fixed deterministic rule mapping cut-known information to positions, so
+  its internal candidate selection is part of the rule and is not re-simulated (White 2000); path-level structure is
+  covered by the supporting path null. A meta-selector over configurations (e.g. walk-forward-over-configs) is a
+  secondary result, recomputed inside every replicate from the resampled matrix with its own frozen rule; the primary
+  claim uses the 144 fixed configurations only.
 - **Primary test:** studentized White Reality Check over the 144 configurations on d, least-favourable recentring
   d* - mean(d), vector stationary bootstrap (Politis-Romano) with mean block 10 weeks, K = 999; sensitivities: blocks
-  4 and 26, Hansen SPA. Any walk-forward selector over configurations is rerun inside every replicate.
-  Family claim: p <= 0.05. BASE alone: one-sided stationary-bootstrap p <= 0.05 (block 10, K = 999) and a positive
+  4 and 26, Hansen SPA.
+  Family claim (144 fixed configurations): p <= 0.05. BASE alone: one-sided stationary-bootstrap p <= 0.05 (block 10, K = 999) and a positive
   95% lower bound on mean d. Monte Carlo p = (1 + #null >= real) / (K + 1).
 - **Supporting path null** (descriptive, not a gate): week-block sign flips of H1 normalised increments (mean block 10
   weeks), everything recomputed, K = 199, background. A no-edge rule is expected to be negative after cost.
@@ -103,8 +120,10 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
 - Two independent shadow portfolios, BASE and SEL, each f = 1%, $10,000 notional, C2 rules.
 - Payoff statistic g = max(R_week, -4): a deliberate winsorisation, not an enforceable bound (open positions can take a
   week below -4 R after the -3 U_k entry stop). Raw R and every truncated amount are reported every week.
-- e-process: E_t = (1/3) sum over lambda in {0.05, 0.10, 0.20} of prod(1 + lambda g_i); DATA_GAP (factor 1) only by an
-  outcome-blind rule decided before the week's result: fewer than 90% of the expected H1 bars, or the weekly job failed.
+- e-process: E_t = (1/3) sum over lambda in {0.05, 0.10, 0.20} of prod(1 + lambda g_i). No DATA_GAP exemption: every week
+  from the first cut is included (inclusion fixed before any week begins). A week whose data or job failed is
+  reconstructed from recovered data (Exness, Dukascopy, HistData) and entered when complete; a week not reconstructable
+  within 8 weeks enters with g = -4.
 - Anytime-valid lower confidence bound: LCB_t = the largest mu on the grid -1.00, -0.99, ..., +0.50 with
   (1/3) sum_lambda prod(1 + lambda (g_i - mu)) >= 1/alpha (inverting the shifted-mean e-processes).
 - alpha from the 0.02 reserve, only with the operator's word: H-WRWR-BASE 0.005 (E >= 200), H-WRWR-SEL 0.005 (only if
@@ -131,14 +150,24 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
 300 R/year has no supporting evidence; the evidence-supported expectation today is "unknown, plausibly zero".
 
 ## C11 Sieve — exact contract (SIEVE Amendment 3; frozen now, run last)
-- Placebo = week-block sign flips (stationary blocks, mean 10 weeks; sensitivities 4 / 26) with the WHOLE pipeline
-  recomputed on each path (features, WRWR regimes, masks, targets).
+- Placebo generator (per path, frozen seed): split the base series (H1 for scan A, M5 for scans B/B2) into trading weeks
+  by cut; draw stationary-bootstrap block lengths ~ Geometric(mean 10 weeks; sensitivities 4 / 26) along the ORIGINAL
+  week order (no reordering); give each block an independent Rademacher sign; for sign -1 mirror every bar of the block
+  about the previous (new) close exactly as `run_scan.mirror()` (log moves of open, high, low, close vs the previous
+  close multiplied by -1, high and low swapped, the gap flipping with its bar); timestamps and volume unchanged. Higher
+  TFs are rebuilt from the mirrored base series; gold-derived cross features are recomputed; external series (GVZ,
+  yields, CFTC, news, DXY / XAG / US500 prices) are not mirrored. The WHOLE pipeline (features, WRWR regimes, masks,
+  targets) is recomputed on each path.
 - Pre-check before any real scan: on 20 placebo paths, the open-to-open mean and the ATR-normalised mean each have
   |t| < 1.96 (Newey-West, lag h - 1).
 - Continuous exposure: trailing percentile rank as before, centred by its own mean over the preceding 60 months inside
-  the tested mask (minimum 36 months, else not tested). Time flags: flagged-minus-matched-unflagged contrast in the same
-  month, mask and WRWR vol class, with >= 20 flagged and >= 20 unflagged bars per cell, else the cell is dropped.
+  the tested mask (minimum 36 months, else not tested); statistic = mean(x_c y) / mean(|x_c|) over the period's bars in
+  the mask, with the raw target (no target demeaning). Events (+1 / -1 / 0): mean(x y) / mean(|x|), raw target.
+  Time flags: bar-level regression of y on the flag with fixed effects for every (month, mask, WRWR vol class) cell,
+  i.e. the flagged-minus-unflagged contrast within each cell, each bar weighted equally; cells with < 20 flagged or
+  < 20 unflagged bars are dropped.
 - Inference: Newey-West with lag h - 1 on the bar-level statistic within each period; family = every feature x horizon
-  x mask x sign of the scan; step-down Westfall-Young maxT with K = 999 placebo paths; familywise p <= 0.05 on DEV, then
+  x mask of the scan (two-sided |t|), the list fixed by data availability alone (>= 36 valid DEV months) and hashed
+  before any real statistic is computed; step-down Westfall-Young maxT with K = 999 placebo paths; familywise p <= 0.05 on DEV, then
   the same sign with Newey-West |t| >= 1.5 in every CHECK period.
 - Level maps (deciles, 5 x 5) only for survivors, each cell tested against the same placebo distribution.

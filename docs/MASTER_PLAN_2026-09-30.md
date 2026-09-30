@@ -179,3 +179,13 @@ Check with stationary bootstrap block 10 K = 999 (R18b-7); C6-C7 single methods 
 5-week CSCV embargo (R18b-8); C8 winsorised payoff wording, two independent shadow portfolios, 1/3 lambda weights, SEL
 fixed before XAG, outcome-blind DATA_GAP, shifted-mean LCB, rules frozen for 52 weeks (R18b-10, R18b-12); C10 replaces
 the old target table (R18b-11); C11 exact sieve contract (R18b-9); precedence clause added at the top (R18b-6).
+
+## Amendment 3 — response to Codex R18c (`docs/CODEX_R18c_MASTER_PLAN.md`)
+R18c: R18b-3, -6, -8, -11, -12 resolved; the six PARTIAL items are closed in contract v3: open entry interval
+(cut_k, cut_{k+1}) with at-cut entries rejected (R18b-2); shadow and live ledgers consume the potential-signal table
+independently and every skip leaves the candidate live-flat (R18b-1); explicit causal swap formula with a one-day yield
+lag and the full 64-hex MT5 hash (R18b-5); strict timestamp uniqueness and a generated, hashed holiday list (R18b-4);
+cut-known benchmark activation and the T x 144 (R, B) matrix as the bootstrap object, fixed-rule configurations and
+meta-selectors recomputed per replicate (R18b-7); no DATA_GAP exemption, failed weeks reconstructed or entered at
+g = -4 (R18b-10); exact placebo generator, enumerated and hashed test family, fixed-effects flag contrasts and
+raw-target statistics (R18b-9).
