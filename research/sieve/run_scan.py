@@ -139,14 +139,34 @@ def leak_check(B, cuts, cell, ext, cols_ref):
 
 
 # ------------------------------------------------------------------ scan
+def mirror(B, seed=20260930):
+    """Placebo (Amendment 1): each bar mirrored at random around the previous close (log moves sign-flipped, high and
+    low swapped) - volatility, clock and volume kept, direction destroyed."""
+    rng = np.random.default_rng(seed)
+    c1 = np.r_[B.o[0], B.c[:-1]]
+    lo, lh, ll, lc = (np.log(x / c1) for x in (B.o, B.h, B.l, B.c))
+    sgn = np.where(rng.random(len(B.t)) < 0.5, -1.0, 1.0)
+    ncl = np.log(B.c[0]) + np.cumsum(np.r_[0.0, (sgn * lc)[1:]])
+    nc1 = np.r_[ncl[0] - lc[0], ncl[:-1]]
+    o = np.exp(nc1 + sgn * lo); c = np.exp(ncl)
+    h = np.exp(nc1 + np.where(sgn > 0, lh, -ll)); l = np.exp(nc1 + np.where(sgn > 0, ll, -lh))
+    return mkbars(B.t, o, h, l, c, B.v, B.step)
+
+
 def scan(name):
-    B, cuts, cell, ext, periods, horizons = dataset(name)
+    placebo = name.endswith("_PLACEBO")
+    B, cuts, cell, ext, periods, horizons = dataset(name.replace("_PLACEBO", ""))
+    if placebo:
+        B = mirror(B)
+        ext = {k: v for k, v in ext.items() if k != "aligned"}
     log(f"scan {name}: {len(B.t):,} bars {pd.to_datetime(B.t[0], unit='s'):%Y-%m}..{pd.to_datetime(B.t[-1], unit='s'):%Y-%m}")
     X, kinds = FT.build(B, cuts, cell, ext)
     X = leak_check(B, cuts, cell, ext, X.columns)
     names = list(X.columns)
+    kinds_of = {f: k for k, fs in kinds.items() for f in fs}
     n = len(B.t); step = B.step
     a14 = pd.Series(FT._atr(pd.Series(B.h), pd.Series(B.l), pd.Series(B.c), 14)).to_numpy()
+    win = int(104 * 7 * 86400 / step * 5 / 7)
     Y = {}
     for hz in horizons:
         y = np.full(n, np.nan)
@@ -162,7 +182,6 @@ def scan(name):
         masks[c_] = cb == c_
     for s, (a, b) in SESS.items():
         masks[s] = (ent_hour >= a) & (ent_hour < b)
-    win = int(104 * 7 * 86400 / step * 5 / 7)
     for f in CONDITIONERS:
         s = X[f].astype(float)
         q1 = s.rolling(win, min_periods=win // 4).quantile(1 / 3); q2 = s.rolling(win, min_periods=win // 4).quantile(2 / 3)
@@ -171,47 +190,52 @@ def scan(name):
     for p, (a, b) in periods.items():
         per_of[(dt >= a) & (dt < b)] = p
     valid_y = np.isfinite(Y[max(horizons)]) & (per_of != "")
+    for hz in horizons:                        # Amendment 2: one constant drift per period, never a moving one
+        for p in periods:
+            m_ = (per_of == p) & np.isfinite(Y[hz])
+            Y[hz][m_] -= Y[hz][m_].mean()
+    # Amendment 1: causal exposure x (trailing percentile rank - 0.5 for levels; raw for events / flags)
+    Xc = np.empty((n, len(names)))
+    for fi, fn in enumerate(names):
+        col = X[fn].astype(float)
+        if kinds_of[fn] in ("cont", "ext"):
+            Xc[:, fi] = (col.rolling(win, min_periods=win // 4).rank(pct=True) - 0.5).to_numpy()
+        else:
+            Xc[:, fi] = col.to_numpy()
+    log("causal exposures ready")
     rows = []
-    Xa = X.to_numpy(np.float64)
     for mi, (mname, mk) in enumerate(masks.items()):
         idx = np.flatnonzero(mk & valid_y)
         if len(idx) < 500:
             continue
-        grp = month[idx]
-        R = pd.DataFrame(Xa[idx]).groupby(grp).rank(pct=True).to_numpy()      # within-month ranks (Spearman)
-        W = np.isfinite(R); Rz = np.where(W, R, 0.0)
-        um, inv = np.unique(grp, return_inverse=True)
+        um, inv = np.unique(month[idx], return_inverse=True)
         M = sparse.csr_matrix((np.ones(len(idx)), (inv, np.arange(len(idx)))), shape=(len(um), len(idx)))
-        nX = M @ W.astype(float); Sx = M @ Rz; Sxx = M @ (Rz * Rz)
         per_m = pd.Series(per_of[idx]).groupby(inv).first().to_numpy()
+        xs = Xc[idx]; W = np.isfinite(xs); x0 = np.where(W, xs, 0.0)
         for hz in horizons:
-            ry = pd.Series(Y[hz][idx]).groupby(grp).rank(pct=True).to_numpy()
-            Wy = np.isfinite(ry); ry0 = np.where(Wy, ry, 0.0)
+            yy = Y[hz][idx]; Wy = np.isfinite(yy); y0 = np.where(Wy, yy, 0.0)
             WW = W & Wy[:, None]
             nn = M @ WW.astype(float)
-            Sx2 = M @ np.where(WW, Rz, 0); Sxx2 = M @ np.where(WW, Rz * Rz, 0)
-            Sy = M @ (WW * ry0[:, None]); Syy = M @ (WW * (ry0 ** 2)[:, None]); Sxy = M @ (np.where(WW, Rz, 0) * ry0[:, None])
+            P = M @ (np.where(WW, x0, 0.0) * y0[:, None]); Q = M @ np.abs(np.where(WW, x0, 0.0))
             with np.errstate(invalid="ignore", divide="ignore"):
-                cov = Sxy / nn - Sx2 / nn * Sy / nn
-                vx = Sxx2 / nn - (Sx2 / nn) ** 2; vy = Syy / nn - (Sy / nn) ** 2
-                ic = cov / np.sqrt(vx * vy)
-            ic = np.where((nn >= 20) & (vx > 1e-12) & (vy > 1e-12), ic, np.nan)
+                ed = np.where((nn >= 20) & (Q > 1e-9), P / Q, np.nan)
             for p in periods:
                 pm = per_m == p
-                icp = ic[pm]
+                icp = ed[pm]
                 k = np.isfinite(icp).sum(0)
-                mu = np.nanmean(np.where(np.isfinite(icp), icp, np.nan), axis=0) if pm.any() else np.full(len(names), np.nan)
-                sd = np.nanstd(icp, axis=0, ddof=1) if pm.sum() > 1 else np.full(len(names), np.nan)
-                tt = mu / sd * np.sqrt(k)
+                with np.errstate(invalid="ignore", divide="ignore"):
+                    mu = np.nanmean(icp, axis=0) if pm.any() else np.full(len(names), np.nan)
+                    sd = np.nanstd(icp, axis=0, ddof=1) if pm.sum() > 1 else np.full(len(names), np.nan)
+                    tt = mu / sd * np.sqrt(k)
                 for fi, fn in enumerate(names):
                     rows.append((name, fn, hz, mname, p, float(mu[fi]), float(tt[fi]), int(k[fi])))
         if mi % 10 == 0:
             log(f"  mask {mi + 1}/{len(masks)} {mname}")
-    T = pd.DataFrame(rows, columns=["scan", "feature", "h", "mask", "period", "ic", "t", "months"])
-    W_ = T.pivot_table(index=["scan", "feature", "h", "mask"], columns="period", values=["ic", "t", "months"])
+    T = pd.DataFrame(rows, columns=["scan", "feature", "h", "mask", "period", "ed", "t", "months"])
+    W_ = T.pivot_table(index=["scan", "feature", "h", "mask"], columns="period", values=["ed", "t", "months"])
     W_.columns = [f"{a}_{b}" for a, b in W_.columns]
     W_ = W_.reset_index()
-    min_m = 36 if name != "B2" else 12
+    min_m = 36 if not name.startswith("B2") else 12
     ok = W_["months_DEV"] >= min_m
     W_["p_dev"] = np.where(ok, 2 * stats.t.sf(np.abs(W_["t_DEV"]), np.maximum(W_["months_DEV"] - 1, 1)), np.nan)
     pv = W_.loc[ok, "p_dev"].to_numpy(); m = len(pv)
@@ -220,7 +244,7 @@ def scan(name):
     chk = [p for p in periods if p != "DEV"]
     surv = (W_.q_dev <= 0.05)
     for p in chk:
-        surv &= (np.sign(W_[f"ic_{p}"]) == np.sign(W_.ic_DEV)) & (W_[f"t_{p}"].abs() >= 1.5)
+        surv &= (np.sign(W_[f"ed_{p}"]) == np.sign(W_.ed_DEV)) & (W_[f"t_{p}"].abs() >= 1.5)
     W_["layer2_pass"] = surv
     W_["kind"] = W_.feature.map({f: k for k, fs in kinds.items() for f in fs})
     W_.to_pickle(OUT / f"scan_{name}.pkl")

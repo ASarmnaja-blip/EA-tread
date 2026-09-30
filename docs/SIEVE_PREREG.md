@@ -94,3 +94,13 @@ fixed before re-running:
   the bar relative to the previous close, high and low swapped), which keeps volatility, time of day and volume but
   destroys direction. If the placebo scan yields more than a handful of layer-2 survivors, the statistic is still
   invalid and nothing from the real scan is used. The first run's output is archived as scan_A_withdrawn.pkl.
+
+## Amendment 2 (2026-09-30, after the placebo gate failed; disclosed)
+The placebo scan under Amendment 1 returned 2,514 layer-2 survivors (more than the real scan's 469), so the
+Amendment-1 statistic is invalid and the real Amendment-1 scan is not used. Cause: subtracting a TRAILING mean of the
+target is itself correlated with level-like features (a price that rose over the window has a high trailing mean
+return and a high level rank), which manufactures negative edges on a driftless random walk (placebo mean t -0.40,
+sd 1.32 on the ALL mask; worst inside level-tercile masks). Replacement: y minus ONE constant per period (the mean
+target of that DEV or CHECK period, all bars), i.e. a fixed drift, never a moving one; everything else as Amendment
+1. The placebo gate is unchanged and is re-run first; if it again yields more than a handful of survivors the scan
+stops and the statistic is redesigned before any real result is read.
