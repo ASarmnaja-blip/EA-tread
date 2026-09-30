@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import heapq
 import sys
+from bisect import bisect_right
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -147,13 +148,23 @@ def champions(sc, pool_mask, m, rank_key, active):
     return out
 
 
-def simulate(P, champs, vol_scale, f=0.01, equity0=10_000.0, stress=False, log=None, skiplog=None, rules=True, weekstop=True):
+def _mark_lists(P):
+    if not hasattr(P, "_mark_lists"):
+        P._mark_lists = (P.mark_t.tolist(), P.mark_c.tolist())
+    return P._mark_lists
+
+
+def simulate(P, champs, vol_scale, f=0.01, equity0=10_000.0, stress=False, log=None, skiplog=None, rules=True, weekstop=True,
+             evcache=None):
     """Event-driven live ledger. champs[k] = ranked champion ids for week k (entries in (cut_k, cut_{k+1})).
     Returns weekly R (exits in (cut_k, cut_{k+1}] / U_k, U_k = f x equity(cut_k)), equity(cut_k), and counters.
     equity(t) = balance + sum over open positions of notional x (dir x (mark_t / entry - 1) - cost_bp / 1e4) (v5).
     log: admitted trades; skiplog: every skipped signal with its rule and the causing state.
     rules=False is a DIAGNOSTIC only (fixed equity, no week stop / caps / margin / lot rounding); never a result."""
-    cuts = P.cuts; NW = len(cuts)
+    cuts = P.cuts.tolist(); NW = len(cuts)
+    mt, mc = _mark_lists(P)
+    contract = P.contract
+    lev = K.LEVERAGE_FROZEN
     balance = equity0
     open_pos = {}            # pid -> dict(c, lots, stop_d, notional, dir, entry_px, cost_frac, pnl)
     live_busy = set()
@@ -161,74 +172,128 @@ def simulate(P, champs, vol_scale, f=0.01, equity0=10_000.0, stress=False, log=N
     pid = 0
     weekR = np.zeros(NW); eq_cut = np.zeros(NW)
     cnt = {"entries": 0, **{"skip_" + r.lower(): 0 for r in RULES}}
-    cnt["skip_minlot"] = 0
+
+    def mark(t):
+        i = bisect_right(mt, t) - 1
+        return mc[i] if i >= 0 else float("nan")
 
     def equity_at(t):
         if not open_pos:
             return balance
-        m = float(K.mark_price(P.mark_t, P.mark_c, t))
+        m = mark(t)
         return balance + sum(v["notional"] * (v["dir"] * (m / v["entry_px"] - 1.0) - v["cost_frac"]) for v in open_pos.values())
 
     def skip(rule, k, c, t, eq, realised):
         cnt["skip_" + rule.lower()] += 1
         if skiplog is not None:
-            m = float(K.mark_price(P.mark_t, P.mark_c, t))
-            used = sum(v["lots"] * P.contract * m / K.LEVERAGE_FROZEN for v in open_pos.values())
+            m = mark(t)
+            used = sum(v["lots"] * contract * m / lev for v in open_pos.values())
             skiplog.append((k, int(c), int(t), rule, float(eq), float(realised), float(sum(v["stop_d"] for v in open_pos.values())), float(used)))
 
+    stress_bp = 2e-4 if stress else 0.0
     for k in range(NW - 1):
         eq0 = equity_at(cuts[k]) if rules else equity0
         U = f * eq0; eq_cut[k] = eq0; realised = 0.0
         t_end = cuts[k + 1]
         ev = []
         for rank, c in enumerate(champs[k] if k < len(champs) else []):
-            a, b = P.ptr[c, k], P.ptr[c, k + 1]
-            for i in range(a, b):
-                if P.entry_t[c][i] < t_end:
-                    ev.append((int(P.entry_t[c][i]), 1, rank, int(P.rank_key[c]), c, i))
+            base = evcache.get((c, k)) if evcache is not None else None
+            if base is None:
+                a, b = int(P.ptr[c, k]), int(P.ptr[c, k + 1])
+                base = []
+                if b > a:
+                    et = P.entry_t[c][a:b].tolist(); xt = P.exit_t[c][a:b].tolist(); spx = P.stop_px[c][a:b].tolist()
+                    epx = P.entry_px[c][a:b].tolist(); cbp = P.cost_bp[c][a:b].tolist(); drr = P.dir[c][a:b].tolist()
+                    rr = (P.R[c][a:b] - 2.0 / P.stop_bp[c][a:b] if stress else P.R[c][a:b]).tolist()
+                    rk = int(P.rank_key[c])
+                    for q in range(b - a):
+                        if et[q] < t_end:                           # an entry exactly at the next cut is never traded
+                            base.append((et[q], rk, c, xt[q], spx[q], epx[q], cbp[q], drr[q], rr[q]))
+                if evcache is not None:
+                    evcache[(c, k)] = base
+            for t_, rk_, c_, xt_, sp_, ep_, cb_, dr_, r_ in base:
+                ev.append((t_, rank, rk_, c_, xt_, sp_, ep_, cb_, dr_, r_))
         ev.sort()
         ei = 0
         while True:
             nxt_exit = heap[0][0] if heap else None
             nxt_ent = ev[ei][0] if ei < len(ev) else None
             if nxt_exit is not None and nxt_exit <= t_end and (nxt_ent is None or nxt_exit <= nxt_ent):
-                _, _, p = heapq.heappop(heap)
-                v = open_pos.pop(p)
+                _, p_ = heapq.heappop(heap)
+                v = open_pos.pop(p_)
                 balance += v["pnl"]; realised += v["pnl"]; live_busy.discard(v["c"])
                 continue
             if nxt_ent is None:
                 break
-            te, _, rank, _, c, i = ev[ei]; ei += 1
-            eq = equity_at(te) if rules else equity0
+            te, rank, _rk, c, xt_i, stop_px, entry_px, cost_i, dir_i, R_i = ev[ei]; ei += 1
             if c in live_busy:
-                skip("BUSY", k, c, te, eq, realised); continue
+                skip("BUSY", k, c, te, equity_at(te) if skiplog is not None else 0.0, realised); continue
+            eq = equity_at(te) if rules else equity0
             if rules and eq <= 0:
                 skip("RUIN", k, c, te, eq, realised); continue
             if rules and weekstop and realised <= -3 * U:
                 skip("WEEKSTOP", k, c, te, eq, realised); continue
-            stop_px = float(P.stop_px[c][i]); entry_px = float(P.entry_px[c][i])
             risk = f * eq * vol_scale[k]
-            lots = (np.floor(risk / (stop_px * P.contract) / LOT_STEP + 1e-9) * LOT_STEP if rules
-                    else risk / (stop_px * P.contract))
+            lots = (np.floor(risk / (stop_px * contract) / LOT_STEP + 1e-9) * LOT_STEP if rules
+                    else risk / (stop_px * contract))
             if lots < MIN_LOT - 1e-12:
                 skip("MINLOT", k, c, te, eq, realised); continue
-            stop_d = lots * stop_px * P.contract
+            stop_d = lots * stop_px * contract
             if rules and sum(v["stop_d"] for v in open_pos.values()) + stop_d > 3 * f * eq + 1e-9:
                 skip("RISKCAP", k, c, te, eq, realised); continue
-            m = float(K.mark_price(P.mark_t, P.mark_c, te))
-            used = sum(v["lots"] * P.contract * m / K.LEVERAGE_FROZEN for v in open_pos.values())
-            new_margin = lots * P.contract * entry_px / K.LEVERAGE_FROZEN
+            if rules and open_pos:
+                m = mark(te)
+                used = sum(v["lots"] * contract * m / lev for v in open_pos.values())
+            else:
+                used = 0.0
+            new_margin = lots * contract * entry_px / lev
             if rules and eq - used - new_margin < 0.5 * eq:
                 skip("MARGIN", k, c, te, eq, realised); continue
-            Rc = float(P.R_stress(c)[i]) if stress else float(P.R[c][i])
-            notional = lots * P.contract * entry_px
-            pnl = Rc * stop_d
-            open_pos[pid] = dict(c=c, lots=lots, stop_d=stop_d, notional=notional, dir=float(P.dir[c][i]), entry_px=entry_px,
-                                 cost_frac=float(P.cost_bp[c][i]) / 1e4 + (2e-4 if stress else 0.0), pnl=pnl)
-            heapq.heappush(heap, (int(P.exit_t[c][i]), 0, pid)); pid += 1
+            notional = lots * contract * entry_px
+            pnl = R_i * stop_d
+            open_pos[pid] = dict(c=c, lots=lots, stop_d=stop_d, notional=notional, dir=float(dir_i), entry_px=entry_px,
+                                 cost_frac=cost_i / 1e4 + stress_bp, pnl=pnl)
+            heapq.heappush(heap, (xt_i, pid)); pid += 1
             live_busy.add(c); cnt["entries"] += 1
             if log is not None:
-                log.append((k, c, int(te), int(P.exit_t[c][i]), float(lots), Rc, float(pnl), float(eq)))
+                log.append((k, c, int(te), int(xt_i), float(lots), float(R_i), float(pnl), float(eq)))
         weekR[k] = realised / U if U > 0 else 0.0
     eq_cut[NW - 1] = equity_at(cuts[NW - 1]) if rules else balance
     return weekR, eq_cut, cnt
+
+
+# ------------------------------------------------------------------ shared-memory cache for worker processes
+_CACHE_ARRAYS = ("entry_t", "exit_t", "dir", "cost_bp", "stop_px", "entry_px", "R", "stop_bp")
+
+
+def save_pool_cache(P, dirpath, extra=None):
+    """Concatenate the per-candidate arrays into .npy files (one per field) so worker processes can memory-map them
+    (one shared copy in the page cache instead of one copy per process). `extra` = dict of numpy arrays saved alongside."""
+    import json
+    d = Path(dirpath); d.mkdir(parents=True, exist_ok=True)
+    lens = np.array([len(x) for x in P.entry_t], np.int64)
+    off = np.r_[0, np.cumsum(lens)]
+    for name in _CACHE_ARRAYS:
+        np.save(d / f"{name}.npy", np.concatenate(getattr(P, name)))
+    np.save(d / "offsets.npy", off); np.save(d / "ptr.npy", P.ptr); np.save(d / "cuts.npy", P.cuts)
+    np.save(d / "mark_t.npy", P.mark_t); np.save(d / "mark_c.npy", P.mark_c)
+    for k, v in (extra or {}).items():
+        np.save(d / f"{k}.npy", v)
+    (d / "meta.json").write_text(json.dumps(dict(cands=P.cands, contract=P.contract, meta=P.meta, rejected_at_cut=P.rejected_at_cut,
+                                                 tf=[str(x) for x in P.tf], rank_key=[int(x) for x in P.rank_key],
+                                                 exit_cfg=[int(x) for x in P.exit_cfg])))
+
+
+def load_pool_cache(dirpath):
+    import json
+    d = Path(dirpath)
+    m = json.loads((d / "meta.json").read_text())
+    off = np.load(d / "offsets.npy")
+    arr = {n: np.load(d / f"{n}.npy", mmap_mode="r").view(np.ndarray) for n in _CACHE_ARRAYS}      # plain views: fast slicing
+    n = len(m["cands"])
+    sl = lambda name: [arr[name][off[i]:off[i + 1]] for i in range(n)]
+    empty = [None] * n
+    return Pool(m["cands"], sl("entry_t"), sl("exit_t"), sl("dir"), empty, sl("cost_bp"), empty, sl("stop_px"), sl("entry_px"),
+                sl("R"), sl("stop_bp"), np.load(d / "ptr.npy"), np.load(d / "cuts.npy"), float(m["contract"]),
+                np.array(m["rank_key"]), np.array(m["exit_cfg"]), np.array(m["tf"]), np.load(d / "mark_t.npy"),
+                np.load(d / "mark_c.npy"), m["meta"], int(m["rejected_at_cut"]))
