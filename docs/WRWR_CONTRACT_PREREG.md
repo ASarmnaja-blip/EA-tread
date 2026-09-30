@@ -180,3 +180,41 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
   before any real statistic is computed; step-down Westfall-Young maxT with K = 999 placebo paths; familywise p <= 0.05 on DEV, then
   the same sign with Newey-West |t| >= 1.5 in every CHECK period.
 - Level maps (deciles, 5 x 5) only for survivors, each cell tested against the same placebo distribution.
+
+---
+
+## v5 clarifications (2026-09-30, answers Codex R19 `docs/CODEX_R19_WRWR_AUDIT.md`; written before any rebuild or rerun)
+These supersede any conflicting wording above.
+- **C2 equity (R19-1).** equity(t) = realised balance + sum over open positions of notional x (direction x (mark_t /
+  entry_price - 1) - cost_bp / 1e4), where mark_t = close of the last H1 bar with close time <= t (C1) and
+  cost_bp is the position's whole round-trip cost (charged at entry, conservative); swap is booked at exit only.
+  U_k = f x equity(cut_k); sizing, the 3 x f stop-dollar cap and the free-margin test all use equity(t) at the entry
+  instant after exits <= t; used margin of open positions is recomputed at mark_t (lots x contract x mark / leverage).
+  The weekly entry stop still compares cumulative REALISED P&L of the week with -3 U_k.
+- **C2 audit trail (R19-4).** The potential-signal table stores direction, gross_bp, cost_bp, swap_bp next to the
+  derived R columns. Signals whose entry bar opens exactly at a cut are stored in a separate rejected table (zero
+  return, never busy) - expected count 0 for H1/H4/D1 because cuts (22:15) are not bar opens, recorded in the metadata.
+  Every live skip is logged with time, candidate, rule ID (BUSY, WEEKSTOP, MINLOT, RISKCAP, MARGIN) and the causing
+  state (equity, realised P&L of the week, open stop dollars, used margin).
+- **C2 risk levels (R19-6).** Every family result is produced for f = 0.5 %, 1 % and 2 %, labelled in the output.
+- **C3 (R19-5).** `weekly_rv` takes an explicit `bar_seconds` (3600 for every WRWR use; H4/D1 bars never feed it).
+  `causal_vol_scale` has two tested modes: `historical` (rolling B_REF of C3) and `forward` (the frozen spec B_REF
+  38,193.9 bp^2 known now, same clip and fail-safes).
+- **C4 H4/D1 entry spread (R19-2).** The entry spread of an H4 or D1 bar is the recorded ask-minus-bid of its FIRST
+  constituent H1 bar at that bar's open (not a median over the bar).
+- **C4 XAG pre-2023 constant (R19-7).** C_xag_pre2023 = max(4.0, 1.5 x M + 1.0) bp with M = median over Exness XAGUSD
+  M5 bars 2023-09-01..2026-09-28 of (ask - bid) / close x 1e4 (spread and close only, no returns); the value and its
+  inputs are frozen in `data/foundry/xag_cost_freeze.json` (sha256 in the manifest). `cost_bp('XAGUSD', ...)` requires
+  entry timestamps and that file, and raises otherwise (fail closed).
+- **C5 integrity (R19-3).** Tables and the family cache store schema, code sha256 (all modules they depend on), ordered
+  raw-source manifest sha256 (every Dukascopy hour BID/ASK .npy file in name order, `file name + sha256`), sha256 of the
+  canonical arrays INCLUDING volume and spread, sha256 of the stored output arrays, symbol-JSON sha256, Treasury digest,
+  cut-vector sha256, cost version, data end, bar count. Loaders recompute the source, data, output, symbol and Treasury
+  digests and the code hash, verify timestamps are strictly increasing and unique and `data_end`, and reject any
+  mismatch. Stacking asserts equal cut vectors, candidate counts equal to the metadata and identical matrix widths.
+  `contracts.validate_seam` implements the C5 splice checks and must pass before any spliced series is used.
+- **C5 holiday file (R19-9).** Its digest is defined on the LF-normalised text; `.gitattributes` enforces LF for it and
+  the validator checks the digest.
+- **R19-8 decomposition.** Conclusions about why BASE changed are drawn only from the full factorial
+  {flat 2 bp, C4 costs} x {weekly stop off, on} run after the R19-1..3 fixes, with champions both fixed to the
+  flat-cost run and re-selected, reporting direct and interaction effects.
