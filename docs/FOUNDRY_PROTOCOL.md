@@ -231,3 +231,10 @@ forward record re-frozen (the R13 freeze archived as `*_v3_R13`).
 - Residual limitation, stated: deleting the newest week for every candidate at once is not detectable
   from the file alone (the week would be re-scored from the same data). The weekly Thai summary prints
   the chain-tip hashes so an outside record exists; committing them is the operator's choice.
+
+## Amendment 12b (2026-09-30, after Codex round 15)
+`docs/CODEX_R15_FOUNDRY_FORWARD.md`: 9 of 10 R14 items fixed; the remaining partial item is the stated
+limitation (deleting the newest week of every candidate at once). One new defect fixed: a week is LATE
+unless a run occurred within the FIRST 8 days after it became scorable (the search no longer extends to
+the present, so a late week cannot turn OK afterwards). Records re-frozen (R14 freeze archived `*_v4_R14`),
+manifest re-issued.

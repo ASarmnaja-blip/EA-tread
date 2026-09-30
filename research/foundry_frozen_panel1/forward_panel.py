@@ -239,7 +239,7 @@ def score(panel_file: Path, scores_file: Path):
             ready = k + E.WEEK + SETTLE
             if nbar < 80 or max_gap > 72:                       # gap in the week or its settlement window
                 status = "DATA_GAP"
-            elif now > ready + LATE and not had_run_between(ready, now - 1):
+            elif now > ready + LATE and not had_run_between(ready, ready + LATE):   # R15: only the first 8 days count
                 status = "LATE"                                   # the job was not running when it became scorable
             else:
                 status = "OK"
