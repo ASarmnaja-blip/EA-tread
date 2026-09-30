@@ -56,7 +56,34 @@ def main_terminal_pids():
     return [int(x) for x in out.split() if x.strip().isdigit()]
 
 
+_MT5_PROBE = r"""
+import sys, MetaTrader5 as mt5
+if not mt5.initialize():
+    print("NOINIT"); sys.exit(0)
+try:
+    if sys.argv[1] == "safe":      # force-closing is allowed only on a demo account with nothing open
+        a = mt5.account_info()
+        print("SAFE" if a is not None and a.trade_mode == 0 and mt5.positions_total() == 0 and mt5.orders_total() == 0 else "UNSAFE")
+    else:                          # health: bar history calls must work, not just the live quote
+        mt5.symbol_select("XAUUSD", True)
+        r = mt5.copy_rates_from_pos("XAUUSD", mt5.TIMEFRAME_M1, 0, 5)
+        print("HEALTHY" if r is not None and len(r) == 5 else f"UNHEALTHY {mt5.last_error()}")
+finally:
+    mt5.shutdown()
+"""
+
+
+def mt5_probe(kind):
+    try:
+        r = subprocess.run([PY, "-c", _MT5_PROBE, kind], capture_output=True, text=True, timeout=120)
+        return r.stdout.strip().splitlines()[-1] if r.stdout.strip() else "NOOUTPUT"
+    except Exception as e:
+        return f"ERROR {e!r}"
+
+
 def close_terminal(wait=90):
+    """Graceful close first; if MT5 ignores it (seen 2026-09-30), force-stop - but only on a demo account with no open
+    position or pending order (operator 2026-09-30: restarting MT5 is Claude's job)."""
     pids = main_terminal_pids()
     if not pids:
         return True
@@ -66,6 +93,17 @@ def close_terminal(wait=90):
         if not main_terminal_pids():
             return True
         time.sleep(3)
+    safe = mt5_probe("safe")
+    if safe != "SAFE":
+        log(f"MT5 ignored the graceful close and force-stop is not allowed ({safe})")
+        return False
+    ps(f"Stop-Process -Id {','.join(map(str, main_terminal_pids()))} -Force -Confirm:$false")
+    t0 = time.time()
+    while time.time() - t0 < 30:
+        if not main_terminal_pids():
+            log("MT5 did not close gracefully; force-stopped (demo, nothing open)")
+            return True
+        time.sleep(2)
     return False
 
 
@@ -120,11 +158,23 @@ def dump_calendar():
 
 
 def ensure_terminal():
-    if main_terminal_pids():
-        return
-    subprocess.Popen([TERMINAL])
-    log("MT5 started normally")
-    time.sleep(45)
+    if not main_terminal_pids():
+        subprocess.Popen([TERMINAL])
+        log("MT5 started normally")
+        time.sleep(45)
+    for attempt in range(3):         # a running terminal can still fail every history call ("Terminal: Call failed")
+        h = mt5_probe("health")
+        if h == "HEALTHY":
+            if attempt:
+                log(f"MT5 healthy after {attempt} restart(s)")
+            return True
+        log(f"MT5 health check failed ({h}); restarting (attempt {attempt + 1}/2)")
+        if attempt == 2 or not close_terminal():
+            break
+        subprocess.Popen([TERMINAL])
+        time.sleep(60)
+    log("MT5 still unhealthy; the report continues and data steps will fail closed")
+    return False
 
 
 def run(script, *args):
