@@ -1,7 +1,7 @@
-pool: 6696 candidates (C5 verified), 0 rejected at a cut, 12s
-f = 0.500% done (50s)
-f = 1.000% done (66s)
-f = 2.000% done (80s)
+pool: 6696 candidates (C5 verified), 0 rejected at a cut, 17s
+f = 0.500% done (45s)
+f = 1.000% done (53s)
+f = 2.000% done (61s)
 
 family sha256 fb28ac097eee30b5904185dec3e5771b5d620eae616955722707c6b055b6bf59; 144 configurations; 1164 active weeks
 BASE (52w, z1, H1, m2):
@@ -21,4 +21,4 @@ best 10 of 144 at f = 1% (descriptive):
      52    0.5       H4  1             26   33.627       1.507   28.213   0.053 0.014  -7.778  -3.903
      78    2.0       H1  1             26   31.975       1.433   32.778   0.044 0.012  22.280  22.280
      26    0.5       H4  1             26   31.498       1.412   32.839   0.043 0.013   5.835   2.157
-done 81s
+done 62s
