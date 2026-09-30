@@ -940,3 +940,17 @@ Net R per trade after C4 cost and swap (DEV gold 2004-15 / CHECK gold 2016-26 / 
 | I2 52-week high, long 20 D1 | **+0.780 (p 0.006, Holm reject)** | +0.233 (p 0.19) | +1.151 (p 0.011) | vs an always-long control: excess +0.605 / **+0.004** / +1.071 -> recent gold = drift |
 | I3 all-time high, long 20 D1 | +0.603 (n 17) | +0.498 (n 18) | +0.496 (n 3) | excess vs always-long +0.43 / +0.27; too few trades |
 Reading: nothing passes; the only persistent effects are trend/drift (I2, I3) and a relative round-number cascade (C2) that costs cannot pay.
+
+## Hypothesis batch 2: cross-asset drivers (2026-10-01; docs/HYPOTHESIS_BATCH2_PREREG.md, research/hyp/batch2.py, data/hyp_batch2.log): 0 of 6 PASS
+MT5 clock verified = UTC (MAD 0.17 bp at shift 0 vs 9.7 bp at +-1 h against Dukascopy).
+| id | DEV | CHECK | SILVER | excess vs same-direction random timing (CHECK) |
+|---|---|---|---|---|
+| X1 US500 crash -> short gold 10 D1 | n 2 | -0.201 (n 29) | -0.020 | +0.025 |
+| X2 USDJPY surge -> gold 5 D1 (DEV sign long) | +0.065 | +0.045 | +0.039 | -0.043 |
+| X3 oil shock -> gold with oil 5 D1 | -0.041 | -0.007 | +0.036 | +0.038 |
+| X4 DXY 60-day trend -> gold opposite 20 D1 | -0.100 | +0.020 | +0.058 | +0.115 |
+| X5 yuan weakness -> long gold 20 D1 | -0.024 | +0.169 (n 14) | -0.124 | -0.038 |
+| X6 gold residual reversal vs DXY/JPY/US500, H1 | -0.150 | -0.110 | -0.081 | -0.034 |
+- **Lead-lag map (H1, 2016/2019-2026):** same-hour correlation with gold: DXY -0.41, AUDUSD +0.42, EURUSD +0.37, USDCHF -0.38, USDJPY -0.32,
+  USDCNH -0.32, US500 +0.19, BTC +0.13, JP225 +0.11, USOIL +0.03, silver +0.78; at lags of 1-4 hours every |corr| <= 0.015. Nothing leads gold by
+  an hour: cross-asset information is priced within the same hour.
