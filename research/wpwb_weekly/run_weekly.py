@@ -64,6 +64,8 @@ try:
     if sys.argv[1] == "safe":      # force-closing is allowed only on a demo account with nothing open
         a = mt5.account_info()
         print("SAFE" if a is not None and a.trade_mode == 0 and mt5.positions_total() == 0 and mt5.orders_total() == 0 else "UNSAFE")
+    elif mt5.account_info() is None or not mt5.terminal_info().connected:
+        print("NOT_LOGGED_IN")     # a restart cannot fix this and no code here ever types a password
     else:                          # health: bar history calls must work, not just the live quote
         mt5.symbol_select("XAUUSD", True)
         r = mt5.copy_rates_from_pos("XAUUSD", mt5.TIMEFRAME_M1, 0, 5)
@@ -168,7 +170,10 @@ def ensure_terminal():
             if attempt:
                 log(f"MT5 healthy after {attempt} restart(s)")
             return True
-        log(f"MT5 health check failed ({h}); restarting (attempt {attempt + 1}/2)")
+        if h == "NOT_LOGGED_IN":
+            log("MT5 is not logged in (saved login missing?) - the operator must log in; no restart, no password entry")
+            break
+        log(f"MT5 health check failed ({h}); restarting (attempt {attempt + 1} of at most 2)")
         if attempt == 2 or not close_terminal():
             break
         subprocess.Popen([TERMINAL])
