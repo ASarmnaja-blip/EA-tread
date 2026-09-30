@@ -2,7 +2,7 @@
 `python research/foundry_frozen_<label>/portfolio.py data/foundry/shadow/<label>.json`.
 For each forward week, in order: every listed component (scores file, candidate name) must have exactly
 one row for that week, else stop and wait. If any component's status is not OK -> factor 1 (no bet).
-Otherwise g = mean of the components' week_R_clip (each floored at -2, Amendment 14); E = mean over lambda in the JSON
+Otherwise g = mean of the components' week_R_clip (each in [-2, 2]); E = mean over lambda in the JSON
 of prod(1 + lambda g) (factors >= 0.2 for lambda <= 0.4). Append-only with a hash chain, validated
 before appending. No order is ever sent."""
 from __future__ import annotations

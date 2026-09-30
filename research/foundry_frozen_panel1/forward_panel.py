@@ -11,10 +11,10 @@
   (default)                      dispatcher: score every frozen panel from its own snapshot, then the
                                  frozen portfolio aggregator(s)
 
-Test (Amendment 11, after Codex round 13): per candidate and forward week, g = clip(week R, -2, 2)
+Test (Amendments 11, 14): per candidate and forward week, g = max(week R, -2) (floor only)
 (week R = mean R of the candidate's trades entered that week, 0 if none). Null: the conditional mean
 of g given the past is <= 0 each week. E = mean over lambda in (0.05, 0.1, 0.2, 0.4) of prod(1 + lambda g);
-every factor is >= 0.2 > 0, so E is a nonnegative supermartingale under the null (valid for dependent
+every factor is >= 1 - 0.4 * 2 = 0.2 > 0, so E is a nonnegative supermartingale under the null (valid for dependent
 weeks). A week that cannot be scored cleanly - data gap (< 80 H1 bars) or scored more than 8 days
 after it became scorable (LATE) - gets factor 1 (no bet); that choice does not depend on the outcome.
 A week is scorable only once the feed extends 6 days past its end, so every trade (max hold 72 h +
@@ -42,7 +42,7 @@ import families as FAM  # noqa: E402
 SHADOW = E.ROOT / "data" / "foundry" / "shadow"
 FORWARD = int(np.datetime64("2026-10-02T22:15:00", "s").astype(np.int64))
 LAMS = (0.05, 0.1, 0.2, 0.4)
-CLIP = 2.0
+FLOOR = -2.0     # Amendment 14: floor only (validity needs a lower bound; no ceiling, big wins count)
 SETTLE = 6 * 86400          # feed must extend this far past a week's end before the week is scored
 LATE = 8 * 86400
 CELLS = ["ALL", "NOTCALM/*", "HIGH/*"]
@@ -50,12 +50,13 @@ FIELDS = ["name", "cell", "week", "status", "trades", "week_R_raw", "week_R_clip
          ["reject", "bars_sha", "prev_sha", "row_sha", "recorded_utc"]
 SNAP_FILES = {"engine.py": "research/foundry/engine.py", "families.py": "research/foundry/families.py",
               "forward_panel.py": "research/foundry/forward_panel.py", "vol.py": "research/wpwb_weekly/vol.py",
-              "build_all_tf.py": "research/history/build_all_tf.py", "external_traces.py": "research/pilot/external_traces.py"}
+              "build_all_tf.py": "research/history/build_all_tf.py", "external_traces.py": "research/pilot/external_traces.py",
+              "calendar_feed.py": "research/pilot/calendar_feed.py"}
 
 
 def universe(H, D):
     seen, out = set(), []
-    for s in FAM.trackB1(H, D) + FAM.overnight_split(H) + FAM.panel2(H, D):
+    for s in FAM.trackB1(H, D) + FAM.overnight_split(H) + FAM.panel2(H, D) + FAM.panel3(H, D):
         if s.name not in seen:
             seen.add(s.name); out.append(s)
     return out
@@ -170,7 +171,7 @@ def freeze(label, alpha, items):
         cands.append(dict(name=spec, cell=cell, source_fn=fn))
     js.write_text(json.dumps(dict(frozen_utc=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
                                   snapshot_dir=str(snap.relative_to(E.ROOT)).replace("\\", "/"), snapshot_sha256=dir_hash(snap),
-                                  forward_from=FORWARD, alpha_each=alpha / len(cands), lams=list(LAMS), clip=CLIP,
+                                  forward_from=FORWARD, alpha_each=alpha / len(cands), lams=list(LAMS), floor=FLOOR,
                                   candidates=cands), indent=1))
     print("frozen", js.name, "->", snap.name, dir_hash(snap)[:16])
     return 0
@@ -235,7 +236,7 @@ def score(panel_file: Path, scores_file: Path):
             span = H.t[(H.t > k) & (H.t <= k + E.WEEK + SETTLE)]
             max_gap = float(np.diff(span).max() / 3600) if len(span) > 1 else 999.0
             wr = float(w.R.mean()) if len(w) else 0.0
-            gc = float(np.clip(wr, -CLIP, CLIP))
+            gc = float(max(wr, FLOOR))
             ready = k + E.WEEK + SETTLE
             if nbar < 80 or max_gap > 72:                       # gap in the week or its settlement window
                 status = "DATA_GAP"

@@ -251,3 +251,14 @@ conflicting series), fade it from the next bar's open, exit within 23 clock hour
 time; 113 trades 2022-26, positive every year (seen data, nomination only). Its snapshot also freezes
 `calendar_feed.py` (sign table, trailing sigma); the calendar data itself is refreshed weekly by the
 Saturday job and is not frozen - a revised 'actual' would change a trade, stated as a limitation.
+
+## Amendment 14 (2026-09-30, before the first forward week) - floor instead of clip
+Computing the historical expectation for the Auditor showed that clipping week R at +/-2 changed the
+tested quantity for fat-right-tailed candidates (SHOCK_CONT_k2_h48~INV weekly mean +0.142 R raw but
++0.027 clipped; SHOCK_FADE +0.205 vs +0.068; NEWS_ACCEPT_FADE +0.052 vs +0.016). Validity needs only a
+lower bound, so g = max(week R, -2) (floor only; historical weekly minimum -1.1 R, so g equals the raw
+week R in every week of 2021-26). Factors 1 + lambda g >= 0.2 for lambda <= 0.4. Null: the conditional
+mean of the floored week R <= 0. Panels 1-3 and the portfolio re-frozen (R15 freeze archived
+`*_v5_R15`); manifest re-issued. The Auditor section of the Thai weekly summary compares each
+candidate's forward mean with its 2021-26 expectation (`data/foundry/shadow/expectations.json`) and
+flags a shortfall beyond 2 standard errors after >= 8 weeks - a warning, not a test.

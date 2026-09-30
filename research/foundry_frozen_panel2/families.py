@@ -675,7 +675,10 @@ def gvz_jump(D):
 
 
 from pathlib import Path as _P
+import sys as _sys
 E_ROOT = _P(__file__).resolve().parents[2]
+if str(E_ROOT / "research" / "pilot") not in _sys.path:
+    _sys.path.append(str(E_ROOT / "research" / "pilot"))
 
 
 def batch25b(H, D):
@@ -841,3 +844,39 @@ def shock_fade_clock(H, k=2.5, hold_h=72, stop_atr=3.0):
 
 def panel2(H, D):
     return [shock_fade_clock(H)]
+
+
+# ------------------------------------------------------------------ Panel-3 candidate (Amendment 13)
+def news_accept_fade(H, move_atr=1.0, hold_h=24, zmin=0.5):
+    """After a scheduled HIGH USD release whose combined surprise implies a gold direction
+    (|z_net| >= zmin, no conflicting series) and whose release-hour H1 bar moved > move_atr ATR IN that
+    implied direction (the market 'accepted' the news), FADE the move: enter at the next bar's open,
+    exit at the last bar opening within hold_h - 1 clock hours, stop 2 ATR."""
+    import calendar_feed as C
+    cal = C.load_calendar(str(E_ROOT / "data" / "calendar.csv"))
+    ev = [e for e in C.build_events(cal) if e.usable]
+    if not ev:
+        return Spec(f"NEWS_ACCEPT_FADE_m{move_atr}_h{hold_h}", "H1", [], [], [], [], [])
+    df = pd.DataFrame([dict(epoch=e.epoch, g=((e.actual - e.consensus) / e.sigma) * (-1 if e.higher_is_gold_negative else 1)) for e in ev])
+    agg = df.groupby("epoch").g.agg(["sum", lambda x: int((x > 0.25).sum()), lambda x: int((x < -0.25).sum())])
+    agg.columns = ["g", "pos", "neg"]
+    ents, dirs = [], []
+    for ep, r in agg.iterrows():
+        i = int(np.searchsorted(H.t, ep, side="right") - 1)
+        if i < 20 or i + 2 >= len(H.t) or not (H.t[i] <= ep < H.t[i] + 3600) or not np.isfinite(H.atr[i + 1]):
+            continue
+        if (r.pos and r.neg) or abs(r.g) < zmin:
+            continue
+        m = (H.c[i] - H.o[i]) / H.atr[i]
+        if abs(m) > move_atr and np.sign(m) == np.sign(r.g):
+            ents.append(i + 1); dirs.append(-np.sign(m))
+    ents = np.asarray(ents, int); dirs = np.asarray(dirs, float)
+    keep = nonoverlap(ents, np.searchsorted(H.t, H.t[ents] + (hold_h - 1) * 3600, side="right") - 1) if len(ents) else np.array([], int)
+    ents, dirs = ents[keep], dirs[keep]
+    last = np.searchsorted(H.t, H.t[ents] + (hold_h - 1) * 3600, side="right") - 1
+    a = H.atr[ents]
+    return Spec(f"NEWS_ACCEPT_FADE_m{move_atr}_h{hold_h}", "H1", ents, dirs, 2 * a, np.full(len(ents), np.nan), last)
+
+
+def panel3(H, D):
+    return [news_accept_fade(H)]

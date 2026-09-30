@@ -35,6 +35,7 @@ def main():
              for j in sorted(SH.glob("forward_panel*.json")) if j.name != "forward_panel.json"]:
         if js.exists():
             L += _panel_section(js, sc, title)
+    L += _auditor()
     Pf = read(SH / "forward_portfolio1_weeks.csv")
     L += ["## พอร์ตรวม 6 ตัว (H-FOUNDRY-PORTFOLIO-1)", "", "ผ่านเมื่อค่า E ถึง 100", ""]
     L.append(f"สัปดาห์ที่นับ {len(Pf)}, R เฉลี่ยต่อสัปดาห์ {Pf.week_R.mean():+.3f}, ค่า E {Pf.E.iloc[-1]:.2f}"
@@ -64,6 +65,30 @@ def _panel_section(js, sc, title):
             tips = ", ".join(f"{n}: `{g.row_sha.iloc[-1]}`" for n, g in P.groupby("name"))
             L += [f"hash ปลายลูกโซ่ (จดไว้เพื่อยืนยันว่าไฟล์ไม่ถูกลบย้อนหลัง): {tips}", ""]
     return L
+
+
+def _auditor():
+    """Drift check (CLAUDE.md gap 7): forward mean of week_R_clip vs the 2021-26 expectation. A flag is a
+    warning to look, not a test and not a reason to change any frozen rule."""
+    ex = SH / "expectations.json"
+    if not ex.exists():
+        return []
+    X = json.loads(ex.read_text())
+    frames = [read(p) for p in sorted(SH.glob("forward_panel*_weeks.csv"))]
+    A = pd.concat([f for f in frames if len(f)]) if any(len(f) for f in frames) else pd.DataFrame()
+    L = ["## ผู้ตรวจสอบ (Auditor): เทียบผลจริงกับที่คาดจากอดีต", "",
+         "ธงเตือนขึ้นเมื่อผ่านไปแล้วอย่างน้อย 8 สัปดาห์ และค่าเฉลี่ยจริงต่ำกว่าค่าคาดเกิน 2 เท่าของความคลาดเคลื่อน",
+         "ธงเป็นแค่สัญญาณให้เข้าไปดู ไม่ใช่เหตุให้แก้กฎที่ล็อกไว้", "",
+         "| setup | สัปดาห์ | R จริงเฉลี่ย | R ที่คาด | ความคลาดเคลื่อน | สถานะ |", "|---|---|---|---|---|---|"]
+    for name, e in X.items():
+        g = A[(A.name == name) & (A.status == "OK")] if len(A) else A
+        n = len(g)
+        if n == 0:
+            L.append(f"| {name} | 0 | – | {e['mean']:+.3f} | – | รอข้อมูล |"); continue
+        m = float(g.week_R_clip.mean()); se = e["sd"] / np.sqrt(n)
+        flag = "⚠ ต่ำกว่าคาดชัดเจน (drift?)" if n >= 8 and m < e["mean"] - 2 * se else ("ปกติ" if n >= 8 else "ยังน้อยเกินไป")
+        L.append(f"| {name} | {n} | {m:+.3f} | {e['mean']:+.3f} | ±{se:.3f} | {flag} |")
+    return L + [""]
 
 
 def _rest():
