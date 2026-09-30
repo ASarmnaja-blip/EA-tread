@@ -855,3 +855,27 @@ summary (data/wrwr/forward/summary_th.md). Fail-closed on code digest, chain, re
 - Splice: the real Dukascopy -> Exness seam FAILED the v5 raw-spread rule (ratio 0.14) and passes the amended charged-cost rule (0.815); costs of the
   Dukascopy-quoted years 2021-26 are about 0.5-1 bp above what the Exness account would be charged.
 - All tables were rebuilt after the last code edits: array digests identical to before (only the code digest changed), all test suites pass.
+
+## WRWR historical out-of-sample Test A: the research procedure replayed year by year on gold (2026-09-30; docs/WRWR_HISTORY_OOS_PREREG.md)
+Operator: use past data instead of waiting for forward weeks. The 2004-26 champion history is in-sample for the CHOICE of the four SHADOW
+configurations, so Test A re-runs the whole research decision at the first cut of every year 2010..2026 using only weeks already known
+(studentized Reality Check on d = R - B of the frozen Stage F files; adopt the largest-t configuration only if the family p <= 0.05) and
+scores the following year. `research/wrwr/history_oos.py`, output data/wrwr/history_oos_A.json / .log. Nothing re-simulated.
+| family | procedure | years adopted | weeks | total R | mean R/wk (95% lb) | mean d/wk (95% lb) | positive years |
+|---|---|---|---|---|---|---|---|
+| zoo | P1 (primary) | 0 | 0 | 0 | - | - | - |
+| zoo | F1 forced top-1 | 17 | 869 | -96.2 | -0.111 (-0.232) | +0.065 (-0.054) | 41 % |
+| zoo | F4 forced top-4 | 17 | 869 | -46.8 | -0.054 (-0.104) | +0.035 (-0.013) | 35 % |
+| Family 2 | **P1 (primary)** | 16 (2011-26) | 816 | **-81.8** | -0.100 (-0.186) | **+0.093 (+0.006)** | 38 % |
+| Family 2 | P4 top-4 | 16 | 816 | -74.5 | -0.091 (-0.168) | +0.082 (+0.007) | 44 % |
+| Family 2 | F1 forced top-1 | 17 | 869 | -30.9 | -0.036 (-0.182) | +0.179 (+0.032) | 41 % |
+| Family 2 | F4 forced top-4 | 17 | 869 | -44.1 | -0.051 (-0.149) | +0.132 (+0.022) | 47 % |
+- **Verdicts (pre-registered): zoo INSUFFICIENT** (its Reality Check never reached p <= 0.05 at any decision date, so the procedure never trades;
+  forced picks lose); **Family 2 WEAK**: the procedure passes its own gate every year from 2011 and its picks beat the same-cost random router out
+  of sample (lower bound of mean d just above zero, +0.006 R/week), but they lose after cost (-82 R over 16 years; random picks lose about
+  -0.19 R/week, the chosen configurations about -0.10).
+- Picks: 2011-13 52w z2 H1+H4+D1 m2, 2014 26w z2 H1, 2015-18 52w z1 H1 m2 (= F2-66; 2018 alone -33.8 R), 2019-26 78w z2 H4 m2 (= F2-134).
+  The in-sample totals of the SHADOW configurations (F2-66 +63.6 R, F2-78 +81.8 R) come mostly from before the configuration would have been
+  chosen (2004-10; 2010 alone +51 R for the top-t configuration, a year the gate did not yet pass).
+- Reading: the selection has a small, real relative edge over random picks, not a profit after cost. Waiting for forward weeks would test the
+  same thing; Test B (silver) is the independent check.
