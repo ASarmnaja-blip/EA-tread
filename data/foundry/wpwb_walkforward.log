@@ -1,0 +1,87 @@
+leak check PASS (3 cut points, 31 signals)
+  SMA_cross_10_30: done (72 candidates)
+  SMA_cross_20_50: done (144 candidates)
+  SMA_cross_50_200: done (216 candidates)
+  EMA_cross_9_21: done (288 candidates)
+  EMA_cross_12_26: done (360 candidates)
+  MACD_signal_cross: done (432 candidates)
+  MACD_zero_cross: done (504 candidates)
+  RSI14_30_70_exit: done (576 candidates)
+  RSI14_cross_50: done (648 candidates)
+  RSI2_10_90: done (720 candidates)
+  Stoch_14_3_OBOS: done (792 candidates)
+  CCI20_cross_100: done (864 candidates)
+  WilliamsR_exit_OBOS: done (936 candidates)
+  ROC10_zero_cross: done (1008 candidates)
+  Aroon25_cross: done (1080 candidates)
+  BB_breakout_20_2: done (1152 candidates)
+  BB_reentry_20_2: done (1224 candidates)
+  Keltner_breakout_20_2: done (1296 candidates)
+  Donchian20_breakout: done (1368 candidates)
+  Donchian55_breakout: done (1440 candidates)
+  ADX25_DI_cross: done (1512 candidates)
+  ParabolicSAR_flip: done (1584 candidates)
+  Supertrend_10_3_flip: done (1656 candidates)
+  Ichimoku_TK_cross: done (1728 candidates)
+  Ichimoku_cloud_break: done (1800 candidates)
+  VWAP_daily_cross: done (1872 candidates)
+  OBV_SMA20_cross: done (1944 candidates)
+  HeikinAshi_color_change: done (2016 candidates)
+  Engulfing: done (2088 candidates)
+  PinBar: done (2160 candidates)
+  InsideBar_break: done (2232 candidates)
+        4 MEAN top1: traded 1156 wk, 3291 trades, -0.057 R/trade, sized total -138.4 R, random-pick median -532.6, p 0.000 | same-exit-config pick median +33.5 (+0.008 R/trade), p 0.909
+        4 MEAN top2: traded 1156 wk, 6630 trades, -0.043 R/trade, sized total -232.7 R, random-pick median -1063.9, p 0.000 | same-exit-config pick median +58.0 (+0.007 R/trade), p 0.936
+        4 LCB  top1: traded 1156 wk, 3639 trades, -0.044 R/trade, sized total -153.2 R, random-pick median -534.7, p 0.000 | same-exit-config pick median -21.3 (-0.005 R/trade), p 0.866
+        4 LCB  top2: traded 1156 wk, 7193 trades, -0.029 R/trade, sized total -206.8 R, random-pick median -1077.0, p 0.000 | same-exit-config pick median -99.1 (-0.012 R/trade), p 0.752
+       13 MEAN top1: traded 1156 wk, 2685 trades, +0.054 R/trade, sized total +82.5 R, random-pick median -527.7, p 0.000 | same-exit-config pick median +31.9 (+0.008 R/trade), p 0.359
+       13 MEAN top2: traded 1156 wk, 5543 trades, +0.022 R/trade, sized total +22.3 R, random-pick median -1058.8, p 0.000 | same-exit-config pick median +15.2 (+0.002 R/trade), p 0.480
+       13 LCB  top1: traded 1156 wk, 3226 trades, +0.003 R/trade, sized total -33.5 R, random-pick median -527.5, p 0.000 | same-exit-config pick median -15.8 (-0.004 R/trade), p 0.541
+       13 LCB  top2: traded 1156 wk, 6425 trades, +0.017 R/trade, sized total +2.5 R, random-pick median -1063.4, p 0.000 | same-exit-config pick median -122.0 (-0.015 R/trade), p 0.217
+       26 MEAN top1: traded 1156 wk, 1871 trades, +0.000 R/trade, sized total -16.8 R, random-pick median -519.2, p 0.000 | same-exit-config pick median +9.4 (+0.002 R/trade), p 0.580
+       26 MEAN top2: traded 1156 wk, 4016 trades, -0.008 R/trade, sized total -91.7 R, random-pick median -1043.7, p 0.000 | same-exit-config pick median -40.8 (-0.005 R/trade), p 0.629
+       26 LCB  top1: traded 1156 wk, 2728 trades, -0.059 R/trade, sized total -160.0 R, random-pick median -517.1, p 0.000 | same-exit-config pick median -50.5 (-0.013 R/trade), p 0.834
+       26 LCB  top2: traded 1156 wk, 5474 trades, -0.031 R/trade, sized total -199.0 R, random-pick median -1032.4, p 0.000 | same-exit-config pick median -106.3 (-0.013 R/trade), p 0.744
+       52 MEAN top1: traded 1156 wk, 1920 trades, +0.063 R/trade, sized total +94.2 R, random-pick median -527.0, p 0.000 | same-exit-config pick median -38.4 (-0.010 R/trade), p 0.104
+       52 MEAN top2: traded 1156 wk, 4045 trades, +0.025 R/trade, sized total +58.8 R, random-pick median -1042.7, p 0.000 | same-exit-config pick median -104.2 (-0.014 R/trade), p 0.159
+       52 LCB  top1: traded 1156 wk, 2677 trades, +0.038 R/trade, sized total +70.7 R, random-pick median -519.8, p 0.000 | same-exit-config pick median -20.2 (-0.005 R/trade), p 0.217
+       52 LCB  top2: traded 1156 wk, 5533 trades, +0.047 R/trade, sized total +182.6 R, random-pick median -1032.9, p 0.000 | same-exit-config pick median -84.0 (-0.011 R/trade), p 0.041
+SAME-CELL MEAN top1: traded 1131 wk, 2916 trades, -0.068 R/trade, sized total -161.5 R, random-pick median -547.8, p 0.000 | same-exit-config pick median -57.1 (-0.013 R/trade), p 0.813
+SAME-CELL MEAN top2: traded 1131 wk, 5878 trades, -0.058 R/trade, sized total -265.1 R, random-pick median -1090.2, p 0.000 | same-exit-config pick median -77.6 (-0.009 R/trade), p 0.844
+SAME-CELL LCB  top1: traded 1131 wk, 3423 trades, -0.040 R/trade, sized total -127.7 R, random-pick median -551.1, p 0.000 | same-exit-config pick median -119.5 (-0.027 R/trade), p 0.532
+SAME-CELL LCB  top2: traded 1131 wk, 6873 trades, -0.038 R/trade, sized total -252.7 R, random-pick median -1095.9, p 0.000 | same-exit-config pick median -276.8 (-0.030 R/trade), p 0.441
+   window score  champions  weeks_traded  trades  R_per_trade  total_R_sized  R_per_year_sized  random_pick_median_sized  p_vs_random  samecfg_median_sized  samecfg_R_per_trade  p_vs_samecfg  R_sized_2003-08  R_sized_2009-14  R_sized_2015-20  R_sized_2021-26
+        4  MEAN          1          1156    3291       -0.057       -138.383            -6.252                  -532.607          0.0                33.509                0.008         0.909          -72.881          -16.253            7.879          -57.127
+        4  MEAN          2          1156    6630       -0.043       -232.701           -10.513                 -1063.917          0.0                57.954                0.007         0.936         -119.678         -110.498          -31.678           29.154
+        4   LCB          1          1156    3639       -0.044       -153.222            -6.922                  -534.711          0.0               -21.269               -0.005         0.866          -89.193          -17.552          -15.384          -31.093
+        4   LCB          2          1156    7193       -0.029       -206.830            -9.344                 -1077.031          0.0               -99.126               -0.012         0.752         -118.039          -63.024           20.299          -46.066
+       13  MEAN          1          1156    2685        0.054         82.500             3.727                  -527.723          0.0                31.909                0.008         0.359           35.287          -28.528          114.359          -38.619
+       13  MEAN          2          1156    5543        0.022         22.282             1.007                 -1058.849          0.0                15.181                0.002         0.480           73.363         -106.995           97.186          -41.272
+       13   LCB          1          1156    3226        0.003        -33.468            -1.512                  -527.497          0.0               -15.783               -0.004         0.541          -21.954           -3.477           47.146          -55.183
+       13   LCB          2          1156    6425        0.017          2.470             0.112                 -1063.417          0.0              -121.995               -0.015         0.217           21.388          -15.378           21.682          -25.222
+       26  MEAN          1          1156    1871        0.000        -16.834            -0.760                  -519.219          0.0                 9.412                0.002         0.580           14.137           23.140           -4.459          -49.651
+       26  MEAN          2          1156    4016       -0.008        -91.707            -4.143                 -1043.731          0.0               -40.763               -0.005         0.629           15.673          -77.839           10.161          -39.702
+       26   LCB          1          1156    2728       -0.059       -159.957            -7.226                  -517.126          0.0               -50.536               -0.013         0.834            7.146         -131.009           36.330          -72.424
+       26   LCB          2          1156    5474       -0.031       -198.982            -8.989                 -1032.395          0.0              -106.259               -0.013         0.744            4.661         -160.413            6.913          -50.143
+       52  MEAN          1          1156    1920        0.063         94.170             4.254                  -526.962          0.0               -38.384               -0.010         0.104          -26.584           66.957            4.840           48.957
+       52  MEAN          2          1156    4045        0.025         58.760             2.655                 -1042.690          0.0              -104.205               -0.014         0.159           -7.083           21.419           51.309           -6.885
+       52   LCB          1          1156    2677        0.038         70.731             3.195                  -519.810          0.0               -20.210               -0.005         0.217           11.735           60.793            2.526           -4.324
+       52   LCB          2          1156    5533        0.047        182.631             8.251                 -1032.930          0.0               -84.010               -0.011         0.041            5.455          112.191           42.859           22.127
+SAME-CELL  MEAN          1          1131    2916       -0.068       -161.474            -7.295                  -547.796          0.0               -57.128               -0.013         0.813          -16.476         -120.118           97.150         -122.030
+SAME-CELL  MEAN          2          1131    5878       -0.058       -265.086           -11.976                 -1090.213          0.0               -77.589               -0.009         0.844          -52.243         -181.814           76.887         -107.916
+SAME-CELL   LCB          1          1131    3423       -0.040       -127.691            -5.769                  -551.053          0.0              -119.488               -0.027         0.532           21.896          -91.499           79.286         -137.374
+SAME-CELL   LCB          2          1131    6873       -0.038       -252.726           -11.417                 -1095.855          0.0              -276.776               -0.030         0.441           23.250         -134.427           52.499         -194.048
+
+most-picked champions of the lowest-p rule (52, 'LCB', 2)
+                                      candidate  weeks_as_champion
+   SMA_cross_50_200 FOLLOW SL1ATR 1:10 ถือ72ชม.                 81
+     EMA_cross_9_21 FOLLOW SL2ATR 1:10 ถือ72ชม.                 66
+ Supertrend_10_3_flip FADE SL2ATR 1:10 ถือ72ชม.                 65
+     MACD_zero_cross FOLLOW SL2ATR 1:5 ถือ72ชม.                 62
+     EMA_cross_12_26 FOLLOW SL2ATR 1:5 ถือ72ชม.                 61
+      SMA_cross_20_50 FADE SL1ATR 1:10 ถือ72ชม.                 53
+    SMA_cross_50_200 FOLLOW SL2ATR 1:2 ถือ72ชม.                 52
+      Aroon25_cross FOLLOW SL2ATR 1:10 ถือ72ชม.                 45
+Donchian55_breakout FOLLOW SL1ATR 1:10 ถือ24ชม.                 40
+        Aroon25_cross FADE SL1ATR 1:10 ถือ72ชม.                 38
+-> wpwb_walkforward.xlsx / .png

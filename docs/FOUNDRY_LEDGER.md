@@ -626,3 +626,19 @@ multi_tf.py now also writes n_<era>; both runs re-run (same seed). data/foundry/
   (0.80) where cost dominates and lowest on H4/D1 (0.16-0.35) where cost is small - rank persistence = cost persistence.
 - Era champions are almost all 1:10 / hold 240 bars = the highest-variance cells; winner's curse. Only D1 2015-20 -> 2021-26
   top 5% held up (+0.16, 82% positive), which coincides with the 2021-26 gold rally on long holds.
+
+## WPWB walk-forward champion backtest (docs/WPWB_WALKFORWARD_PREREG.md + Amendment 1; operator 2026-09-30)
+`research/foundry/wpwb_walkforward.py` -> data/foundry/wpwb_walkforward.{xlsx,png,log}. H1 2003-26, 2,232 shadow
+candidates bar by bar (one position each, actual exits), weekly pick at the Friday cut from trades already closed,
+WPWB vol_scale sizing. Leak check PASS. 20 rules, 1,131-1,156 weeks each.
+- 9 of 20 rules lose money; best = 52-week LCB top 2: +0.047 R/trade, 5,533 trades, +183 R sized (+8.3 R/yr), weekly t 1.38,
+  43.7% of weeks positive; by era +5 / +112 / +43 / +22 R (mostly 2009-14). 13-week MEAN top1 +0.054 R/trade (+83 R).
+  4-week and SAME-CELL (WPWB regime-matched) rules are all negative (-0.03 to -0.07 R/trade).
+- Pre-registered RANDOM-PICK null: every rule p 0.000, but the null loses ~-0.074 R/trade and trades twice as often -
+  it measures exit-config cost, not selection skill (Amendment 1).
+- SAME-EXIT-CONFIG null (reading of record): best p 0.041 (52 LCB top2), then 0.104, 0.159; none below 0.0025.
+  Picking the indicator/direction adds nothing distinguishable from chance; the gain over random is the exit config
+  (long hold, wide target).
+- The NO TRADE gate (best score <= 0) never fired: with 2,232 candidates one always looks positive - a weakness of the
+  rule, to fix before any forward use (require a margin over the same-config pool).
+- Verdict: no rule nominated. Not added to any forward panel.

@@ -39,3 +39,12 @@ only; nothing here authorises an order.
   t, per era (2003-08, 2009-14, 2015-20, 2021-26), sized and unsized, and the RANDOM-PICK p.
 - Reading: 20 rules on seen data; a p below 0.05 / 20 = 0.0025 is needed before calling anything more than noise,
   and even then it is only a nomination for a paper forward record.
+
+## Amendment 1 (2026-09-30, after the first run; post hoc, disclosed)
+The first run showed every rule beating the pre-registered RANDOM-PICK null by ~400-900 R (p 0.000 for all 20),
+including rules that lose money. The null is unfair: a random candidate trades about twice as often per week and
+carries the cost of short-hold/tight-stop exits, which the selection rules learn to avoid. Two diagnostics are
+added (the pre-registered null is still reported): (1) random-pick R per trade; (2) SAME-EXIT-CONFIG null - each
+champion is replaced by a random eligible candidate with the same stop k, exit (RR) and hold, so only the indicator and
+direction are random. p_vs_samecfg is the reading of record from here on; threshold unchanged (0.0025). The shadow
+trades are cached (data/foundry/wpwb_walkforward_cache.npz); candidates, windows and scores are unchanged.
