@@ -879,3 +879,43 @@ scores the following year. `research/wrwr/history_oos.py`, output data/wrwr/hist
   chosen (2004-10; 2010 alone +51 R for the top-t configuration, a year the gate did not yet pass).
 - Reading: the selection has a small, real relative edge over random picks, not a profit after cost. Waiting for forward weeks would test the
   same thing; Test B (silver) is the independent check.
+
+## Plan step 2d closed: same-bar SL/TP ties (2026-09-30; research/wrwr/tie_bound.py, data/wrwr/tie_bound.log)
+Rule fixed before running: re-simulate every realised live trade of the four SHADOW configurations with the tie rule reversed (target first);
+if no configuration moves by more than 10 R and no lower bound of mean weekly R changes sign, keep stop-first; otherwise resolve the ties
+from finer data. Every re-simulation reproduced the stored gross to <= 0.0001 bp.
+| metal | config | trades | ties | total R (stop-first) | target-first bound | resolved (silver M1) |
+|---|---|---|---|---|---|---|
+| gold | F2-66 / 78 / 134 / 86 | 1009 / 843 / 1080 / 1082 | 1 / 1 / 5 / 3 | +67.5 / +87.4 / +7.2 / -29.3 | +3.9 / +3.9 / +6.2 / +2.8 | not needed |
+| silver | F2-66 / 78 / 134 / 86 | 721 / 558 / 666 / 570 | 0 / 1 / 4 / 7 | -34.2 / -0.1 / +12.5 / -30.7 | 0 / +2.8 / +4.3 / +12.9 | 0 / +2.8 / +4.3 / +6.8 |
+- Silver F2-86 exceeded the 10 R trigger, so its ties were resolved with HistData M1 (no silver ticks on disk): 5 target-first, 2 stop-first,
+  none inside a single M1 bar; total -30.7 -> -24.0 R. No lower bound changes sign anywhere. Stop-first is slightly pessimistic (at most about
+  +0.4 R per year) and changes no conclusion; tick resolution is not needed.
+
+## WRWR historical out-of-sample Test B: silver (2026-09-30; docs/WRWR_HISTORY_OOS_PREREG.md; research/wrwr/xag.py, xag_run.py)
+Data: HistData XAGUSD M1 2009-05..2026-09-24 (5,859,870 M1 bars, 0 dropped at DST changes, 5 M1 moves > 5 % kept) -> 103,394 H1 bars (median
+115 per week), Exness spread on 18,033 hours (2023-09+). Timezone checks PASS: HistData vs Exness close MAD 1.22 / 1.01 bp at shift 0 vs
+17-21 bp at +-1 h (summer / winter; the C5 info thresholds 2 bp / 1 bp are narrowly missed on MAD, two feeds); silver-gold H1 return
+correlation peaks at lag 0 in every year and DST half (0.50-0.84, lags +-1 h near 0). Builder bit-parity with the frozen gold tables: H4 zoo,
+H4 Family 2 and H1 Family 2 with 4 sessions all identical. Silver tables: Family 2 5,400 (H1) + 1,296 (H4) + 1,296 (D1) candidates, zoo H1
+2,232; 0 entries rejected at a cut; 830 active weeks 2010-02..2026-09.
+| endpoint | result |
+|---|---|
+| **B1 primary: Family 2 Reality Check on silver** | Stage S p 0.001 (V 6.82) -> **Stage F p 0.001 (V 6.87): PASS** |
+| **B2: F2-66 / F2-78 / F2-134 / F2-86 vs random router** | mean d +0.335 / +0.295 / +0.156 / +0.140 R per week, all p 0.001, **all Holm-significant** |
+| B2 cost gates | **all FAIL**: mean R per week -0.041 / -0.000 / +0.015 / -0.037, lower bounds -0.165 / -0.124 / -0.045 / -0.092 |
+| B2 totals 2010-26 | -34.2 / -0.1 / +12.5 / -30.7 R; eras 2010-14 / 2015-20 / 2021-26: F2-78 +44.1 / -0.5 / -43.7, F2-134 +39.3 / -10.1 / -16.7 |
+| B3 (C7 as frozen) zoo BASE | mean R -0.302 per week vs random -0.311, d +0.010 (lb -0.145), p 0.437, total -250.3 R: **FAIL** |
+| PBO (reported) | **0.830** (gold 0.449) |
+- Long / short (live trades): longs +0.07 to +0.14 R each for F2-66/78/134, shorts -0.06 to -0.15 R each (silver rose over the sample).
+- Cost decomposition (research/wrwr/xag_decompose.py): gross +86.6 / +77.7 / +52.3 / +2.2 R, cost -115.5 / -72.2 / -37.5 / -31.9 R, swap about -1 to -2 R;
+  cost 0.16 R per trade on H1 configurations, 0.06 on H4; zoo BASE gross -34.2 R, cost -215.1 R. Gold for comparison (in-sample 2004-26):
+  gross +189.1 / +177.1 / +57.8 / +19.0 R, cost -116.2 / -83.5 / -48.1 / -43.4 R.
+- Compounded at 1 % risk per trade (C2 equity): silver F2-66 -2.8 % per year (max DD 47 %), F2-78 -0.35 %, F2-134 +0.71 % (DD 32 %), F2-86 -2.0 %;
+  best silver configuration chosen in-sample +3.3 % per year (DD 46 %). Gold Test A procedure (out of sample 2010-26): -5.3 % per year, DD 61 %.
+- Exploratory, NOT pre-registered: the Test A year-by-year procedure applied to silver 2012-26 is also WEAK: adopts 2014-26, total -43.6 R,
+  mean R -0.068 per week (lb -0.143), mean d +0.224 (lb +0.111).
+- **Reading (pre-registered wording):** the gold selection skill replicates on silver in the RELATIVE sense (Reality Check p 0.001, every SHADOW
+  configuration beats the same-exit random router), but it pays no profit after cost on either metal and the choice among configurations is
+  overfit (PBO 0.83). Random picks lose heavily to cost (silver random router -0.09 to -0.39 R per week), and the selector mostly avoids that drag.
+  No alpha; Family 2 stays SHADOW only; the forward record continues unchanged (SHADOW digest re-checked: unchanged).
