@@ -284,3 +284,10 @@ Panel 3 re-frozen (the pre-PIT freeze archived `panel3_v1_prePIT`); panels 1-2 a
 - Addendum: for panel 3 a week is also DATA_GAP (factor 1) if fewer than 90 % of that week's HIGH USD
   releases with a forecast carry an actual in the point-in-time calendar (a failed calendar refresh can no
   longer masquerade as a no-trade OK week). Panel 3 re-frozen again (`panel3_v2_PIT` archived).
+
+## Amendment 15b (2026-09-30, after Codex round 17) - panel 3 fail-closed
+`docs/CODEX_R17_FOUNDRY_PANEL3.md`: no fallback to `calendar.csv` (a missing PIT log stops panel 3);
+a panel-3 week is DATA_GAP if the PIT calendar has no HIGH USD rows for it, does not reach the week's
+end, or has < 90 % actuals; `cal_sha` hashes every HIGH USD PIT row up to the week's end with
+event/currency/importance (all rows the trailing sigma can use); the timezone guard runs on the freshly
+dumped file and fails closed with fewer than 5 Claims rows. Panel 3 re-frozen (`panel3_v3_R16` archived).

@@ -244,7 +244,9 @@ def score(panel_file: Path, scores_file: Path):
                 pc = CP.load_pit()
                 wk_rel = pc[(pc.epoch > k) & (pc.epoch <= k + E.WEEK) & (pc.currency == "USD") & (pc.importance == "HIGH")
                             & pc.forecast.notna()]
-                cal_missing = len(wk_rel) > 0 and float(wk_rel.actual.notna().mean()) < 0.9
+                # R17: fail closed - no HIGH USD rows at all, a calendar not reaching the week's end, or < 90 % actuals
+                cal_missing = (len(wk_rel) == 0 or int(pc.epoch.max()) < k + E.WEEK
+                               or float(wk_rel.actual.notna().mean()) < 0.9)
             if nbar < 80 or max_gap > 72 or cal_missing:        # gap in the week, its settlement window, or its news data
                 status = "DATA_GAP"
             elif now > ready + LATE and not had_run_between(ready, ready + LATE):   # R15: only the first 8 days count
@@ -259,9 +261,10 @@ def score(panel_file: Path, scores_file: Path):
             ch = "none"
             if c["name"].startswith("NEWS_"):                      # R16: hash the calendar rows the week's signals used
                 import calendar_pit as CP
-                pc = CP.load_pit()
-                pc = pc[(pc.epoch > k - 400 * 3600) & (pc.epoch <= k + E.WEEK)]
-                ch = hashlib.sha256(pc[["value_id", "epoch", "actual", "forecast"]].to_csv(index=False, float_format="%.17g").encode()).hexdigest()[:16]
+                pc = CP.load_pit()                                 # R17: every row the signal can depend on (sigma uses all history)
+                pc = pc[(pc.epoch <= k + E.WEEK) & (pc.currency == "USD") & (pc.importance == "HIGH")]
+                ch = hashlib.sha256(pc[["value_id", "epoch", "event", "currency", "importance", "actual", "forecast"]]
+                                    .to_csv(index=False, float_format="%.17g").encode()).hexdigest()[:16]
             r = dict(name=c["name"], cell=c["cell"], week=str(pd.to_datetime(k, unit="s")), status=status, trades=len(w),
                      week_R_raw=wr, week_R_clip=gc, E=e, **{f"E_{l:g}": ci for l, ci in zip(lams, comp)},
                      reject=bool(e >= 1 / P["alpha_each"]), bars_sha=bh, cal_sha=ch, prev_sha=prev_sha, row_sha="",

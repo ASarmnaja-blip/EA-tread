@@ -1,0 +1,20 @@
+Verdict: Amendment 15 is only partially implemented; panel 3 is not yet fail-closed for the first forward sequence.
+
+- **R16-1 — FIXED.** The dump is merged by `value_id`; older rows survive and the old 90%-row-count rejection is gone. [run_weekly.py:89](C:/Users/66985/Documents/EA-tread/research/wpwb_weekly/run_weekly.py:89), [run_weekly.py:94](C:/Users/66985/Documents/EA-tread/research/wpwb_weekly/run_weekly.py:94), [run_weekly.py:106](C:/Users/66985/Documents/EA-tread/research/wpwb_weekly/run_weekly.py:106)
+
+- **R16-2 — PARTIAL.** Append-only writes, first-seen forecast/first non-null actual, and chronological `load_pit()` reconstruction are implemented correctly. [calendar_pit.py:48](C:/Users/66985/Documents/EA-tread/research/foundry/calendar_pit.py:48), [calendar_pit.py:54](C:/Users/66985/Documents/EA-tread/research/foundry/calendar_pit.py:54), [calendar_pit.py:59](C:/Users/66985/Documents/EA-tread/research/foundry/calendar_pit.py:59), [calendar_pit.py:66](C:/Users/66985/Documents/EA-tread/research/foundry/calendar_pit.py:66)  
+  However, panel 3 does **not** read only PIT: missing PIT falls back to mutable `calendar.csv`. [families.py:855](C:/Users/66985/Documents/EA-tread/research/foundry/families.py:855)  
+  `cal_sha` exists, but hashes only `value_id/epoch/actual/forecast` and only a 400-hour lookback. It does not bind `event`, `currency`, `importance`, or the full historical observations used for trailing sigma. [forward_panel.py:260](C:/Users/66985/Documents/EA-tread/research/foundry/forward_panel.py:260), [calendar_feed.py:142](C:/Users/66985/Documents/EA-tread/research/foundry_frozen_panel3/calendar_feed.py:142), [calendar_feed.py:185](C:/Users/66985/Documents/EA-tread/research/foundry_frozen_panel3/calendar_feed.py:185)
+
+- **R16-3 — PARTIAL.** NEWS weeks below 90% actual coverage become `DATA_GAP`, and only `OK` updates the e-process. [forward_panel.py:242](C:/Users/66985/Documents/EA-tread/research/foundry/forward_panel.py:242), [forward_panel.py:248](C:/Users/66985/Documents/EA-tread/research/foundry/forward_panel.py:248), [forward_panel.py:254](C:/Users/66985/Documents/EA-tread/research/foundry/forward_panel.py:254)  
+  The empty-denominator case is incorrectly treated as complete: `len(wk_rel) == 0` makes `cal_missing=False`.
+
+- **R16-4 — PARTIAL.** The 90% Claims-time test exists and blocks PIT appends, but it examines the already merged full history, not specifically the refreshed dump; old correct rows can dilute bad new timestamps. It also passes when fewer than five Claims rows exist. [calendar_pit.py:34](C:/Users/66985/Documents/EA-tread/research/foundry/calendar_pit.py:34), [calendar_pit.py:43](C:/Users/66985/Documents/EA-tread/research/foundry/calendar_pit.py:43), [run_weekly.py:108](C:/Users/66985/Documents/EA-tread/research/wpwb_weekly/run_weekly.py:108), [run_weekly.py:114](C:/Users/66985/Documents/EA-tread/research/wpwb_weekly/run_weekly.py:114)
+
+- **R16-5 — FIXED.** All four ledger hypotheses now say floored or explicitly `max(R,-2)`, not clipped. [ALPHA_LEDGER.md:32](C:/Users/66985/Documents/EA-tread/docs/ALPHA_LEDGER.md:32), [ALPHA_LEDGER.md:35](C:/Users/66985/Documents/EA-tread/docs/ALPHA_LEDGER.md:35)
+
+- **Frozen snapshot — FIXED.** It contains and forcibly binds its own `calendar_feed.py` and `calendar_pit.py` before families load; runtime resolution and the manifest hash both match the frozen directory. [engine.py:21](C:/Users/66985/Documents/EA-tread/research/foundry_frozen_panel3/engine.py:21), [engine.py:25](C:/Users/66985/Documents/EA-tread/research/foundry_frozen_panel3/engine.py:25)
+
+**New first-weeks invalidator:** the current PIT seed has no qualifying HIGH-USD forecast rows in forward week 2 and ends on 2026-10-12. If refreshes fail, the empty-set condition yields `OK`/zero trade rather than `DATA_GAP`, exactly what the addendum intended to prevent. [forward_panel.py:245](C:/Users/66985/Documents/EA-tread/research/foundry_frozen_panel3/forward_panel.py:245), [calendar_pit.csv:33110](C:/Users/66985/Documents/EA-tread/data/foundry/shadow/calendar_pit.csv:33110)
+
+No files edited.

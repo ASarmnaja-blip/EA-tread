@@ -111,7 +111,7 @@ def dump_calendar():
     merged.to_csv(CAL, index=False, encoding="utf-8")
     log(f"calendar merged: {len(raw_new):,} dumped rows into {len(merged):,} total, to {new.time.max()}")
     try:  # point-in-time calendar for the news panel (append-only, first-published actuals)
-        r = subprocess.run([PY, str(ROOT / "research" / "foundry" / "calendar_pit.py")], cwd=ROOT,
+        r = subprocess.run([PY, str(ROOT / "research" / "foundry" / "calendar_pit.py"), str(DUMP)], cwd=ROOT,
                            capture_output=True, text=True, encoding="utf-8", timeout=600)
         log(f"calendar_pit.py exit {r.returncode}: {r.stdout.strip()[-300:]}")
     except Exception as e:

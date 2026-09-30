@@ -34,15 +34,16 @@ def _load_calendar(path):
 def tz_ok(cal):
     x = cal[cal.event == "Initial Jobless Claims"]
     if len(x) < 5:
-        return True, "too few claims rows to check"
+        return False, f"only {len(x)} claims rows in the refreshed dump - cannot verify the timezone (fail closed)"
     t = pd.to_datetime(x.epoch, unit="s")
     share = float(((t.dt.minute == 30) & t.dt.hour.isin([12, 13])).mean())
     return share >= 0.9, f"claims at 12:30/13:30 UTC: {share:.0%}"
 
 
-def update(calendar_csv=ROOT / "data" / "calendar.csv"):
+def update(calendar_csv=ROOT / "data" / "calendar.csv", check_csv=None):
+    """check_csv: the freshly dumped file; the timezone guard runs on IT (R17), not on the merged history."""
     cal = _load_calendar(calendar_csv)
-    ok, why = tz_ok(cal)
+    ok, why = tz_ok(_load_calendar(check_csv) if check_csv else cal)
     if not ok:
         print("calendar_pit: TIMEZONE GUARD FAILED -", why, "- nothing appended"); return 1
     old = pd.read_csv(PIT) if PIT.exists() and PIT.stat().st_size > 0 else pd.DataFrame(columns=COLS)
@@ -72,4 +73,4 @@ def load_pit():
 
 
 if __name__ == "__main__":
-    sys.exit(update())
+    sys.exit(update(check_csv=sys.argv[1] if len(sys.argv) > 1 else None))
