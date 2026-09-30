@@ -1,0 +1,20 @@
+stage S: 144 configurations, 500 paths each, T = 1164 active weeks
+benchmark Monte Carlo SE of the time-averaged weekly B (R): max 0.0039  (contract target < 0.01)
+Reality Check (mean block 10): V = 4.72  p = 0.003
+Reality Check (mean block  4): V = 4.72  p = 0.001
+Reality Check (mean block 26): V = 4.72  p = 0.002
+top 8 configurations by studentized mean(d):
+  cfg 134 78w z2.0 H4 m2 eq 0: mean d +0.1331, t +4.72, p_each 0.001, lb95 +0.0835, mean R +0.0062, mean B -0.1269
+  cfg  86 52w z2.0 H4 m2 eq 0: mean d +0.1171, t +4.31, p_each 0.001, lb95 +0.0648, mean R -0.0251, mean B -0.1422
+  cfg  84 52w z2.0 H4 m1 eq 0: mean d +0.0734, t +4.09, p_each 0.001, lb95 +0.0420, mean R +0.0000, mean B -0.0733
+  cfg 132 78w z2.0 H4 m1 eq 0: mean d +0.0653, t +3.74, p_each 0.001, lb95 +0.0358, mean R +0.0004, mean B -0.0650
+  cfg  66 52w z1.0 H1 m2 eq 0: mean d +0.2609, t +3.70, p_each 0.002, lb95 +0.1164, mean R +0.0580, mean B -0.2029
+  cfg 130 78w z2.0 H1 m2 eq 0: mean d +0.1823, t +3.63, p_each 0.001, lb95 +0.0949, mean R -0.0445, mean B -0.2268
+  cfg  78 52w z1.0 H1+H4+D1 m2 eq 0: mean d +0.2169, t +3.52, p_each 0.002, lb95 +0.0970, mean R +0.0751, mean B -0.1418
+  cfg 114 78w z1.0 H1 m2 eq 0: mean d +0.1946, t +3.51, p_each 0.002, lb95 +0.0884, mean R -0.0280, mean B -0.2226
+BASE alone: mean R +0.0580/wk, benchmark -0.2029/wk, mean d +0.2609, one-sided p 0.001, 95% lower bound +0.1164  (pass needs p <= 0.05 and lb95 > 0)
+PBO = 0.449, bootstrap upper 95% = 0.586  (robust needs upper <= 0.20; lower bound >= 0.50 = stop)
+  cost gate cfg 66: base mean +0.0580 (lb95 -0.0739), +2bp mean +0.0063, DD 0.59 -> 0.70, FAIL
+  cost gate cfg 134: base mean +0.0062 (lb95 -0.0397), +2bp mean -0.0123, DD 0.20 -> 0.23, FAIL
+  cost gate cfg 86: base mean -0.0251 (lb95 -0.0703), +2bp mean -0.0344, DD 0.43 -> 0.48, FAIL
+  cost gate cfg 84: base mean +0.0000 (lb95 -0.0342), +2bp mean -0.0113, DD 0.18 -> 0.26, FAIL

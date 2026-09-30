@@ -810,3 +810,20 @@ same-exit-configuration eligible candidate; 4 workers, 345 s) and `analyze_gates
   (long-biased clock / level candidates) rather than a setup; diagnostics follow, and endpoints 3-4 (PBO, cost gate) and Stage F
   (2,000 paths) are pending. Two families have now been tested; with a Bonferroni split of alpha across the two pre-registered
   families the family-claim threshold would be 0.025.
+
+### Family 2: endpoints 3-4 and the Auditor's drift / timing diagnostics (2026-09-30)
+- **PBO = 0.449** (the 999-replicate outer bootstrap upper value 0.586 is biased by repeated weeks, see the zoo entry) -> robust criterion (upper <= 0.20) **NOT MET**.
+- **Cost gate FAIL for all four configurations tested**: 52w z1 H1 m2 (BASE-equivalent): mean +0.058 R/week, 95% lower bound -0.074, +2 bp
+  +0.006, DD 59 % -> 70 %; 78w z2 H4 m2: +0.006 (lb -0.040), +2 bp -0.012; 52w z2 H4 m2: -0.025; 52w z2 H4 m1: 0.000 (lb -0.034).
+  None has a positive lower bound on its mean weekly net R.
+- **What the champions are** (`diag_f2.py`; descriptive): the BASE-equivalent is 1,009 live trades, **long trades +85.1 R (+0.155 R each) vs short trades
+  +3.6 R (+0.008 R each)**; mostly FOLLOW (75 %), H1 1:10 and 1:5 exits, from nr7_break, tom, inside_break, squeeze_break and round100_x;
+  52w z1 H1+H4+D1: long +114.6 R, short +17.0 R. The H4 configurations with the largest Reality Check t (78w z2 H4 m2) are direction
+  neutral (long -4 R, short +5 R, total +7 R over 22 years).
+- **Timing control** (`diag_drift.py`: each live trade re-simulated at 30 random other bars of the same week, same direction, same entry hour for
+  H1, same exit shape): BASE-equivalent actual +0.088 R/trade vs matched -0.055, excess +0.143 R/trade (long +0.185, short +0.092),
+  weekly-cluster t = +1.42 over 497 weeks (not significant); H1+H4+D1 52w z1: excess +0.167, t +1.63; **H4 78w z2 m2: excess -0.063 R/trade
+  (t -1.67) - its positive d versus the random router comes from choosing directions, not from timing.** Reading: the Reality Check
+  significance of Family 2 is mostly direction persistence (the selector keeps the side that recently worked, which in gold's
+  uptrends is long) plus cheap wide exits; signal timing adds a positive but statistically weak increment on H1; absolute
+  profits after cost are small (about +3 to +4 R per year for the best configurations) and no lower bound is positive.
