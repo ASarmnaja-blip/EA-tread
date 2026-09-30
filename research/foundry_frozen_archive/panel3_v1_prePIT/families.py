@@ -853,8 +853,7 @@ def news_accept_fade(H, move_atr=1.0, hold_h=24, zmin=0.5):
     implied direction (the market 'accepted' the news), FADE the move: enter at the next bar's open,
     exit at the last bar opening within hold_h - 1 clock hours, stop 2 ATR."""
     import calendar_feed as C
-    import calendar_pit as CP                  # R16: point-in-time calendar (actual as first published)
-    cal = CP.load_pit() if CP.PIT.exists() else C.load_calendar(str(E_ROOT / "data" / "calendar.csv"))
+    cal = C.load_calendar(str(E_ROOT / "data" / "calendar.csv"))
     ev = [e for e in C.build_events(cal) if e.usable]
     if not ev:
         return Spec(f"NEWS_ACCEPT_FADE_m{move_atr}_h{hold_h}", "H1", [], [], [], [], [])

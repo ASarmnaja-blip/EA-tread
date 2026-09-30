@@ -47,11 +47,11 @@ SETTLE = 6 * 86400          # feed must extend this far past a week's end before
 LATE = 8 * 86400
 CELLS = ["ALL", "NOTCALM/*", "HIGH/*"]
 FIELDS = ["name", "cell", "week", "status", "trades", "week_R_raw", "week_R_clip", "E"] + [f"E_{l:g}" for l in LAMS] + \
-         ["reject", "bars_sha", "prev_sha", "row_sha", "recorded_utc"]
+         ["reject", "bars_sha", "cal_sha", "prev_sha", "row_sha", "recorded_utc"]
 SNAP_FILES = {"engine.py": "research/foundry/engine.py", "families.py": "research/foundry/families.py",
               "forward_panel.py": "research/foundry/forward_panel.py", "vol.py": "research/wpwb_weekly/vol.py",
               "build_all_tf.py": "research/history/build_all_tf.py", "external_traces.py": "research/pilot/external_traces.py",
-              "calendar_feed.py": "research/pilot/calendar_feed.py"}
+              "calendar_feed.py": "research/pilot/calendar_feed.py", "calendar_pit.py": "research/foundry/calendar_pit.py"}
 
 
 def universe(H, D):
@@ -84,7 +84,7 @@ def dir_hash(d: Path) -> str:
     return h.hexdigest()
 
 
-TEXT_FIELDS = {"name", "cell", "week", "status", "bars_sha", "prev_sha", "row_sha", "recorded_utc"}
+TEXT_FIELDS = {"name", "cell", "week", "status", "bars_sha", "cal_sha", "prev_sha", "row_sha", "recorded_utc"}
 BOOL_FIELDS = {"reject"}
 
 
@@ -249,9 +249,15 @@ def score(panel_file: Path, scores_file: Path):
             bars = (H.t > k - 400 * 3600) & (H.t <= k + E.WEEK + SETTLE)
             bh = hashlib.sha256(np.round(np.c_[H.t[bars], H.o[bars], H.h[bars], H.l[bars], H.c[bars]], 4).tobytes()).hexdigest()[:16]
             e = float(np.mean(comp))
+            ch = "none"
+            if c["name"].startswith("NEWS_"):                      # R16: hash the calendar rows the week's signals used
+                import calendar_pit as CP
+                pc = CP.load_pit()
+                pc = pc[(pc.epoch > k - 400 * 3600) & (pc.epoch <= k + E.WEEK)]
+                ch = hashlib.sha256(pc[["value_id", "epoch", "actual", "forecast"]].to_csv(index=False, float_format="%.17g").encode()).hexdigest()[:16]
             r = dict(name=c["name"], cell=c["cell"], week=str(pd.to_datetime(k, unit="s")), status=status, trades=len(w),
                      week_R_raw=wr, week_R_clip=gc, E=e, **{f"E_{l:g}": ci for l, ci in zip(lams, comp)},
-                     reject=bool(e >= 1 / P["alpha_each"]), bars_sha=bh, prev_sha=prev_sha, row_sha="",
+                     reject=bool(e >= 1 / P["alpha_each"]), bars_sha=bh, cal_sha=ch, prev_sha=prev_sha, row_sha="",
                      recorded_utc=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"))
             r["row_sha"] = row_hash(r)
             prev_sha = r["row_sha"]

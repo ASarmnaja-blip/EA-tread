@@ -88,13 +88,34 @@ def dump_calendar():
     import calendar_feed
     new = calendar_feed.load_calendar(str(DUMP))
     old = calendar_feed.load_calendar(str(CAL))
-    if len(new) < 0.9 * len(old) or new.epoch.max() < old.epoch.max():
-        log(f"new dump rejected: rows {len(new)} vs {len(old)}, max {new.time.max()} vs {old.time.max()}")
+    # Codex R16: the dump starts 2025-04 while the file starts 2022, so MERGE instead of replacing:
+    # rows of the new dump replace the same value_id, older rows are kept. Reject only a dump that ends
+    # before the current file or that is empty.
+    if len(new) == 0 or new.epoch.max() < old.epoch.max():
+        log(f"new dump rejected: rows {len(new)}, max {new.time.max() if len(new) else None} vs {old.time.max()}")
         return False
+    import pandas as pd
+    import io
+
+    def _txt(pth):                      # MQL5 writes the ANSI codepage; the merged file keeps UTF-8
+        raw = pth.read_bytes()
+        try:
+            return raw.decode("utf-8")
+        except UnicodeDecodeError:
+            return raw.decode("cp1252")
+    raw_old = pd.read_csv(io.StringIO(_txt(CAL)), dtype=str, keep_default_na=False)
+    raw_new = pd.read_csv(io.StringIO(_txt(DUMP)), dtype=str, keep_default_na=False)
+    merged = pd.concat([raw_old[~raw_old.value_id.isin(set(raw_new.value_id))], raw_new]).sort_values(["time", "value_id"], kind="stable")
     BACKUPS.mkdir(parents=True, exist_ok=True)
     shutil.copy2(CAL, BACKUPS / f"calendar_{datetime.now():%Y%m%d_%H%M}.csv")
-    shutil.copy2(DUMP, CAL)
-    log(f"calendar refreshed: {len(new):,} rows to {new.time.max()}")
+    merged.to_csv(CAL, index=False, encoding="utf-8")
+    log(f"calendar merged: {len(raw_new):,} dumped rows into {len(merged):,} total, to {new.time.max()}")
+    try:  # point-in-time calendar for the news panel (append-only, first-published actuals)
+        r = subprocess.run([PY, str(ROOT / "research" / "foundry" / "calendar_pit.py")], cwd=ROOT,
+                           capture_output=True, text=True, encoding="utf-8", timeout=600)
+        log(f"calendar_pit.py exit {r.returncode}: {r.stdout.strip()[-300:]}")
+    except Exception as e:
+        log(f"calendar_pit error: {e!r}")
     return True
 
 

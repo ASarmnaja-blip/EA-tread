@@ -262,3 +262,22 @@ mean of the floored week R <= 0. Panels 1-3 and the portfolio re-frozen (R15 fre
 `*_v5_R15`); manifest re-issued. The Auditor section of the Thai weekly summary compares each
 candidate's forward mean with its 2021-26 expectation (`data/foundry/shadow/expectations.json`) and
 flags a shortfall beyond 2 standard errors after >= 8 weeks - a warning, not a test.
+
+## Amendment 15 (2026-09-30, after Codex round 16, before the first forward week)
+`docs/CODEX_R16_FOUNDRY_PANEL3.md`, all findings accepted:
+- **Calendar refresh (R16-1):** the weekly job now MERGES each MT5 dump into `data/calendar.csv` by
+  value_id (older rows kept) instead of replacing it and rejecting dumps with fewer rows; the MQL5 script's
+  default start (2025-04) can no longer block the refresh.
+- **Point-in-time calendar (R16-2):** `research/foundry/calendar_pit.py` keeps an append-only log
+  `data/foundry/shadow/calendar_pit.csv`; per release it keeps the forecast of its first sighting and the
+  actual of its first sighting with an actual - later revisions of a published actual are never applied.
+  Panel 3 reads only this file, and each panel-3 score row carries `cal_sha`, a hash of the calendar rows of
+  that week. Seeded 2026-09-30 from the current calendar (33,113 releases); history before the forward
+  start therefore uses today's values, forward releases their first-published values.
+- **Timezone guard (R16-4):** a refresh is appended to the PIT log only if Initial Jobless Claims sit at
+  12:30 / 13:30 UTC in >= 90 % of rows (08:30 New York); otherwise nothing is appended.
+- **Eligibility (R16-3):** the null is stated conditionally: E[g_t | past, week t eligible] <= 0, where
+  eligibility (feed completeness, job running) is decided from data-feed and run-log facts, not from any
+  price outcome; weeks that are not eligible get factor 1.
+- **Ledger text (R16-5):** the four H-FOUNDRY entries now describe the floored statistic.
+Panel 3 re-frozen (the pre-PIT freeze archived `panel3_v1_prePIT`); panels 1-2 and the portfolio unchanged.
