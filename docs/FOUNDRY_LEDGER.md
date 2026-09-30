@@ -673,3 +673,17 @@ Candidate caches now H1 + H4 + D1 (Dukascopy 2003-26) + M15 + M5 (Exness 2021-26
   top 8, skip CALM, DD 90 R); best return/DD +126 R with DD 15 R (H4+D1 SL2 pool) but that configuration loses -85 R
   over 2004-26.
 - M5/M15 pools on their own are not in any top-5 table; M15 appears only mixed with H1.
+
+## WRWR compounding by timeframe (operator 2026-09-30: "Tf ไหนทำผลทาง finance ทบต้นได้ดีที่สุด")
+`research/foundry/wrwr_compound.py` -> data/foundry/wrwr_compound.{xlsx,png,log}. Weekly compounding equity *= 1 + f x R_week,
+f in 0.25-3% per trade; "best" = highest CAGR with max DD <= 30% over 144 selector settings per pool (in-sample).
+| pool | best CAGR full 2004-26 | best CAGR 5y | best CAGR 3y | pre-registered rule at 1%: 5y / 3y CAGR |
+|---|---|---|---|---|
+| M5 (2021+) | 1.5% | 16.8% (DD 27%) | 29.6% | 16.8% / 29.5% (DD 30%) |
+| M15 (2021+) | 0.5% | 4.1% | 30.8% | -50% / -42% |
+| H1 | 8.7% (DD 29%, x6.4) | 14.2% | 24.7% | -6.8% / 5.2% |
+| H4 | 3.3% | 19.2% | 55.7% (DD 25%, x3.8) | 7.8% / 27.1% |
+| D1 | 2.7% | 17.9% | 40.1% | 1.7% / 2.6% |
+| ALL 5 TF | 6.4% | 29.1% (DD 26%, x3.6) | 57.7% (DD 26%, x3.9) | 8.3% / 34.1% |
+Best single TF recently = H4; over 2004-26 = H1; pooling all five TFs is best in every window. All "best" figures are
+hindsight settings; pre-registered-rule figures are not tuned.
