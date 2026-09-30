@@ -1,5 +1,8 @@
 # แผนหลัก WRWR รอบใหม่ (2026-09-30) — แก้บั๊ก → ตรวจทั้งระบบ → ทดสอบกับเงิน → บันทึกกระดาษ → ตะแกรง
 
+> **ลำดับความสำคัญ (Amendment 2, หลัง Codex R18b):** Amendment 1–2 และ `docs/WRWR_CONTRACT_PREREG.md` (v2) มีผลเหนือทุกข้อในส่วน B–F ที่ขัดกัน เช่น K = 20, PBO ≤ 0.30, XAG p < 0.10, การแก้ B4 แบบมีเงื่อนไข, กติกาบันทึกกระดาษเดิม, "placebo BASE ≈ 0R", ตาราง "กำไร/DD" และตัวเลข "~20 เท่า/ปีแบบทบ" — ส่วนเหล่านั้นถูกยกเลิก ใช้ C6–C10 แทน
+
+
 ## Context
 ผู้ใช้ต้องการระบบ WRWR (ชื่อใหม่ของ WPWB) ที่ย้อนหลังได้กำไร และเลือกตัวเต็งให้ทุกสัปดาห์ ตอนนี้ผลที่ดูดีส่วนใหญ่
 **ยังเป็น in-sample** และเพิ่งเจอบั๊ก look-ahead ใน equity filter แผนนี้จัดลำดับตามที่ผู้ใช้สั่ง และกำหนดเกณฑ์ผ่าน/หยุด
@@ -164,3 +167,15 @@ versioned trade-table caches (H1/H4/D1) with every fix -> 3 Codex read-only re-a
 4 SPA / PBO / cost gates (path null in background) -> 5 freeze candidate hashes and rules; start paper logging (SHADOW) ->
 6 XAG readout (downloaded in step 1, opened only now) -> 7 alpha request to the operator if gates pass -> 8 sieve.
 Step −1 is closed when Codex confirms no BLOCKING item remains at plan level (R18b).
+
+## Amendment 2 — response to Codex R18b (`docs/CODEX_R18b_MASTER_PLAN.md`)
+All 12 R18b findings accepted; `docs/WRWR_CONTRACT_PREREG.md` rewritten as v2: C1 bars must be closed by the cut, entries
+open strictly after it, event order exits -> selection -> entries, straddling-bar test (R18b-2); C2 potential-signal
+table, U_k, -3U_k entry stop, 3xf stop-dollar cap incl. former champions, 1:100 free-margin test, skip semantics
+(R18b-1); C3 exact causal B_REF (R18b-3); C4 full MT5 symbol contract hashed, XAU swap calibration kept and reconciled,
+XAG markup -0.20%, candidate-independent pre-2023 XAG cost (R18b-5); C5 numeric splice tests (R18b-4); C6 144-config
+deployable family, configuration-specific random-router benchmark with 10,000 seeded paths, studentized White Reality
+Check with stationary bootstrap block 10 K = 999 (R18b-7); C6-C7 single methods for PBO bound, XAG lower bound, maxT;
+5-week CSCV embargo (R18b-8); C8 winsorised payoff wording, two independent shadow portfolios, 1/3 lambda weights, SEL
+fixed before XAG, outcome-blind DATA_GAP, shifted-mean LCB, rules frozen for 52 weeks (R18b-10, R18b-12); C10 replaces
+the old target table (R18b-11); C11 exact sieve contract (R18b-9); precedence clause added at the top (R18b-6).
