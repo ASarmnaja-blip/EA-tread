@@ -117,9 +117,10 @@ def champions(sc, pool_mask, m, rank_key, active):
     return out
 
 
-def simulate(P, champs, vol_scale, f=0.01, equity0=10_000.0, stress=False, log=None):
+def simulate(P, champs, vol_scale, f=0.01, equity0=10_000.0, stress=False, log=None, rules=True, weekstop=True):
     """Event-driven live ledger. champs[k] = ranked champion ids for week k (entries in (cut_k, cut_{k+1})).
-    Returns weekly R (exits in (cut_k, cut_{k+1}] / U_k), equity at each cut, and counters."""
+    Returns weekly R (exits in (cut_k, cut_{k+1}] / U_k), equity at each cut, and counters.
+    rules=False is a DIAGNOSTIC only (no week stop, caps, margin or lot rounding, equity held fixed); never a result."""
     cuts = P.cuts; NW = len(cuts)
     equity = equity0
     open_pos = {}                        # pos id -> [cand, exit_t, pnl$, stop$, margin$]
@@ -130,7 +131,7 @@ def simulate(P, champs, vol_scale, f=0.01, equity0=10_000.0, stress=False, log=N
     cnt = dict(entries=0, skip_busy=0, skip_weekstop=0, skip_riskcap=0, skip_margin=0, skip_minlot=0)
     Rarr = P.R_stress if stress else P.R
     for k in range(NW - 1):
-        U = f * equity; eq_cut[k] = equity; realised = 0.0
+        U = f * (equity if rules else equity0); eq_cut[k] = equity; realised = 0.0
         t_end = cuts[k + 1]
         ev = []
         for rank, c in enumerate(champs[k] if k < len(champs) else []):
@@ -153,17 +154,17 @@ def simulate(P, champs, vol_scale, f=0.01, equity0=10_000.0, stress=False, log=N
             _, _, rank, _, c, i = ev[ei]; ei += 1
             if c in live_busy:
                 cnt["skip_busy"] += 1; continue
-            if realised <= -3 * U:
+            if rules and weekstop and realised <= -3 * U:
                 cnt["skip_weekstop"] += 1; continue
-            risk = f * equity * vol_scale[k]
-            lots = np.floor(risk / (P.stop_px[c][i] * P.contract) / LOT_STEP + 1e-9) * LOT_STEP
+            risk = f * (equity if rules else equity0) * vol_scale[k]
+            lots = np.floor(risk / (P.stop_px[c][i] * P.contract) / LOT_STEP + 1e-9) * LOT_STEP if rules else                 risk / (P.stop_px[c][i] * P.contract)
             if lots < MIN_LOT - 1e-12:
                 cnt["skip_minlot"] += 1; continue
             stop_d = lots * P.stop_px[c][i] * P.contract
-            if sum(v[3] for v in open_pos.values()) + stop_d > 3 * f * equity + 1e-9:
+            if rules and sum(v[3] for v in open_pos.values()) + stop_d > 3 * f * equity + 1e-9:
                 cnt["skip_riskcap"] += 1; continue
             margin = lots * P.contract * P.entry_px[c][i] / K.LEVERAGE_FROZEN
-            if equity - sum(v[4] for v in open_pos.values()) - margin < 0.5 * equity:
+            if rules and equity - sum(v[4] for v in open_pos.values()) - margin < 0.5 * equity:
                 cnt["skip_margin"] += 1; continue
             pnl = Rarr[c][i] * stop_d
             open_pos[pid] = [c, P.exit_t[c][i], pnl, stop_d, margin]

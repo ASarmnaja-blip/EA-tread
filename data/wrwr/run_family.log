@@ -1,0 +1,23 @@
+pool: 6696 candidates, 10s
+  1/144 {'window': 26, 'lcb_z': 0.5, 'pool': 'H1', 'm': 1, 'equity_filter': 0, 'min_trades': 10} entries 1868 (31s)
+  25/144 {'window': 26, 'lcb_z': 1.0, 'pool': 'D1', 'm': 1, 'equity_filter': 0, 'min_trades': 10} entries 512 (33s)
+  49/144 {'window': 52, 'lcb_z': 0.5, 'pool': 'H1', 'm': 1, 'equity_filter': 0, 'min_trades': 10} entries 1980 (34s)
+  73/144 {'window': 52, 'lcb_z': 1.0, 'pool': 'D1', 'm': 1, 'equity_filter': 0, 'min_trades': 10} entries 364 (35s)
+  97/144 {'window': 78, 'lcb_z': 0.5, 'pool': 'H1', 'm': 1, 'equity_filter': 0, 'min_trades': 10} entries 2006 (36s)
+  121/144 {'window': 78, 'lcb_z': 1.0, 'pool': 'D1', 'm': 1, 'equity_filter': 0, 'min_trades': 10} entries 245 (38s)
+
+family sha256 fb28ac097eee30b5904185dec3e5771b5d620eae616955722707c6b055b6bf59; 144 configurations; 1164 active weeks
+BASE (corrected): {'total_R': -224.11681360844966, 'R_per_year': -10.0467485688049, 'maxDD_R': 220.295748863481, 'calmar': -0.04560573057190925, 'CAGR': -0.1191823785172631, 'maxDD_pct': 0.9410410185192797, 'L5_R': -66.70818941410138, 'L3_R': -23.835000392543655, 'R_2004-08': -84.36657865683321, 'R_2009-14': -9.46595648065536, 'R_2015-20': -57.840731589247426, 'R_2021-26': -72.44354688171364, 'entries': 3850, 'skip_busy': 5213, 'skip_minlot': 2355, 'skip_riskcap': 1, 'skip_weekstop': 1506}
+BASE (old walk-forward, entry-week, unit R): +182.6 R 2004-26; eras +5.5 / +112.2 / +42.9 / +22.1
+ window  lcb_z     pool  m  equity_filter  total_R  R_per_year  maxDD_R  calmar  CAGR    L5_R    L3_R
+     78    2.0       H1  2              0  107.008       4.797   95.650   0.050 0.028 -40.835 -16.220
+     78    2.0       H1  2             26   85.413       3.829   56.290   0.068 0.025  10.382  10.382
+     26    0.5       H4  1              0   77.469       3.473   27.554   0.126 0.027  30.344  44.210
+     78    2.0 H1+H4+D1  2              0   63.205       2.833   28.128   0.101 0.025  24.342  23.819
+     26    1.0       H4  1              0   58.909       2.641   30.686   0.086 0.019  29.164  27.787
+     26    0.5       H4  1             26   44.761       2.007   32.790   0.061 0.016  19.029  15.657
+     78    2.0       H4  2             26   42.664       1.913   41.843   0.046 0.014   8.432  16.120
+     78    0.5       D1  2             26   42.096       1.887   25.700   0.073 0.017  29.304  32.408
+     78    0.5       H1  2             26   41.439       1.858   89.552   0.021 0.006  24.917  24.917
+     26    1.0 H1+H4+D1  2             26   39.863       1.787   51.092   0.035 0.011  15.194  22.090
+done 40s

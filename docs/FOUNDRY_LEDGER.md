@@ -715,3 +715,23 @@ and M15 once those caches were loaded; the v3 statement "best 3-year return/DD =
 known defects of the WRWR numbers above (entry-week equity filter, EN>0 week filter, future-derived B_REF in vol_scale,
 shadow-vs-live position state, weekly compounding) are listed in docs/CODEX_R18_MASTER_PLAN.md; every WRWR figure in
 this ledger before this note is provisional until the corrected simulator (docs/WRWR_CONTRACT_PREREG.md) reruns it.
+
+## WRWR corrected simulator — first run and BASE reconciliation (2026-09-30; plan step 1 stop rule triggered)
+Code `research/wrwr/` (contracts, signals, portfolio, run_family; contract and portfolio tests pass; Codex R18e OK TO START).
+Potential-signal tables: gold H1 25.8M, H4 6.9M, D1 1.26M signal rows (2,232 candidates each). Family sha256
+fb28ac097eee30b5904185dec3e5771b5d620eae616955722707c6b055b6bf59 (144 deployable configurations), 1,164 active weeks.
+- **BASE corrected (C2 + C4 + causal vol_scale, f = 1%, $10,000): -224.1 R 2004-26 (-10.0 R/yr), CAGR -11.9%, max DD 94%;**
+  eras -84 / -9 / -58 / -72 R; last 5 years -66.7 R, last 3 years -23.8 R. Old walk-forward BASE was +182.6 R.
+- Decomposition (`research/wrwr/decompose_base.py`), the > 20% change rule of the plan:
+  | step | BASE 2004-26 |
+  |---|---|
+  | old accounting (shadow trades by entry week, flat 2 bp, old B_REF) rebuilt on the new tables | +178.0 R (reproduces +182.6) |
+  | corrected live ledger, flat 2 bp, weekly -3U entry stop OFF | +180.3 R (B1-B5 fixes ~ neutral for BASE) |
+  | + weekly -3U entry stop (C2 Risk Manager rule) | +18.1 R |
+  | + C4 costs (recorded Dukascopy spread + 1 bp; median spread 10.4 bp in 2004, 5.3 in 2008, ~2 from 2012) | -224.1 R |
+  Not a bug: the loss comes from the pre-registered weekly stop (high-RR champions lose several 1R trades before a
+  winner) and from realistic historical spreads. Neither rule is changed after seeing this; the no-weekly-stop run is a
+  disclosed sensitivity only.
+- Best of the 144 (descriptive, not a gate): 78w LCB z2 H1 m2 +107 R (4.8 R/yr, max DD 96 R, last 5 years -41 R);
+  26w z0.5 H4 m1 +77 R (3.5 R/yr, DD 28 R, last 3 years +44 R); 78w z2 H1+H4+D1 m2 +63 R (DD 28 R). None reaches the
+  C10 "usable" tier (10 R/yr).
