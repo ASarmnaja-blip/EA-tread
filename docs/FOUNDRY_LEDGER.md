@@ -659,3 +659,17 @@ skipped vol classes). No Grid/Martingale/averaging; sizes only shrink.
 wrwr_champion_now.md: every week's WRWR regime, vol_scale and champions for BASE and IS. Week of the 2026-09-25 cut:
 NORMAL/FLAT, vol_scale 0.63; BASE trades ParabolicSAR_flip FOLLOW SL2 1:5 72h + MACD_signal_cross FOLLOW SL1 1:10 24h;
 IS stands aside (its last 26 weeks are negative). Paper only.
+
+## WRWR optimiser v2/v3 (operator 2026-09-30: "ดีไม่พอ", "เอา tf เล็ก m5/m15", "ผมอยากได้ข้อมูล 5 ปีและ 3 ปี")
+Candidate caches now H1 + H4 + D1 (Dukascopy 2003-26) + M15 + M5 (Exness 2021-26), 2,232 each, leak check PASS each.
+`wrwr_optimize3.py` (184,320 configs) -> data/foundry/wrwr_system_v3.{xlsx,png,log}. Numbers net of cost and swap.
+- Full 2004-26: walk-forward over configs (year uses best of prior 4 years) +605 R (+31.8 R/yr, 63% positive years;
+  eras +235 / +339 / -92 / +123). In-sample best +1,159 R (52w LCB z2, H1 pool, top 8, 13w equity filter, DD 128 R).
+  Best return/DD in-sample: 78w LCB z2, SL 2 ATR pool, top 8, 26w equity filter: +823 R, DD 65 R, worst year -23 R, 70% positive years.
+- Last 5 years (2021-09 .. 2026-08): pre-registered baseline -14.6 R (2 of 5 years positive); walk-forward over configs,
+  calendar 2021-26: +123 R; in-sample only 544 configs positive in all five 52-week blocks, best +103 R (26w LCB z0.5,
+  SL2ATR, top 5, skip HIGH weeks).
+- Last 3 years (2023-09 .. 2026-08): baseline +29.7 R; walk-forward 2023-26 +105 R; in-sample best +280 R (52w LCB, H1,
+  top 8, skip CALM, DD 90 R); best return/DD +126 R with DD 15 R (H4+D1 SL2 pool) but that configuration loses -85 R
+  over 2004-26.
+- M5/M15 pools on their own are not in any top-5 table; M15 appears only mixed with H1.

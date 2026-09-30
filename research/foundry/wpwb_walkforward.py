@@ -26,10 +26,40 @@ if SPLICED:     # Dukascopy H1 to its end, then the live Exness feed (engine.loa
     _v = np.asarray(H.v, float)
     H, _, cuts, cell = E.load_spliced()
     H.v = np.r_[_v, np.full(len(H.t) - len(_v), np.median(_v[-6000:]))]     # Exness tick volume is on another scale
+TF = __import__("os").environ.get("TF", "H1")
+if True:                        # resampler (H4 / D1 from Dukascopy H1, M15 from Exness M5)
+    def _rs(B, step):
+        k = (B.t - (22 * 3600 if step == 86400 else 0)) // step
+        df = pd.DataFrame(dict(k=k, t=B.t, o=B.o, h=B.h, l=B.l, c=B.c, v=B.v, sp=B.spread_bp))
+        g = df.groupby("k").agg(t=("t", "first"), o=("o", "first"), h=("h", "max"), l=("l", "min"), c=("c", "last"),
+                                v=("v", "sum"), sp=("sp", "median"), n=("t", "size"))
+        g = g[g.n >= (18 if step == 86400 else (2 if step >= 3600 else 1))]
+        tt = g.t.to_numpy(np.int64); idx = pd.to_datetime(tt, unit="s")
+        R = E.Bars(tt, g.o.to_numpy(float), g.h.to_numpy(float), g.l.to_numpy(float), g.c.to_numpy(float),
+                   E._atr(g.h.to_numpy(float), g.l.to_numpy(float), g.c.to_numpy(float), 14),
+                   np.searchsorted(cuts, tt, side="left") - 1, g.sp.to_numpy(float), idx.hour.to_numpy(),
+                   idx.dayofweek.to_numpy(), idx.year.to_numpy(), step)
+        R.v = g.v.to_numpy(float)
+        return R
+    if TF in ("H4", "D1"):
+        H = _rs(H, 4 * 3600 if TF == "H4" else 86400)
+if TF in ("M5", "M15"):         # operator 2026-09-30 "เอา tf เล็ก m5/m15": live Exness M5 mid (2021-01 ..), same cuts
+    import bars as _BR
+    _b5 = _BR.load_bars(frozen=False)
+    _half = np.asarray(_b5.sp, float) / 2
+    _o, _h, _l, _c = (np.asarray(getattr(_b5, x), float) + _half for x in ("o", "h", "l", "c"))
+    _t = np.asarray(_b5.t, np.int64)
+    _i = pd.to_datetime(_t, unit="s")
+    H = E.Bars(_t, _o, _h, _l, _c, E._atr(_h, _l, _c, 14), np.searchsorted(cuts, _t, side="left") - 1,
+               np.asarray(_b5.sp, float) / _c * 1e4, _i.hour.to_numpy(), _i.dayofweek.to_numpy(), _i.year.to_numpy(), 300)
+    H.v = np.asarray(_b5.v, float)
+    if TF == "M15":
+        H = _rs(H, 900)
 N = len(H.t)
 EXITS = [("1:1", 1.0), ("1:2", 2.0), ("1:3", 3.0), ("1:5", 5.0), ("1:10", 10.0),
          ("2:1", 1 / 2), ("3:1", 1 / 3), ("5:1", 1 / 5), ("10:1", 1 / 10)]      # target = mult x stop
-KS, HOLDS = (1, 2), (24, 72)
+KS = (1, 2)
+HOLDS = {"H1": (24, 72), "H4": (6, 30), "D1": (5, 20), "M5": (48, 144), "M15": (32, 96)}[__import__("os").environ.get("TF", "H1")]
 ERAS = {"2003-08": ("2003", "2009"), "2009-14": ("2009", "2015"), "2015-20": ("2015", "2021"), "2021-26": ("2021", "2027")}
 
 
@@ -43,7 +73,7 @@ def _signals_with(Hx):
 
 base = _signals_with(H)
 rng_l = np.random.default_rng(1)
-for j in (5000, 60000, N - 3000):
+for j in (N // 10, N // 2, N - 300):
     G = copy.copy(H)
     for f in ("o", "h", "l", "c", "v"):
         a = np.asarray(getattr(H, f), float).copy()
@@ -59,7 +89,7 @@ print("leak check PASS (3 cut points, 31 signals)", flush=True)
 _signals_with(H)
 
 # ---------------------------------------------------------------- shadow trades of every candidate
-close_t = H.t + 3600
+close_t = H.t + H.step
 NW = len(cuts)
 wk_exit_of_bar = np.searchsorted(cuts, close_t, side="left") - 1     # close in (cuts[w], cuts[w+1]]
 wk_ent_of_bar = H.week
@@ -74,13 +104,13 @@ def sequential(ent, ex):
     return np.asarray(keep, int)
 
 
-CACHE = E.ROOT / "data" / "foundry" / ("wpwb_walkforward_cache_spliced.npz" if SPLICED else "wpwb_walkforward_cache.npz")
+CACHE = E.ROOT / "data" / "foundry" / (("wpwb_walkforward_cache_spliced" if SPLICED else "wpwb_walkforward_cache") + ("" if TF == "H1" else f"_{TF}") + ".npz")
 cands, S1, S2_, NN, E1, EN = [], [], [], [], [], []
 for name, (sl, ss) in ({} if CACHE.exists() else base).items():
     il, is_ = np.flatnonzero(sl[:-1]), np.flatnonzero(ss[:-1])
     ent0 = np.r_[il, is_] + 1; d0 = np.r_[np.ones(len(il)), -np.ones(len(is_))]
     o_ = np.argsort(ent0, kind="stable"); ent0, d0 = ent0[o_], d0[o_]
-    ok = atr_ok[ent0] & (ent0 < N - 80) & (wk_ent_of_bar[ent0] >= 0)
+    ok = atr_ok[ent0] & (ent0 < N - max(HOLDS) - 2) & (wk_ent_of_bar[ent0] >= 0) & (wk_ent_of_bar[ent0] < NW - 2)
     ent0, d0 = ent0[ok], d0[ok]
     for mode, sgn in (("FOLLOW", 1.0), ("FADE", -1.0)):
         d = d0 * sgn
@@ -95,6 +125,8 @@ for name, (sl, ss) in ({} if CACHE.exists() else base).items():
                     e_, x_ = ent0[keep], ex[keep]
                     R = (g[keep] - E.swap_bp(H, e_, x_, d[keep]) - E.COST_BP) / sb[keep]
                     we, wx = wk_ent_of_bar[e_], wk_exit_of_bar[x_]
+                    inw = wx < NW                                    # exits after the last cut are dropped
+                    we, wx, R = we[inw], wx[inw], R[inw]
                     cands.append(dict(setup=name, mode=mode, k_atr=k, exit=lab, hold=hold, n_trades=len(e_)))
                     S1.append(np.bincount(wx, R, NW)); S2_.append(np.bincount(wx, R * R, NW)); NN.append(np.bincount(wx, None, NW))
                     E1.append(np.bincount(we, R, NW)); EN.append(np.bincount(we, None, NW))
@@ -200,7 +232,7 @@ best = Sm.sort_values(["p_vs_samecfg", "total_R_sized"], ascending=[True, False]
 bk = (int(best.window) if best.window.isdigit() else best.window, best.score, int(best.champions))
 picks = pd.DataFrame([(C.label[c_], n) for c_, n in pick_count.get(bk, {}).items()], columns=["candidate", "weeks_as_champion"])
 picks = picks.sort_values("weeks_as_champion", ascending=False)
-out = E.ROOT / "data" / "foundry" / ("wpwb_walkforward_spliced.xlsx" if SPLICED else "wpwb_walkforward.xlsx")
+out = E.ROOT / "data" / "foundry" / (("wpwb_walkforward_spliced" if SPLICED else "wpwb_walkforward") + ("" if TF == "H1" else f"_{TF}") + ".xlsx")
 with pd.ExcelWriter(out) as xw:
     pd.DataFrame({"อ่านก่อน": [
         "เดินทีละแท่งบน H1 ทองคำ 2003-2026 · 2,232 ตัวเลือก (31 อินดิเคเตอร์ × ตาม/สวน × SL 1-2 ATR × TP 9 แบบ × ถือ 24/72 ชม.) รันเงาทุกตัวตลอด",
@@ -229,5 +261,5 @@ for key, L in weekly_logs.items():
 ax.axhline(0, color="k", lw=.7)
 ax.set_title("WPWB walk-forward: cumulative sized net R of all 20 selection rules (H1 gold, 2004-2026)")
 ax.set_ylabel("cumulative R (x vol_scale)"); ax.legend()
-fig.tight_layout(); fig.savefig(E.ROOT / "data" / "foundry" / ("wpwb_walkforward_spliced.png" if SPLICED else "wpwb_walkforward.png"), dpi=110)
+fig.tight_layout(); fig.savefig(E.ROOT / "data" / "foundry" / (("wpwb_walkforward_spliced" if SPLICED else "wpwb_walkforward") + ("" if TF == "H1" else f"_{TF}") + ".png"), dpi=110)
 print("-> wpwb_walkforward.xlsx / .png")
