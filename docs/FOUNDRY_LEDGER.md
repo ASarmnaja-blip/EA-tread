@@ -534,3 +534,14 @@ clock-hold definition - fragile. One contiguous ridge: k 2.5-3.0 with a 72 h hol
 stop in both 2021-23 (+0.15..+0.21 R) and 2024-26 (+0.10..+0.44 R), ~0 in 2015-20, negative in 2003-14:
 a recent-era pattern (big H1 shocks revert over ~3 days). Its centre SHOCK_FADE_k2.5_h72_s3.0 was frozen
 as forward panel 2 (H-FOUNDRY-PANEL-2, alpha 0.005, threshold 200), with its own code snapshot.
+
+## What panel 2 really is (descriptive, seen data) - 2026-09-30
+`shock_fade_mechanism.py` (2022-26): non-news shock bars revert (+0.31 R, n 149), shocks containing a
+HIGH USD release do not (+0.05 R, n 64); the fade of DROPS (buy) earns +0.44 R, the fade of SPIKES
+(sell) +0.01 R. Panel 2 is mainly **buying sharp non-news dips in a bull market**.
+`dip_by_trend.py` / `dip_up_excess.py`: BUY_DIP in WPWB UP-trend weeks is net positive in all four eras
+2003-08 / 09-14 / 15-20 / 21-26 at k = 2 (+0.20 / +0.16 / +0.10 / +0.29 R), but against random LONG
+entries in the same UP weeks the excess is small: k 2.0 +0.13 R (t 1.45), k 3.0 +0.27 R (t 1.96),
+negative in 2003-08 (when any long in an up week earned +0.26 R). 18 side x trend x k rows were
+inspected, so one all-era-positive row is roughly what chance gives. SELL_SPIKE in DOWN weeks is
+inconsistent. Reading: gold's up-trend drift plus mild dip reversion since 2015; no new panel.
