@@ -76,3 +76,21 @@ them needs a separate registration and the operator's word.
 ## Honest priors
 Across ~3,800 Foundry candidates, the zoo, the RR/TF sweeps and the walk-forward, no direction signal has survived.
 The expected outcome of layer 2 is few or no survivors; that outcome is reported as a result, not a failure.
+
+## Amendment 1 (2026-09-30, after the first scan-A run; disclosed)
+The first scan A returned 5,250 layer-2 survivors, led by price-location features at the 120-bar horizon with
+|IC| up to 0.39 (e.g. distance to the 52-week high, IC -0.29, t -12). That is an artefact of the pre-registered
+statistic, not of the features (their leak check passed): ranking feature and target WITHIN each month demeans both by
+the month's own mean, which contains future prices, so any level-like feature acquires a spurious negative
+correlation with forward returns even on a pure random walk. The within-month Spearman IC is withdrawn. Replacement,
+fixed before re-running:
+- Feature: continuous and external features become causal trailing percentile ranks (104 weeks, min 1/4 of the window)
+  minus 0.5; events keep +1 / -1 / 0; time flags keep 0 / 1.
+- Target: y minus its causal trailing mean (104 weeks, using only targets whose horizon had ended by t).
+- Statistic per month (inside the mask): s_m = sum(x * y) / sum(|x|), a gross timing return in ATR per unit exposure;
+  a month counts with >= 20 valid bars; t = mean(s_m) / sd x sqrt(months); thresholds, masks, BH q 0.05 and the CHECK
+  rules are unchanged.
+- New placebo control, run with identical code: the same bars with every bar's move mirrored at random (sign flip of
+  the bar relative to the previous close, high and low swapped), which keeps volatility, time of day and volume but
+  destroys direction. If the placebo scan yields more than a handful of layer-2 survivors, the statistic is still
+  invalid and nothing from the real scan is used. The first run's output is archived as scan_A_withdrawn.pkl.
