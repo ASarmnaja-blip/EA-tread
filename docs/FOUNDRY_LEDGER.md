@@ -767,3 +767,13 @@ family rerun at f = 0.5 / 1 / 2 % (family sha fb28ac09...).
   the stop costs roughly a third of the flat-cost gain; with C4 costs BASE loses even without the stop (-181.5 R), and also in the
   low-cost modern era (2021-26: -54 R at C4 vs +18 R at flat 2 bp, where the cost difference is only about 1 bp) - the rule's
   net edge is of the order of the cost.
+
+## WRWR gates, endpoint 1 - BASE alone vs its random-router benchmark (2026-09-30; manifest docs/WRWR_MANIFEST.md frozen before this)
+`research/wrwr/run_bench.py BASE` (10,000 seeded full event-driven random-router paths; each BASE champion slot replaced by a random
+same-exit-configuration eligible candidate; 4 workers, 345 s) and `analyze_gates.py BASE`:
+- mean weekly R (f 1 %, 1,164 active weeks): **BASE -0.189 R/week, random router -0.214 R/week; mean d = +0.025 R/week**, one-sided
+  stationary-bootstrap p = **0.371** (block 10; 0.371 at block 4, 0.344 at block 26), 95% lower bound -0.113 R/week.
+  **Endpoint 1 NOT PASSED: picking the indicator and direction adds nothing distinguishable from chance**; BASE loses because the
+  exit structures it selects (mostly 1:10 targets on H1 stops) lose after cost whoever picks the entry.
+- Benchmark Monte Carlo SE: 0.0246 R per single week, 0.0009 R for the time-averaged weekly benchmark (contract target < 0.01 R is read as
+  the SE of the time-averaged benchmark, which is what enters d's mean; a 0.01 R SE per single week would need about 58,000 paths).
