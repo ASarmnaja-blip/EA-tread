@@ -1,17 +1,16 @@
-"""C2 event-driven portfolio (docs/WRWR_CONTRACT_PREREG.md v4): one implementation for BASE, the optimiser, holdouts,
+"""C2 event-driven portfolio (docs/WRWR_CONTRACT_PREREG.md v5): one implementation for BASE, the optimiser, holdouts,
 compounding, the random-router benchmark and the forward record. Research / paper only; no orders.
 
-Pool  : potential-signal tables of several TFs (signals.py) stacked into global candidate ids.
+Pool  : potential-signal tables of several TFs (signals.py) stacked into global candidate ids (C5-verified loads).
 Shadow: per candidate the chronological one-position filter -> selection statistics binned by the cut at which each
         exit is known (exit bar close <= cut).
 Live  : champions chosen at each cut trade their own signals with entries in (cut_k, cut_{k+1}); admission, sizing,
-        handover and skip rules exactly as C2."""
+        handover and skip rules exactly as C2; equity = balance + mark-to-market of open positions (v5)."""
 from __future__ import annotations
 
 import heapq
-import json
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -22,50 +21,81 @@ import contracts as K  # noqa: E402
 
 LOT_STEP = 0.01
 MIN_LOT = 0.01
+RULES = ("BUSY", "WEEKSTOP", "MINLOT", "RISKCAP", "MARGIN", "RUIN")
 
 
 @dataclass
 class Pool:
     cands: list                      # dicts incl. tf, setup, mode, k_atr, exit, hold, hash
     entry_t: list                    # per candidate arrays (sorted by entry time)
-    exit_t: list
-    R: list
-    R_stress: list
+    exit_t: list                     # exit BAR CLOSE time
+    dir: list
+    gross_bp: list
+    cost_bp: list
+    swap_bp: list
     stop_px: list
     entry_px: list
+    R: list                          # net R of the candidate's own stop (float)
+    stop_bp: list
     ptr: np.ndarray                  # [cand, k] = first row with entry_t > cut_k
     cuts: np.ndarray
     contract: float
     rank_key: np.ndarray             # int ordering of candidate hashes (tie-breaks)
     exit_cfg: np.ndarray             # group id of (tf, k_atr, exit, hold)
-    tf: np.ndarray = field(default=None)
+    tf: np.ndarray
+    mark_t: np.ndarray               # H1 bar close times and closes: the mark price source (C2)
+    mark_c: np.ndarray
+    meta: dict
+    rejected_at_cut: int = 0
+
+    def R_stress(self, c):
+        return self.R[c] - 2.0 / self.stop_bp[c]         # K.STRESS_BP = 2 bp of round-trip cost, in R of this stop
 
 
-def load_pool(symbol, tfs, cuts):
+def load_pool(symbol, tfs, cuts, verify=True):
     import signals as SG
-    cands, et, xt, R, RS, sp, ep = [], [], [], [], [], [], []
+    cands, et, xt, dr, gb, cb, sb, sp, ep, R, stb = ([] for _ in range(11))
     cuts_sha = K.sha_bytes(cuts)
+    metas = {}
     for tf in tfs:
-        meta, cl, a = SG.load(symbol, tf)
+        meta, cl, a = SG.load(symbol, tf, verify=verify)
         if meta["cuts_sha"] != cuts_sha:
             raise ValueError(f"{tf}: cut vector differs from the pool's")
+        metas[tf] = meta
         bt = a["bar_t"]; step = meta["step"]
         order = np.lexsort((a["ent"], a["cand"]))
         cand = a["cand"][order]
         bounds = np.searchsorted(cand, np.arange(len(cl) + 1))
+        if bounds[-1] != meta["n_rows"]:
+            raise ValueError(f"{tf}: row count mismatch after sorting")
+        gross, cost, swap = a["gross_bp"][order], a["cost_bp"][order], a["swap_bp"][order]
+        stop_px, entry_px = a["stop_px"][order], a["entry_px"][order]
+        stop_bp = (stop_px.astype(np.float64) / entry_px.astype(np.float64) * 1e4)
+        Rall = ((gross.astype(np.float64) - cost - swap) / stop_bp)
+        ent_t = bt[a["ent"][order]]; ex_t = bt[a["ex"][order]] + step
+        dirs = a["dir"][order]
+        stop_bp32 = stop_bp.astype(np.float32); R32 = Rall.astype(np.float32)
+        del stop_bp, Rall
         for i, c in enumerate(cl):
             s, e = bounds[i], bounds[i + 1]
-            rows = order[s:e]
             cands.append(c)
-            et.append(bt[a["ent"][rows]]); xt.append(bt[a["ex"][rows]] + step)
-            R.append(a["R"][rows].astype(float)); RS.append(a["R_stress"][rows].astype(float))
-            sp.append(a["stop_px"][rows].astype(float)); ep.append(a["entry_px"][rows].astype(float))
+            et.append(ent_t[s:e]); xt.append(ex_t[s:e]); dr.append(dirs[s:e]); gb.append(gross[s:e]); cb.append(cost[s:e])
+            sb.append(swap[s:e]); sp.append(stop_px[s:e]); ep.append(entry_px[s:e]); R.append(R32[s:e]); stb.append(stop_bp32[s:e])
+    if not tfs or "H1" not in tfs:
+        raise ValueError("the pool needs H1 (mark price source)")
+    widths = {len(c) for c in (cands,)}
+    assert sum(m["n_cands"] for m in metas.values()) == len(cands), "candidate count differs from the table metadata"
+    B1, cuts1, _ = SG.load_xau("H1")
+    if K.sha_bytes(cuts1) != cuts_sha:
+        raise ValueError("H1 cut vector differs from the pool's")
     ptr = np.vstack([np.searchsorted(t, cuts, side="right") for t in et]).astype(np.int32)
+    assert ptr.shape == (len(cands), len(cuts)), "pointer matrix width"
     rank_key = np.argsort(np.argsort([c["hash"] for c in cands]))
     keys = [(c["tf"], c["k_atr"], c["exit"], c["hold"]) for c in cands]
     uniq = {k: i for i, k in enumerate(sorted(set(keys)))}
-    return Pool(cands, et, xt, R, RS, sp, ep, ptr, cuts, float(K.SYMBOLS[symbol]["trade_contract_size"]),
-                rank_key, np.array([uniq[k] for k in keys]), np.array([c["tf"] for c in cands]))
+    return Pool(cands, et, xt, dr, gb, cb, sb, sp, ep, R, stb, ptr, cuts, float(K.SYMBOLS[symbol]["trade_contract_size"]),
+                rank_key, np.array([uniq[k] for k in keys]), np.array([c["tf"] for c in cands]),
+                B1.t + B1.step, B1.c, metas, sum(m["rejected_at_cut"] for m in metas.values()))
 
 
 def shadow_stats(P):
@@ -73,7 +103,7 @@ def shadow_stats(P):
     NW = len(P.cuts)
     S1 = np.zeros((len(P.cands), NW)); S2 = np.zeros_like(S1); NN = np.zeros_like(S1)
     for c in range(len(P.cands)):
-        et, xt, r = P.entry_t[c], P.exit_t[c], P.R[c]
+        et, xt, r = P.entry_t[c], P.exit_t[c], P.R[c].astype(np.float64)
         keep, busy = [], -1
         for i in range(len(et)):
             if et[i] >= busy:                    # next entry opens at or after the previous exit bar's close
@@ -117,21 +147,38 @@ def champions(sc, pool_mask, m, rank_key, active):
     return out
 
 
-def simulate(P, champs, vol_scale, f=0.01, equity0=10_000.0, stress=False, log=None, rules=True, weekstop=True):
+def simulate(P, champs, vol_scale, f=0.01, equity0=10_000.0, stress=False, log=None, skiplog=None, rules=True, weekstop=True):
     """Event-driven live ledger. champs[k] = ranked champion ids for week k (entries in (cut_k, cut_{k+1})).
-    Returns weekly R (exits in (cut_k, cut_{k+1}] / U_k), equity at each cut, and counters.
-    rules=False is a DIAGNOSTIC only (no week stop, caps, margin or lot rounding, equity held fixed); never a result."""
+    Returns weekly R (exits in (cut_k, cut_{k+1}] / U_k, U_k = f x equity(cut_k)), equity(cut_k), and counters.
+    equity(t) = balance + sum over open positions of notional x (dir x (mark_t / entry - 1) - cost_bp / 1e4) (v5).
+    log: admitted trades; skiplog: every skipped signal with its rule and the causing state.
+    rules=False is a DIAGNOSTIC only (fixed equity, no week stop / caps / margin / lot rounding); never a result."""
     cuts = P.cuts; NW = len(cuts)
-    equity = equity0
-    open_pos = {}                        # pos id -> [cand, exit_t, pnl$, stop$, margin$]
+    balance = equity0
+    open_pos = {}            # pid -> dict(c, lots, stop_d, notional, dir, entry_px, cost_frac, pnl)
     live_busy = set()
-    heap = []                            # (time, 0 exit, pos id)
+    heap = []
     pid = 0
     weekR = np.zeros(NW); eq_cut = np.zeros(NW)
-    cnt = dict(entries=0, skip_busy=0, skip_weekstop=0, skip_riskcap=0, skip_margin=0, skip_minlot=0)
-    Rarr = P.R_stress if stress else P.R
+    cnt = {"entries": 0, **{"skip_" + r.lower(): 0 for r in RULES}}
+    cnt["skip_minlot"] = 0
+
+    def equity_at(t):
+        if not open_pos:
+            return balance
+        m = float(K.mark_price(P.mark_t, P.mark_c, t))
+        return balance + sum(v["notional"] * (v["dir"] * (m / v["entry_px"] - 1.0) - v["cost_frac"]) for v in open_pos.values())
+
+    def skip(rule, k, c, t, eq, realised):
+        cnt["skip_" + rule.lower()] += 1
+        if skiplog is not None:
+            m = float(K.mark_price(P.mark_t, P.mark_c, t))
+            used = sum(v["lots"] * P.contract * m / K.LEVERAGE_FROZEN for v in open_pos.values())
+            skiplog.append((k, int(c), int(t), rule, float(eq), float(realised), float(sum(v["stop_d"] for v in open_pos.values())), float(used)))
+
     for k in range(NW - 1):
-        U = f * (equity if rules else equity0); eq_cut[k] = equity; realised = 0.0
+        eq0 = equity_at(cuts[k]) if rules else equity0
+        U = f * eq0; eq_cut[k] = eq0; realised = 0.0
         t_end = cuts[k + 1]
         ev = []
         for rank, c in enumerate(champs[k] if k < len(champs) else []):
@@ -146,32 +193,42 @@ def simulate(P, champs, vol_scale, f=0.01, equity0=10_000.0, stress=False, log=N
             nxt_ent = ev[ei][0] if ei < len(ev) else None
             if nxt_exit is not None and nxt_exit <= t_end and (nxt_ent is None or nxt_exit <= nxt_ent):
                 _, _, p = heapq.heappop(heap)
-                c, _, pnl, _, _ = open_pos.pop(p)
-                equity += pnl; realised += pnl; live_busy.discard(c)
+                v = open_pos.pop(p)
+                balance += v["pnl"]; realised += v["pnl"]; live_busy.discard(v["c"])
                 continue
             if nxt_ent is None:
                 break
-            _, _, rank, _, c, i = ev[ei]; ei += 1
+            te, _, rank, _, c, i = ev[ei]; ei += 1
+            eq = equity_at(te) if rules else equity0
             if c in live_busy:
-                cnt["skip_busy"] += 1; continue
+                skip("BUSY", k, c, te, eq, realised); continue
+            if rules and eq <= 0:
+                skip("RUIN", k, c, te, eq, realised); continue
             if rules and weekstop and realised <= -3 * U:
-                cnt["skip_weekstop"] += 1; continue
-            risk = f * (equity if rules else equity0) * vol_scale[k]
-            lots = np.floor(risk / (P.stop_px[c][i] * P.contract) / LOT_STEP + 1e-9) * LOT_STEP if rules else                 risk / (P.stop_px[c][i] * P.contract)
+                skip("WEEKSTOP", k, c, te, eq, realised); continue
+            stop_px = float(P.stop_px[c][i]); entry_px = float(P.entry_px[c][i])
+            risk = f * eq * vol_scale[k]
+            lots = (np.floor(risk / (stop_px * P.contract) / LOT_STEP + 1e-9) * LOT_STEP if rules
+                    else risk / (stop_px * P.contract))
             if lots < MIN_LOT - 1e-12:
-                cnt["skip_minlot"] += 1; continue
-            stop_d = lots * P.stop_px[c][i] * P.contract
-            if rules and sum(v[3] for v in open_pos.values()) + stop_d > 3 * f * equity + 1e-9:
-                cnt["skip_riskcap"] += 1; continue
-            margin = lots * P.contract * P.entry_px[c][i] / K.LEVERAGE_FROZEN
-            if rules and equity - sum(v[4] for v in open_pos.values()) - margin < 0.5 * equity:
-                cnt["skip_margin"] += 1; continue
-            pnl = Rarr[c][i] * stop_d
-            open_pos[pid] = [c, P.exit_t[c][i], pnl, stop_d, margin]
+                skip("MINLOT", k, c, te, eq, realised); continue
+            stop_d = lots * stop_px * P.contract
+            if rules and sum(v["stop_d"] for v in open_pos.values()) + stop_d > 3 * f * eq + 1e-9:
+                skip("RISKCAP", k, c, te, eq, realised); continue
+            m = float(K.mark_price(P.mark_t, P.mark_c, te))
+            used = sum(v["lots"] * P.contract * m / K.LEVERAGE_FROZEN for v in open_pos.values())
+            new_margin = lots * P.contract * entry_px / K.LEVERAGE_FROZEN
+            if rules and eq - used - new_margin < 0.5 * eq:
+                skip("MARGIN", k, c, te, eq, realised); continue
+            Rc = float(P.R_stress(c)[i]) if stress else float(P.R[c][i])
+            notional = lots * P.contract * entry_px
+            pnl = Rc * stop_d
+            open_pos[pid] = dict(c=c, lots=lots, stop_d=stop_d, notional=notional, dir=float(P.dir[c][i]), entry_px=entry_px,
+                                 cost_frac=float(P.cost_bp[c][i]) / 1e4 + (2e-4 if stress else 0.0), pnl=pnl)
             heapq.heappush(heap, (int(P.exit_t[c][i]), 0, pid)); pid += 1
             live_busy.add(c); cnt["entries"] += 1
             if log is not None:
-                log.append((k, c, int(P.entry_t[c][i]), int(P.exit_t[c][i]), float(lots), float(Rarr[c][i]), float(pnl)))
+                log.append((k, c, int(te), int(P.exit_t[c][i]), float(lots), Rc, float(pnl), float(eq)))
         weekR[k] = realised / U if U > 0 else 0.0
-    eq_cut[NW - 1] = equity
+    eq_cut[NW - 1] = equity_at(cuts[NW - 1]) if rules else balance
     return weekR, eq_cut, cnt

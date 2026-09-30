@@ -745,3 +745,25 @@ Per-trade R of the original stop, unit size, 3,850 live trades 2004-26:
 Both sides lose: the selection has a positive gross (+0.044 R/trade) but costs are 0.111 R/trade on H1 stops, paid by
 either side. By era the counterparty is worse in 2004-20 and less bad only in 2021-26 (BASE -101 R vs -39 R; BASE's
 gross was negative there). FADE/FOLLOW twins of the same champions through the C2 portfolio: -266.1 R (BASE -224.1 R).
+
+## WRWR after the R19 fixes (contract v5) - reruns and the clean factorial decomposition (2026-09-30)
+Fixes: mark-to-market equity, first-constituent H4/D1 spread, C5 fail-closed integrity, audit trail, explicit bar length,
+frozen XAG cost constant, LF holiday digest (docs/WRWR_SELF_AUDIT_R19.md). Tables rebuilt (0 signals rejected at a cut),
+family rerun at f = 0.5 / 1 / 2 % (family sha fb28ac09...).
+- **BASE (52w LCB z1, H1, m 2): -151.8 R (f 0.5 %), -220.4 R (1 %), -157.0 R (2 %)** (before the fixes -224.1 R); eras at 1 %:
+  -94 / -10 / -63 / -54 R; last 5 years -53 R, last 3 years -24 R. The R19 fixes barely move BASE.
+- Best of the 144 at f = 1 % (descriptive): 78w z2 H1 m2 equity filter 26: +83.6 R (3.7 R/yr, max DD 56 R, L5 +11.9 R);
+  26w z0.5 H4 m1: +66.5 R (3.0 R/yr, DD 28 R, L5 +25.7 R, L3 +39.3 R); 78w z2 H1+H4+D1 m2: +54.3 R (DD 31 R). None reaches the C10
+  "usable" tier (10 R/yr).
+- **Factorial decomposition of BASE (f 1 %), replaces the earlier sequential attribution** ("weekly stop -162 R, spreads -242 R" was
+  order dependent and is withdrawn): costs x weekly stop x champion handling
+  | costs | champions | weekly -3U stop off | on |
+  |---|---|---|---|
+  | flat 2 bp | (same either way) | +149.2 R | +33.6 R |
+  | C4 | fixed to the flat-cost champions | -242.1 R | -321.3 R |
+  | C4 | re-selected under C4 | -181.5 R | -220.4 R |
+  Weekly-stop effect: -115.6 R at flat cost, -79 / -39 R at C4 (fixed / re-selected). Cost effect (C4 vs flat): -391 / -355 R
+  (stop off / on, fixed champions), -331 / -254 R (re-selected). Interaction +36 R (fixed), +77 R (re-selected). Costs dominate;
+  the stop costs roughly a third of the flat-cost gain; with C4 costs BASE loses even without the stop (-181.5 R), and also in the
+  low-cost modern era (2021-26: -54 R at C4 vs +18 R at flat 2 bp, where the cost difference is only about 1 bp) - the rule's
+  net edge is of the order of the cost.

@@ -1,0 +1,9 @@
+{
+ "bars": 217286,
+ "constant_bp": 11.615057998215441,
+ "formula": "max(4.0, 1.5*M+1.0)",
+ "median_spread_bp": 7.076705332143627,
+ "npz_sha256": "b9698eb6f465c669326de1edadb68389871e7a956ebc20ff31237613a8adb632",
+ "source": "data/fresh/XAGUSD_M5.npz (Exness M5; sp = ask - bid in price units; bp = sp / close x 1e4)",
+ "window": "2023-09-01..2026-09-28"
+}

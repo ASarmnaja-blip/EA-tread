@@ -44,9 +44,22 @@ def test_cost():
     assert np.allclose(c, [2.0, 2.5, 2.0]), c
     assert np.allclose(K.cost_bp("XAUUSD", [0.5], stress=True), [4.0])
     t = [int(pd.Timestamp("2020-06-01").timestamp()), int(pd.Timestamp("2024-06-03").timestamp())]
-    c = K.cost_bp("XAGUSD", [9.0, 2.0], entry_t=t, xag_pre2023_const=6.5)
-    assert np.allclose(c, [6.5, 4.0]), c
-    print("PASS C4 cost: XAU floor 2 bp, spread + 1 bp, stress + 2 bp; XAG pre-2023 constant, 2023+ floor 4 bp")
+    c = K.cost_bp("XAGUSD", [9.0, 2.0], entry_t=t)
+    assert np.allclose(c, [K.xag_pre2023_constant(), 4.0]), c              # pre-2023: frozen constant; 2023+: max(4, spread + 1)
+    assert abs(K.xag_pre2023_constant() - 11.615057998215441) < 1e-9
+    try:
+        K.cost_bp("XAGUSD", [9.0]); raise AssertionError("XAG without entry_t must fail closed")
+    except ValueError:
+        pass
+    saved = K.XAG_FREEZE_FILE
+    K.XAG_FREEZE_FILE = K.ROOT / "data" / "foundry" / "missing_freeze.json"; K._XAG.clear()
+    try:
+        K.cost_bp("XAGUSD", [9.0], entry_t=[t[0]]); raise AssertionError("missing freeze file must fail closed")
+    except FileNotFoundError:
+        pass
+    finally:
+        K.XAG_FREEZE_FILE = saved; K._XAG.clear()
+    print("PASS C4 cost: XAU floor 2 bp, spread + 1 bp, stress + 2 bp; XAG frozen pre-2023 constant, fail closed without inputs")
 
 
 def test_swap():
@@ -74,10 +87,79 @@ def test_vol_scale_causal():
     m = H.t + 3600 <= cut_t
     part = K.causal_vol_scale(H.t[m], H.c[m], H.h[m], H.l[m], cuts)
     assert np.allclose(full[:k0 + 1], part[:k0 + 1]), "vol_scale uses data after the cut"
-    print(f"PASS C3 vol_scale: identical up to cut {k0} when later bars are removed; range {full.min():.2f}..{full.max():.2f}")
+    fwd = K.causal_vol_scale(H.t, H.c, H.h, H.l, cuts, mode="forward")
+    assert fwd.min() >= 0.5 and fwd.max() <= 1.0 and not np.allclose(fwd, full)
+    try:
+        K.causal_vol_scale(H.t, H.c, H.h, H.l, cuts, bar_seconds=14400); raise AssertionError("H4 bars must be refused")
+    except ValueError:
+        pass
+    print(f"PASS C3 vol_scale: causal (identical up to cut {k0}), historical {full.min():.2f}..{full.max():.2f}, "
+          f"frozen-forward mode differs, non-H1 bars refused")
+
+
+def test_mark_price():
+    bc = np.array([100, 200, 300]); px = np.array([1.0, 2.0, 3.0])
+    m = K.mark_price(bc, px, [99, 100, 199, 200, 10_000])
+    assert np.isnan(m[0]) and list(m[1:]) == [1.0, 1.0, 2.0, 3.0], m
+    print("PASS C2 mark price = close of the last bar closed at or before t")
+
+
+def _synth(n_a=900, n_b=900, off_bp=0.0, sp_b=1.0, jump=0.0, dup=False, gap_at=None, gap_days=5, seed=1):
+    rng = np.random.default_rng(seed)
+    seam = int(pd.Timestamp("2024-06-03 00:00:00").timestamp())
+    tb = seam + np.arange(n_b) * 3600
+    ta = seam - (n_a - np.arange(n_a)) * 3600
+    # keep weekends out: drop Saturday and most of Sunday bars on the whole line
+    ok = lambda t: ~(((t // 86400 + 4) % 7 == 5) | (((t // 86400 + 4) % 7 == 6) & ((t % 86400) < 22 * 3600)) | (((t // 86400 + 4) % 7 == 4) & ((t % 86400) >= 22 * 3600)))
+    ta, tb = ta[ok(ta)], tb[ok(tb)]
+    base_t = np.r_[ta, tb] if False else None
+    allt = np.union1d(ta, tb)
+    px = 2000 * np.exp(np.cumsum(rng.normal(0, 0.0008, len(allt))))
+    pmap = dict(zip(allt.tolist(), px))
+    ca = np.array([pmap[int(t)] for t in ta]); cb = np.array([pmap[int(t)] for t in tb])
+    # overlap: source B also has the last 4 weeks before the seam (shifted by off_bp)
+    tb_pre = ta[ta >= seam - 28 * 86400]; cb_pre = np.array([pmap[int(t)] for t in tb_pre]) * (1 - off_bp / 1e4)
+    tB = np.r_[tb_pre, tb]; cB = np.r_[cb_pre, cb * (1 - off_bp / 1e4)]
+    cB = cB.copy()
+    if jump:
+        cB[len(tb_pre):] *= (1 + jump)
+    if gap_at is not None:
+        keep = ~((tB >= seam + gap_at * 86400) & (tB < seam + (gap_at + gap_days) * 86400))
+        tB, cB = tB[keep], cB[keep]
+    if dup:
+        tB = tB.copy(); tB[len(tb_pre) + 5] = tB[len(tb_pre) + 4]
+    A = dict(t=ta, c=ca, o=ca, sp=np.full(len(ta), 1.0))
+    B = dict(t=tB, c=cB, o=cB, sp=np.full(len(tB), sp_b))
+    return A, B, seam
+
+
+def test_validate_seam():
+    A, B, seam = _synth()
+    r = K.validate_seam(A, B, seam)
+    assert all(v[0] for v in r.values()), r
+    bad = {"offset 5 bp": dict(off_bp=5.0), "spread x3": dict(sp_b=3.0), "price jump 2%": dict(jump=0.02), "5-day gap": dict(gap_at=8, gap_days=5)}
+    for nm, kw in bad.items():
+        A2, B2, seam2 = _synth(**kw)
+        r2 = K.validate_seam(A2, B2, seam2, strict=False)
+        assert not all(v[0] for v in r2.values()), (nm, r2)
+    A3, B3, seam3 = _synth(dup=True)
+    try:
+        K.validate_seam(A3, B3, seam3); raise AssertionError("duplicate timestamps must be rejected")
+    except ValueError:
+        pass
+    print("PASS C5 splice validator: clean seam passes; offset, spread ratio, jump, gap and duplicate timestamps are rejected")
+
+
+def test_digests():
+    assert K.holiday_sha() == K.HOLIDAY_SHA and len(K.holidays()) == 352
+    assert K.symbols_sha() == K.SYMBOLS_SHA and K.treasury_sha() == K.TREASURY_SHA
+    raw = K.HOLIDAY_FILE.read_bytes()
+    assert chr(13).encode() not in raw, "holiday file must be LF"
+    print("PASS C5 pinned digests: holiday list (LF-normalised), symbol JSON, Treasury snapshot")
 
 
 if __name__ == "__main__":
-    for f in (test_entry_week, test_known_at_cut, test_usable_bars_every_tf, test_cost, test_swap, test_vol_scale_causal):
+    for f in (test_entry_week, test_known_at_cut, test_usable_bars_every_tf, test_cost, test_swap, test_vol_scale_causal,
+              test_mark_price, test_validate_seam, test_digests):
         f()
     print("ALL CONTRACT TESTS PASS")

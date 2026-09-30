@@ -43,13 +43,17 @@ LABELS_EN = ("CALM", "NORMAL", "HIGH", "EXTREME")
 B_REF = 38193.9                 # bp^2 (weekly vol 195.4 bp), computed 2026-09-28
 
 
-def weekly_rv(t, c, h, l, cuts):
+def weekly_rv(t, c, h, l, cuts, bar_seconds=3600):
     """RV, range (bp of the week's first close), return and bar count for each
     week (cuts[k], cuts[k] + 7d], assigning every H1 bar by its CLOSE time
     (t + 1h), so a bar that straddles a cut belongs to the later week (Codex
-    Round 5). Reads only bars that close by cuts[k] + 7d."""
+    Round 5). Reads only bars that close by cuts[k] + 7d.
+    bar_seconds is explicit (WRWR contract C3, Codex R19-5): MIN_BARS and B_REF are defined on H1 bars, so any other
+    bar length is refused instead of silently mis-scaled."""
+    if int(bar_seconds) != 3600:
+        raise ValueError("weekly_rv is defined on H1 bars (bar_seconds=3600); H4/D1 bars must not feed it")
     week = 7 * 86400
-    close_t = np.asarray(t) + 3600
+    close_t = np.asarray(t) + int(bar_seconds)
     lr = np.full(len(t), np.nan)
     lr[1:] = np.diff(np.log(c))
     rv, ran, ret, n = [], [], [], []

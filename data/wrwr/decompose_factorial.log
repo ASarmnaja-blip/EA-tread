@@ -1,0 +1,12 @@
+costs                        champions weekly_stop  total_R  final_equity  entries  weekstop_skips  minlot_skips  busy_skips  riskcap_skips  2004-08  2009-14  2015-20  2021-26
+FLAT2     fixed to flat-cost champions         off    149.2       17975.6     5707               0             2        7171             23      0.4    128.4    -11.6     31.9
+FLAT2     fixed to flat-cost champions          on     33.6        7452.4     4860            1834            84        6117              8     -3.2     22.9     -4.0     18.0
+FLAT2 re-selected under the cost model         off    149.2       17975.6     5707               0             2        7171             23      0.4    128.4    -11.6     31.9
+FLAT2 re-selected under the cost model          on     33.6        7452.4     4860            1834            84        6117              8     -3.2     22.9     -4.0     18.0
+   C4     fixed to flat-cost champions         off   -242.1         439.4     4429               0          3451        5012             11   -132.1     31.0   -105.9    -35.1
+   C4     fixed to flat-cost champions          on   -321.3         270.6     3360            1372          4454        3713              4   -141.4    -28.9   -113.3    -37.6
+   C4 re-selected under the cost model         off   -181.5         817.3     4800               0          1614        6505              6    -47.9      5.2    -60.2    -78.6
+   C4 re-selected under the cost model          on   -220.4         681.0     3919            1516          2149        5338              3    -93.5    -10.0    -62.8    -54.1
+
+fixed to flat-cost champions: stop effect at flat cost -115.6 R, at C4 cost -79.2 R; cost effect with stop off -391.3 R, with stop on -354.9 R; interaction +36.4 R
+re-selected under the cost model: stop effect at flat cost -115.6 R, at C4 cost -38.9 R; cost effect with stop off -330.7 R, with stop on -254.0 R; interaction +76.7 R
