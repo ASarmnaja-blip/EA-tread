@@ -60,6 +60,9 @@ def _panel_section(js, sc, title):
             else:
                 L.append(f"| {c['name']} | {c['cell']} | 0 | 0 | – | 1.00 | รอสัปดาห์แรก |")
         L.append("")
+        if len(P) and "row_sha" in P:
+            tips = ", ".join(f"{n}: `{g.row_sha.iloc[-1]}`" for n, g in P.groupby("name"))
+            L += [f"hash ปลายลูกโซ่ (จดไว้เพื่อยืนยันว่าไฟล์ไม่ถูกลบย้อนหลัง): {tips}", ""]
     return L
 
 

@@ -211,3 +211,23 @@ separate hypothesis from the single-candidate panels (overlapping evidence; sepa
   records a bar hash and seals occurrences with no 00:00 exit bar (NO_EXIT_BAR).
 - Replay test on a temp copy (2024-09..2026-08): scoring, re-running (0 new rows) and tamper detection
   (a changed value stops scoring) behave as specified.
+
+## Amendment 12 (2026-09-30, after Codex round 14, before the first forward week)
+`docs/CODEX_R14_FOUNDRY_FORWARD.md`: 3 fixed, 4 partial, 3 new defects - all addressed, then every
+forward record re-frozen (the R13 freeze archived as `*_v3_R13`).
+- Settlement completeness: a week is DATA_GAP (factor 1) if it has < 80 H1 bars or any gap > 72 h in
+  the week plus its 6-day settlement window, so a truncated hold cannot be finalised.
+- Snapshot imports: engine binds the snapshot's own vol.py, build_all_tf.py and external_traces.py in
+  sys.modules before anything can prepend a live directory (verified: the snapshot's engine.V resolves
+  to the snapshot's vol.py).
+- Validation: candidates must be in lockstep (equal row counts), and the file must re-validate after
+  every append; the dispatcher holds a lock and runs the portfolio only if every panel succeeded
+  (fail-closed); the portfolio validates each component file's hash chain.
+- Hashing: every field (including recorded_utc) is hashed; numbers as float.hex; files are written with
+  17 significant digits and read with round-trip float parsing (tested: a 1e-9 change, a timestamp
+  change, and a single dropped row are all detected).
+- LATE: only when the job did not run at all during the 8 days after the week became scorable (from an
+  append-only run log); a late-arriving feed with the job running normally is not LATE.
+- Residual limitation, stated: deleting the newest week for every candidate at once is not detectable
+  from the file alone (the week would be re-scored from the same data). The weekly Thai summary prints
+  the chain-tip hashes so an outside record exists; committing them is the operator's choice.

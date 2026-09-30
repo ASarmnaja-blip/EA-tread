@@ -556,3 +556,7 @@ All forward records re-frozen with the valid clipped-mean mixture test, settle m
 snapshots, hash-chained append-only files and exact-component portfolio aggregation. Same candidates:
 panel 1 = INSIDE_DAY_t2, SHOCK_CONT_k2_h48~INV, ASIA_BRK_t2, HOD_21L, NR7_t2 (ALL cells); panel 2 =
 SHOCK_FADE_k2.5_h72_s3.0; portfolio = the six. Hashes: `docs/FOUNDRY_FROZEN_MANIFEST.md`.
+
+## Re-freeze under Amendment 12 (after Codex round 14, 2026-09-30)
+Same six candidates and portfolio; settlement-window gap check, frozen-module binding, lockstep and
+post-append validation, fail-closed portfolio, exact hashing, run-log-based LATE. Manifest re-issued.

@@ -24,27 +24,46 @@ FIELDS = ["week", "status", "n_components", "week_R", "E", "E_0.05", "E_0.1", "E
 
 def read(p):
     try:
-        return pd.read_csv(p) if p.exists() and p.stat().st_size > 0 else pd.DataFrame()
+        return pd.read_csv(p, float_precision="round_trip") if p.exists() and p.stat().st_size > 0 else pd.DataFrame()
     except pd.errors.EmptyDataError:
         return pd.DataFrame()
 
 
-def _canon(v):
-    """Canonical text of a value so a row hashes the same before and after a CSV round trip."""
-    if isinstance(v, (bool, np.bool_)):
-        return "True" if v else "False"
-    if isinstance(v, str) and v in ("True", "False"):
-        return v
+TEXT_FIELDS = {"name", "cell", "week", "status", "bars_sha", "prev_sha", "row_sha", "recorded_utc"}
+BOOL_FIELDS = {"reject"}
+
+
+def _canon(v, field=None):
+    """Exact, CSV-round-trip-stable text of a value: text fields as str, booleans as True/False,
+    every number as float.hex of its float value (so 1, 1.0 and "1" hash alike, nothing is rounded)."""
+    if field in TEXT_FIELDS:
+        return str(v)
+    if field in BOOL_FIELDS or isinstance(v, (bool, np.bool_)):
+        return "True" if (v is True or v == True or str(v) == "True") else "False"  # noqa: E712
     try:
         x = float(v)
-        return "nan" if x != x else f"{x:.9g}"
+        return "nan" if x != x else float.hex(x)
     except (TypeError, ValueError):
         return str(v)
 
 
-def rh(r):
-    return hashlib.sha256(json.dumps({k: _canon(r[k]) for k in FIELDS if k not in ("row_sha", "recorded_utc")},
-                                     sort_keys=True).encode()).hexdigest()[:16]
+def rh(r, fields=None):
+    fields = fields or FIELDS
+    return hashlib.sha256(json.dumps({k: _canon(r[k], k) for k in fields if k != "row_sha"}, sort_keys=True).encode()).hexdigest()[:16]
+
+
+def component_ok(df, names):
+    """A component score file must carry intact per-candidate hash chains (same rule as the panels)."""
+    if not len(df):
+        return True
+    fields = list(df.columns)
+    for n in set(df.name) & set(names):
+        prev = "GENESIS"
+        for r in df[df.name == n].to_dict("records"):
+            if r["prev_sha"] != prev or rh(r, fields) != r["row_sha"]:
+                return False
+            prev = r["row_sha"]
+    return True
 
 
 def main(pj):
@@ -61,6 +80,9 @@ def main(pj):
     comp = [float(old[f"E_{l:g}"].iloc[-1]) for l in lams] if len(old) else [1.0] * len(lams)
     k = int(P["forward_from"]) + 7 * 86400 * len(old)
     frames = {c: read(f) for f, c in comps}
+    for f in {f for f, _ in comps}:
+        if not component_ok(read(f), [c for g, c in comps if g == f]):
+            print(f"STOP: component file {f.name} failed chain validation"); return 1
     new = []
     while True:
         wk = str(pd.to_datetime(k, unit="s"))

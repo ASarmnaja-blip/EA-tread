@@ -83,44 +83,22 @@ def dir_hash(d: Path) -> str:
     return h.hexdigest()
 
 
-TEXT_FIELDS = {"name", "cell", "week", "status", "bars_sha", "prev_sha", "row_sha", "recorded_utc"}
-BOOL_FIELDS = {"reject"}
-
-
-def _canon(v, field=None):
-    """Exact, CSV-round-trip-stable text of a value: text fields as str, booleans as True/False,
-    every number as float.hex of its float value (so 1, 1.0 and "1" hash alike, nothing is rounded)."""
-    if field in TEXT_FIELDS:
-        return str(v)
-    if field in BOOL_FIELDS or isinstance(v, (bool, np.bool_)):
-        return "True" if (v is True or v == True or str(v) == "True") else "False"  # noqa: E712
+def _canon(v):
+    """Canonical text of a value so a row hashes the same before and after a CSV round trip."""
+    if isinstance(v, (bool, np.bool_)):
+        return "True" if v else "False"
+    if isinstance(v, str) and v in ("True", "False"):
+        return v
     try:
         x = float(v)
-        return "nan" if x != x else float.hex(x)
+        return "nan" if x != x else f"{x:.9g}"
     except (TypeError, ValueError):
         return str(v)
 
 
 def row_hash(r):
-    return hashlib.sha256(json.dumps({k: _canon(r[k], k) for k in FIELDS if k != "row_sha"}, sort_keys=True).encode()).hexdigest()[:16]
-
-
-RUNS = SHADOW / "forward_runs.csv"          # append-only log of every scoring run and the feed end it saw
-
-
-def log_run(feed_end):
-    first = not RUNS.exists()
-    with open(RUNS, "a", encoding="utf-8") as fh:
-        if first:
-            fh.write("run_epoch,feed_end\n")
-        fh.write(f"{int(time.time())},{int(feed_end)}\n")
-
-
-def had_run_between(a, b):
-    if not RUNS.exists():
-        return False
-    R = pd.read_csv(RUNS)
-    return bool(((R.run_epoch >= a) & (R.run_epoch < b)).any())
+    return hashlib.sha256(json.dumps({k: _canon(r[k]) for k in FIELDS if k not in ("row_sha", "recorded_utc")},
+                                     sort_keys=True).encode()).hexdigest()[:16]
 
 
 # ------------------------------------------------------------------ nomination (Amendment 6)
@@ -197,9 +175,6 @@ def validate(old, cands):
             prev = r["row_sha"]
     if set(old.name) - {c["name"] for c in cands}:
         print("STOP: unknown candidate in score file"); return False
-    counts = {c["name"]: int((old.name == c["name"]).sum()) for c in cands}
-    if len(set(counts.values())) != 1:
-        print("STOP: candidates are not in lockstep (a row was added or removed):", counts); return False
     return True
 
 
@@ -210,7 +185,7 @@ def score(panel_file: Path, scores_file: Path):
         print("STOP: --score must run inside the panel's own snapshot"); return 1
     if dir_hash(snap) != P["snapshot_sha256"]:
         print("STOP: snapshot changed since freezing"); return 1
-    old = pd.read_csv(scores_file, float_precision="round_trip") if scores_file.exists() and scores_file.stat().st_size > 0 else pd.DataFrame(columns=FIELDS)
+    old = pd.read_csv(scores_file) if scores_file.exists() and scores_file.stat().st_size > 0 else pd.DataFrame(columns=FIELDS)
     if not validate(old, P["candidates"]):
         return 1
     H, D, cuts, cell = E.load_spliced()
@@ -232,15 +207,12 @@ def score(panel_file: Path, scores_file: Path):
         while k + E.WEEK + SETTLE <= min(now, end):
             w = g[(g.et > k) & (g.et <= k + E.WEEK)]
             nbar = int(((H.t + 3600 > k) & (H.t + 3600 <= k + E.WEEK)).sum())
-            span = H.t[(H.t > k) & (H.t <= k + E.WEEK + SETTLE)]
-            max_gap = float(np.diff(span).max() / 3600) if len(span) > 1 else 999.0
             wr = float(w.R.mean()) if len(w) else 0.0
             gc = float(np.clip(wr, -CLIP, CLIP))
-            ready = k + E.WEEK + SETTLE
-            if nbar < 80 or max_gap > 72:                       # gap in the week or its settlement window
+            if nbar < 80:
                 status = "DATA_GAP"
-            elif now > ready + LATE and not had_run_between(ready, now - 1):
-                status = "LATE"                                   # the job was not running when it became scorable
+            elif now > k + E.WEEK + SETTLE + LATE:
+                status = "LATE"
             else:
                 status = "OK"
             if status == "OK":
@@ -258,11 +230,8 @@ def score(panel_file: Path, scores_file: Path):
             k += E.WEEK
     if new:
         first = not (scores_file.exists() and scores_file.stat().st_size > 0)
-        pd.DataFrame(new, columns=FIELDS).to_csv(scores_file, mode="a", header=first, index=False, float_format="%.17g")
-        chk = pd.read_csv(scores_file, float_precision="round_trip")                            # R14: the written file must re-validate
-        if not validate(chk, P["candidates"]):
-            print("STOP: file failed re-validation after append"); return 1
-    S = pd.read_csv(scores_file, float_precision="round_trip") if scores_file.exists() and scores_file.stat().st_size > 0 else pd.DataFrame(columns=FIELDS)
+        pd.DataFrame(new, columns=FIELDS).to_csv(scores_file, mode="a", header=first, index=False)
+    S = pd.read_csv(scores_file) if scores_file.exists() and scores_file.stat().st_size > 0 else pd.DataFrame(columns=FIELDS)
     print(f"{panel_file.name}: {len(new)} new rows; {S.week.nunique()} forward weeks recorded")
     if len(S):
         print(S.groupby("name").tail(1)[["name", "cell", "status", "E", "reject"]].to_string(index=False))
@@ -272,23 +241,7 @@ def score(panel_file: Path, scores_file: Path):
 # ------------------------------------------------------------------ dispatcher
 def dispatch():
     import subprocess
-    lock = SHADOW / ".forward.lock"
-    try:
-        fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    except FileExistsError:
-        if time.time() - lock.stat().st_mtime < 3 * 3600:
-            print("another scoring run holds the lock; exiting"); return 0
-        lock.unlink(); fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    try:
-        return _dispatch(subprocess)
-    finally:
-        os.close(fd); lock.unlink()
-
-
-def _dispatch(subprocess):
     rc = 0
-    H, _, _, _ = E.load_spliced()
-    log_run(int(H.t[-1]) + 3600)
     for js in sorted(SHADOW.glob("forward_panel*.json")):
         P = json.loads(js.read_text())
         if "snapshot_sha256" not in P:
@@ -301,8 +254,6 @@ def _dispatch(subprocess):
         print(f"[{js.name}] exit {r.returncode}: {out[-700:]}")
         rc |= r.returncode
     for pj in sorted(SHADOW.glob("portfolio*.json")):
-        if rc:
-            print(f"[{pj.name}] skipped: a component panel failed this run (fail-closed)"); continue
         P = json.loads(pj.read_text())
         if "snapshot_sha256" not in P:
             continue

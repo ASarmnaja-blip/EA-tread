@@ -20,7 +20,11 @@ for p in ("research/history", "research/wpwb_weekly", "research/pilot"):
     sys.path.insert(0, str(ROOT / p))
 FROZEN = (_HERE / "FROZEN").exists()          # inside a forward-record snapshot: use its own copies (R13-3)
 if FROZEN:
+    import importlib.util as _ilu
     sys.path.insert(0, str(_HERE))
+    for _m in ("vol", "build_all_tf", "external_traces"):   # R14-3: bind the snapshot copies before any
+        _sp = _ilu.spec_from_file_location(_m, _HERE / f"{_m}.py")  # module can prepend a live directory
+        _mod = _ilu.module_from_spec(_sp); sys.modules[_m] = _mod; _sp.loader.exec_module(_mod)
 from build_all_tf import load_kind  # noqa: E402
 import vol as V  # noqa: E402
 
