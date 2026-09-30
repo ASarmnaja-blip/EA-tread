@@ -3,11 +3,15 @@ M5 / M15 / M30 from the live Exness feed (mid = bid + half the recorded spread, 
 H1 / H4 / D1 from Dukascopy mid (2003-05..2026-08). 31 indicators x FOLLOW/FADE x stop 1/2 ATR(14 of that
 TF) x RR {1, 2, 3, 5, 10} x max hold {24, 240} bars (D1: {10, 60}); one position at a time, at most
 6,000 trades per setup (seeded subsample when more); 2 bp cost and swap. All rows kept.
+INVERT=1 (operator 2026-09-30: "กลับด้าน sl กับ tp สลับกัน", then "เอา sl ที่ 1 r"): stop stays k ATR = 1 R,
+target = k ATR / RR, so RR reads 10:1 (risk 1 R to make 0.1 R). Writes multi_tf_inverted.*
 Writes data/foundry/multi_tf.xlsx and data/foundry/multi_tf.png. Descriptive only."""
 from __future__ import annotations
 
 import sys
 from pathlib import Path
+
+import os
 
 import numpy as np
 import pandas as pd
@@ -21,6 +25,9 @@ src = (HERE / "indicator_zoo.py").read_text(encoding="utf-8")
 NS = {"__file__": str(HERE / "indicator_zoo.py"), "__name__": "zoo_defs"}
 exec(compile(src[: src.index("rng = np.random.default_rng(7)")], "zoo_defs", "exec"), NS)
 RRS, KS, CAP = (1, 2, 3, 5, 10), (1, 2), 6000
+INV = os.environ.get("INVERT") == "1"
+TAG = "_inverted" if INV else ""
+lab = (lambda r: f"{r}:1") if INV else (lambda r: f"1:{r}")
 
 
 def mk(t, o, h, l, c, v, sp_bp, step):
@@ -66,9 +73,10 @@ def eras_for(src):
 def run_setup(B, ent, d, k, rr, hold):
     last = np.minimum(ent + hold - 1, len(B.t) - 1)
     a = B.atr[ent]
-    g, ex = E.simulate(B, ent, d, k * a, rr * k * a, last)
+    stop, tgt = (k * a, k * a / rr) if INV else (k * a, rr * k * a)
+    g, ex = E.simulate(B, ent, d, stop, tgt, last)
     sw = E.swap_bp(B, ent, ex, d)
-    sb = k * a / B.o[ent] * 1e4
+    sb = stop / B.o[ent] * 1e4
     return g / sb, (g - sw - E.COST_BP) / sb, E.COST_BP / sb
 
 
@@ -111,9 +119,9 @@ for tf, (B, srcname) in load_all().items():
                 for k in KS:
                     for rr in RRS:
                         gross, net, cost = run_setup(B, ent, d, k, rr, hold)
-                        r = dict(tf=tf, data=srcname, setup=name, mode=mode, k_atr=k, RR=f"1:{rr}", rr=rr, hold_bars=hold,
+                        r = dict(tf=tf, data=srcname, setup=name, mode=mode, k_atr=k, RR=lab(rr), rr=rr, hold_bars=hold,
                                  n=len(ent), n_signals=n_signals, win_rate=float((gross > 0).mean()), gross_R=float(gross.mean()),
-                                 cost_R=float(cost.mean()), net_R=float(net.mean()),
+                                 cost_R=float(cost.mean()), net_R=float(net.mean()), net_in_target_units=float(net.mean() * (rr if INV else 1 / rr)),
                                  R_per_year=float(net.mean() * n_signals / yrs))
                         for e, (a0, a1) in ERAS.items():
                             m = (dt >= a0) & (dt < a1)
@@ -129,15 +137,15 @@ S = I.groupby("tf").agg(setups=("n", "size"), best_net_R=("net_R", "max"), worst
                         share_positive=("net_R", lambda s: float((s > 0).mean())), mean_cost_R=("cost_R", "mean"),
                         mean_gross_R=("gross_R", "mean")).reindex(order)
 S["random_mean_net_R"] = X[X["mode"] == "RANDOM"].groupby("tf").net_R.mean().reindex(order)
-SR = I.pivot_table(index="tf", columns="RR", values="net_R", aggfunc="max").reindex(order)[[f"1:{r}" for r in RRS]]
-SM = I.pivot_table(index="tf", columns="RR", values="net_R", aggfunc="mean").reindex(order)[[f"1:{r}" for r in RRS]]
+SR = I.pivot_table(index="tf", columns="RR", values="net_R", aggfunc="max").reindex(order)[[lab(r) for r in RRS]]
+SM = I.pivot_table(index="tf", columns="RR", values="net_R", aggfunc="mean").reindex(order)[[lab(r) for r in RRS]]
 best_rows = I.loc[I.groupby("tf").net_R.idxmax()].set_index("tf").reindex(order)
 worst_rows = I.loc[I.groupby("tf").net_R.idxmin()].set_index("tf").reindex(order)
-out = E.ROOT / "data" / "foundry" / "multi_tf.xlsx"
+out = E.ROOT / "data" / "foundry" / f"multi_tf{TAG}.xlsx"
 with pd.ExcelWriter(out) as xw:
     pd.DataFrame({"อ่านก่อน": [
         "ทุกแบบอยู่ครบ ทั้งบวกและลบ · M5/M15/M30 จาก Exness (2021-2026) · H1/H4/D1 จาก Dukascopy (2003-2026)",
-        "stop 1 หรือ 2 ATR ของกรอบเวลานั้น · RR 1:1 ถึง 1:10 · ถือสูงสุด 24 หรือ 240 แท่ง (D1: 10 หรือ 60 แท่ง) · ถือได้ทีละไม้",
+        ("กลับด้าน: stop = 1R (k ATR) เท่าเดิม, target = 1R ÷ RR (เช่น 10:1 = เสี่ยง 1R เพื่อได้ 0.1R) · " if INV else "") + "stop 1 หรือ 2 ATR ของกรอบเวลานั้น · RR 1:1 ถึง 1:10 · ถือสูงสุด 24 หรือ 240 แท่ง (D1: 10 หรือ 60 แท่ง) · ถือได้ทีละไม้",
         "หักต้นทุน 2 bp และ swap แล้ว · หน่วย R เทียบกับระยะ stop · R_per_year = R ต่อไม้ × จำนวนสัญญาณต่อปี (ถือได้ทีละไม้)",
         "ข้อมูลที่เห็นแล้วทั้งหมด ลองหลายพันแบบ ตัวที่ดูดีมีส่วนหนึ่งเป็นความบังเอิญ ไม่ใช่สัญญาณเทรด"]}).to_excel(xw, sheet_name="README", index=False)
     S.to_excel(xw, sheet_name="สรุปตาม TF")
@@ -166,5 +174,5 @@ ax[1].bar(xs - 0.2, S.mean_gross_R.values, 0.4, label="gross R (before cost)")
 ax[1].bar(xs + 0.2, -S.mean_cost_R.values, 0.4, label="cost (2 bp) in R", color="tab:red")
 ax[1].plot(xs, S.mean_net_R.values, "ko-", label="net R")
 ax[1].axhline(0, color="k", lw=.7); ax[1].set_xticks(xs); ax[1].set_xticklabels(order); ax[1].set_title("Cost drag by timeframe"); ax[1].legend()
-fig.tight_layout(); fig.savefig(E.ROOT / "data" / "foundry" / "multi_tf.png", dpi=110)
-print("chart -> multi_tf.png")
+fig.tight_layout(); fig.savefig(E.ROOT / "data" / "foundry" / f"multi_tf{TAG}.png", dpi=110)
+print(f"chart -> multi_tf{TAG}.png")

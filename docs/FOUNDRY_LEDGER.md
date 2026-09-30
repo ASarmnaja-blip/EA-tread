@@ -607,3 +607,12 @@ H1 +0.34, H4 +0.94 (n 148), D1 +1.18 (n 61) - the largest numbers come from the 
 from 1:10 targets with long holds (D1 60 days over the 2003-26 gold rally). Worst per TF -0.33..-0.68 R.
 Reading: below H1 the spread alone decides the result; on H4/D1 cost stops mattering but samples are
 small and long holds mostly carry gold's drift.
+
+## Multi-TF inverted SL/TP (operator 2026-09-30: "กลับด้าน sl กับ tp สลับกัน", "เอา sl ที่ 1 r")
+`INVERT=1 python research/foundry/multi_tf.py` -> data/foundry/multi_tf_inverted.{xlsx,png,log}. Same 7,420 setups + 120 random
+rows as the multi-TF run; stop kept at k ATR (= 1 R), target = 1 R / RR (RR 1:1, 2:1, 3:1, 5:1, 10:1). All rows kept. Descriptive only.
+- Win rate rises as the target shrinks (≈0.50 at 1:1 → ≈0.85 at 10:1, every TF) but net R falls monotonically on every TF;
+  the average setup is negative at every TF x RR cell. Best at 10:1: D1 +0.071 R, H4 +0.041 R; M5-H1 no positive 10:1 setup.
+- Gross R before cost is already negative on average (−0.02 to −0.04 R): the stop-first same-bar rule and 1 R losses outweigh
+  the small targets. Cost per trade is unchanged (M5 0.263 R … D1 0.011 R) but at 10:1 it equals 2.6 targets on M5.
+- Best rows overall are the 1:1 cells (D1 +0.23 R n 59, H4 +0.22 R n 135) - small samples, not tools.
