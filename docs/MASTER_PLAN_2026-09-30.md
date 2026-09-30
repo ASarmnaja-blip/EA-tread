@@ -1,6 +1,6 @@
 # แผนหลัก WRWR รอบใหม่ (2026-09-30) — แก้บั๊ก → ตรวจทั้งระบบ → ทดสอบกับเงิน → บันทึกกระดาษ → ตะแกรง
 
-> **ลำดับความสำคัญ (Amendment 2, หลัง Codex R18b):** Amendment 1–2 และ `docs/WRWR_CONTRACT_PREREG.md` (v2) มีผลเหนือทุกข้อในส่วน B–F ที่ขัดกัน เช่น K = 20, PBO ≤ 0.30, XAG p < 0.10, การแก้ B4 แบบมีเงื่อนไข, กติกาบันทึกกระดาษเดิม, "placebo BASE ≈ 0R", ตาราง "กำไร/DD" และตัวเลข "~20 เท่า/ปีแบบทบ" — ส่วนเหล่านั้นถูกยกเลิก ใช้ C6–C10 แทน
+> **ลำดับความสำคัญ (Amendment 2, หลัง Codex R18b):** Amendment 1–2 และ `docs/WRWR_CONTRACT_PREREG.md` (ฉบับล่าสุด v4) มีผลเหนือทุกข้อในส่วน B–F ที่ขัดกัน เช่น K = 20, PBO ≤ 0.30, XAG p < 0.10, การแก้ B4 แบบมีเงื่อนไข, กติกาบันทึกกระดาษเดิม, "placebo BASE ≈ 0R", ตาราง "กำไร/DD" และตัวเลข "~20 เท่า/ปีแบบทบ" — ส่วนเหล่านั้นถูกยกเลิก ใช้ C6–C10 แทน
 
 
 ## Context
@@ -189,3 +189,11 @@ cut-known benchmark activation and the T x 144 (R, B) matrix as the bootstrap ob
 meta-selectors recomputed per replicate (R18b-7); no DATA_GAP exemption, failed weeks reconstructed or entered at
 g = -4 (R18b-10); exact placebo generator, enumerated and hashed test family, fixed-effects flag contrasts and
 raw-target statistics (R18b-9).
+
+## Amendment 4 — response to Codex R18d (`docs/CODEX_R18d_MASTER_PLAN.md`)
+R18d: R18b-2, -4, -5, -7, -9 resolved; the two remaining BLOCKING items are fixed with Codex's own wording in contract v4:
+C2 skip semantics (a skipped signal creates no position and never alters an existing one) and C8 delayed weeks (later
+weeks stay pending until the missing week is reconstructed or, after 8 weeks, set to g = -4 with raw R = NA, then all are
+appended in cut order). MINOR: Treasury field BC_2YEAR and snapshot digest, percentage-point markups, holiday-list digest
+and pandas version, manifest (`docs/WRWR_MANIFEST.md`) holding family digests and seeds before any real statistic.
+Step -1 is closed: no BLOCKING item remains open.

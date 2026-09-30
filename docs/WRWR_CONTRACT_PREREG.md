@@ -1,5 +1,6 @@
-# WRWR contracts and gates — pre-registration v3 (2026-09-30, before any code change)
-v1 answered Codex R18, v2 answered R18b, v3 closes the six PARTIAL items of R18c (`docs/CODEX_R18c_MASTER_PLAN.md`).
+# WRWR contracts and gates — pre-registration v4 (2026-09-30, before any code change)
+v1 answered Codex R18, v2 R18b, v3 R18c, v4 the two BLOCKING items and the MINOR notes of R18d
+(`docs/CODEX_R18d_MASTER_PLAN.md`).
 This document and MASTER_PLAN Amendments 1-2 supersede every conflicting rule in the plan body.
 
 **Scope.** WRWR = weekly higher-timeframe router + risk overlay for XAUUSD on H1 / H4 / D1. It does not complete the
@@ -21,7 +22,9 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
   stop, target or max hold; stop-first on same-bar ties; gap through a stop fills at the open), with entry/exit time,
   gross bp, cost bp and swap bp. The **shadow ledger** (selection statistics: the chronological one-position filter, as
   today) and the **live ledger** (the rules below) each consume the potential-signal table independently; neither is
-  derived from the other. Any skipped live signal, for any reason, leaves that candidate live-flat.
+  derived from the other. A skipped live signal, for any reason, creates no position and does not alter any existing
+  position; a candidate that was flat stays flat (so a skip never makes it busy), and one that already holds a live
+  position keeps it unchanged.
 - Deployable m in {1, 2} champions (CLAUDE.md §3); m > 2 is a research ensemble, reported separately, never deployed,
   and outside the primary family claim.
 - Weekly R unit U_k = f x equity at cut_k. Weekly R = (sum of net $ P&L of all exits in (cut_k, cut_{k+1}], inherited
@@ -60,8 +63,10 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
 - spread_bp = the dataset's recorded ask-minus-bid of the entry bar, charged once per round trip; slippage exactly
   1.0 bp total. Same-bar SL/TP ties: stop-first is primary; tick/M1-resolved (HistData 2009+) is a sensitivity.
 - Historical swap (longs only; shorts 0) is a fixed ANNUAL RATE of notional, never a fixed dollar charge: for the
-  rollover at 17:00 New York on calendar day d, rate_d = (US 2y par yield of the latest Treasury date strictly before d)
-  + markup (XAU +0.02, XAG -0.20 % per year), clipped at >= 0; before the first 2016 Treasury value, that first value.
+  rollover at 17:00 New York on calendar day d, rate_d = (US 2y par yield `BC_2YEAR` of the latest Treasury date strictly
+  before d, from the 11 files `data/external/treasury_nominal_2016..2026.xml`, concatenated in name order sha256
+  ced897410400c41167d2711e942a3fceac2d76f812720c9ea9ace3097560751b) + markup (XAU +0.02, XAG -0.20 percentage points
+  per year), clipped at >= 0; before the first 2016 Treasury value, that first value.
   bp charged = nights_d x rate_d / 100 / 365 x 1e4 with nights = 3 on Wednesday, 1 on Monday / Tuesday / Thursday /
   Friday, 0 on Saturday / Sunday; charged for every rollover in (entry open time, exit bar close time]. The only
   change from `engine.swap_bp` is the one-day publication lag.
@@ -73,7 +78,9 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
 - Every series: timestamps strictly increasing and unique (a duplicate or a decrease = reject).
 - Splice checks on 4 weeks either side of every seam (Dukascopy -> Exness, HistData -> Exness): H1 gaps <= 3 h except
   weekends <= 72 h and weekdays in the frozen holiday list (pandas USFederalHolidayCalendar 2003-2026 + Good Friday by
-  the Easter algorithm + 24, 26 and 31 December + 2 January; the generated list is hashed in the manifest); median spread ratio in [0.5, 2.0]; source offset on the overlap
+  the Easter algorithm + 24, 26 and 31 December + 2 January; generated with pandas 3.0.6 into
+  `data/foundry/wrwr_holidays_2003_2026.txt`, 352 dates, sha256
+  35a2d982c06c84faa9809c2a9b6073fcff4a2de70b79d7430e0c506854464e8f); median spread ratio in [0.5, 2.0]; source offset on the overlap
   |median| <= 2 bp and MAD <= 1 bp; seam |log return| < 10 x median |H1 log return| (seam excluded).
 
 ## C6 Nulls and gates (gold)
@@ -121,9 +128,10 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
 - Payoff statistic g = max(R_week, -4): a deliberate winsorisation, not an enforceable bound (open positions can take a
   week below -4 R after the -3 U_k entry stop). Raw R and every truncated amount are reported every week.
 - e-process: E_t = (1/3) sum over lambda in {0.05, 0.10, 0.20} of prod(1 + lambda g_i). No DATA_GAP exemption: every week
-  from the first cut is included (inclusion fixed before any week begins). A week whose data or job failed is
-  reconstructed from recovered data (Exness, Dukascopy, HistData) and entered when complete; a week not reconstructable
-  within 8 weeks enters with g = -4.
+  from the first cut is included (inclusion fixed before any week begins), strictly in cut order. A week whose data or
+  job failed is PENDING and so are all later weeks: nothing is appended past it until it is reconstructed from recovered
+  data (Exness, Dukascopy, HistData) or, 8 weeks after its cut, assigned g = -4 with raw R = NA and an audit reason; the
+  pending weeks are then appended in cut order and the e-process is updated in that order only.
 - Anytime-valid lower confidence bound: LCB_t = the largest mu on the grid -1.00, -0.99, ..., +0.50 with
   (1/3) sum_lambda prod(1 + lambda (g_i - mu)) >= 1/alpha (inverting the shifted-mean e-processes).
 - alpha from the 0.02 reserve, only with the operator's word: H-WRWR-BASE 0.005 (E >= 200), H-WRWR-SEL 0.005 (only if
@@ -138,8 +146,9 @@ pre-registration may use them for execution only). No news veto in v1: the Risk 
 - Per cut, separate scripts and artefacts: analyst (regime, vol, news JSON) -> strategist (champions, candidate hashes,
   scores) -> risk manager (approve / reject per signal with rule IDs) -> execution (demo order / fill / spread /
   slippage log) -> auditor (scores, drift, e-process).
-- Manifest frozen before XAG is opened: family hash and dedup key, endpoints, ranking and tie rules, candidate hashes
-  (sha256 of tf, setup, mode, k_atr, exit, hold, code hash), benchmark seeds.
+- Manifest `docs/WRWR_MANIFEST.md`, frozen and committed before any real gate statistic is computed and before XAG is
+  opened: family hash and dedup key, endpoints, ranking and tie rules, candidate hashes (sha256 of tf, setup, mode,
+  k_atr, exit, hold, code hash), benchmark seeds, the sieve test-family digest and its placebo seeds.
 
 ## C10 Targets — effect-size goals, not pass criteria (Calmar = R per year / max drawdown in R)
 | tier | R / year | max DD | Calmar |
