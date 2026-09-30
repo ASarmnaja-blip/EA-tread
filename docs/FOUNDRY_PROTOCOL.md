@@ -238,3 +238,16 @@ limitation (deleting the newest week of every candidate at once). One new defect
 unless a run occurred within the FIRST 8 days after it became scorable (the search no longer extends to
 the present, so a late week cannot turn OK afterwards). Records re-frozen (R14 freeze archived `*_v4_R14`),
 manifest re-issued.
+
+## Amendment 13 (2026-09-30) - news reaction study and forward panel 3
+`research/foundry/news_reaction.py` (descriptive, 2022-26, 715 scheduled HIGH USD release times with a
+trailing-sigma surprise): 14 of 48 case x hold x trade rows are positive in both halves (~12 by chance).
+Two structured results: FADING a move that REJECTS the news (price against the surprise) loses heavily
+(-0.28..-0.61 R, t -3.2..-6.4) and following it earns only ~+0.1 R (whipsaw); FADING a move that
+ACCEPTS the news (> 1 ATR in the implied direction) over 24 h earns +0.23 R (t 1.75, +0.16 / +0.30 in
+2022-23 / 2024-26). **Panel 3 (H-FOUNDRY-PANEL-3, alpha 0.005, threshold 200):**
+NEWS_ACCEPT_FADE_m1.0_h24 - after an accepted release-hour move > 1 ATR (combined |z| >= 0.5, no
+conflicting series), fade it from the next bar's open, exit within 23 clock hours, stop 2 ATR, one at a
+time; 113 trades 2022-26, positive every year (seen data, nomination only). Its snapshot also freezes
+`calendar_feed.py` (sign table, trailing sigma); the calendar data itself is refreshed weekly by the
+Saturday job and is not frozen - a revised 'actual' would change a trade, stated as a limitation.

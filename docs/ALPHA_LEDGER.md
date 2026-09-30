@@ -32,7 +32,8 @@ re-tested on the same stream for free (Codex review Q5, debate objection 13).
 | H-FOUNDRY-PANEL-1 | For each of 5 frozen Foundry candidates, the conditional mean of g = clip(forward weekly R, -2, 2) (after cost and swap) is <= 0 is rejected (docs/FOUNDRY_PROTOCOL.md Amendments 6-11; data/foundry/shadow/forward_panel1.json, snapshot research/foundry_frozen_panel1/) | 0.01 (0.002 each) | E_t >= 500 per candidate, E_t = mean over lambda 0.05/0.1/0.2/0.4 of prod(1 + lambda g) | week of 2026-10-02 22:15 UTC | **allocated 2026-09-30, paper only** |
 | H-FOUNDRY-PANEL-2 | SHOCK_FADE_k2.5_h72_s3.0: conditional mean of clipped forward weekly R <= 0 is rejected (Amendments 9, 11; data/foundry/shadow/forward_panel2.json, snapshot research/foundry_frozen_panel2/) | 0.005 | E_t >= 200, same mixture e-process | week of 2026-10-02 22:15 UTC | **allocated 2026-09-30, paper only** |
 | H-FOUNDRY-PORTFOLIO-1 | Equal-risk portfolio of the six panel-1/2 candidates: conditional mean of the average clipped weekly R <= 0 is rejected (Amendments 10-11; data/foundry/shadow/portfolio1.json; frozen aggregator research/foundry_frozen_portfolio1/) | 0.01 | E_t >= 100, mixture over lambda 0.05/0.1/0.2/0.4 | week of 2026-10-02 22:15 UTC | **allocated 2026-09-30, paper only** |
-| (reserve) | unallocated | 0.025 | — | — | — |
+| H-FOUNDRY-PANEL-3 | NEWS_ACCEPT_FADE_m1.0_h24: conditional mean of clipped forward weekly R <= 0 is rejected (docs/FOUNDRY_PROTOCOL.md Amendment 13; data/foundry/shadow/forward_panel3.json, snapshot research/foundry_frozen_panel3/) | 0.005 | E_t >= 200, same mixture e-process | week of 2026-10-02 22:15 UTC | **allocated 2026-09-30, paper only** |
+| (reserve) | unallocated | 0.02 | — | — | — |
 
 Note on H-WPWB-P1: rule 5 (a stopped hypothesis keeps its alpha spent)
 applies once a forward test has started. P1's allocation was only a draft in
