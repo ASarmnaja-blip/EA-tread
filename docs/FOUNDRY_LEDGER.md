@@ -596,3 +596,14 @@ really "stop + hold" trades; random 1:10/240 h swings -0.22..+0.26 R between era
 are dominated by a few large winners and are noisy. Setups net positive in all four eras: 113 of 2,604,
 fewer than the ~163 a coin flip per era would give at 1:10's 53 % positive share - the best rows are the
 upper tail of noise, not established edges.
+
+## Multi-timeframe zoo x RR (operator request 2026-09-30) - `multi_tf.py`, `data/foundry/multi_tf.xlsx`
+M5/M15/M30 on the Exness feed (2021-26), H1/H4/D1 on Dukascopy (2003-26); 31 indicators x FOLLOW/FADE x
+stop 1/2 ATR x RR 1-10 x 2 holds = 7,420 setups + random, all kept. Cost per trade in R falls with the
+timeframe: M5 0.26, M15 0.14, M30 0.09, H1 0.06, H4 0.03, D1 0.01; gross R before cost is ~0 on
+M5-M30 (0.002-0.009) and small on H1-D1 (0.02-0.06). Share of setups net positive: M5 0 %, M15 4 %,
+M30 13 %, H1 25 %, H4 41 %, D1 51 %. Best per TF: M5 -0.006 R (nothing positive), M15 +0.22, M30 +0.49,
+H1 +0.34, H4 +0.94 (n 148), D1 +1.18 (n 61) - the largest numbers come from the smallest samples and
+from 1:10 targets with long holds (D1 60 days over the 2003-26 gold rally). Worst per TF -0.33..-0.68 R.
+Reading: below H1 the spread alone decides the result; on H4/D1 cost stops mattering but samples are
+small and long holds mostly carry gold's drift.
