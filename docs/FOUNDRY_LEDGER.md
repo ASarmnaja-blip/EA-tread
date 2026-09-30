@@ -550,3 +550,9 @@ inconsistent. Reading: gold's up-trend drift plus mild dip reversion since 2015;
 `panel_portfolio_check.py` (seen data 2021-26): equal-risk portfolio of the six candidates +0.085 R per
 week, annual Sharpe 1.33 (optimistic, the candidates were picked on these years); ~250 forward weeks
 to a 2.9-sigma result if that held. Alpha ledger now: panels 0.01 + 0.005, portfolio 0.01, reserve 0.025.
+
+## Re-freeze under Amendment 11 (after Codex round 13, 2026-09-30)
+All forward records re-frozen with the valid clipped-mean mixture test, settle margins, full code
+snapshots, hash-chained append-only files and exact-component portfolio aggregation. Same candidates:
+panel 1 = INSIDE_DAY_t2, SHOCK_CONT_k2_h48~INV, ASIA_BRK_t2, HOD_21L, NR7_t2 (ALL cells); panel 2 =
+SHOCK_FADE_k2.5_h72_s3.0; portfolio = the six. Hashes: `docs/FOUNDRY_FROZEN_MANIFEST.md`.

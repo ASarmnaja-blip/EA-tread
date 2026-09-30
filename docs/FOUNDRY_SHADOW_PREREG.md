@@ -61,3 +61,8 @@ closed, with a hash of the bars used. SELECTOR-SHADOW-1 includes swap (DST-aware
 cuts on a late first run. HOD21-SHADOW-1 exits at the close of the 00:00 UTC bar (Exness has no 22:00
 bar in winter; the earlier code exited at 01:00), and trades recorded more than 8 days after their exit
 are LATE and not scored. The spliced feed is a paper index, not broker execution.
+
+## Amendment 4 (2026-09-30, after Codex round 13)
+SELECTOR-SHADOW-1 counts selected variants without trades as 0 and scores a week only when the feed is
+30 days past it; HOD21-SHADOW-1 stores a hash of the bars used for every occurrence and seals
+occurrences without a 00:00 exit bar as NO_EXIT_BAR.

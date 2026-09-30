@@ -15,8 +15,12 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
+_HERE = Path(__file__).resolve().parent
 for p in ("research/history", "research/wpwb_weekly", "research/pilot"):
     sys.path.insert(0, str(ROOT / p))
+FROZEN = (_HERE / "FROZEN").exists()          # inside a forward-record snapshot: use its own copies (R13-3)
+if FROZEN:
+    sys.path.insert(0, str(_HERE))
 from build_all_tf import load_kind  # noqa: E402
 import vol as V  # noqa: E402
 
@@ -346,6 +350,7 @@ def matched_control_trail(B, cell_of_bar, ent, dirs, init_mult, trail_mult, max_
 
 # ------------------------------------------------------------------ swap (protocol Amendment 5)
 _SWAP = {}
+SWAP_MARKUP = 0.02      # % per year: measured Exness $0.5493/oz/night at $4,154.5 (4.83 %) minus the 2y yield then (4.81 %); frozen (R13-3)
 
 
 def _swap_rate_series():
@@ -353,11 +358,14 @@ def _swap_rate_series():
     Exness $0.5493/oz/night at $4,154.5); before 2016 the first 2016 yield."""
     if "s" in _SWAP:
         return _SWAP["s"]
-    sys.path.insert(0, str(ROOT / "research" / "pilot"))
-    import external_traces as X
-    y2 = X.treasury("nominal")["BC_2YEAR"].dropna()
-    markup = 0.5493 / 4154.5 * 365 * 100 - float(y2.iloc[-1])
-    s = (y2 + markup).clip(lower=0)
+    fz = _HERE / "y2_frozen.csv"
+    if fz.exists():                            # snapshot: frozen yield series (R13-3)
+        y2 = pd.read_csv(fz, index_col=0, parse_dates=True).iloc[:, 0]
+    else:
+        sys.path.insert(0, str(ROOT / "research" / "pilot"))
+        import external_traces as X
+        y2 = X.treasury("nominal")["BC_2YEAR"].dropna()
+    s = (y2 + SWAP_MARKUP).clip(lower=0)
     _SWAP["s"] = (s, float(s.iloc[0]))
     return _SWAP["s"]
 

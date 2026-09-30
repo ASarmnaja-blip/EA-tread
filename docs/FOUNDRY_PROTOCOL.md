@@ -185,3 +185,29 @@ candidate without trades) for weeks that all six have recorded; mixture e-proces
 threshold 1 / 0.01 = 100. Frozen aggregator `research/foundry_frozen_portfolio1/portfolio.py`, hash
 in `data/foundry/shadow/portfolio1.json`, hash-checked by the dispatcher before each run. This is a
 separate hypothesis from the single-candidate panels (overlapping evidence; separate allocation).
+
+## Amendment 11 (2026-09-30, after Codex round 13, before the first forward week) - all findings accepted
+`docs/CODEX_R13_FOUNDRY_FORWARD.md`. Every forward record was re-frozen (earlier freezes archived in
+`research/foundry_frozen_archive/` and `data/foundry/shadow/archive/`; no forward week had been scored).
+- **Valid test (R13-1).** g = clip(week R, -2, 2); null: the conditional mean of g given the past is <= 0
+  each week (a robust, clipped mean - stated as such); E = mean over lambda in {0.05, 0.1, 0.2, 0.4} of
+  prod(1 + lambda g). Every factor is >= 0.2, so no zeroing is ever needed and E is a nonnegative
+  supermartingale under the null for dependent weeks. Raw week R is recorded beside it.
+- **No truncated trades (R13-2).** A panel week is scored only when the feed extends 6 days past its
+  end (max hold 72 h + weekend); the selector shadow waits 30 days (longest menu hold: 20 D1 bars).
+- **Frozen implementation (R13-3).** Each snapshot holds engine, families, forward_panel, vol.py,
+  build_all_tf.py, external_traces.py, a frozen 2y-yield series and a FROZEN marker that makes engine
+  import these copies first; the swap markup is a constant (0.02 %/yr). The JSON stores a SHA-256 over
+  every snapshot file. Still unfrozen, stated: `research/wpwb_weekly/bars.py` (Exness data access) and
+  the data files themselves.
+- **Append-only, validated (R13-4, R13-5).** Rows carry a hash chain (canonical formatting, stable
+  across CSV round trips); before appending, the file must have the frozen schema, only the frozen
+  candidate names, contiguous weeks from the forward start, and an intact chain - otherwise scoring
+  stops. A week with < 80 H1 bars is DATA_GAP and a week scored > 8 days after it became scorable is
+  LATE; both get factor 1 (no bet), a choice that does not depend on the outcome. A frozen candidate
+  missing from the universe stops scoring. The portfolio requires exactly one row for each of its six
+  named components per week; if any component is not OK the week is NO_BET.
+- **Shadows (R13-6).** The selector's week R now counts selected variants without trades as 0; HOD21
+  records a bar hash and seals occurrences with no 00:00 exit bar (NO_EXIT_BAR).
+- Replay test on a temp copy (2024-09..2026-08): scoring, re-running (0 new rows) and tamper detection
+  (a changed value stops scoring) behave as specified.

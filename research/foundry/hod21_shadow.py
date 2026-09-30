@@ -28,7 +28,7 @@ FORWARD = int(np.datetime64("2026-10-02T22:15:00", "s").astype(np.int64))
 SWAP_USD, SLIP = 0.5493, 0.10
 LOG = E.ROOT / "data" / "foundry" / "shadow" / "hod21_shadow_trades.csv"
 FIELDS = ["bar_utc", "bar_epoch", "version", "week_class", "entry_ask", "stop", "exit_px", "exit_utc", "exit_kind",
-          "gross_bp", "swap_bp", "net_bp", "stop_bp", "net_R", "recorded_utc"]
+          "gross_bp", "swap_bp", "net_bp", "stop_bp", "net_R", "bars_sha", "recorded_utc"]
 
 
 def main() -> int:
@@ -49,18 +49,22 @@ def main() -> int:
     for i in np.flatnonzero((hours == 21) & (t > FORWARD)):
         if int(t[i]) in done or not np.isfinite(atr[i]):
             continue
+        if t[i] + 4 * 3600 + 3600 > min(now, feed_end):
+            continue                                          # the 4-hour window has not closed yet
         j0 = np.flatnonzero((t > t[i]) & (t <= t[i] + 4 * 3600) & (hours == 0))
-        if not len(j0):
-            continue                                          # no 00:00 bar within 4 h (weekend): no trade
+        win = (t >= t[i]) & (t <= t[i] + 4 * 3600)
+        bh = __import__("hashlib").sha256(np.round(np.c_[t[win], o[win], h[win], l[win], c[win], sp[win]], 4).tobytes()).hexdigest()[:16]
+        if not len(j0):                                       # R13-6: sealed, so it cannot appear later
+            new.append(dict(bar_utc=str(pd.to_datetime(t[i], unit="s")), bar_epoch=int(t[i]), version=VERSION,
+                            week_class="", exit_kind="NO_EXIT_BAR", bars_sha=bh))
+            continue
         x = int(j0[0])
-        if t[x] + 3600 > min(now, feed_end):
-            continue                                          # exit bar not closed yet
         late = now - (t[x] + 3600) > 8 * 86400
         k = int(np.searchsorted(cuts, t[i], side="left") - 1)
         cls = vol[k] if 0 <= k < len(vol) else ""
         if cls not in ("NORMAL", "HIGH"):
             new.append(dict(bar_utc=str(pd.to_datetime(t[i], unit="s")), bar_epoch=int(t[i]), version=VERSION,
-                            week_class=cls or "UNKNOWN", exit_kind="NO_TRADE"))
+                            week_class=cls or "UNKNOWN", exit_kind="NO_TRADE", bars_sha=bh))
             continue
         ep = o[i] + sp[i] + SLIP
         stop = ep - 2 * atr[i]
@@ -78,7 +82,7 @@ def main() -> int:
         new.append(dict(bar_utc=str(pd.to_datetime(t[i], unit="s")), bar_epoch=int(t[i]), version=VERSION, week_class=cls,
                         entry_ask=ep, stop=stop, exit_px=exit_px, exit_utc=str(pd.to_datetime(t[xi], unit="s")), exit_kind=kind,
                         gross_bp=gross, swap_bp=swap_bp, net_bp=gross - swap_bp, stop_bp=stop_bp,
-                        net_R=(gross - swap_bp) / stop_bp))
+                        net_R=(gross - swap_bp) / stop_bp, bars_sha=bh))
     if new:
         LOG.parent.mkdir(parents=True, exist_ok=True)
         first = not LOG.exists()

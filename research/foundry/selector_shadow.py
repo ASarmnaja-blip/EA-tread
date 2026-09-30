@@ -130,7 +130,9 @@ def score_all(now):
         print("no forward rows yet"); return
     old = pd.read_csv(SCORES) if SCORES.exists() and SCORES.stat().st_size > 0 else pd.DataFrame()
     done = set(old.cut_utc) if len(old) else set()
-    todo = [r for r in L.itertuples() if r.cut_utc not in done and now >= int(r.cut_epoch) + WEEK]
+    # R13-2: a week is scored only once the feed extends 30 days past its end (the longest menu hold is
+    # 20 D1 bars), so no trade is cut off at the data end
+    todo = [r for r in L.itertuples() if r.cut_utc not in done and now >= int(r.cut_epoch) + WEEK + 30 * 86400]
     if not todo:
         print("nothing new to score"); return
     H, D, cuts, cell = E.load_spliced()
@@ -146,13 +148,13 @@ def score_all(now):
         if hashlib.sha256(body).hexdigest() != r.selection_sha256:
             rows.append(dict(base, status="SELECTION HASH MISMATCH")); continue
         names = [x["name"] for x in json.loads(body)["selected"]]
+        if end < C + WEEK + 30 * 86400:
+            continue                                               # feed not yet 30 days past the week
         wk = T[(T.et > C) & (T.et <= C + WEEK) & T.name.isin(names)]
-        if (wk.xt > end).any():
-            continue                                               # a trade is still open: score later
         bars = (H.t > C - 400 * 3600) & (H.t <= C + WEEK + 60 * 3600)
         bh = hashlib.sha256(np.round(np.c_[H.t[bars], H.o[bars], H.h[bars], H.l[bars], H.c[bars]], 4).tobytes()).hexdigest()[:16]
-        u = wk.groupby("name").R.mean()
-        rows.append(dict(base, status="SCORED", units=len(u), trades=len(wk), bars_sha=bh,
+        u = wk.groupby("name").R.mean().reindex(names).fillna(0.0)     # R13-6: a selected variant without trades counts 0
+        rows.append(dict(base, status="SCORED", units=int((wk.groupby("name").size() > 0).sum()), trades=len(wk), bars_sha=bh,
                          week_R=float(u.mean()) if len(u) else 0.0, week_R_sum=float(u.sum()) if len(u) else 0.0))
     if rows:
         pd.DataFrame(rows).to_csv(SCORES, mode="a", header=not (SCORES.exists() and SCORES.stat().st_size > 0), index=False)
