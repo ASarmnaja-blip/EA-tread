@@ -26,3 +26,6 @@ Random seeds: benchmark paths `numpy.random.default_rng([config_index, path_inde
 family order (docs family json in data/wrwr/family_XAUUSD.npz); bootstrap seeds: Reality Check 12345, lower bounds 777, PBO outer 2024.
 
 ## Sieve (C11) - recorded when the sieve is run, before any real statistic: test-family digest and placebo seeds (pending).
+
+## Amendment (Family 2, 2026-09-30)
+`portfolio.load_pool` gained an optional `loader` argument so Family-2 tables can be stacked; behaviour for the zoo family is unchanged (identical weekly R matrices were verified after the earlier optimisation; the Family-1 benchmark and gates use the frozen code as committed before this line). Family 2 is judged by the same endpoints; see docs/WRWR_FAMILY2_PREREG.md.

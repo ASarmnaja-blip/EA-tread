@@ -19,11 +19,14 @@ sys.path.insert(0, str(HERE))
 import contracts as K  # noqa: E402
 import portfolio as PF  # noqa: E402
 
-CACHE = K.ROOT / "data" / "wrwr" / "cache_pool"
-FAM = K.ROOT / "data" / "wrwr" / "family_XAUUSD.npz"
+import os  # noqa: E402
+SET = os.environ.get("WRWR_SET", "")                      # "" = zoo family, "f2" = Family 2
+SUF = f"_{SET}" if SET else ""
+CACHE = K.ROOT / "data" / "wrwr" / f"cache_pool{SUF}"
+FAM = K.ROOT / "data" / "wrwr" / f"family_XAUUSD{SUF}.npz"
 WINDOWS = (26, 52, 78)
 MINN = 10
-STAGES = {"S": dict(paths=500, configs=None), "F": dict(paths=10_000, configs=None), "BASE": dict(paths=10_000, configs="BASE")}
+STAGES = {"S": dict(paths=500, configs=None), "F": dict(paths=2_000, configs=None), "BASE": dict(paths=10_000, configs="BASE")}
 _G = {}
 
 
@@ -31,7 +34,11 @@ def build_cache():
     sys.path.insert(0, str(K.ROOT / "research" / "foundry"))
     import engine as E
     H, _, cuts, cell = E.load()
-    P = PF.load_pool("XAUUSD", ["H1", "H4", "D1"], cuts, verify=True)
+    loader = None
+    if SET == "f2":
+        import build_f2 as BF2
+        loader = BF2.loader
+    P = PF.load_pool("XAUUSD", ["H1", "H4", "D1"], cuts, verify=True, loader=loader)
     S1, S2, NN = PF.shadow_stats(P)
     vs = K.causal_vol_scale(H.t, H.c, H.h, H.l, cuts, mode="historical", bar_seconds=3600)
     active = np.array([c != "" for c in cell] + [False] * (len(cuts) - len(cell)))[: len(cuts)]
@@ -137,7 +144,7 @@ def main():
     B = np.where(cnt > 0, S1 / np.maximum(cnt, 1), np.nan)
     var = S2 / np.maximum(cnt, 1) - B ** 2
     SE = np.sqrt(np.maximum(var, 0) / np.maximum(cnt, 1))
-    out = K.ROOT / "data" / "wrwr" / f"bench_{stage}{'_smoke' if npaths != STAGES[stage]['paths'] else ''}.npz"
+    out = K.ROOT / "data" / "wrwr" / f"bench_{stage}{SUF}{'_smoke' if npaths != STAGES[stage]['paths'] else ''}.npz"
     np.savez_compressed(out, B=B, SE=SE, paths=cnt, configs=np.array(cfgs), stage=stage, family_sha=str(z["meta"]))
     print(f"{stage}: {len(tasks)} tasks, paths per config {int(cnt[cfgs[0]])}, -> {out.name} ({time.time() - t0:.0f}s)")
     se_mean = np.nanmean(SE[:, cfgs], axis=0)

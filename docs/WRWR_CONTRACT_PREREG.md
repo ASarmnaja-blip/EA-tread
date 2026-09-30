@@ -244,3 +244,12 @@ Implementation choices the v4/v5 text left open; none of them changes a threshol
 - **Cost gate.** For the configuration under test: one-sided 95% stationary-bootstrap lower bound (block 10, K = 999)
   of the mean weekly net R at base cost > 0; and at +2 bp (`simulate(stress=True)`: R - 2 bp / stop, entry cost +2 bp
   in the mark-to-market) a positive point estimate and max drawdown <= 1.25 x the base-cost drawdown.
+
+## v7 staging amendment (2026-09-30, after Stage S of the zoo family was read, before any Stage F number)
+Stage S (500 paths x 144 configurations) gave family Reality Check p = 0.105 (< 0.20), so by the frozen v6 rule Stage F must
+run. The benchmark's Monte Carlo noise is already negligible there (time-averaged SE <= 0.004 R per week against a sampling SE of
+mean d of 0.03-0.05 R per week), and 10,000 paths x 144 configurations would need about 15 hours on this machine, which raises
+the risk of a failed run more than it improves precision. Stage F is therefore run with 2,000 paths per configuration (time-averaged
+benchmark SE <= 0.002 R per week); nothing else changes: same seeds (paths 0..1,999 of each configuration), same Reality Check
+(block 10, K = 999; blocks 4 and 26 as sensitivities) and the same pass rule (p <= 0.05). BASE alone stays at 10,000 paths (done).
+This amendment lowers precision only, cannot change the threshold, and is recorded before Stage F results exist.

@@ -18,7 +18,10 @@ sys.path.insert(0, str(HERE))
 import contracts as K  # noqa: E402
 import gates as G  # noqa: E402
 
-FAM = K.ROOT / "data" / "wrwr" / "family_XAUUSD.npz"
+import os  # noqa: E402
+SET = os.environ.get("WRWR_SET", "")
+SUF = f"_{SET}" if SET else ""
+FAM = K.ROOT / "data" / "wrwr" / f"family_XAUUSD{SUF}.npz"
 
 
 def main():
@@ -28,7 +31,7 @@ def main():
     fam = json.loads(str(z["family"])); active = z["active"]
     R = z["R_0.01"][active]                                     # T x 144 weekly R at f = 1 %
     T = R.shape[0]
-    b = np.load(K.ROOT / "data" / "wrwr" / f"bench_{stage}.npz", allow_pickle=False)
+    b = np.load(K.ROOT / "data" / "wrwr" / f"bench_{stage}{SUF}.npz", allow_pickle=False)
     cfgs = [int(x) for x in b["configs"]]
     B = b["B"][active][:, cfgs]
     D = R[:, cfgs] - B
@@ -68,8 +71,8 @@ def main():
         print(f"PBO = {pb:.3f}, bootstrap upper 95% = {up:.3f}  (robust needs upper <= 0.20; lower bound >= 0.50 = stop)")
     if do_cost:
         import portfolio as PF
-        P = PF.load_pool_cache(K.ROOT / "data" / "wrwr" / "cache_pool")
-        vs = np.load(K.ROOT / "data" / "wrwr" / "cache_pool" / "vol_scale.npy")
+        P = PF.load_pool_cache(K.ROOT / "data" / "wrwr" / f"cache_pool{SUF}")
+        vs = np.load(K.ROOT / "data" / "wrwr" / f"cache_pool{SUF}" / "vol_scale.npy")
         champs = json.loads(str(z["champs"]))
         eq = z["EQ_0.01"][active]
         res = []
@@ -84,7 +87,7 @@ def main():
             print(f"  cost gate cfg {j}: base mean {m:+.4f} (lb95 {lb:+.4f}), +2bp mean {wr[active].mean():+.4f}, DD {dd_base:.2f} -> {dd_str:.2f}, "
                   f"{'PASS' if res[-1]['passed'] else 'FAIL'}")
         out["cost_gate"] = res
-    (K.ROOT / "data" / "wrwr" / f"gates_{stage}.json").write_text(json.dumps(out, indent=1, default=float))
+    (K.ROOT / "data" / "wrwr" / f"gates_{stage}{SUF}.json").write_text(json.dumps(out, indent=1, default=float))
 
 
 if __name__ == "__main__":

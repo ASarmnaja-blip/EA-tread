@@ -53,13 +53,13 @@ class Pool:
         return self.R[c] - 2.0 / self.stop_bp[c]         # K.STRESS_BP = 2 bp of round-trip cost, in R of this stop
 
 
-def load_pool(symbol, tfs, cuts, verify=True):
+def load_pool(symbol, tfs, cuts, verify=True, loader=None):
     import signals as SG
     cands, et, xt, dr, gb, cb, sb, sp, ep, R, stb = ([] for _ in range(11))
     cuts_sha = K.sha_bytes(cuts)
     metas = {}
     for tf in tfs:
-        meta, cl, a = SG.load(symbol, tf, verify=verify)
+        meta, cl, a = (loader or SG.load)(symbol, tf, verify=verify)
         if meta["cuts_sha"] != cuts_sha:
             raise ValueError(f"{tf}: cut vector differs from the pool's")
         metas[tf] = meta

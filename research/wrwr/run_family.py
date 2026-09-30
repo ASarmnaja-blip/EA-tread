@@ -23,6 +23,14 @@ import signals as SG  # noqa: E402
 sys.path.insert(0, str(K.ROOT / "research" / "foundry"))
 import engine as E  # noqa: E402
 
+import os  # noqa: E402
+SET = os.environ.get("WRWR_SET", "")                      # "" = zoo family (manifest), "f2" = Family 2
+SUF = f"_{SET}" if SET else ""
+LOADER = None
+if SET == "f2":
+    import build_f2 as BF2  # noqa: E402
+    LOADER = BF2.loader
+
 WINDOWS, ZS, POOLS, MS, EQF = (26, 52, 78), (0.5, 1.0, 2.0), ("H1", "H4", "D1", "H1+H4+D1"), (1, 2), (0, 26)
 FS = (0.005, 0.01, 0.02)
 MINN = 10
@@ -60,7 +68,7 @@ def run(f, P, vs, active, pools, scores, fam):
 def main():
     t0 = time.time()
     H, _, cuts, cell = E.load()
-    P = PF.load_pool("XAUUSD", TFS, cuts, verify=True)
+    P = PF.load_pool("XAUUSD", TFS, cuts, verify=True, loader=LOADER)
     print(f"pool: {len(P.cands)} candidates (C5 verified), {P.rejected_at_cut} rejected at a cut, {time.time() - t0:.0f}s", flush=True)
     S1, S2, NN = PF.shadow_stats(P)
     vs = K.causal_vol_scale(H.t, H.c, H.h, H.l, cuts, mode="historical", bar_seconds=3600)
@@ -93,11 +101,11 @@ def main():
                 tables={tf: dict(array_sha=m["array_sha"], data_sha=m["data_sha"], raw_manifest_sha=m["raw_manifest_sha"],
                                  code_sha=m["code_sha"], rejected_at_cut=m["rejected_at_cut"]) for tf, m in P.meta.items()},
                 vol_scale_mode="historical", built=pd.Timestamp.now(tz="UTC").isoformat())
-    out = K.ROOT / "data" / "wrwr" / "family_XAUUSD.npz"
+    out = K.ROOT / "data" / "wrwr" / f"family_XAUUSD{SUF}.npz"
     np.savez_compressed(out, cuts=cuts, active=active, vol_scale=vs, family=json.dumps(fam), meta=json.dumps(meta),
                         cand_hash=json.dumps([c["hash"] for c in P.cands]), **out_npz)
     X = pd.DataFrame(rows)
-    X.to_excel(K.ROOT / "data" / "wrwr" / "family_XAUUSD.xlsx", index=False)
+    X.to_excel(K.ROOT / "data" / "wrwr" / f"family_XAUUSD{SUF}.xlsx", index=False)
     pd.set_option("display.width", 250)
     print(f"\nfamily sha256 {fam_sha}; {len(fam)} configurations; {int(active.sum())} active weeks")
     b = X[(X.window == 52) & (X.lcb_z == 1.0) & (X.pool == "H1") & (X.m == 2) & (X.equity_filter == 0)]

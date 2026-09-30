@@ -30,7 +30,7 @@ Each signal gives a long event and a short event; every candidate is run FOLLOW 
 | fix_am | the NEXT bar contains the 10:30 London time (DST-aware): long | none (FADE = short at the fix) |
 | fix_pm | the next bar contains 15:00 London | none |
 | ny_open | the next bar contains 09:30 New York | none |
-| tom | the next bar is the first bar of the last trading day of the month | none |
+| tom | the next bar is the first bar of the last trading day of the month (by CALENDAR: the last weekday, a trading day being labelled by the date on which it ends at 22:00 UTC; never by which days are present in the data) | none |
 | nr7_break | prior day has the narrowest range of 7 days and close_t crosses above its high | crosses below its low |
 | inside_break | prior day is an inside day and close_t crosses above its high | crosses below its low |
 | squeeze_break | Bollinger(20, 2) width / its 120-bar median < 0.7 at t-1 and close_t crosses above the upper band | crosses below the lower band |
@@ -49,3 +49,5 @@ EOF
 git add docs/WRWR_FAMILY2_PREREG.md && git commit -q -m "WRWR Family 2 (SMC / levels / calendar / volatility candidates) pre-registered before any table is built
 
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" && git log --oneline -1
+## Amendment 1 (2026-09-30, before any table was built)
+The unit test of `tom` showed that defining the last trading day by the days present in the data labels the wrong day at the end of a series (it uses the future); it is now the calendar rule written above. No other definition changed. Tests: `research/wrwr/test_f2_signals.py` (constructed cases for every definition, DST-aware clock tests, leak test of all signals on H1 / H4 / D1 at three cut points) all pass.

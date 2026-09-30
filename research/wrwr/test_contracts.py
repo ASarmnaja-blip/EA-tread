@@ -110,7 +110,8 @@ def _synth(n_a=900, n_b=900, off_bp=0.0, sp_b=1.0, jump=0.0, dup=False, gap_at=N
     tb = seam + np.arange(n_b) * 3600
     ta = seam - (n_a - np.arange(n_a)) * 3600
     # keep weekends out: drop Saturday and most of Sunday bars on the whole line
-    ok = lambda t: ~(((t // 86400 + 4) % 7 == 5) | (((t // 86400 + 4) % 7 == 6) & ((t % 86400) < 22 * 3600)) | (((t // 86400 + 4) % 7 == 4) & ((t % 86400) >= 22 * 3600)))
+    dow = lambda t: pd.to_datetime(t, unit="s").dayofweek.to_numpy()                # 0 = Monday
+    ok = lambda t: ~((dow(t) == 5) | ((dow(t) == 6) & ((t % 86400) < 22 * 3600)) | ((dow(t) == 4) & ((t % 86400) >= 22 * 3600)))
     ta, tb = ta[ok(ta)], tb[ok(tb)]
     base_t = np.r_[ta, tb] if False else None
     allt = np.union1d(ta, tb)
