@@ -827,3 +827,16 @@ same-exit-configuration eligible candidate; 4 workers, 345 s) and `analyze_gates
   significance of Family 2 is mostly direction persistence (the selector keeps the side that recently worked, which in gold's
   uptrends is long) plus cheap wide exits; signal timing adds a positive but statistically weak increment on H1; absolute
   profits after cost are small (about +3 to +4 R per year for the best configurations) and no lower bound is positive.
+
+### Family 2 Stage F (2,000 paths x 144) and era stability of the excess d (2026-09-30)
+- **Endpoint 2 for Family 2: PASSED - Reality Check p = 0.003 (block 10), 0.001 (block 4), 0.002 (block 26), V = 4.76**; also below the
+  Bonferroni threshold 0.025 for two families. BASE-equivalent (52w z1 H1 m2): mean R +0.058 vs random router -0.200, d +0.258 R/week,
+  p 0.001, 95% lower bound +0.115 (endpoint-1 pattern passed for Family 2). Zoo family stays NOT PASSED (Stage F p 0.111).
+- **d is positive in every era for the top configurations** (Family 2 52w z1 H1 m2: +0.33 / +0.53 / +0.03 / +0.15 R/week for 2004-08 /
+  2009-14 / 2015-20 / 2021-26; H4 78w z2 m2: +0.09 / +0.22 / +0.11 / +0.11); share of the 144 configurations with mean d > 0 by era:
+  70 % / 88 % / 35 % / 73 % (Family 2), 49 % / 62 % / 74 % / 66 % (zoo). The mean weekly R of those configurations is above zero
+  only in 2009-14 (+0.34 R/week for the BASE-equivalent) and about zero elsewhere.
+- **Reading (Auditor):** selecting from trailing performance beats a random pick with the same exit shape reliably and across
+  eras (part of it is avoiding the cost drag of poor, high-turnover candidates, part is keeping the side that recently worked),
+  but the net profit after cost stays near zero (best about +3 to +4 R/year, all cost-gate lower bounds negative) and the choice of
+  WHICH configuration to use is unstable (PBO 0.45). Nothing is promoted; Family 2 is eligible for a SHADOW record without alpha.
