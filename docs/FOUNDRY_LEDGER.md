@@ -966,3 +966,12 @@ MT5 clock verified = UTC (MAD 0.17 bp at shift 0 vs 9.7 bp at +-1 h against Duka
   silver but not on gold 2016-26 (below the drift control), consistent with the earlier finding that breakout/trend setups worked mainly
   in 2003-14. The autumn effect has decayed. The turn of the year is positive and above drift in all three periods but has one trade a year
   (12 / 10 / 16 trades): kept as a watch item, not a rule.
+
+## Hypothesis batch 5 (2026-10-01; docs/HYPOTHESIS_BATCH5_PREREG.md, research/hyp/batch5.py, data/hyp_batch5.log): 0 of 3 PASS
+| id | DEV | CHECK | SILVER | excess (DEV / CHECK / SILVER) |
+|---|---|---|---|---|
+| D4 GVZ panic -> gold 5 D1 (DEV sign short) | +0.158 (n 20) | -0.215 | -0.020 | +0.235 / -0.079 / +0.039 |
+| A7 quarter end, 5 D1 (DEV sign long) | -0.021 | +0.126 | +0.002 | -0.047 / +0.067 / -0.001 |
+| W1 Monday D1 (DEV sign short) | -0.013 | -0.029 | -0.018 | +0.022 / +0.022 / +0.009 |
+- J2 ensemble (descriptive): the equal-weight mean of all 144 Family 2 configurations: gold 2004-26 -19.7 R (equity x0.81), median configuration
+  -13.2 R, best in-sample +87.4 R, 33 % of configurations positive; silver (corrected clock) -10.2 R (x0.90), median -8.1 R, best +46.1 R, 35 %.
