@@ -281,3 +281,6 @@ flags a shortfall beyond 2 standard errors after >= 8 weeks - a warning, not a t
   price outcome; weeks that are not eligible get factor 1.
 - **Ledger text (R16-5):** the four H-FOUNDRY entries now describe the floored statistic.
 Panel 3 re-frozen (the pre-PIT freeze archived `panel3_v1_prePIT`); panels 1-2 and the portfolio unchanged.
+- Addendum: for panel 3 a week is also DATA_GAP (factor 1) if fewer than 90 % of that week's HIGH USD
+  releases with a forecast carry an actual in the point-in-time calendar (a failed calendar refresh can no
+  longer masquerade as a no-trade OK week). Panel 3 re-frozen again (`panel3_v2_PIT` archived).

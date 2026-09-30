@@ -238,14 +238,7 @@ def score(panel_file: Path, scores_file: Path):
             wr = float(w.R.mean()) if len(w) else 0.0
             gc = float(max(wr, FLOOR))
             ready = k + E.WEEK + SETTLE
-            cal_missing = False
-            if c["name"].startswith("NEWS_"):                     # the week's HIGH USD releases must carry actuals
-                import calendar_pit as CP
-                pc = CP.load_pit()
-                wk_rel = pc[(pc.epoch > k) & (pc.epoch <= k + E.WEEK) & (pc.currency == "USD") & (pc.importance == "HIGH")
-                            & pc.forecast.notna()]
-                cal_missing = len(wk_rel) > 0 and float(wk_rel.actual.notna().mean()) < 0.9
-            if nbar < 80 or max_gap > 72 or cal_missing:        # gap in the week, its settlement window, or its news data
+            if nbar < 80 or max_gap > 72:                       # gap in the week or its settlement window
                 status = "DATA_GAP"
             elif now > ready + LATE and not had_run_between(ready, ready + LATE):   # R15: only the first 8 days count
                 status = "LATE"                                   # the job was not running when it became scorable

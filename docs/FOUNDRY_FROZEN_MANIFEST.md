@@ -9,7 +9,7 @@ Earlier freezes: `research/foundry_frozen_archive/`.
 |---|---|
 | `data/foundry/shadow/forward_panel1.json` | `bc32f0111fb477c6fc1a6d221b28b50e08b249582d8b0e515b0cacbbe90d83b8` |
 | `data/foundry/shadow/forward_panel2.json` | `8db5b70c21b52e104c8d4b560fd296240aca7b08a9be9746edea11c2782fd8a7` |
-| `data/foundry/shadow/forward_panel3.json` | `59b6b96fdc11e001d8f659bb00171d538d38780b90aba6fea82cb4e94d8cbc84` |
+| `data/foundry/shadow/forward_panel3.json` | `88477d037354d8f5a28ed09f856db64b1b4822975ff5b647949bc4a2969210fb` |
 | `data/foundry/shadow/portfolio1.json` | `31e35853fcab16a9f4bc63f769b062419794406c0929e8db58c446be9986d310` |
 | `research/foundry_frozen_panel1/FROZEN` | `5b7dd36a9ca063c73bc6b01927067f5d8782ac4da544146c7ae32496f0191612` |
 | `research/foundry_frozen_panel1/README.md` | `08062307062aaff5b94d700ee25988e3a05f0a8c1d0be88d4b3e8362a043346f` |
@@ -39,7 +39,7 @@ Earlier freezes: `research/foundry_frozen_archive/`.
 | `research/foundry_frozen_panel3/engine.py` | `385d7aaf38444c76e0e45a161450284187ba9598f079b8368d4c86e87e28e7d5` |
 | `research/foundry_frozen_panel3/external_traces.py` | `6e8ce32cf66c8001e8756c790eecd6ca0d8e0ac7ca74a22dc01027e87049ebe6` |
 | `research/foundry_frozen_panel3/families.py` | `c6888ca0f1e8b2093446e009fb6b9683f40417b93c75d5d05994c341628be1ce` |
-| `research/foundry_frozen_panel3/forward_panel.py` | `912fc1b53df5dcb84155984c4e40ded5ea0b92ed8501593b50e47d2f3b5ad1a8` |
+| `research/foundry_frozen_panel3/forward_panel.py` | `0112703a277ce6b1f5e2e18a18e90f152dbe531d98080049f04395d2a75e276f` |
 | `research/foundry_frozen_panel3/vol.py` | `371c868c66ef6b0beea7e2e184c77471879461b2bbd2b6099c1eb5afff382fc1` |
 | `research/foundry_frozen_panel3/y2_frozen.csv` | `e3cb58f5aa14174deffc1e943685e50505f629d317e74f34c2576043d67205e1` |
 | `research/foundry_frozen_portfolio1/README.md` | `9ba04c2c837d329b0df198254964a4af38c5202a4d4179a6c8a62206bc4ea78e` |
