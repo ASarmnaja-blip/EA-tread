@@ -545,3 +545,8 @@ entries in the same UP weeks the excess is small: k 2.0 +0.13 R (t 1.45), k 3.0 
 negative in 2003-08 (when any long in an up week earned +0.26 R). 18 side x trend x k rows were
 inspected, so one all-era-positive row is roughly what chance gives. SELL_SPIKE in DOWN weeks is
 inconsistent. Reading: gold's up-trend drift plus mild dip reversion since 2015; no new panel.
+
+## Forward portfolio (Amendment 10) - H-FOUNDRY-PORTFOLIO-1, alpha 0.01, threshold 100
+`panel_portfolio_check.py` (seen data 2021-26): equal-risk portfolio of the six candidates +0.085 R per
+week, annual Sharpe 1.33 (optimistic, the candidates were picked on these years); ~250 forward weeks
+to a 2.9-sigma result if that held. Alpha ledger now: panels 0.01 + 0.005, portfolio 0.01, reserve 0.025.

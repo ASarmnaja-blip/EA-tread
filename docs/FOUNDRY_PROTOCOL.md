@@ -175,3 +175,13 @@ alpha 0.002 needs roughly 8+ years of forward weeks; the panel is a long-run rec
   2-4 ATR positive in both 2021-23 and 2024-26; ~0 in 2015-20; negative in 2003-14), not its best
   point. It is a recent-era effect selected on seen data: nomination only. Same mixture e-process,
   threshold 1 / 0.005 = 200, forward from the week of 2026-10-02 22:15 UTC.
+
+## Amendment 10 (2026-09-30) - the six candidates as one portfolio (H-FOUNDRY-PORTFOLIO-1, alpha 0.01)
+Weak, weakly correlated edges confirm faster together. Seen-data estimate 2021-26 (selection-biased,
+so optimistic): weekly-R correlations between candidates -0.10..+0.19 except NR7/INSIDE_DAY 0.47 and
+the two shock fades 0.43; single-candidate annual Sharpe 0.33-1.04; equal-risk portfolio 1.33, i.e.
+~250 forward weeks to t 2.9. Portfolio week R = mean of the six candidates' weekly R (0 for a
+candidate without trades) for weeks that all six have recorded; mixture e-process as in Amendment 8;
+threshold 1 / 0.01 = 100. Frozen aggregator `research/foundry_frozen_portfolio1/portfolio.py`, hash
+in `data/foundry/shadow/portfolio1.json`, hash-checked by the dispatcher before each run. This is a
+separate hypothesis from the single-candidate panels (overlapping evidence; separate allocation).

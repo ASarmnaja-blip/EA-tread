@@ -199,6 +199,17 @@ def dispatch():
                            env={**os.environ, "PYTHONIOENCODING": "utf-8"})
         print(f"[{js.name}] exit {r.returncode}: {r.stdout.strip()[-600:]}")
         rc |= r.returncode
+    # H-FOUNDRY-PORTFOLIO-1 (Amendment 10): frozen aggregator, hash-checked before it runs
+    pj = SHADOW / "portfolio1.json"
+    if pj.exists():
+        P = json.loads(pj.read_text())
+        f = E.ROOT / P["snapshot_dir"] / "portfolio.py"
+        if hashlib.sha256(f.read_bytes()).hexdigest() != P["code_sha256"]:
+            print("[portfolio1] STOP: aggregator changed since freezing"); return rc | 1
+        r = subprocess.run([sys.executable, str(f)], cwd=E.ROOT, capture_output=True, text=True, encoding="utf-8",
+                           env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+        print(f"[portfolio1] exit {r.returncode}: {r.stdout.strip()[-300:]}")
+        rc |= r.returncode
     return rc
 
 

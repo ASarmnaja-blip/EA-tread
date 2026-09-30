@@ -35,6 +35,11 @@ def main():
              for j in sorted(SH.glob("forward_panel*.json")) if j.name != "forward_panel.json"]:
         if js.exists():
             L += _panel_section(js, sc, title)
+    Pf = read(SH / "forward_portfolio1_weeks.csv")
+    L += ["## พอร์ตรวม 6 ตัว (H-FOUNDRY-PORTFOLIO-1)", "", "ผ่านเมื่อค่า E ถึง 100", ""]
+    L.append(f"สัปดาห์ที่นับ {len(Pf)}, R เฉลี่ยต่อสัปดาห์ {Pf.week_R.mean():+.3f}, ค่า E {Pf.E.iloc[-1]:.2f}"
+             if len(Pf) else "รอสัปดาห์แรก (เริ่มนับ 2 ต.ค.)")
+    L.append("")
     L += _rest()
     OUT.write_text("\n".join(L) + "\n", encoding="utf-8")
     print("wrote", OUT)
