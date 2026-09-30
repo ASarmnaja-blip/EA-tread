@@ -840,3 +840,18 @@ same-exit-configuration eligible candidate; 4 workers, 345 s) and `analyze_gates
   eras (part of it is avoiding the cost drag of poor, high-turnover candidates, part is keeping the side that recently worked),
   but the net profit after cost stays near zero (best about +3 to +4 R/year, all cost-gate lower bounds negative) and the choice of
   WHICH configuration to use is unstable (PBO 0.45). Nothing is promoted; Family 2 is eligible for a SHADOW record without alpha.
+
+## WRWR SHADOW record 1 built and frozen (2026-09-30; docs/WRWR_SHADOW_PREREG.md, docs/WRWR_SHADOW_MANIFEST.md)
+Paper only, no alpha, no orders. `research/wrwr/forward_shadow.py` (added to the Saturday job after the Foundry forward panels): for the Family 2
+configurations F2-66, F2-78, F2-134, F2-86 it builds the potential-signal tables from the spliced Dukascopy + Exness H1 (C5 splice validation
+must pass), selects the champions at every cut, appends the frozen rows (hash-chained) at each Friday 22:15 UTC cut from 2026-10-02, replays
+the frozen history through the C2 simulator (forward vol_scale mode) for weekly paper R (FINAL after 30 days, else PROVISIONAL) and writes a Thai
+summary (data/wrwr/forward/summary_th.md). Fail-closed on code digest, chain, reproduction of frozen rows, and C5 checks.
+- Tests: forward pipeline = research pipeline for 4,852 (config, cut) champion sets up to 2026-08-07 (needed the research tie-break salt: exactly tied
+  candidates, e.g. `tom` with exits whose targets were never reached, are ordered by candidate hash); truncating the data at the cut 2026-08-14 22:15
+  leaves 4,620 champion sets unchanged (no leak; trades that resolved inside the data before the cut are counted); scratch runs wrote 28 rows,
+  the second run appended none and re-verified them, an edited byte broke the chain check. A design point fixed on the way: gold closes 21:00-22:00
+  UTC, before the 22:15 cut, so a cut counts as covered once 30 minutes have passed and the data ends within 4 hours of it (the job runs at 23:00 UTC).
+- Splice: the real Dukascopy -> Exness seam FAILED the v5 raw-spread rule (ratio 0.14) and passes the amended charged-cost rule (0.815); costs of the
+  Dukascopy-quoted years 2021-26 are about 0.5-1 bp above what the Exness account would be charged.
+- All tables were rebuilt after the last code edits: array digests identical to before (only the code digest changed), all test suites pass.

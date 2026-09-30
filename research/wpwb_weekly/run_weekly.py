@@ -231,6 +231,15 @@ def main() -> int:
         log(f"forward_panel.py exit {r.returncode}: {r.stdout.strip()[-500:]}")
     except Exception as e:
         log(f"forward panel error: {e!r}")
+    try:  # paper-only WRWR SHADOW record: weekly champions + paper outcome (docs/WRWR_SHADOW_PREREG.md); never alters the report
+        r = subprocess.run([PY, str(ROOT / "research" / "wrwr" / "forward_shadow.py")], cwd=ROOT,
+                           capture_output=True, text=True, encoding="utf-8",
+                           env={**os.environ, "PYTHONIOENCODING": "utf-8"}, timeout=3600)
+        log(f"forward_shadow.py exit {r.returncode}: {r.stdout.strip()[-500:]}")
+        if r.returncode:
+            log(f"forward_shadow stderr: {r.stderr.strip()[-800:]}")
+    except Exception as e:
+        log(f"wrwr shadow error: {e!r}")
     try:  # one Thai page for the operator
         r = subprocess.run([PY, str(ROOT / "research" / "foundry" / "weekly_summary_th.py")], cwd=ROOT,
                            capture_output=True, text=True, encoding="utf-8",

@@ -1,0 +1,15 @@
+canonical_history=VERIFIED sha256=613d5e7476deeaa3dc473371028adf9d4724720788b5f1d424e410556dfad158
+canonical_history=VERIFIED sha256=613d5e7476deeaa3dc473371028adf9d4724720788b5f1d424e410556dfad158
+13:33:29 C5 seam validation PASS spread_ratio 0.8149227195294699, offset_bp (0.012828018352706506, 0.30706762415751454, 460)
+13:33:29 data through 2026-09-28 13:00:00 UTC, 141,910 H1 bars; building Family 2 tables
+13:34:24   H1: 5328 candidates, 18,553,438 rows (60s)
+13:34:33   H4: 1296 candidates, 3,347,965 rows (68s)
+13:34:38   D1: 1296 candidates, 1,090,988 rows (74s)
+PASS A: forward pipeline = research pipeline for 4852 (config, cut) champion sets up to 2026-08-07
+canonical_history=VERIFIED sha256=613d5e7476deeaa3dc473371028adf9d4724720788b5f1d424e410556dfad158
+13:34:58 data through 2026-08-14 21:00:00 UTC, 141,209 H1 bars; building Family 2 tables
+13:35:52   H1: 5328 candidates, 18,430,634 rows (58s)
+13:36:00   H4: 1296 candidates, 3,324,188 rows (66s)
+13:36:06   D1: 1296 candidates, 1,083,667 rows (71s)
+PASS B: with data truncated at 2026-08-14 22:15:00, 4620 champion sets up to that cut are identical to the full-data run (no leak, live-edge trades handled)
+ALL FORWARD SHADOW TESTS PASS
