@@ -525,3 +525,12 @@ per candidate on forward weeks from 2026-10-02. Hooked into the Saturday job.
   2021-23, 2024-26 - fewer than the ~21 a coin flip per era would give. Standouts with net > 0 in all
   three: SHOCK_CONT_k2_h48~INV (+0.04 / +0.13 / +0.20 R: fade a > 2 ATR H1 bar for 48 h),
   SHOCK_CONT_k3_h48~INV, INSIDE_DAY_t1/t2, NR7_t2 - three of these are already in the forward panel.
+
+## Shock-fade surface and forward panel 2 (2026-09-30)
+`research/foundry/shock_fade_surface.py` (descriptive; 60 grid points k 1.5-3.0 x hold 12-72 h x stop
+2-4 ATR, clock-based holds): only 15 % of points are net positive in all of 2015-20, 2021-23, 2024-26
+(about what chance gives), and the panel-1 variant SHOCK_CONT_k2_h48~INV changes sign under the
+clock-hold definition - fragile. One contiguous ridge: k 2.5-3.0 with a 72 h hold is positive for every
+stop in both 2021-23 (+0.15..+0.21 R) and 2024-26 (+0.10..+0.44 R), ~0 in 2015-20, negative in 2003-14:
+a recent-era pattern (big H1 shocks revert over ~3 days). Its centre SHOCK_FADE_k2.5_h72_s3.0 was frozen
+as forward panel 2 (H-FOUNDRY-PANEL-2, alpha 0.005, threshold 200), with its own code snapshot.
