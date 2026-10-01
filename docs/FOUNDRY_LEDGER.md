@@ -1182,3 +1182,8 @@ drift-only distribution: the passes are explained by the 2021-26 rise of most ma
   on M5, 0.07-0.19 on M30 / H1, rising again with swap on D1 / W1 (0.20-1.05). H4 has the best return per drawdown (B: CAGR 46 % / DD 18 %)
   but is the timeframe the grid selected; BTC M5 / M15 data start 2025-10 / 2023-11. Gold alone does better on M15 / M30 in total return
   (B +200 % / +98 %) with equity DD 58 % / 44 % against 11 % on H4.
+- Cent account check (2026-10-01, research/grid768/cent_gold.py): gold-only trades of the report768 systems on XAUUSDc (real-account spec
+  data/spec_real_XAUUSDc.json: 1 oz per lot, 0.01 minimum, so 0.01 lot = 1 USC per $1), sized in whole 0.01 lots from the balance. Gold now
+  $4,153, ATR20 H4 $33.7, stop 2N $67 = 0.67 % of 10,000 USC per 0.01 lot. B (one unit, 1 %): fits; 2021-10..2026-09 +60 % (equity DD 8.4 %,
+  worst run 8 losses = -847 USC) against +77 % with fractional lots. A (adds, 0.25 % per unit): the minimum lot forces 2.7x the target now,
+  equity DD 21.7 % against 11.6 % fractional; needs ~27,000 USC at today's volatility.
