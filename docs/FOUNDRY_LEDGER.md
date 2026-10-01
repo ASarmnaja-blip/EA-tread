@@ -1074,3 +1074,29 @@ winners (2R targets or 5-day holds); letting profits run changes the per-trade p
 - Caveats: long-only in markets that mostly rose over 2016-26 is partly beta; swap is modelled for gold and silver only (a long BTC / index CFD pays a
   large swap, not deducted); parameters are canonical, but choosing long-only was informed by these runs. The value against buy-and-hold is the
   drawdown (gold B&H 2016-26 +11.2 %, DD 28 %).
+
+## Big bundle X1-X7 (2026-10-01; prereg docs/BUNDLE_2026-10-01_PREREG.md, commit a729070 before any run; research/bundle/, data/bundle/; Thai report docs/BUNDLE_2026-10-01_RESULTS_TH.md)
+Separate experiments, uncapped exits, full costs (spread + 1 bp, broker or C4 swap).
+- X1 every-signal autopsy (889,043 independent overlapping trades; S1 / S2 / Chandelier, M5..W1, gold DEV / CHECK, silver, 16 MT5 markets):
+  M5 / M15 lose after cost everywhere; H1 ~ 0; H4 / D1 / W1 longs positive in gold DEV, CHECK and silver (D1 long +0.27..+0.85 R gold CHECK,
+  +0.43..+1.39 silver); shorts lose almost everywhere. Skipped (in-position) signals stay positive on D1 / H4 longs, below the taken ones on gold,
+  above on silver. Stable winner/loser markers: D1 long wins in calm markets (low 1-year ATR percentile, AUC 0.26-0.46), M15 the opposite.
+  Stacking (every signal opens a position) = leverage: gold H4 S2 long +6.7 %/yr DD 11 % (one position, 1 %) vs +8.5 % DD 13.5 % (stack, 0.25 %)
+  vs +20.6 % DD 45 % (stack, 1 %, up to 35 open); "add only while in profit" ~ same as stacking all.
+- X2 martingale (research only; forbidden for orders): loss-doubling on random entries ruined 34-100 % of 200 seeds (x2), median -3.8 %/yr; on
+  the trend trades 67 % of rows ruined, median DD 101 %. Averaging grid: 94-100 % of configurations ruined at least once in 17 years (up to 29
+  times) while 96.5-99.9 % of cycles closed in profit; only long gold grids made money (gold x4.5), still ruined 1-14 times.
+- X3 opposite side: 0 / 54 pass (loser-profile fade gold CHECK -0.15 R, silver -0.35 R; candle reversal with 1 ATR stop / 1 ATR trail gross
+  +0.006..+0.04 R, net -0.08 (H1) .. -0.46 (M5) R).
+- X4 trend refinements: 6 / 18 pass (silver better AND >= 60 % of other markets better AND pooled p < 0.05): candle filter on D1 Chandelier
+  and S1 (+0.42 / +0.25 R silver, 75 % of markets up, p 0.027 / 0.002), W1 agreement for D1 S1, D1 agreement for H1 (three systems, one
+  finding). Other-market medians stay ~0 or below after filtering. Pyramiding helps gold / silver D1 only (gold D1 Chandelier +2.0 -> +7.5 %/yr
+  with 4 units) and hurts the other markets; breakeven at +1 R does not help.
+- X5 wild ideas: 0 / 41 pass against 50 mirrored placebo paths (storms, sunspots, flux, NY / London weather, moon, eclipses, Mercury
+  retrograde, DST Mondays, Friday 13th, pre-CNY, calendar effects); round-number levels no effect.
+- X6 ten markets with broker swaps (Chandelier long, D1, 1 %): +11.2 %/yr DD 17.5 % (no swap +14.1 %); without BTC +5.9 %; the 8 untouched
+  markets -2.8 %/yr (+0.3 % without USDINR): the multi-market trend portfolio is NOT confirmed on untouched markets.
+- X7 WRWR uncapped vs Chandelier long-only: gold -22 R (4/17 years), silver -41 R (3/15) vs +29 R / +3 R -> WRWR does not add value. A first
+  run booked channel exits at the trigger bar (fill at the next open): +62 / +36 R; fixed (booked at the fill bar) the full-sample 144-config
+  distribution barely moved (gold half positive, median 0 R), so the yearly selection outcome is fragile. First run kept in
+  data/bundle/x7_wrwr_uncapped_v0_exitbar.json.
