@@ -1159,3 +1159,18 @@ drift-only distribution: the passes are explained by the 2021-26 rise of most ma
   period). Best five-year combination H4 Donchian-20 long-only with D1 agreement, 2 ATR stop, 20-bar channel exit, Turtle pyramiding:
   1,331 trades, CAGR 48 % / DD 20 % at 0.25 % per unit (93 % / 36 % at 0.5 %, 160 % / 61 % at 1 %), positive every calendar year 2022-26,
   13 of 17 markets positive; without pyramiding 13 % / 10 % at 0.25 %. Explained by the period's drift (drift-preserving placebo above).
+- G768 correction (2026-10-01, found while building the MT5-style report `research/grid768/report768.py`): g768.simulate booked Turtle adds at
+  their levels even when the bar opened beyond them, and checked the raised stop only from the next bar. USOIL 2026-02-27: the Monday open
+  jumped 67.2 -> 72.7, the adds were booked at 68.2-69.1 (prices that never traded) and the trade made +43R; filled at the real open, with
+  stops and adds walked on the H1 bars inside each H4 bar, it makes +0.7R and the next three trades lose -5.8R. Re-run with G768_FIX=h1
+  (adds gapped through fill at the open, stops / take-profits / adds walk H1 bars, worst case only inside one H1 bar, swap per unit from its
+  add): real 66 basic (was 79), 0 strict; I4 passes 53 -> 40, I1 unchanged (26). Same fills on the placebos: drift-free basic 0..47
+  (mean 7.1), strict 0; drift-preserving basic 26..239 (mean 114), strict 0..24 (mean 9.4). Best combination unchanged
+  (H4/C2/D1/E1/F1/G3/H7/I4/J1) at 857R (was 982R); best-of-768 in the drift-preserving placebos 261..932R (2 of 10 >= 857R) and in the
+  drift-free placebos 101..796R; the same combination earns -641..-36R without drift and -126..+837R with drift. Conclusion unchanged:
+  drift plus selection, no timing edge shown. G768_FIX=1 (worst-case order inside the whole H4 bar) kept as the pessimistic bound: real 40 basic.
+- MT5-style report of that combination ($100k, 0.25 % per unit compounding on balance, equity marked at every H4 close with open P&L carried
+  across closed markets): net +$438k, CAGR 36.6 %, PF 1.34, 19 % winners, balance DD 28.5 %, equity DD 40.5 % (2026-01-29 -> 2026-08-19,
+  still 30.9 % below the peak on 2026-09-30); the top 1 % of trades make 115 % of the net R; BTC alone +385R of +857R; costs -122R spread and
+  -261R swap against +1,240R gross. The same signals with one unit at the same equity DD (1 % per trade): CAGR 43.3 %, so pyramiding adds
+  nothing per unit of drawdown. The earlier "48 % / DD 20 % at 0.25 %" came from the bugged fills and a balance-only drawdown.

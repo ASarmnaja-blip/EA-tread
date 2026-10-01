@@ -3,6 +3,7 @@ then the same grid on mirrored placebo paths to count fakes. Usage: python resea
 from __future__ import annotations
 
 import itertools
+import os
 import sys
 import time
 from pathlib import Path
@@ -20,6 +21,12 @@ OUT = ROOT / "data" / "grid768"; OUT.mkdir(parents=True, exist_ok=True)
 MKTS = ["XAUUSD", "XAGUSD", "EURUSD", "USDJPY", "AUDUSD", "USDCHF", "US500", "USTEC", "USOIL", "BTCUSD", "DE30", "JP225", "XCUUSD", "XPTUSD",
         "USDCNH", "USDMXN", "USDZAR"]
 START = C.ts("2021-10-01")
+# G768_FIX (added 2026-10-01 after the MT5-style report found an add filled at a level the market gapped over):
+#   "1"  adds gapped through fill at the bar open, a bar that adds and then trades through the raised stop exits at that stop in the
+#        same bar (worst-case order), swap per unit from its add bar. Outputs get the suffix _fix.
+#   "h1" the same fills and swap, but stops, take-profits and adds walk the H1 bars inside each bar (exit signals stay on the bar close),
+#        so the order inside a bar is known except inside one H1 bar (worst case there). Outputs get the suffix _h1.
+FIX = os.environ.get("G768_FIX", "")
 CUTS = L.cut_grid(C.ts("2026-10-02"))
 GRID = list(itertools.product(("H4", "D1"), ("C1", "C2"), ("D1", "D8", "D11", "D12"), ("E1", "E4"), ("F1",), ("G1", "G3"), ("H6", "H7", "H4"),
                               ("I1", "I4"), ("J1", "J4")))
@@ -38,6 +45,7 @@ def agg(b, key):
         t=("t", "first"), o=("o", "first"), h=("h", "max"), l=("l", "min"), c=("c", "last"), v=("v", "sum"))
     X = {k: g[k].to_numpy() for k in ("t", "o", "h", "l", "c", "v")}
     X["t"] = X["t"].astype(np.int64)
+    k = np.asarray(key); X["k0"] = np.flatnonzero(np.r_[True, k[1:] != k[:-1]]); X["k1"] = np.r_[X["k0"][1:], len(k)]; X["b"] = b
     X["a14"] = L.atr(X["h"], X["l"], X["c"], 14); X["a20"] = L.atr(X["h"], X["l"], X["c"], 20); X["a22"] = L.atr(X["h"], X["l"], X["c"], 22)
     return X
 
@@ -120,6 +128,8 @@ def signals(X, D, xs):
 
 
 def simulate(X, m, s_idx, d_arr, G, H, I):
+    if FIX == "h1":
+        return simulate_h1(X, m, s_idx, d_arr, G, H, I)
     o, h, l, c, a14, a20, a22 = X["o"], X["h"], X["l"], X["c"], X["a14"], X["a20"], X["a22"]
     dhi, dlo, t = X["dhi"], X["dlo"], X["t"]; n = len(c)
     spec = C.SPECS[m]; cost = spec["cost_rt_bp"] / 1e4
@@ -140,16 +150,20 @@ def simulate(X, m, s_idx, d_arr, G, H, I):
         if risk <= 0:
             continue
         tp = ep + d * 3 * risk if H == "H4" else np.nan
-        units = [ep]; stop = sl; best = ep; j = e; px = None
+        units = [ep]; ubar = [e]; stop = sl; best = ep; j = e; px = None
         while j < n:
             if (d > 0 and l[j] <= stop) or (d < 0 and h[j] >= stop):
                 px = stop if (j == e or d * (o[j] - stop) > 0) else o[j]; break
             if H == "H4" and ((d > 0 and h[j] >= tp) or (d < 0 and l[j] <= tp)):
                 px = tp if (j == e or d * (tp - o[j]) > 0) else o[j]; break
             if I == "I4":
+                n0 = len(units)
                 while len(units) < 4 and ((d > 0 and h[j] >= units[-1] + 0.5 * N) or (d < 0 and l[j] <= units[-1] - 0.5 * N)):
-                    units.append(units[-1] + d * 0.5 * N)
+                    lvl = units[-1] + d * 0.5 * N
+                    units.append((max(lvl, o[j]) if d > 0 else min(lvl, o[j])) if FIX == "1" else lvl); ubar.append(j)
                     stop = max(stop, units[-1] - 2 * N) if d > 0 else min(stop, units[-1] + 2 * N)
+                if FIX == "1" and len(units) > n0 and ((d > 0 and l[j] <= stop) or (d < 0 and h[j] >= stop)):
+                    px = stop; break
             best = max(best, h[j]) if d > 0 else min(best, l[j])
             if H == "H6":
                 hit = (c[j] < best - 3 * a22[j]) if d > 0 else (c[j] > best + 3 * a22[j])
@@ -166,7 +180,73 @@ def simulate(X, m, s_idx, d_arr, G, H, I):
         sw_bp = nights * (spec["swap_long_bp"] if d > 0 else spec["swap_short_bp"]) / 1e4
         gross = sum(d * (px - u) for u in units)
         costs = sum(u * (cost + sw_bp) for u in units)
+        if FIX == "1":
+            nts = C.nights(t[np.array(ubar)], np.full(len(ubar), t[j]), spec["rollover3"])
+            swr = (spec["swap_long_bp"] if d > 0 else spec["swap_short_bp"]) / 1e4
+            costs = sum(u * (cost + swr * k) for u, k in zip(units, nts))
         out.append((t[e], t[j], (gross - costs) / risk, d, ep))
+        busy = j
+    return out
+
+
+def simulate_h1(X, m, s_idx, d_arr, G, H, I):
+    """G768_FIX=h1: same rules as simulate, with stops, take-profits and adds checked on the H1 bars inside each bar."""
+    o, h, l, c, a14, a20, a22 = X["o"], X["h"], X["l"], X["c"], X["a14"], X["a20"], X["a22"]
+    dhi, dlo, t = X["dhi"], X["dlo"], X["t"]; n = len(c)
+    B = X["b"]; bo, bh, bl, bt = B["o"], B["h"], B["l"], B["t"]; k0, k1 = X["k0"], X["k1"]
+    spec = C.SPECS[m]; cost = spec["cost_rt_bp"] / 1e4
+    swr_d = {1: spec["swap_long_bp"] / 1e4, -1: spec["swap_short_bp"] / 1e4}
+    out = []; busy = -1
+    for s, d in zip(s_idx, d_arr):
+        if s <= busy or s + 1 >= n or not np.isfinite(a20[s]) or not np.isfinite(a14[s]):
+            continue
+        e = s + 1; ep = o[e]; N = a20[s]
+        if G == "G1":
+            sw = X["swl"][s] if d > 0 else X["swh"][s]
+            if np.isfinite(sw) and d * (ep - sw) > 0 and abs(ep - sw) <= 4 * a14[s]:
+                sl = sw - d * 0.1 * a14[s]
+            else:
+                sl = ep - d * 2 * N
+        else:
+            sl = ep - d * 2 * N
+        risk = abs(ep - sl)
+        if risk <= 0:
+            continue
+        tp = ep + d * 3 * risk if H == "H4" else np.nan
+        units = [ep]; ubar = [bt[k0[e]]]; stop = sl; best = ep; j = e; px = None; tx = None
+        while j < n:
+            for q in range(k0[j], k1[j]):
+                oq, hq, lq = bo[q], bh[q], bl[q]
+                if (d > 0 and lq <= stop) or (d < 0 and hq >= stop):
+                    px = stop if d * (oq - stop) > 0 else oq; tx = bt[q]; break
+                if H == "H4" and ((d > 0 and hq >= tp) or (d < 0 and lq <= tp)):
+                    px = tp if d * (tp - oq) > 0 else oq; tx = bt[q]; break
+                if I == "I4":
+                    n0 = len(units)
+                    while len(units) < 4 and ((d > 0 and hq >= units[-1] + 0.5 * N) or (d < 0 and lq <= units[-1] - 0.5 * N)):
+                        lvl = units[-1] + d * 0.5 * N
+                        units.append(max(lvl, oq) if d > 0 else min(lvl, oq)); ubar.append(bt[q])
+                        stop = max(stop, units[-1] - 2 * N) if d > 0 else min(stop, units[-1] + 2 * N)
+                    if len(units) > n0 and ((d > 0 and lq <= stop) or (d < 0 and hq >= stop)):
+                        px = stop; tx = bt[q]; break
+            if px is not None:
+                break
+            best = max(best, h[j]) if d > 0 else min(best, l[j])
+            if H == "H6":
+                hit = (c[j] < best - 3 * a22[j]) if d > 0 else (c[j] > best + 3 * a22[j])
+            elif H == "H7":
+                hit = (c[j] < dlo[j]) if d > 0 else (c[j] > dhi[j])
+            else:
+                hit = False
+            if hit and j + 1 < n:
+                px = o[j + 1]; j += 1; tx = t[j]; break
+            j += 1
+        if px is None:
+            px = c[n - 1]; j = n - 1; tx = t[j]
+        nts = C.nights(np.array(ubar, np.int64), np.full(len(ubar), tx, np.int64), spec["rollover3"])
+        gross = sum(d * (px - u) for u in units)
+        costs = sum(u * (cost + swr_d[int(d)] * k) for u, k in zip(units, nts))
+        out.append((t[e], tx, (gross - costs) / risk, d, ep))
         busy = j
     return out
 
@@ -190,6 +270,7 @@ def holm(p):
 
 
 def run_grid(H1s, label):
+    label = label + {"1": "_fix", "h1": "_h1"}.get(FIX, "")
     F = {m: frames(b) for m, b in H1s.items()}
     Xs = {tf: {m: features(F[m], m, tf) for m in MKTS} for tf in ("H4", "D1")}
     XS = {tf: xs_ranks(Xs[tf]) for tf in ("H4", "D1")}
