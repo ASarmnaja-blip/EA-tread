@@ -1187,3 +1187,8 @@ drift-only distribution: the passes are explained by the 2021-26 rise of most ma
   $4,153, ATR20 H4 $33.7, stop 2N $67 = 0.67 % of 10,000 USC per 0.01 lot. B (one unit, 1 %): fits; 2021-10..2026-09 +60 % (equity DD 8.4 %,
   worst run 8 losses = -847 USC) against +77 % with fractional lots. A (adds, 0.25 % per unit): the minimum lot forces 2.7x the target now,
   equity DD 21.7 % against 11.6 % fractional; needs ~27,000 USC at today's volatility.
+- Cent account check extended (research/grid768/cent_account.py, was cent_gold.py): XAGUSDc / BTCUSDc assumed at 1/100 of the standard
+  contracts (0.5 oz and 0.0001 BTC per 0.01 lot; not verified on the real account). 0.01 lot risks now gold 0.67 %, silver 0.83 %, BTC
+  0.19 % of 10,000 USC. B (1 % per trade) from 10,000 USC, whole lots: gold +60 % (DD 8.4 %), gold+silver +124 % (DD 13.1 %),
+  gold+silver+BTC +553 % (CAGR 45.6 %, equity DD 16.7 %, worst run 12 losses = -1,077 USC) against +562 % fractional. A (adds) from
+  10,000 USC: gold+silver+BTC +263 % with DD 23.9 % (fractional +338 % / 19.2 %): the minimum lot over-sizes A until ~20,000 USC.
