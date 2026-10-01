@@ -1047,3 +1047,17 @@ haven bid within two weeks) and is a candidate for a forward paper watch list; n
   Treasury file starts in 2016), 2016-26 x3.19 (+11.2 %, DD 28 %), 2021-26 x1.90 (+11.7 %, DD 28 %); a 200-day SMA filter lowers the return in every
   window (+6.3 / +7.5 / +7.3 %). Every active rule tested so far has done worse than simply holding gold.
 - R1 weekend de-risking adopted for new records with the operator's word (docs/RISK_MANAGER_RULES_TH.md); the frozen SHADOW record is unchanged.
+
+## Exploration: entry location on market structure (2026-10-01; operator: "เราเข้าไม้ในจุดไหน hh hl ll lh"; research/hyp/structure_entries.py)
+Fractal(2) swings, structure UP = HH + HL, DOWN = LH + LL; structural stop beyond the opposite swing (min 0.5 ATR); time exit or 2R target.
+Net R per trade (gold DEV 2004-15 / gold CHECK 2016-26 / silver 2010-26) and excess over same-direction random timing:
+| D1 entry | 2R target net | excess | time-exit net |
+|---|---|---|---|
+| buy the HH breakout in UP (stop under the HL) | **+0.109 / +0.128 / +0.093** | +0.058 / +0.029 / +0.065 | +0.102 / +0.052 / +0.069 |
+| buy at the HL once confirmed | -0.132 / +0.003 / -0.120 | -0.209 / -0.208 / -0.182 | -0.121 / +0.098 / -0.088 |
+| buy limit at 50 % of the last up leg (stop under the HL) | -0.182 / +0.212 / -0.295 | -0.277 / +0.034 / -0.362 | -0.129 / -0.023 / -0.270 |
+| sell the LL breakdown in DOWN | -0.093 / -0.086 / +0.008 | +0.011 / +0.090 / +0.087 | |
+| sell at the LH / limit 50 % rally | -0.391 / -0.175 / -0.321 ; -0.336 / -0.331 / -0.237 | negative | |
+H4 shows the same order (HH breakout best: time exit -0.011 / +0.192 / +0.062; HL and limit pullbacks below random timing). Buying pullbacks loses to
+buying breakouts on gold and silver: a limit at a pullback is filled most often when the pullback keeps going and missed when the trend runs
+(adverse selection). On D1 the cost is only 0.02-0.03 R per trade; the gross edge itself (+0.12 to +0.18 R for the HH breakout) is what is thin.
