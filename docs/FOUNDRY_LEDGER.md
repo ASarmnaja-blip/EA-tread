@@ -1241,3 +1241,9 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   PF 1.67; in 2021-26 both ~+0.7R (bull period). Up beats down in every market (BTC 0.81 / 0.39, silver 0.51 / 0.12, gold 0.50 / 0.16).
   W1 up and D1 down is the best cell (+0.85R, PF 2.35), which S excludes and K1 keeps. W1 state flips 2.7 / 4.2 / 1.3 times a year (gold,
   silver, BTC).
+- Dynamic plan search (prereg docs/plans/DYNAMIC_PLAN_PREREG.md, commit 564190b; research/grid27k/dynamic_plan.py; results
+  docs/plans/DYNAMIC_PLAN_RESULTS_TH.md): 100 plans, chosen on 2009-09..2017-12 by MAR: R5/B2/V0/Q1 (W1 vs 26-week Donchian midline per market,
+  quarter risk in a bad regime, drawdown brake at -20 %). Test 2018-26: CAGR 23.3 %, equity DD 21.1 %, MAR 1.11 against P 31.9 % / 23.8 % / 1.34
+  (fails the MAR criterion, passes DD) and K1 22.5 % / 28.4 % / 0.79. Whole 2009-26: 12.0 % / 35.7 % / 0.34 against P 15.7 % / 60.9 % / 0.26.
+  Bear 2011-15 -30 % (P -57 %); 2022 +18 % (P +12 %). Top selection plans all use quarter risk or no longs plus the brake; volatility scaling
+  adds nothing. On 2026-09-30 R5 is bad for gold and silver, good for BTC.
