@@ -1025,3 +1025,16 @@ the id gives 04:06:25 UTC = 00:06 New York, the known time).
   2016/2017/2018/2019-2026; fixed costs, no swap). **Pooled excess over random timing +0.0016 R per week, p 0.378: FAIL.** Only BTCUSD shows a positive
   basket (+17.1 R, p 0.066; excess +0.026 R/week, p 0.145); FX and indices about zero or negative. The daily short-term trend effect seen in gold
   2016-26 and silver does not generalise; it is either specific to precious metals in their strong uptrend or selection noise.
+
+## Exploration: weird batch (2026-10-01; research/hyp/explore_weird.py, data/hyp_explore_weird.log)
+18 quick rules, both directions on gold DEV, the better kept, then gold CHECK and silver with the random-timing control. Consistent (positive and
+above random timing in all three): 3 of 18, about what chance gives for 18 rules x 2 directions:
+| rule | DEV | CHECK | SILVER | excess CHECK / SILVER |
+|---|---|---|---|---|
+| VIX crosses above 30 -> long gold 10 D1 | +0.228 (n 17) | **+0.431 (n 20, p 0.020)** | +0.276 (n 28, p 0.079) | +0.338 / +0.256 |
+| COT non-commercial net share >= 90th pct of 3 years -> long (follow the crowd) 20 D1 | +0.206 (n 17) | +0.200 (n 33, p 0.082) | +0.192 (n 36) | +0.015 / +0.127 |
+| 10-year real yield 1-day drop <= 5th pct -> long gold 5 D1 | +0.072 (n 122) | +0.062 (p 0.18) | +0.033 | +0.003 / +0.029 |
+Not consistent: lunar new moon, first five days of the month (CHECK +0.125 p 0.052 but DEV -0.007), seasonal momentum, month-to-date momentum,
+shock follow-through, Fibonacci 61.8 %, Asian-range breakout (-0.12 to -0.34 R), VIX spike, real-yield rise / trend, breakeven trend, 2-year
+hawkish shock, broad dollar trend, COT washout, hedgers less short. VIX > 30 has a mechanism (forced selling of gold for margin first, then the
+haven bid within two weeks) and is a candidate for a forward paper watch list; nothing here is evidence on its own.
