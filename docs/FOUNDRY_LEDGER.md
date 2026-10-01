@@ -1100,3 +1100,11 @@ Separate experiments, uncapped exits, full costs (spread + 1 bp, broker or C4 sw
   run booked channel exits at the trigger bar (fill at the next open): +62 / +36 R; fixed (booked at the fill bar) the full-sample 144-config
   distribution barely moved (gold half positive, median 0 R), so the yearly selection outcome is fragile. First run kept in
   data/bundle/x7_wrwr_uncapped_v0_exitbar.json.
+
+## X8 consistency scan (2026-10-01, descriptive, after the bundle; research/bundle/x8_consistency_scan.py, data/bundle/x8_consistency_cells.csv)
+Every feature decile / flag / entry-hour block / weekday of the X1 every-signal trend trades (systems pooled per TF and side), net R in gold
+DEV, gold CHECK, silver and the 2012-10..2015-12 gold bear phase. 3,887 cells with >= 100 trades per sample; the excess over the sample mean has
+one sign in all three for 33.1 % (chance 25 %; M5 43.8 %, D1 20.5 %). Recurring: entries aligned with the D1 / W1 direction win on H1 (e.g. H1
+short with the D1 close 0.7-1.0 ATR below its SMA20: +0.33 / +0.42 / +0.43 R, bear +0.45), entries against it lose (H1 long after a W1 body
+<= -0.77 ATR: -0.39 / -0.14 / -0.41); late entries lose (H4 long after 3+ up weeks: -0.31 / -0.36 / -0.24); M5 everything negative, worst in
+the lowest 1-year ATR decile and at 20-24 h UTC. Bear phase: D1 breakout shorts still lose (-0.30 R) while H1 / H4 shorts win (+0.42 / +0.26 R).
