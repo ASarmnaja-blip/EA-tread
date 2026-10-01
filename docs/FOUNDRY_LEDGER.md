@@ -1000,3 +1000,17 @@ Exact-equivalence check passed (one class for every week reproduces WRWR v2 bit 
 - R1 weekend de-risking (halve positions into weekends of a high-gap regime, 28 % of weekends): over the 8 SHADOW runs the 1st-percentile week
   improves +0.018 R, max drawdown -0.57 R, total -13.6 R (limit -27.3 R) -> meets the pre-registered adoption rule for a Risk Manager
   CANDIDATE. The effect is small (the worst weeks are not weekend weeks). Not deployed: Risk Manager rules change only with the operator.
+
+## News batch N (2026-10-01; docs/HYPOTHESIS_BATCH_NEWS_PREREG.md written before the download; research/hyp/news_run.py, data/hyp_news.log): 0 of 4 PASS
+Data fetched with the operator's permission into data/macro/ (manifest with sha256; 54.5 MB; GLD archive returned a PDF and is not used).
+Tweet times are taken from the Twitter snowflake ids (exact UTC; the archive's own time column is unreliable: the covfefe tweet shows 12:06 but
+the id gives 04:06:25 UTC = 00:06 New York, the known time).
+| id | DEV | CHECK | SILVER | excess vs drift control (DEV / CHECK / SILVER) |
+|---|---|---|---|---|
+| N2 GPR spike (99th pct) -> short gold 20 D1 | -0.141 (n 29) | +0.042 (n 23) | +0.054 | +0.034 / +0.312 / +0.145 |
+| N3 high-GPR regime -> long 21-bar blocks | +0.022 | +0.148 (p 0.17) | -0.006 | -0.082 / -0.058 / -0.067 |
+| N4 EPU or TPU spike (97.5th pct) -> long gold 5 D1 | +0.017 (p 0.40) | **+0.110 (n 162, p 0.024)** | +0.041 (p 0.23) | -0.009 / +0.052 / +0.038 |
+| N6 Trump keyword posts -> gold 12 H1 (DEV sign long) | -0.078 (n 748) | +0.014 | -0.137 | -0.023 / -0.022 / +0.021 |
+- Read-outs: the weekend change of the GPR index correlates +0.089 (gold) / +0.073 (silver) with the Monday gap; weekends with a GPR jump (z > 1)
+  gap +3.6 bp (gold) / +13.2 bp (silver) on average, |gap| 13.0 vs 11.1 bp. Weekends with many Trump posts (z > 2) do NOT have larger gaps
+  (mean |gap| 13.9 vs 15.0 bp gold). Policy-uncertainty spikes -> gold up is the only effect significant in a period (CHECK), not in DEV.
