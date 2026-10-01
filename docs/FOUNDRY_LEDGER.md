@@ -1230,3 +1230,9 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   correlations A-B -0.17, A-C -0.09, B-C -0.39. A+B+C at 0.33 % each: CAGR 7.2 %, equity DD 9.8 % against A alone 31.9 % / 23.8 %; at 1 % each
   19.2 % / 26.4 %. Pools in the test period: B 9 of 108 positive (best +11R), C 12 of 72 positive. Shorts and fades act as insurance with a
   premium: they paid in 2011-15 (in-sample) and cost most of the return in 2018-26.
+- Backup plan and switch rules (prereg docs/plans/BACKUP_SWITCH_PREREG.md, commit 5fee3a0; research/grid27k/backup_switch.py; results
+  docs/plans/BACKUP_SWITCH_RESULTS_TH.md): 2009-2026 at 1 %: P 15.7 % / equity DD 60.9 %; S (longs only while D1 and W1 up) 11.5 % / 44.6 %;
+  K1 (P while W1 up, else no new longs) 11.6 % / 45.4 %; K2 (six-month champion/challenger) 12.8 % / 59.6 %. Metals bear 2011-15: -57 / -26 /
+  -28 / -52 %; last five years CAGR 51 / 29 / 32 / 41 %. Neither rule meets the pre-set bar (DD a third lower and CAGR at least half): K1 cuts
+  DD by 25 %, K2 by 2 % (switches late, flips back early). On 2026-09-30 W1 is down on gold, silver and BTC: K1 is in backup mode (no new longs).
+  report768.streaks / pf now handle windows with no wins or no losses.

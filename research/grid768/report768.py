@@ -181,7 +181,7 @@ def streaks(p):
             runs[-1][1] += 1; runs[-1][2] += v
         else:
             runs.append([sg, 1, v])
-    W = [r for r in runs if r[0] > 0]; L = [r for r in runs if r[0] < 0]
+    W = [r for r in runs if r[0] > 0] or [[1, 0, 0.0]]; L = [r for r in runs if r[0] < 0] or [[-1, 0, 0.0]]   # windows with no wins or no losses
     mw = max(W, key=lambda r: (r[1], r[2])); ml = max(L, key=lambda r: (r[1], -r[2]))
     pw = max(W, key=lambda r: r[2]); pl = min(L, key=lambda r: r[2])
     return dict(max_wins=mw[1], max_wins_usd=mw[2], max_losses=ml[1], max_losses_usd=ml[2], max_profit_usd=pw[2], max_profit_n=pw[1],
@@ -225,7 +225,7 @@ def metrics(rows, T, risk, full=True, start=None):
         else:
             under = max(under, (tt - peak_t) / 86400)
     srt = np.sort(R)[::-1]
-    out.update(gross_profit=gp, gross_loss=gl, pf=gp / -gl, expected_payoff=float(pnl.mean()), recovery=float(pnl.sum() / edd["maximal"]),
+    out.update(gross_profit=gp, gross_loss=gl, pf=gp / -gl if gl < 0 else float("inf"), expected_payoff=float(pnl.mean()), recovery=float(pnl.sum() / edd["maximal"]),
                ahpr=float(hpr.mean()), ghpr=float((bal[-1] / DEPOSIT) ** (1 / N)), sharpe_trade=float((hpr.mean() - 1) / hpr.std(ddof=1)),
                sharpe_annual=float(mret.mean() / mret.std(ddof=1) * np.sqrt(12)), z_score=float(z) if z is not None else None,
                lr_corr=float(np.corrcoef(idx, bal)[0, 1]), lr_se=float(np.sqrt(((bal - fit) ** 2).sum() / (N - 2))),
