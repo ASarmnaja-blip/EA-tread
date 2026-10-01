@@ -1038,3 +1038,12 @@ Not consistent: lunar new moon, first five days of the month (CHECK +0.125 p 0.0
 shock follow-through, Fibonacci 61.8 %, Asian-range breakout (-0.12 to -0.34 R), VIX spike, real-yield rise / trend, breakeven trend, 2-year
 hawkish shock, broad dollar trend, COT washout, hedgers less short. VIX > 30 has a mechanism (forced selling of gold for margin first, then the
 haven bid within two weeks) and is a candidate for a forward paper watch list; nothing here is evidence on its own.
+
+## Exploration: sieve-lite and the buy-and-hold reference (2026-10-01)
+- research/hyp/sieve_lite.py: the 158 sieve features on gold H1, extreme deciles / events / time flags, h = 4 and 24 bars: 18 DEV cells with
+  |cluster t| >= 3 (mostly the old hour-of-day pattern: Asian hours up, 06-08 UTC down, plus Friday); as trading rules on gold 2016-26 and silver
+  2016-26: **0 of 18 consistent**. The full C11 sieve (999 placebo paths, about 4-5 h) is deferred: the lite scan gives it little expected value.
+- Buy and hold gold CFD (1x notional, C4 swap, 2 bp per change): 2004-26 x6.99 (+8.7 % a year, max DD 48 %; pre-2016 swap understated because the
+  Treasury file starts in 2016), 2016-26 x3.19 (+11.2 %, DD 28 %), 2021-26 x1.90 (+11.7 %, DD 28 %); a 200-day SMA filter lowers the return in every
+  window (+6.3 / +7.5 / +7.3 %). Every active rule tested so far has done worse than simply holding gold.
+- R1 weekend de-risking adopted for new records with the operator's word (docs/RISK_MANAGER_RULES_TH.md); the frozen SHADOW record is unchanged.
