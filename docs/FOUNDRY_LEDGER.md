@@ -1260,3 +1260,10 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   all three 1 % -65 % (low 35 % of start), H4-55 + D1-1 0.75 % -14 %, H4-55 1.5 % -20 %. Anything holding H4-1 at full risk loses 60-75 % in
   2011-15. H4-55 was picked on 2021-26 with a positive-2017-21 condition, so only 2009-16 is unseen for it. Underwater time stays 7-9 years for
   every mix from the 2011-12 peak. stress_top3.account_window skips windows with fewer than five trades.
+- Three-system dynamic plan (prereg docs/plans/DYNAMIC3_PREREG.md, commit c177d77; research/grid27k/dynamic3.py; results
+  docs/plans/DYNAMIC3_RESULTS_TH.md): none of the 8 plans meets the pre-set 2009-26 limits (balance DD <= 25 %, equity DD <= 30 %): with H4-1
+  switched by W1 R5 / R1 the full-history equity DD is 48-66 % (bear 2011-15 -27 to -49 %), because the W1 switch is still on at the 2011
+  top. At matched drawdown the static H4-55 + D1-1 at 0.6 % each (CAGR 12.1 %, equity DD 26.4 %, balance DD 22.3 %, bear -2.7 %/y, last five
+  years 24.8 %/y) beats the dynamic plan scaled to x0.5 (10.5 %, 28.8 %, 24.1 %, -4.3 %/y, 23.0 %/y). The 0.6 % level was read off the whole
+  history. combo_tf.py's unequal-risk mix ("H4-55 1 % + H4-1 0.25 %") overstated equity DD (marks used the larger risk); dynamic3 sizes each
+  trade with its own multiplier.
