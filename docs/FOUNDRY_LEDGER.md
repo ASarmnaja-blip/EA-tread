@@ -1236,3 +1236,8 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   -28 / -52 %; last five years CAGR 51 / 29 / 32 / 41 %. Neither rule meets the pre-set bar (DD a third lower and CAGR at least half): K1 cuts
   DD by 25 %, K2 by 2 % (switches late, flips back early). On 2026-09-30 W1 is down on gold, silver and BTC: K1 is in backup mode (no new longs).
   report768.streaks / pf now handle windows with no wins or no losses.
+- W1 evidence for the switch (research/grid27k/w1_evidence.py): setup-1 trades 2009-2026 tagged by the W1 state at the signal bar. W1 up 397
+  trades avg +0.59R PF 1.94; W1 down 439 trades +0.19R PF 1.30. In 2009-2021 (not used to choose setup 1): W1 down -0.03R PF 0.95, W1 up +0.43R
+  PF 1.67; in 2021-26 both ~+0.7R (bull period). Up beats down in every market (BTC 0.81 / 0.39, silver 0.51 / 0.12, gold 0.50 / 0.16).
+  W1 up and D1 down is the best cell (+0.85R, PF 2.35), which S excludes and K1 keeps. W1 state flips 2.7 / 4.2 / 1.3 times a year (gold,
+  silver, BTC).
