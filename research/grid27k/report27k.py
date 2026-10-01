@@ -37,6 +37,13 @@ SYSTEMS = {
                       "SL 2 × ATR20 ไม่ขยับ · ออกเมื่อแท่ง H4 ปิดต่ำกว่า Low ต่ำสุด 20 แท่ง (ไม่มี TP)",
                       "ไม้เดียว ความเสี่ยง 1% ต่อไม้ · ตลาดละ 1 ไม้ ถือหลายตลาดพร้อมกันได้"]),
 }
+TH = {"C1": "", "C2": "D1 ยืนยัน", "C3": "D1+W1 ยืนยัน", "C4": "ผันผวนสูง", "C5": "real yield ลง", "C6": "VIX < 20", "C7": "GPR สูง",
+      "C8": "เลี่ยงข่าว 8 ชม.", "D1": "เบรค 20 แท่ง", "D2": "เบรค 55 แท่ง", "D3": "เบรค 10 แท่ง", "D4": "บีบตัวแล้วเบรค", "D5": "EMA20 ตัด EMA50",
+      "D6": "ทะลุ Bollinger", "D7": "ย่อในขาขึ้น (RSI2)", "D8": "เบรค swing high", "E1": "", "E2": "volume สูง", "E3": "ปิดใกล้ high", "F1": "",
+      "F2": "limit รอย่อ", "G1": "SL swing", "G2": "SL 2 ATR", "G3": "SL 3 ATR", "H1": "ออก Chandelier", "H2": "ออกช่อง 20", "H3": "ออกช่อง 10",
+      "H4": "TP 2R", "H5": "TP 3R", "H6": "TP 5R", "I1": "ไม้เดียว", "I2": "เติมไม้", "J1": "ซื้อ", "J2": "สองทาง"}
+BANDS = [(0, 1.0, "ต่ำกว่า 1.0"), (1.0, 1.3, "1.0–1.3"), (1.3, 1.5, "1.3–1.5"), (1.5, 2.0, "1.5–2.0"), (2.0, 2.5, "2.0–2.5"), (2.5, 3.0, "2.5–3.0"),
+         (3.0, 4.0, "3.0–4.0"), (4.0, np.inf, "4.0 ขึ้นไป")]
 UNIS = {"MET3": K.MKTS, "XAUUSD": ["XAUUSD"], "XAGUSD": ["XAGUSD"], "BTCUSD": ["BTCUSD"], "OTHER14": K.OTHER}
 
 
@@ -53,7 +60,15 @@ def grid_meta():
                        early=dict(totR=float(e.totR), cagr=float(e.cagr), dd=float(e.dd), n=int(e.n),
                                   by_mkt={m: float(e[f"totR_{m}"]) for m in K.MKTS}),
                        drift_same=sorted(float(D.set_index("combo").loc[c, "totR"]) for D in drift))
-    return dict(n_combos=len(real), real_best_totR=float(real.totR.max()), real_best_cagr=float(real.cagr.max()),
+    J = real.set_index("combo").join(early[["n", "pf", "cagr", "dd"]], rsuffix="_e")
+    J = J[(J.n >= 100) & np.isfinite(J.pf) & np.isfinite(J.pf_e)].copy(); J["mar"] = J.cagr / J.dd
+    desc = lambda c: " · ".join(TH[x] for x in (c.split("/")[i] for i in (1, 0, 2, 3, 4, 5, 6, 7)) if TH[x])
+    pick = lambda col: [dict(combo=c, desc=desc(c), n=int(r.n), win=float(r.win), pf=float(r.pf), cagr=float(r.cagr), dd=float(r.dd),
+                             pf_e=float(r.pf_e), cagr_e=float(r.cagr_e)) for c, r in J.nlargest(25, col).iterrows()]
+    bands = [dict(band=lab, count=int(((J.pf >= a) & (J.pf < b)).sum()), pf_e=float(J.pf_e[(J.pf >= a) & (J.pf < b)].median()),
+                  pos=float((J.pf_e[(J.pf >= a) & (J.pf < b)] > 1).mean())) for a, b, lab in BANDS if ((J.pf >= a) & (J.pf < b)).any()]
+    return dict(n_combos=len(real), n_patterns_100=int(len(J)), patterns=dict(cagr=pick("cagr"), pf=pick("pf"), mar=pick("mar")), pf_bands=bands,
+                rho_pf=float(J[["pf", "pf_e"]].corr(method="spearman").iloc[0, 1]), real_best_totR=float(real.totR.max()), real_best_cagr=float(real.cagr.max()),
                 real_basic=int(((real.p < 0.05) & (real.R > 0)).sum()),
                 drift_best_totR=[float(D.totR.max()) for D in drift], drift_best_cagr=[float(D.cagr.max()) for D in drift],
                 drift_basic=[int(((D.p < 0.05) & (D.R > 0)).sum()) for D in drift],

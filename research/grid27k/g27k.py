@@ -235,6 +235,7 @@ def summary(trades, risk):
     wk = np.searchsorted(G.CUTS, te, side="right") - 1; keys = np.char.add(np.char.add(mk.astype(str), "|"), wk.astype(str))
     out = dict(n=len(R), per_year=len(R) / 5.0, win=float((R > 0).mean()), R=float(R.mean()), totR=float(R.sum()), p=G.boot_p(R, keys),
                short_share=float((d < 0).mean()))
+    gp, gl = float(R[R > 0].sum()), float(-R[R <= 0].sum()); out["pf"] = gp / gl if gl > 0 else np.inf      # profit factor in R
     ms = list(trades)
     for m in ms:
         s = mk == m; out[f"n_{m}"] = int(s.sum()); out[f"totR_{m}"] = float(R[s].sum())
@@ -244,6 +245,7 @@ def summary(trades, risk):
     for nm, a, b in (("A", START, SPLIT), ("B", SPLIT, BIG)):
         s = (te >= a) & (te < b)
         out[f"n_{nm}"] = int(s.sum()); out[f"R_{nm}"] = float(R[s].mean()) if s.any() else np.nan; out[f"totR_{nm}"] = float(R[s].sum())
+        gl = float(-R[s & (R <= 0)].sum()); out[f"pf_{nm}"] = float(R[s & (R > 0)].sum()) / gl if gl > 0 else np.nan
         out[f"cagr_{nm}"], out[f"dd_{nm}"] = equity(te, tx, R, risk, a, b if b < BIG else int(max(tx.max(), te.max())) + 1)
     return out
 

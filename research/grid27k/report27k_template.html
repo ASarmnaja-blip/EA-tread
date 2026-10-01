@@ -186,6 +186,25 @@ footer{color:var(--faint);font-size:12.5px;margin-top:18px}
     <div class="tbl" id="tbRk"></div>
   </section>
 
+  <section class="card">
+    <div class="card-h">
+      <h2>รูปแบบอื่นๆ ใน 27,648 แบบ</h2>
+      <div class="seg sm" role="tablist" id="patTabs">
+        <button role="tab" data-p="cagr">% ต่อปี</button>
+        <button role="tab" data-p="pf">Profit Factor</button>
+        <button role="tab" data-p="mar">% ต่อปี ÷ DD</button>
+      </div>
+    </div>
+    <p class="muted small" style="margin:0 0 10px">ทอง + เงิน + BTC · 5 ปีล่าสุด · 25 อันดับแรกของแบบที่มีไม้อย่างน้อย 100 ไม้ · ไม้เดียวคิดที่ 1% ต่อไม้ เติมไม้คิดที่ 0.25% ต่อหน่วย · DD ในตารางนี้เป็นของ balance · สองช่องขวาคือแบบเดียวกันในช่วงก่อนหน้า (ม.ค. 2017 – ก.ย. 2021) ที่ไม่ได้ใช้เลือก · แถวที่เน้นคือระบบที่เลือกดูอยู่</p>
+    <div class="tbl" id="tbPat"></div>
+  </section>
+
+  <section class="card">
+    <h2>Profit Factor ใน 5 ปี เทียบกับช่วงก่อนหน้า</h2>
+    <p class="muted small" id="bandNote" style="margin:4px 0 10px"></p>
+    <div class="tbl" id="tbBand"></div>
+  </section>
+
   <section class="card note" id="notes"></section>
 
   <footer id="foot"></footer>
@@ -198,7 +217,7 @@ const MKT_TH = {XAUUSD:"ทอง",XAGUSD:"เงิน",EURUSD:"ยูโร/�
 const keyOf = (s, u) => s + "_" + u;
 const SINFO = D.META.systems_info;
 const UNI_TH = {MET3: "3 ตลาด: ทอง เงิน บิตคอยน์", XAUUSD: "ทอง (XAUUSD) ตลาดเดียว", XAGUSD: "เงิน (XAGUSD) ตลาดเดียว", BTCUSD: "บิตคอยน์ (BTCUSD) ตลาดเดียว", OTHER14: "14 ตลาดอื่น (ไม่รวมทอง เงิน BTC)"};
-let SYS = "S1", UNI = "MET3", MODE = "n", HMODE = "n";
+let SYS = "S1", UNI = "MET3", MODE = "n", HMODE = "n", PMODE = "cagr";
 document.getElementById("sysTabs").innerHTML = Object.keys(SINFO).map(k => `<button role="tab" data-k="${k}">${SINFO[k].tab}</button>`).join("");
 try { const s = localStorage.getItem("g27ksys"); if (s && SINFO[s]) SYS = s; const u = localStorage.getItem("g27kuni"); if (u && D[keyOf(SYS, u)]) UNI = u; } catch (e) {}
 
@@ -340,6 +359,17 @@ function renderCharts() {
     hint: "แท่งแดง = ไม้ขาดทุน, แท่งเขียว = ไม้กำไร · แตะที่แท่งเพื่อดูตัวเลข", label: "Distribution of trade results in R"});
 }
 
+function renderPatterns() {
+  const P = D.META.patterns[PMODE], me = SINFO[SYS].combo;
+  document.querySelectorAll("#patTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.p === PMODE));
+  document.getElementById("tbPat").innerHTML = `<table><thead><tr><th>#</th><th>รูปแบบ</th><th class="n">ไม้</th><th class="n">ชนะ</th><th class="n">PF</th><th class="n">% ต่อปี</th><th class="n">DD</th><th class="n">PF ก่อนหน้า</th><th class="n">% ต่อปี ก่อนหน้า</th></tr></thead><tbody>` +
+    P.map((x, i) => `<tr class="${x.combo === me ? "sel" : ""}"><td>${i + 1}</td><td class="small" style="white-space:normal;min-width:190px">${x.desc}<div class="muted" style="font-size:11px">${x.combo}</div></td><td class="n">${x.n}</td><td class="n">${pct(x.win, 0)}</td><td class="n">${x.pf.toFixed(2)}</td><td class="n ${cls(x.cagr)}">${pct(x.cagr, 0)}</td><td class="n neg">${pct(x.dd, 0)}</td><td class="n ${x.pf_e >= 1 ? "pos" : "neg"}">${x.pf_e.toFixed(2)}</td><td class="n ${cls(x.cagr_e)}">${pct(x.cagr_e, 1)}</td></tr>`).join("") + `</tbody></table>`;
+  const Bd = D.META.pf_bands;
+  document.getElementById("bandNote").innerHTML = `แบ่ง ${nf0.format(D.META.n_patterns_100)} แบบ (ไม้ ≥ 100) ตาม PF ใน 5 ปีล่าสุด แล้วดูว่าแบบกลุ่มเดียวกันทำ PF ได้เท่าไรในช่วงก่อนหน้าที่ไม่ได้ใช้เลือก · ถ้าเกิน 1 แปลว่ายังกำไร`;
+  document.getElementById("tbBand").innerHTML = `<table><thead><tr><th>PF ใน 5 ปีล่าสุด</th><th class="n">จำนวนแบบ</th><th class="n">PF ช่วงก่อนหน้า (มัธยฐาน)</th><th class="n">ยังกำไรในช่วงก่อนหน้า</th></tr></thead><tbody>` +
+    Bd.map(x => `<tr><td>${x.band}</td><td class="n">${nf0.format(x.count)}</td><td class="n ${x.pf_e >= 1 ? "pos" : "neg"}">${x.pf_e.toFixed(2)}</td><td class="n">${pct(x.pos, 0)}</td></tr>`).join("") + `</tbody></table>`;
+}
+
 function render() {
   const r = D[keyOf(SYS, UNI)], SI = SINFO[SYS], GM = D.META, GS = GM.systems[SYS];
   document.querySelectorAll("#sysTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.k === SYS));
@@ -474,11 +504,13 @@ function render() {
     <li><b>สิ่งที่ยังไม่ได้จำลอง:</b> margin และ stop-out · lot ขั้นต่ำ 0.01 · slippage ที่เกิน spread + 1 bp · การแปลงค่าเงินของตลาดที่ไม่ได้คิดกำไรเป็น USD (ใช้หน่วย R แทน) · ลำดับราคาภายในแท่ง H1 เดียวกัน (ถ้าแท่งเดียวทั้งเติมไม้และชน SL ใหม่ จะถือว่าโดน SL)</li>
   </ol>`;
   document.getElementById("foot").innerHTML = `สร้างจาก research/grid27k/report27k.py · แผน docs/plans/G27K_PREREG.md · ผลรวม docs/plans/G27K_RESULTS_TH.md · แท่ง H1 ของ MT5 รวมเป็น H4 · ต้นทุนจาก data/bundle/broker_specs.json · คำนวณ 1 ต.ค. 2026`;
+  renderPatterns();
   renderCharts();
 }
 
 document.getElementById("sysTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; SYS = b.dataset.k; try { localStorage.setItem("g27ksys", SYS); } catch (x) {} render(); });
 document.getElementById("uniTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; UNI = b.dataset.u; try { localStorage.setItem("g27kuni", UNI); } catch (x) {} render(); });
+document.getElementById("patTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; PMODE = b.dataset.p; renderPatterns(); });
 document.getElementById("modeTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; MODE = b.dataset.m; render(); });
 document.getElementById("histTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; HMODE = b.dataset.m; render(); });
 let rt = null, lastW = 0;

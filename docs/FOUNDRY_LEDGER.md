@@ -1209,3 +1209,7 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   (also in cent_account.lot_account). 17-market report: CAGR A 36.6 -> 40.0 %, B 43.3 -> 47.2 %; net profit, drawdowns and every three- and
   single-market figure unchanged. G768 page republished. G27K page: research/grid27k/report27k.py + report27k_template.html (S1 best CAGR,
   S2 best total R, S0 the G768 system; gold + silver + BTC, each alone, the other 14 markets; five years 2021-10..2026-09).
+- G27K profit factor (R-based) added to the grid and re-run (results otherwise identical). Of 19,459 setups with >= 100 trades, grouped by
+  five-year PF, the median PF on 2017-01..2021-09 (not used for choosing): < 1.0 -> 0.96; 1.0-1.3 -> 0.97; 1.3-1.5 -> 1.10; 1.5-2.0 -> 1.33;
+  2.0-2.5 -> 1.59 (69 % still profitable); 2.5-3.0 -> 1.53; 3.0-4.0 -> 1.09; >= 4.0 -> 0.62 (4 setups). Rank correlation 0.26. The very
+  high-PF setups are mostly D7 pullbacks with adds and few trades, which lose before 2021. S1 PF 2.19 -> 1.51, S2 2.03 -> 2.30, S0 2.85 -> 2.36.
