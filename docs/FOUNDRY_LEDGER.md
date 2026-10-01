@@ -1061,3 +1061,16 @@ Net R per trade (gold DEV 2004-15 / gold CHECK 2016-26 / silver 2010-26) and exc
 H4 shows the same order (HH breakout best: time exit -0.011 / +0.192 / +0.062; HL and limit pullbacks below random timing). Buying pullbacks loses to
 buying breakouts on gold and silver: a limit at a pullback is filled most often when the pullback keeps going and missed when the trend runs
 (adverse selection). On D1 the cost is only 0.02-0.03 R per trade; the gross edge itself (+0.12 to +0.18 R for the HH breakout) is what is thin.
+
+## Classic trend following with trailing exits (2026-10-01; operator: simple and consistent; research/hyp/turtle.py, data/hyp_turtle.log, data/hyp/turtle_finance.log)
+Canonical parameters only (Turtle S1 20/10, S2 55/20, 2 N initial stop; Chandelier 55-day entry, highest high - 3 ATR22). All earlier tests capped
+winners (2R targets or 5-day holds); letting profits run changes the per-trade picture:
+- Gold D1 long-only, net R per trade 2004-15 / 2016-26: S2 +0.70 / **+1.49** (best trade +17 R), S1 +0.37 / +0.60, Chandelier +0.56 / +0.89; long+short
+  versions weaker. Silver S1 long-only +0.32. Eight untouched MT5 markets: long-only average +0.44 to +0.60 R per trade, long+short +0.16 to +0.25.
+- Finance ($10,000, risk per trade fixed at entry, one position per market): gold-only S2 long-only 2016-26 at 1 / 3 / 5 % risk: CAGR +3.1 / +8.5 /
+  +13.2 %, max DD 4 / 11 / 17 % (2004-26: +2.2 / +6.1 / +9.4 %, DD 4 / 13 / 20 %). Ten-market portfolio 2016-08..2026-09 at 1 % per trade:
+  **Chandelier long-only CAGR +13.9 %, max DD 15 %, 10 of 11 years positive, worst year -3.0 %** (without BTC +8.2 %, DD 12 %); Turtle S1 long-only
+  +15.3 %, DD 16 % (without BTC +7.6 %); S2 long-only +11.9 %, DD 23 %; long+short versions +1 to +5 % with DD 27-66 %.
+- Caveats: long-only in markets that mostly rose over 2016-26 is partly beta; swap is modelled for gold and silver only (a long BTC / index CFD pays a
+  large swap, not deducted); parameters are canonical, but choosing long-only was informed by these runs. The value against buy-and-hold is the
+  drawdown (gold B&H 2016-26 +11.2 %, DD 28 %).
