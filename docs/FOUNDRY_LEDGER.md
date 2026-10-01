@@ -1014,3 +1014,14 @@ the id gives 04:06:25 UTC = 00:06 New York, the known time).
 - Read-outs: the weekend change of the GPR index correlates +0.089 (gold) / +0.073 (silver) with the Monday gap; weekends with a GPR jump (z > 1)
   gap +3.6 bp (gold) / +13.2 bp (silver) on average, |gap| 13.0 vs 11.1 bp. Weekends with many Trump posts (z > 2) do NOT have larger gaps
   (mean |gap| 13.9 vs 15.0 bp gold). Policy-uncertainty spikes -> gold up is the only effect significant in a period (CHECK), not in DEV.
+
+## Exploration: scale-and-flip, and the D1 trend basket confirmation (2026-10-01; operator: "ขยายไม้ ... สลับด้าน ... ทำอะไรแปลกๆไปก่อน")
+- research/hyp/explore_scale.py: 149 signal x TF combos on gold; the DEV rule (follow if net > 0; scale the stop/hold up when gross > 0 but net <= 0;
+  flip when scaling makes it worse) kept 114 (61 follow, 42 scaled up, 11 flipped). 22 were positive on gold CHECK and silver; 21 of them also beat
+  same-direction random timing on both (D1 displacement +0.47 / +0.18 R per trade, Bollinger breakout +0.34 / +0.13, Donchian 55 +0.26 / +0.09,
+  turn of month +0.22 / +0.08). Not significant after BH over the 114 kept, and chosen by looking at CHECK.
+- Confirmation (docs/HYPOTHESIS_TREND_BASKET_PREREG.md; members = the 37 D1 rows kept on gold DEV only, explore_scale.csv sha256 fb9a68cd...;
+  research/hyp/trend_basket.py): eight markets never used for selection (EURUSD, USDJPY, AUDUSD, USDCHF, US500, USTEC, USOIL, BTCUSD; MT5 D1
+  2016/2017/2018/2019-2026; fixed costs, no swap). **Pooled excess over random timing +0.0016 R per week, p 0.378: FAIL.** Only BTCUSD shows a positive
+  basket (+17.1 R, p 0.066; excess +0.026 R/week, p 0.145); FX and indices about zero or negative. The daily short-term trend effect seen in gold
+  2016-26 and silver does not generalise; it is either specific to precious metals in their strong uptrend or selection noise.
