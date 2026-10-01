@@ -336,6 +336,11 @@ docs/                        RESEARCH_FINDINGS.md, BACKTEST.md,
       - สรุปภาษาไทยที่ `data/wpwb_weekly/forward_summary_th.md`
     - คู่มือข่าว 8 สถานการณ์ (ช่องว่างข้อ 6): `docs/NEWS_PLAYBOOK_TH.md`; แผนที่สภาพตลาด × setup: `docs/FOUNDRY_REGIME_MAP_TH.md`
 
+12. **(2026-10-01) Candle Lab + ชุดทดลองใหญ่ X1–X7** (`research/candlelab/`, `research/bundle/`, รายงาน `docs/BUNDLE_2026-10-01_RESULTS_TH.md`):
+    แท่งเทียน M5–H1 มีผลดีดกลับจริงแต่เล็กกว่าต้นทุน; สิ่งเดียวที่บวกต่อเนื่องคือถือตามเทรนด์ขาขึ้น D1/W1 แบบไม่จำกัดกำไร;
+    ตัวกรองแท่งเทียน D1 และ D1 ยืนยันทิศ H1 ผ่าน (ผู้สมัคร ยังไม่ล็อก); มาร์ติงเกล/กริดแตกพอร์ตซ้ำๆ (ยังห้ามใช้); WRWR แบบไม่จำกัดไม่ชนะ
+    Chandelier; พอร์ตเทรนด์หลายตลาดไม่ยืนยันบน 8 ตลาดใหม่เมื่อหัก swap จริง; ค่า swap/spread ของโบรกเกอร์อยู่ที่ `data/bundle/broker_specs.json`
+
 ---
 
 ## สิทธิ์ทดสอบ Execution บนบัญชี Demo (อนุญาต 2026-09-21)
