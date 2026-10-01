@@ -1213,3 +1213,7 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   five-year PF, the median PF on 2017-01..2021-09 (not used for choosing): < 1.0 -> 0.96; 1.0-1.3 -> 0.97; 1.3-1.5 -> 1.10; 1.5-2.0 -> 1.33;
   2.0-2.5 -> 1.59 (69 % still profitable); 2.5-3.0 -> 1.53; 3.0-4.0 -> 1.09; >= 4.0 -> 0.62 (4 setups). Rank correlation 0.26. The very
   high-PF setups are mostly D7 pullbacks with adds and few trades, which lose before 2021. S1 PF 2.19 -> 1.51, S2 2.03 -> 2.30, S0 2.85 -> 2.36.
+- G27K top three by CAGR together (research/grid27k/combine_top3.py): setups 2 and 3 share 239 of 280 entries, setup 1 shares about a third.
+  Alone at 1 %: balance DD 13-17 %, equity DD 21-24 %, max leverage ~3x. Together at 1 % each: balance DD 38.0 %, equity DD 47.8 %, 9 open
+  positions, 8.2x notional, worst month -24 %, a 28-loss run; close to setup 1 alone at 3 % (42.3 % / 53.0 %). Together at 0.33 % each: equity
+  DD 20.9 %, CAGR 52.4 %, about the same as one setup at 1 %: little diversification between near-identical setups.
