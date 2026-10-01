@@ -1145,3 +1145,11 @@ system passes: timing alpha +0.52..+0.94 % per trade (p <= 0.01, 93-100 % of mar
 markets; positive in every decade 1950s-2020s; long + short gained in the long bear phases (Nikkei 1989-2009 +52 %, oil 2008-20 +92 %).
 Deviation: P03 limit orders are cancelled on a new extreme beyond L2 (the plan's "TP before fill" was ill-defined). A verdict bug (column
 name `sample`) was fixed and verdicts recomputed from the saved rows.
+
+## G768 (2026-10-01; prereg docs/plans/G768_PREREG.md, commit be96586; research/grid768/g768.py, data/grid768/)
+768 combinations (H4 / D1 x context x Donchian / squeeze / broker-swap carry / cross-sectional momentum x volume x structural or 2 ATR stop x
+Chandelier / channel / 3 R x pyramiding x long-only or higher-TF direction) on 17 MT5 markets, entries 2021-10..2026-09, one position per
+market. Real: 79 basic passes (p < 0.05, R > 0), 0 strict (Holm + >= 60 % of markets); all 79 long-only, mostly H4, higher-TF filter,
+pyramiding. Pre-registered fake count (10 mirrored paths, drift removed): basic 0..48 (mean 7.6), strict 0. Added after the results (not
+pre-registered): 10 drift-preserving mirrored paths: basic 25..253 (mean 124), strict 0..30 (mean 10.4). The real 79 sit inside the
+drift-only distribution: the passes are explained by the 2021-26 rise of most markets, not by timing; no combination shows an edge beyond drift.
