@@ -38,6 +38,9 @@ def lot_account(trades, risk, deposit):
     while heap:
         _, k = heapq.heappop(heap); r = live.pop(k); bal += r["pnl"]; r["bal_after"] = bal; rows.append(r)
     rows.sort(key=lambda r: (r["t_exit"], r["t"]))
+    bal = deposit                                             # relabel in the sorted order (exits at the same time, e.g. the last bar)
+    for r in rows:
+        bal += r["pnl"]; r["bal_after"] = bal
     return rows
 
 

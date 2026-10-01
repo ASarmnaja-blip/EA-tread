@@ -1204,3 +1204,8 @@ best 136..824R. Real sits at the top of every placebo range (rank 1-3 of 11) but
 1,728, the #1 setup -426R. Added after the results (not pre-registered): 2017-01..2021-09 on the same three markets: grid median +2R, 213 basic;
 the five-year top 20 by total R sit at the 99th percentile there (+272R median, CAGR 11 %, 15/20 positive) but almost all from BTC (gold and
 silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lose; rank correlation 0.21.
+- Fix (2026-10-01): report768.account labelled balances in heap-pop order and then sorted by exit time, so when several positions closed at
+  the same time (the last bar) the final row missed tied exits and CAGR / GHPR read low. Balances are now relabelled in exit order
+  (also in cent_account.lot_account). 17-market report: CAGR A 36.6 -> 40.0 %, B 43.3 -> 47.2 %; net profit, drawdowns and every three- and
+  single-market figure unchanged. G768 page republished. G27K page: research/grid27k/report27k.py + report27k_template.html (S1 best CAGR,
+  S2 best total R, S0 the G768 system; gold + silver + BTC, each alone, the other 14 markets; five years 2021-10..2026-09).

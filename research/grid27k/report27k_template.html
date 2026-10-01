@@ -1,0 +1,487 @@
+<title>รายงานย้อนหลัง G27K</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f5f8; --panel:#ffffff; --panel2:#f7f9fb; --ink:#131923; --muted:#566273; --faint:#8792a2; --line:#e1e6ed; --grid:#eceff4;
+  --accent:#1f5eff; --accent-ink:#ffffff; --bal:#1f5eff; --eq:#0f9d58; --pos:#0f9d58; --neg:#d92d20; --dd:#d92d20;
+  --asia:#7c5cff; --eu:#0ea5e9; --us:#f59e0b; --hl:#eef3ff;
+  --warn-bg:#fff7ec; --warn-line:#f3c98b; --warn-ink:#6f3a00; --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.07);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1016; --panel:#141a23; --panel2:#10161e; --ink:#e6ebf2; --muted:#9ba7b7; --faint:#6e7a8a; --line:#253041; --grid:#1c2431;
+    --accent:#6a95ff; --accent-ink:#0c1016; --bal:#6a95ff; --eq:#36d07c; --pos:#36d07c; --neg:#ff6b5f; --dd:#ff6b5f;
+    --asia:#a28dff; --eu:#3cc2f5; --us:#fbbf3c; --hl:#1a2440;
+    --warn-bg:#271d0f; --warn-line:#5f441b; --warn-ink:#f4c98f; --shadow:none; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1016; --panel:#141a23; --panel2:#10161e; --ink:#e6ebf2; --muted:#9ba7b7; --faint:#6e7a8a; --line:#253041; --grid:#1c2431;
+  --accent:#6a95ff; --accent-ink:#0c1016; --bal:#6a95ff; --eq:#36d07c; --pos:#36d07c; --neg:#ff6b5f; --dd:#ff6b5f;
+  --asia:#a28dff; --eu:#3cc2f5; --us:#fbbf3c; --hl:#1a2440;
+  --warn-bg:#271d0f; --warn-line:#5f441b; --warn-ink:#f4c98f; --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+.num,dd,td.n,.kpi .v{font-variant-numeric:tabular-nums}
+header.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:600}
+h1{font-size:24px;line-height:1.25;margin:2px 0 4px;font-weight:700}
+h2{font-size:16px;margin:0;font-weight:600}
+h3{font-size:14px;margin:0;font-weight:600;color:var(--muted)}
+.sub{margin:0;color:var(--muted);font-size:14px}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;box-shadow:var(--shadow)}
+.seg button{font:inherit;font-size:14px;border:0;background:transparent;color:var(--muted);padding:7px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.seg.sm button{font-size:13px;padding:5px 10px}
+.ctl{display:flex;flex-wrap:wrap;gap:8px}
+.seg.wrap{flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);min-width:0}
+.kpi .l{font-size:12.5px;color:var(--muted)}
+.kpi .v{font-size:21px;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .s{font-size:12px;color:var(--faint)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px;min-width:0}
+.card-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.card-h.mt{margin-top:14px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.legend i.sq{height:10px;width:10px;border-radius:3px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.grid2 .card{margin-bottom:0}
+.grid3{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3 .full{grid-column:1/-1}
+dl{margin:0}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:7px 0;border-bottom:1px solid var(--grid)}
+.kv:last-child{border-bottom:0}
+dt{color:var(--muted);font-size:14px;min-width:0}
+dt small{display:block;font-size:11.5px;color:var(--faint);line-height:1.3}
+dd{margin:0;font-weight:600;text-align:right;white-space:nowrap;max-width:64%}
+dd small{display:block;font-weight:400;font-size:12px;color:var(--faint);white-space:normal}
+.pos{color:var(--pos)} .neg{color:var(--neg)}
+.chart{position:relative;width:100%;min-height:120px;touch-action:pan-y}
+.svg{display:block;max-width:100%;height:auto}
+.svg .gl{stroke:var(--grid);stroke-width:1}
+.svg .base{stroke:var(--faint);stroke-width:1;stroke-dasharray:4 4}
+.svg .ax{fill:var(--faint);font-size:11px;font-family:inherit}
+.svg .cross{stroke:var(--faint);stroke-width:1;stroke-dasharray:3 3}
+.tip{position:absolute;top:4px;display:none;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.12);white-space:nowrap;z-index:2}
+.tip span{display:block;color:var(--muted)}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.readout{font-size:13px;color:var(--muted);min-height:20px;margin-top:4px}
+.tbl{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--grid);text-align:left;white-space:nowrap}
+th{font-size:12.5px;color:var(--muted);font-weight:600;background:var(--panel2);position:sticky;top:0}
+td.n,th.n{text-align:right}
+tr.sel td{background:var(--hl);font-weight:600}
+.bar{display:inline-block;height:8px;border-radius:2px;vertical-align:middle}
+.note{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink)}
+.note h2{color:var(--warn-ink)}
+.note ol{margin:8px 0 0;padding-left:20px}
+.note li{margin:6px 0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.rules{margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:13.5px}
+.rules li{margin:3px 0}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{font-size:12px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--muted)}
+footer{color:var(--faint);font-size:12.5px;margin-top:18px}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:720px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}h1{font-size:21px}}
+@media (max-width:420px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .v{font-size:19px}.card{padding:14px 12px}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Strategy Tester · Backtest report</div>
+      <h1>รายงานผลทดสอบย้อนหลัง G27K · 5 ปีล่าสุด</h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <div class="ctl">
+      <div class="seg wrap" role="tablist" id="uniTabs" aria-label="ตลาด">
+        <button role="tab" data-u="MET3">ทอง + เงิน + BTC</button>
+        <button role="tab" data-u="XAUUSD">ทอง</button>
+        <button role="tab" data-u="XAGUSD">เงิน</button>
+        <button role="tab" data-u="BTCUSD">BTC</button>
+        <button role="tab" data-u="OTHER14">14 ตลาดอื่น</button>
+      </div>
+      <div class="seg wrap" role="tablist" id="sysTabs" aria-label="ระบบ"></div>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="card">
+    <div class="card-h">
+      <h2>กราฟ Balance / Equity</h2>
+      <div class="legend"><span><i style="background:var(--bal)"></i>Balance (ปิดไม้แล้ว)</span><span><i style="background:var(--eq)"></i>Equity (รวมไม้ที่ยังเปิด)</span></div>
+    </div>
+    <div id="chEq" class="chart"></div>
+    <div class="card-h mt"><h3>Drawdown ของ Equity (ห่างจากจุดสูงสุดเดิมกี่ %)</h3></div>
+    <div id="chDd" class="chart"></div>
+  </section>
+
+  <section class="grid2">
+    <div class="card"><h2>ตั้งค่า</h2><dl id="dlSet"></dl></div>
+    <div class="card"><h2>ผลลัพธ์</h2><dl id="dlRes"></dl></div>
+    <div class="card"><h2>Drawdown</h2><dl id="dlDd"></dl></div>
+    <div class="card"><h2>การซื้อขาย</h2><dl id="dlTr"></dl></div>
+    <div class="card"><h2>ลำดับต่อเนื่อง</h2><dl id="dlSt"></dl></div>
+    <div class="card"><h2>เวลาถือ · MFE / MAE · การพึ่งไม้ใหญ่</h2><dl id="dlHo"></dl></div>
+  </section>
+
+  <section class="card">
+    <div class="card-h">
+      <h2>เวลาเข้าเทรด</h2>
+      <div class="seg sm" role="tablist" id="modeTabs">
+        <button role="tab" data-m="n">จำนวนไม้</button>
+        <button role="tab" data-m="pnl">กำไร/ขาดทุน</button>
+      </div>
+    </div>
+    <div class="grid3">
+      <div class="full">
+        <div class="card-h"><h3>ตามชั่วโมงเข้า (เวลาเซิร์ฟเวอร์ UTC · เวลาไทย = +7)</h3>
+          <div class="legend"><span><i class="sq" style="background:var(--asia)"></i>เอเชีย 22–06</span><span><i class="sq" style="background:var(--eu)"></i>ยุโรป 07–12</span><span><i class="sq" style="background:var(--us)"></i>อเมริกา 13–21</span></div>
+        </div>
+        <div id="chHr" class="chart"></div><div class="readout" id="roHr"></div>
+      </div>
+      <div><h3>ตามวันในสัปดาห์</h3><div id="chWd" class="chart"></div><div class="readout" id="roWd"></div></div>
+      <div><h3>ตามเดือน</h3><div id="chMo" class="chart"></div><div class="readout" id="roMo"></div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-h">
+      <h2>ผลต่อไม้ (หน่วย R = ความเสี่ยงของหน่วยแรก)</h2>
+      <div class="seg sm" role="tablist" id="histTabs">
+        <button role="tab" data-m="n">จำนวนไม้</button>
+        <button role="tab" data-m="R">R รวมในช่วง</button>
+      </div>
+    </div>
+    <div id="chRh" class="chart"></div><div class="readout" id="roRh"></div>
+  </section>
+
+  <section class="grid2">
+    <div class="card"><h2>รายปี</h2><div class="tbl" id="tbYr"></div></div>
+    <div class="card"><h2>ช่วง Drawdown ใหญ่สุด</h2><div id="ddWin"></div></div>
+  </section>
+
+  <section class="card"><h2>รายตลาด</h2><div class="tbl" id="tbMk"></div></section>
+
+  <section class="grid2">
+    <div class="card"><h2>10 ไม้ที่กำไรมากสุด</h2><div class="tbl" id="tbBest"></div></div>
+    <div class="card"><h2>10 ไม้ที่ขาดทุนมากสุด</h2><div class="tbl" id="tbWorst"></div></div>
+  </section>
+
+  <section class="card">
+    <h2>ถ้าเปลี่ยนความเสี่ยงต่อหน่วย</h2>
+    <p class="muted small" style="margin:4px 0 10px">ไม้ชุดเดียวกันทุกแถว เปลี่ยนแค่ขนาดไม้ (ทบต้นจาก balance) แถวที่เน้นคือค่าที่ใช้ในรายงานนี้</p>
+    <div class="tbl" id="tbRk"></div>
+  </section>
+
+  <section class="card note" id="notes"></section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const D = /*DATA*/;
+const TH_M = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+const MKT_TH = {XAUUSD:"ทอง",XAGUSD:"เงิน",EURUSD:"ยูโร/ดอลลาร์",USDJPY:"ดอลลาร์/เยน",AUDUSD:"ออสซี่/ดอลลาร์",USDCHF:"ดอลลาร์/ฟรังก์",US500:"S&P 500",USTEC:"Nasdaq 100",USOIL:"น้ำมัน WTI",BTCUSD:"บิตคอยน์",DE30:"DAX",JP225:"Nikkei 225",XCUUSD:"ทองแดง",XPTUSD:"แพลทินัม",USDCNH:"ดอลลาร์/หยวน",USDMXN:"ดอลลาร์/เปโซ",USDZAR:"ดอลลาร์/แรนด์"};
+const keyOf = (s, u) => s + "_" + u;
+const SINFO = D.META.systems_info;
+const UNI_TH = {MET3: "3 ตลาด: ทอง เงิน บิตคอยน์", XAUUSD: "ทอง (XAUUSD) ตลาดเดียว", XAGUSD: "เงิน (XAGUSD) ตลาดเดียว", BTCUSD: "บิตคอยน์ (BTCUSD) ตลาดเดียว", OTHER14: "14 ตลาดอื่น (ไม่รวมทอง เงิน BTC)"};
+let SYS = "S1", UNI = "MET3", MODE = "n", HMODE = "n";
+document.getElementById("sysTabs").innerHTML = Object.keys(SINFO).map(k => `<button role="tab" data-k="${k}">${SINFO[k].tab}</button>`).join("");
+try { const s = localStorage.getItem("g27ksys"); if (s && SINFO[s]) SYS = s; const u = localStorage.getItem("g27kuni"); if (u && D[keyOf(SYS, u)]) UNI = u; } catch (e) {}
+
+const nf2 = new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const nf0 = new Intl.NumberFormat("en-US",{maximumFractionDigits:0});
+const money = v => (v < 0 ? "−" : "") + nf2.format(Math.abs(v));
+const money0 = v => (v < 0 ? "−$" : "$") + nf0.format(Math.abs(v));
+const kmoney = v => { const a = Math.abs(v), s = v < 0 ? "−" : ""; return a >= 1e6 ? s + (a/1e6).toFixed(a >= 1e7 ? 0 : 1) + "M" : a >= 1e3 ? s + (a/1e3).toFixed(0) + "k" : s + a.toFixed(0); };
+const pct = (v, d = 1) => (v < 0 ? "−" : "") + Math.abs(v * 100).toFixed(d) + "%";
+const sgnPct = (v, d = 1) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v * 100).toFixed(d) + "%";
+const r2 = (v, d = 2) => (v < 0 ? "−" : "") + Math.abs(v).toFixed(d);
+const sgnR = (v, d = 1) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d) + "R";
+const cls = v => v > 0 ? "pos" : v < 0 ? "neg" : "";
+const dstr = s => { const [y, m, d] = s.split("-").map(Number); return d + " " + TH_M[m - 1] + " " + y; };
+const tdate = t => { const x = new Date(t * 1000); return x.getUTCDate() + " " + TH_M[x.getUTCMonth()] + " " + x.getUTCFullYear(); };
+const hrs = h => h < 48 ? h.toFixed(0) + " ชม." : (h / 24).toFixed(1) + " วัน";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+
+function kv(label, en, value, sub, c) {
+  return `<div class="kv"><dt>${label}${en ? `<small>${en}</small>` : ""}</dt><dd class="${c || ""}">${value}${sub ? `<small>${sub}</small>` : ""}</dd></div>`;
+}
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function niceStep(range, n) { const raw = range / n; const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
+
+function lineChart(host, o) {
+  host.innerHTML = "";
+  const W = Math.max(280, Math.round(host.clientWidth)), H = o.h;
+  const m = {l: o.ml || 54, r: 10, t: 8, b: 22};
+  const t = o.t, n = t.length, x0 = t[0], x1 = t[n - 1];
+  let lo = Infinity, hi = -Infinity;
+  o.series.forEach(s => { for (const v of s.y) { if (v < lo) lo = v; if (v > hi) hi = v; } });
+  if (o.lo !== undefined) lo = Math.min(lo, o.lo);
+  if (o.hi !== undefined) hi = Math.max(hi, o.hi);
+  const step = niceStep((hi - lo) || 1, o.ticks || 4); lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  const X = v => m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r);
+  const Y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: "svg", role: "img", "aria-label": o.label || ""}, host);
+  for (let v = lo; v <= hi + step / 2; v += step) {
+    el("line", {x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), class: "gl"}, svg);
+    el("text", {x: m.l - 6, y: Y(v) + 4, class: "ax", "text-anchor": "end"}, svg).textContent = o.yfmt(v);
+  }
+  const y0 = new Date(x0 * 1000).getUTCFullYear(), y1 = new Date(x1 * 1000).getUTCFullYear();
+  for (let y = y0 + 1; y <= y1; y++) {
+    const ts = Date.UTC(y, 0, 1) / 1000; if (ts <= x0 || ts >= x1) continue;
+    el("line", {x1: X(ts), x2: X(ts), y1: m.t, y2: H - m.b, class: "gl"}, svg);
+    el("text", {x: X(ts), y: H - 5, class: "ax", "text-anchor": "middle"}, svg).textContent = y;
+  }
+  if (o.base !== undefined) el("line", {x1: m.l, x2: W - m.r, y1: Y(o.base), y2: Y(o.base), class: "base"}, svg);
+  o.series.forEach(s => {
+    let d = "";
+    for (let i = 0; i < n; i++) d += (i ? "L" : "M") + X(t[i]).toFixed(1) + " " + Y(s.y[i]).toFixed(1);
+    if (s.area !== undefined) el("path", {d: d + `L${X(t[n - 1]).toFixed(1)} ${Y(s.area).toFixed(1)}L${X(t[0]).toFixed(1)} ${Y(s.area).toFixed(1)}Z`, style: `fill:${s.color};fill-opacity:.16;stroke:none`}, svg);
+    el("path", {d, style: `fill:none;stroke:${s.color};stroke-width:${s.w || 1.6};stroke-linejoin:round`}, svg);
+  });
+  const cross = el("line", {y1: m.t, y2: H - m.b, class: "cross", visibility: "hidden"}, svg);
+  const dots = o.series.map(s => el("circle", {r: 3.5, style: `fill:${s.color}`, visibility: "hidden"}, svg));
+  const tip = document.createElement("div"); tip.className = "tip"; host.appendChild(tip);
+  const ov = el("rect", {x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, style: "fill:transparent"}, svg);
+  function move(ev) {
+    const r = svg.getBoundingClientRect(); const px = (ev.clientX - r.left) * (W / r.width);
+    const tv = x0 + (px - m.l) / (W - m.l - m.r) * (x1 - x0);
+    let a = 0, b = n - 1; while (b - a > 1) { const c = (a + b) >> 1; if (t[c] < tv) a = c; else b = c; }
+    const i = Math.abs(t[a] - tv) < Math.abs(t[b] - tv) ? a : b;
+    cross.setAttribute("x1", X(t[i])); cross.setAttribute("x2", X(t[i])); cross.setAttribute("visibility", "visible");
+    dots.forEach((d, k) => { d.setAttribute("cx", X(t[i])); d.setAttribute("cy", Y(o.series[k].y[i])); d.setAttribute("visibility", "visible"); });
+    tip.innerHTML = `<b>${tdate(t[i])}</b>` + o.series.map(s => `<span><i style="background:${s.color}"></i>${s.name}: ${s.fmt(s.y[i])}</span>`).join("");
+    tip.style.display = "block";
+    const left = X(t[i]) / W * r.width;
+    tip.style.left = Math.min(Math.max(left - tip.offsetWidth / 2, 0), host.clientWidth - tip.offsetWidth) + "px";
+  }
+  function leave() { cross.setAttribute("visibility", "hidden"); dots.forEach(d => d.setAttribute("visibility", "hidden")); tip.style.display = "none"; }
+  ov.addEventListener("pointermove", move); ov.addEventListener("pointerdown", move); ov.addEventListener("pointerleave", leave);
+}
+
+function barChart(host, ro, o) {
+  host.innerHTML = "";
+  const W = Math.max(240, Math.round(host.clientWidth)), H = o.h || 170;
+  const m = {l: o.ml || 46, r: 4, t: 8, b: 22};
+  const n = o.vals.length;
+  let lo = Math.min(0, ...o.vals), hi = Math.max(0, ...o.vals); if (hi === lo) hi = lo + 1;
+  const step = niceStep(hi - lo, 3); lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  const Y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const bw = (W - m.l - m.r) / n;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: "svg", role: "img", "aria-label": o.label || ""}, host);
+  for (let v = lo; v <= hi + step / 2; v += step) {
+    el("line", {x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), class: "gl"}, svg);
+    el("text", {x: m.l - 6, y: Y(v) + 4, class: "ax", "text-anchor": "end"}, svg).textContent = o.yfmt(v);
+  }
+  const every = Math.max(1, Math.ceil((o.lw || 22) / bw));
+  const rects = [];
+  o.vals.forEach((v, i) => {
+    const x = m.l + i * bw + bw * 0.14, w = Math.max(1, bw * 0.72);
+    const y = Y(Math.max(v, 0)), h = Math.max(v === 0 ? 0 : 1, Math.abs(Y(v) - Y(0)));
+    const rc = el("rect", {x, y, width: w, height: h, rx: Math.min(3, w / 4), style: `fill:${o.color(i, v)}`}, svg);
+    rects.push(rc);
+    if (i % every === 0) el("text", {x: x + w / 2, y: H - 6, class: "ax", "text-anchor": "middle"}, svg).textContent = o.labels[i];
+  });
+  el("line", {x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0), style: "stroke:var(--faint);stroke-width:1"}, svg);
+  const hit = el("rect", {x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, style: "fill:transparent"}, svg);
+  const show = ev => {
+    const r = svg.getBoundingClientRect(); const px = (ev.clientX - r.left) * (W / r.width);
+    const i = Math.min(n - 1, Math.max(0, Math.floor((px - m.l) / bw)));
+    rects.forEach((rc, k) => rc.style.opacity = k === i ? 1 : .45);
+    ro.innerHTML = o.read(i);
+  };
+  const clear = () => { rects.forEach(rc => rc.style.opacity = 1); ro.innerHTML = o.hint || "แตะหรือชี้ที่แท่งเพื่อดูตัวเลข"; };
+  hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show); hit.addEventListener("pointerleave", clear);
+  clear();
+}
+
+function sessColor(h) { return (h >= 22 || h <= 6) ? "var(--asia)" : h <= 12 ? "var(--eu)" : "var(--us)"; }
+
+function renderCharts() {
+  const r = D[keyOf(SYS, UNI)], c = r.curve;
+  const w = document.getElementById("chEq").clientWidth;
+  lineChart(document.getElementById("chEq"), {t: c.t, h: w < 500 ? 230 : 300, base: r.deposit, ml: 50, label: "Balance and equity",
+    yfmt: v => kmoney(v), series: [
+      {y: c.eq, color: "var(--eq)", name: "Equity", fmt: v => "$" + nf0.format(v), w: 1.3},
+      {y: c.bal, color: "var(--bal)", name: "Balance", fmt: v => "$" + nf0.format(v), w: 1.8}]});
+  lineChart(document.getElementById("chDd"), {t: c.t, h: w < 500 ? 120 : 140, hi: 0, ml: 50, ticks: 3, label: "Equity drawdown",
+    yfmt: v => (v < 0 ? "−" : "") + Math.abs(v).toFixed(0) + "%", series: [
+      {y: c.dd.map(v => -v * 100), color: "var(--dd)", name: "DD", fmt: v => (v < 0 ? "−" : "") + Math.abs(v).toFixed(1) + "%", area: 0, w: 1.2}]});
+  const pick = a => MODE === "n" ? a.map(x => x.n) : a.map(x => x.pnl);
+  const yf = MODE === "n" ? (v => nf0.format(v)) : (v => kmoney(v));
+  const read = (a, nm) => i => { const x = a[i]; return `<b>${nm(x)}</b> · ${nf0.format(x.n)} ไม้ · กำไรสุทธิ <span class="${cls(x.pnl)}">${money0(x.pnl)}</span> · ${sgnR(x.R)} · ชนะ ${pct(x.win, 0)}`; };
+  barChart(document.getElementById("chHr"), document.getElementById("roHr"), {labels: r.hours.map(x => x.k), vals: pick(r.hours), h: 180, yfmt: yf, lw: 20,
+    color: (i, v) => MODE === "n" ? sessColor(i) : (v >= 0 ? "var(--pos)" : "var(--neg)"), read: read(r.hours, x => "ชั่วโมง " + x.k + ":00"), label: "Entries by hour"});
+  barChart(document.getElementById("chWd"), document.getElementById("roWd"), {labels: r.weekdays.map(x => x.k), vals: pick(r.weekdays), h: 160, yfmt: yf,
+    color: (i, v) => MODE === "n" ? "var(--accent)" : (v >= 0 ? "var(--pos)" : "var(--neg)"), read: read(r.weekdays, x => "วัน" + x.k), label: "Entries by weekday"});
+  barChart(document.getElementById("chMo"), document.getElementById("roMo"), {labels: r.months.map(x => x.k), vals: pick(r.months), h: 160, yfmt: yf, lw: 30,
+    color: (i, v) => MODE === "n" ? "var(--accent)" : (v >= 0 ? "var(--pos)" : "var(--neg)"), read: read(r.months, x => "เดือน " + x.k), label: "Entries by month"});
+  const hv = HMODE === "n" ? r.r_hist.map(x => x.n) : r.r_hist.map(x => x.R);
+  barChart(document.getElementById("chRh"), document.getElementById("roRh"), {labels: r.r_hist.map(x => x.k.replace(" ถึง ", "…")), vals: hv, h: 190, lw: 44,
+    yfmt: HMODE === "n" ? (v => nf0.format(v)) : (v => r2(v, 0)),
+    color: (i) => i < 5 ? "var(--neg)" : "var(--pos)",
+    read: i => { const x = r.r_hist[i]; return `<b>ผล ${x.k} R</b> · ${nf0.format(x.n)} ไม้ (${pct(x.n / r.trades, 1)}) · รวม ${sgnR(x.R)}`; },
+    hint: "แท่งแดง = ไม้ขาดทุน, แท่งเขียว = ไม้กำไร · แตะที่แท่งเพื่อดูตัวเลข", label: "Distribution of trade results in R"});
+}
+
+function render() {
+  const r = D[keyOf(SYS, UNI)], SI = SINFO[SYS], GM = D.META, GS = GM.systems[SYS];
+  document.querySelectorAll("#sysTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.k === SYS));
+  document.querySelectorAll("#uniTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.u === UNI));
+  document.querySelectorAll("#modeTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.m === MODE));
+  document.querySelectorAll("#histTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.m === HMODE));
+  const yrs = r.years;
+  document.getElementById("sub").innerHTML = `ระบบ: ${SI.label} <span class="small">(${SI.combo})</span> · ${UNI_TH[UNI]} · <b>5 ปีล่าสุด 1 ต.ค. 2021 – 30 ก.ย. 2026</b> · จำลองบนข้อมูลจริงของ MT5 ไม่ใช่ผลเทรดจริง`;
+
+  const k = [
+    ["กำไรสุทธิ", money0(r.net), "จากเงินต้น $" + nf0.format(r.deposit) + " (" + sgnPct(r.net / r.deposit, 0) + ")", cls(r.net)],
+    ["ผลตอบแทนทบต้นต่อปี", pct(r.cagr), "CAGR · " + yrs.toFixed(1) + " ปี", ""],
+    ["Equity DD สูงสุด", pct(r.equity_dd.relative_pct), "Balance DD " + pct(r.balance_dd.relative_pct), "neg"],
+    ["Profit Factor", r.pf.toFixed(2), "กำไรรวม ÷ ขาดทุนรวม", ""],
+    ["จำนวนไม้", nf0.format(r.trades), (r.trades / yrs).toFixed(0) + " ไม้ต่อปี", ""],
+    ["อัตราชนะ", pct(r.win_n / r.trades), "R เฉลี่ย " + sgnR(r.avg_R, 2) + " ต่อไม้", ""]];
+  document.getElementById("kpis").innerHTML = k.map(x => `<div class="kpi"><div class="l">${x[0]}</div><div class="v ${x[3]}">${x[1]}</div><div class="s">${x[2]}</div></div>`).join("");
+
+  const rules = SI.rules;
+  const mk = r.mkts || Object.keys(MKT_TH);
+  document.getElementById("dlSet").innerHTML =
+    kv("ระบบ", "Expert", SI.label, SI.combo) +
+    `<div class="kv" style="display:block"><ul class="rules">${rules.map(x => `<li>${x}</li>`).join("")}</ul></div>` +
+    kv("ตลาด", "Symbols", r.markets + " ตลาด", "") +
+    `<div class="kv" style="display:block"><div class="chips">${mk.map(m => `<span class="chip">${m}</span>`).join("")}</div></div>` +
+    kv("ช่วงเวลา", "Period", "H4 · 1 ต.ค. 2021 – 30 ก.ย. 2026", "นับไม้ที่เข้าในช่วงนี้ · ข้อมูลก่อนหน้าใช้คำนวณอินดิเคเตอร์เท่านั้น") +
+    kv("เงินฝากเริ่มต้น", "Initial deposit", "100,000.00 USD") +
+    kv("ความเสี่ยงต่อหน่วย", "Risk per unit (ทบต้นจาก balance)", pct(r.risk, 2), SI.adds ? "สูงสุด " + pct(r.risk * 4, 2) + " ต่อตลาดเมื่อครบ 4 หน่วย" : "ต่อไม้") +
+    kv("ต้นทุน", "Costs", "spread + 1 bp", "ขั้นต่ำ 2 bp ต่อรอบ + swap จริงของโบรกเกอร์ (รวมวัน triple)") +
+    kv("โหมดจำลอง", "Modelling", "แท่ง H1 จาก MT5", "SL และการเติมไม้ตรวจทีละแท่ง H1 · สัญญาณออกตรวจตอนปิด H4");
+
+  document.getElementById("dlRes").innerHTML =
+    kv("คุณภาพประวัติ", "History quality", "แท่ง H1", "MT5 ที่ขึ้น 99% ใช้ tick จริง") +
+    kv("จำนวนแท่ง H4 รวม " + r.markets + " ตลาด", "Bars", nf0.format(r.bars)) +
+    kv("กำไรสุทธิ", "Total Net Profit", money(r.net), "", cls(r.net)) +
+    kv("กำไรรวม", "Gross Profit", money(r.gross_profit)) +
+    kv("ขาดทุนรวม", "Gross Loss", money(r.gross_loss), "", "neg") +
+    kv("Profit Factor", "", r.pf.toFixed(2)) +
+    kv("กำไรเฉลี่ยต่อไม้", "Expected Payoff", money(r.expected_payoff)) +
+    kv("Recovery Factor", "กำไรสุทธิ ÷ Equity DD สูงสุด", r.recovery.toFixed(2)) +
+    kv("Sharpe Ratio", "รายปี จากผลรายเดือน", r.sharpe_annual.toFixed(2), "แบบ MT5 ต่อไม้ " + r.sharpe_trade.toFixed(3)) +
+    kv("Z-Score", "ติดลบ = ชนะ/แพ้มักเกาะกลุ่ม", r.z_score.toFixed(2)) +
+    kv("AHPR", "ผลต่อไม้เฉลี่ยแบบบวก", r.ahpr.toFixed(4), sgnPct(r.ahpr - 1, 2)) +
+    kv("GHPR", "ผลต่อไม้เฉลี่ยแบบทบต้น", r.ghpr.toFixed(4), sgnPct(r.ghpr - 1, 2)) +
+    kv("LR Correlation", "ความตรงของเส้น balance", r.lr_corr.toFixed(3)) +
+    kv("LR Standard Error", "", money(r.lr_se)) +
+    kv("เดือนที่บวก", "", pct(r.pos_months, 0), "ดีสุด " + sgnPct(r.best_month) + " · แย่สุด " + sgnPct(r.worst_month));
+
+  const bd = r.balance_dd, ed = r.equity_dd;
+  document.getElementById("dlDd").innerHTML =
+    kv("Balance DD Absolute", "ต่ำกว่าเงินต้นมากสุด", money(bd.absolute)) +
+    kv("Balance DD Maximal", "ลดจากยอดสูงสุดมากสุด (เงิน)", money(bd.maximal), pct(bd.maximal_pct, 2)) +
+    kv("Balance DD Relative", "ลดจากยอดสูงสุดมากสุด (%)", pct(bd.relative_pct, 2), money(bd.relative)) +
+    kv("Equity DD Absolute", "", money(ed.absolute)) +
+    kv("Equity DD Maximal", "", money(ed.maximal), pct(ed.maximal_pct, 2), "neg") +
+    kv("Equity DD Relative", "", pct(ed.relative_pct, 2), money(ed.relative), "neg") +
+    kv("ติดดอยนานสุด", "จากยอดสูงสุดเดิมจนกลับมาใหม่", r.longest_underwater_days.toFixed(0) + " วัน") +
+    kv("ถือพร้อมกันสูงสุด", "", r.max_positions + " ตลาด", "เฉลี่ย " + r.avg_positions.toFixed(1)) +
+    kv("เลเวอเรจที่ใช้สูงสุด", "มูลค่าสัญญารวม ÷ equity", r.max_leverage.toFixed(1) + " เท่า", "เฉลี่ย " + r.avg_leverage.toFixed(1) + " เท่า");
+
+  document.getElementById("dlTr").innerHTML =
+    kv("จำนวนไม้", "Total Trades", nf0.format(r.trades), SI.adds ? "รวม " + nf0.format(r.units) + " หน่วย (เฉลี่ย " + r.avg_units.toFixed(2) + " ต่อไม้)" : "") +
+    kv("จำนวนดีล", "Total Deals (เข้า + เติม + ออก)", nf0.format(r.deals)) +
+    kv("ไม้ซื้อ (ชนะ %)", "Long Trades (won %)", nf0.format(r.long_n) + " (" + pct(r.long_win, 2) + ")") +
+    kv("ไม้ขาย (ชนะ %)", "Short Trades (won %)", "0", "ระบบนี้ซื้ออย่างเดียว") +
+    kv("ไม้กำไร", "Profit Trades (% of total)", nf0.format(r.win_n) + " (" + pct(r.win_n / r.trades, 2) + ")", "", "pos") +
+    kv("ไม้ขาดทุน", "Loss Trades (% of total)", nf0.format(r.loss_n) + " (" + pct(r.loss_n / r.trades, 2) + ")", "", "neg") +
+    kv("กำไรสูงสุดต่อไม้", "Largest profit trade", money(r.largest_win), "", "pos") +
+    kv("ขาดทุนสูงสุดต่อไม้", "Largest loss trade", money(r.largest_loss), "", "neg") +
+    kv("กำไรเฉลี่ย", "Average profit trade", money(r.avg_win), "", "pos") +
+    kv("ขาดทุนเฉลี่ย", "Average loss trade", money(r.avg_loss), "", "neg") +
+    kv("R รวมหลังต้นทุน", "", sgnR(r.total_R), "ก่อนต้นทุน " + sgnR(r.gross_R) + " · spread −" + r.spread_R.toFixed(0) + "R · swap −" + r.swap_R.toFixed(0) + "R");
+
+  const st = r.streaks;
+  document.getElementById("dlSt").innerHTML =
+    kv("ชนะติดกันมากสุด ($)", "Maximum consecutive wins ($)", st.max_wins + " (" + money(st.max_wins_usd) + ")", "", "pos") +
+    kv("แพ้ติดกันมากสุด ($)", "Maximum consecutive losses ($)", st.max_losses + " (" + money(st.max_losses_usd) + ")", "", "neg") +
+    kv("กำไรติดกันสูงสุด (จำนวน)", "Maximal consecutive profit (count)", money(st.max_profit_usd) + " (" + st.max_profit_n + ")", "", "pos") +
+    kv("ขาดทุนติดกันสูงสุด (จำนวน)", "Maximal consecutive loss (count)", money(st.max_loss_usd) + " (" + st.max_loss_n + ")", "", "neg") +
+    kv("ชนะติดกันเฉลี่ย", "Average consecutive wins", st.avg_wins.toFixed(0)) +
+    kv("แพ้ติดกันเฉลี่ย", "Average consecutive losses", st.avg_losses.toFixed(0));
+
+  document.getElementById("dlHo").innerHTML =
+    kv("ถือสั้นสุด", "Minimal position holding time", hrs(r.hold_min_h)) +
+    kv("ถือนานสุด", "Maximal position holding time", hrs(r.hold_max_h)) +
+    kv("ถือเฉลี่ย", "Average position holding time", hrs(r.hold_avg_h)) +
+    kv("Correlation (Profits, MFE)", "", r.corr_p_mfe.toFixed(2)) +
+    kv("Correlation (Profits, MAE)", "", r.corr_p_mae.toFixed(2)) +
+    kv("Correlation (MFE, MAE)", "", r.corr_mfe_mae.toFixed(2)) +
+    kv("กำไรจากไม้ดีสุด 1%", "≈ " + Math.max(1, Math.floor(r.trades / 100)) + " ไม้ เทียบกับกำไรสุทธิทั้งหมด", pct(r.top1_share, 0), r.top1_share > 1 ? "ถ้าไม่มีไม้กลุ่มนี้ ระบบขาดทุน" : "") +
+    kv("กำไรจากไม้ดีสุด 5%", "≈ " + Math.max(1, Math.floor(r.trades / 20)) + " ไม้", pct(r.top5_share, 0));
+
+  document.getElementById("tbYr").innerHTML = `<table><thead><tr><th>ปี</th><th class="n">ผลตอบแทน</th><th class="n">R</th><th class="n">ไม้</th><th class="n">ชนะ</th><th class="n">DD ในปี</th></tr></thead><tbody>` +
+    r.yearly.map(y => `<tr><td>${y.year}${y.year === 2021 ? " <span class='muted small'>(ต.ค.–ธ.ค.)</span>" : y.year === new Date(r.end).getUTCFullYear() ? " <span class='muted small'>(ถึง " + TH_M[new Date(r.end).getUTCMonth()] + ")</span>" : ""}</td><td class="n ${cls(y.ret)}">${sgnPct(y.ret, 0)}</td><td class="n ${cls(y.R)}">${sgnR(y.R, 0)}</td><td class="n">${y.trades}</td><td class="n">${pct(y.win, 0)}</td><td class="n neg">${pct(y.dd, 0)}</td></tr>`).join("") + `</tbody></table>`;
+
+  const w = r.dd_window, worst = w.by_market.slice(0, 6), mx = Math.max(...worst.map(x => Math.abs(x.chg)), 1);
+  document.getElementById("ddWin").innerHTML =
+    `<p style="margin:2px 0 10px">Equity ลด <b class="neg">${pct(w.depth, 1)}</b> จาก <b>${dstr(w.peak)}</b> ($${nf0.format(w.peak_eq)}) ถึง <b>${dstr(w.trough)}</b> ($${nf0.format(w.trough_eq)}) · ${w.recovered ? "กลับมาทำยอดใหม่ " + dstr(w.recovered) : "ยังไม่กลับไปยอดเดิม ณ วันสุดท้ายของข้อมูลยังต่ำกว่ายอดสูงสุด <b class=\"neg\">" + pct(w.now, 1) + "</b>"}</p>` +
+    `<div class="muted small" style="margin-bottom:6px">ตลาดที่ทำให้ลดมากสุดในช่วงนั้น (รวมกำไรที่ยังไม่ปิดที่หายไป)</div>` +
+    `<table><tbody>` + worst.map(x => `<tr><td>${x.mkt} <span class="muted small">${MKT_TH[x.mkt] || ""}</span></td><td class="n ${cls(x.chg)}">${money0(x.chg)}</td><td style="width:40%"><span class="bar" style="width:${(Math.abs(x.chg) / mx * 100).toFixed(0)}%;background:${x.chg < 0 ? "var(--neg)" : "var(--pos)"}"></span></td></tr>`).join("") + `</tbody></table>`;
+
+  document.getElementById("tbMk").innerHTML = `<table><thead><tr><th>ตลาด</th><th class="n">ไม้</th><th class="n">ชนะ</th><th class="n">กำไรสุทธิ</th><th class="n">R รวม</th><th class="n">R/ไม้</th><th class="n">PF</th>${SI.adds ? '<th class="n">หน่วยเฉลี่ย</th>' : ""}</tr></thead><tbody>` +
+    r.per_market.map(x => `<tr><td>${x.mkt} <span class="muted small">${MKT_TH[x.mkt] || ""}</span></td><td class="n">${x.n}</td><td class="n">${pct(x.win, 0)}</td><td class="n ${cls(x.net)}">${money0(x.net)}</td><td class="n ${cls(x.R)}">${sgnR(x.R, 0)}</td><td class="n ${cls(x.avgR)}">${r2(x.avgR, 2)}</td><td class="n">${x.pf === null ? "–" : x.pf.toFixed(2)}</td>${SI.adds ? `<td class="n">${x.units.toFixed(2)}</td>` : ""}</tr>`).join("") + `</tbody></table>`;
+
+  const tradeTable = a => `<table><thead><tr><th>ตลาด</th><th>เข้า → ออก</th><th class="n">หน่วย</th><th class="n">R</th><th class="n">กำไร</th></tr></thead><tbody>` +
+    a.map(x => `<tr><td>${x.mkt}</td><td class="small">${dstr(x.t)} → ${dstr(x.t_exit)}</td><td class="n">${x.units}</td><td class="n ${cls(x.R)}">${sgnR(x.R, 1)}</td><td class="n ${cls(x.pnl)}">${money0(x.pnl)}</td></tr>`).join("") + `</tbody></table>`;
+  document.getElementById("tbBest").innerHTML = tradeTable(r.best_trades || []);
+  document.getElementById("tbWorst").innerHTML = tradeTable(r.worst_trades || []);
+
+  const rows = r.risk_table.slice(); if (!rows.some(x => Math.abs(x.risk - r.risk) < 1e-9)) { rows.push({risk: r.risk, cagr: r.cagr, balance_dd: r.balance_dd, equity_dd: r.equity_dd, final: r.final}); rows.sort((a, b) => a.risk - b.risk); }
+  document.getElementById("tbRk").innerHTML = `<table><thead><tr><th>ความเสี่ยงต่อหน่วย</th><th class="n">CAGR</th><th class="n">Balance DD</th><th class="n">Equity DD</th><th class="n">เงินสุดท้าย</th></tr></thead><tbody>` +
+    rows.map(x => `<tr class="${Math.abs(x.risk - r.risk) < 1e-9 ? "sel" : ""}"><td>${pct(x.risk, 2)}</td><td class="n ${cls(x.cagr)}">${pct(x.cagr, 0)}</td><td class="n neg">${pct(x.balance_dd.relative_pct, 0)}</td><td class="n neg">${pct(x.equity_dd.relative_pct, 0)}</td><td class="n">${money0(x.final)}</td></tr>`).join("") + `</tbody></table>`;
+
+  const n1 = Math.max(1, Math.floor(r.trades / 100)), e = GS.early, o14 = D[keyOf(SYS, "OTHER14")];
+  const dr = GM.drift_best_totR.slice().sort((x, y) => x - y), fl = GM.flat_best_totR.slice().sort((x, y) => x - y), ds = GS.drift_same;
+  const above = GM.drift_best_totR.filter(v => v >= GM.real_best_totR).length;
+  const pickLine = SYS === "S0"
+    ? `<b>แบบนี้คือระบบจากรายงาน G768</b> ใน ${nf0.format(GM.n_combos)} แบบ อยู่อันดับ ${GS.rank_cagr} ตาม % ต่อปี และอันดับ ${GS.rank_totR} ตาม R รวม`
+    : `<b>แบบนี้ถูกเลือกเป็น${SYS === "S1" ? "อันดับ 1 ตาม % ต่อปี" : "อันดับ 1 ตาม R รวม"} จาก ${nf0.format(GM.n_combos)} แบบ</b> ในข้อมูล 5 ปีชุดเดียวกันนี้ ตัวเลขจึงดีเกินจริง`;
+  const uniLine = UNI === "OTHER14"
+    ? `<li><b>แท็บนี้ใช้กฎเดียวกันกับ 14 ตลาดอื่นในช่วงเดียวกัน</b> ซึ่งไม่ได้ใช้เลือกแบบ จึงบอกได้ว่าแบบนี้ใช้นอกทอง เงิน BTC ได้หรือไม่</li>`
+    : (UNI === "MET3" ? "" : `<li><b>ดูตลาดเดียว:</b> ความเสี่ยงต่อไม้เท่ากับบัญชี 3 ตลาด แต่มีไม้น้อยกว่า ผลจึงขึ้นกับไม้ใหญ่ไม่กี่ไม้</li>`);
+  document.getElementById("notes").innerHTML = `<h2>อ่านก่อนเชื่อตัวเลข</h2><ol>
+    <li><b>ตัวเลขทั้งหน้านี้คือ 5 ปีล่าสุด (1 ต.ค. 2021 – 30 ก.ย. 2026)</b> จำลองบนราคาจริงของ MT5 (Exness) ไม่ใช่ผลเทรดจริง และไม่ได้บอกอนาคต</li>
+    ${uniLine}
+    <li>${pickLine}</li>
+    <li><b>กราฟปลอม ${dr.length} ชุดที่เก็บแนวโน้มขาขึ้นไว้:</b> แบบที่ดีที่สุดในกราฟปลอมทำ R รวมได้ ${sgnR(dr[0], 0)} ถึง ${sgnR(dr[dr.length - 1], 0)} (${above} ชุดทำได้เท่าหรือมากกว่าของจริง ${sgnR(GM.real_best_totR, 0)}) และ % ต่อปีสูงสุดได้ถึง ${pct(Math.max(...GM.drift_best_cagr), 0)} · กราฟปลอมที่ไม่มีแนวโน้มทำได้ ${sgnR(fl[0], 0)} ถึง ${sgnR(fl[fl.length - 1], 0)} · แบบนี้แบบเดียวในกราฟปลอมที่มีแนวโน้มทำได้ ${sgnR(ds[0], 0)} ถึง ${sgnR(ds[ds.length - 1], 0)} ส่วนของจริงได้ ${sgnR(GS.grid_totR, 0)}</li>
+    <li><b>ช่วงก่อนหน้าที่ไม่ได้ใช้เลือก (ม.ค. 2017 – ก.ย. 2021, ทอง เงิน BTC):</b> แบบนี้ได้ ${pct(e.cagr, 1)} ต่อปี (R รวม ${sgnR(e.totR, 0)}, DD ของ balance ${pct(e.dd, 0)}) แยกเป็น ทอง ${sgnR(e.by_mkt.XAUUSD, 0)} · เงิน ${sgnR(e.by_mkt.XAGUSD, 0)} · BTC ${sgnR(e.by_mkt.BTCUSD, 0)}</li>
+    <li><b>14 ตลาดอื่น ช่วง 5 ปีเดียวกัน:</b> แบบนี้ได้ ${sgnPct(o14.cagr, 1)} ต่อปี (กำไรรวม ${sgnPct(o14.net / o14.deposit, 0)}, Equity DD ${pct(o14.equity_dd.relative_pct, 0)}) ดูรายละเอียดที่แท็บ "14 ตลาดอื่น"</li>
+    <li><b>กำไรพึ่งไม้ใหญ่ไม่กี่ไม้:</b> ไม้ที่ดีที่สุด ${n1} ไม้ (${pct(n1 / r.trades, 1)} ของไม้ทั้งหมด) ทำกำไรรวม ${pct(r.top1_share, 0)} ของกำไรสุทธิ${r.top1_share > 1 ? " ถ้าพลาดไม้กลุ่มนี้ ผลจะติดลบ" : ""}</li>
+    <li><b>DD ของ equity สูงกว่า DD ของ balance</b> (${pct(r.equity_dd.relative_pct, 0)} เทียบกับ ${pct(r.balance_dd.relative_pct, 0)}) เพราะระบบตามเทรนด์จะคืนกำไรที่ยังไม่ปิดก่อนสัญญาณออก ในบัญชีจริงคุณจะเห็นตัวเลขแบบ equity</li>
+    <li><b>สิ่งที่ยังไม่ได้จำลอง:</b> margin และ stop-out · lot ขั้นต่ำ 0.01 · slippage ที่เกิน spread + 1 bp · การแปลงค่าเงินของตลาดที่ไม่ได้คิดกำไรเป็น USD (ใช้หน่วย R แทน) · ลำดับราคาภายในแท่ง H1 เดียวกัน (ถ้าแท่งเดียวทั้งเติมไม้และชน SL ใหม่ จะถือว่าโดน SL)</li>
+  </ol>`;
+  document.getElementById("foot").innerHTML = `สร้างจาก research/grid27k/report27k.py · แผน docs/plans/G27K_PREREG.md · ผลรวม docs/plans/G27K_RESULTS_TH.md · แท่ง H1 ของ MT5 รวมเป็น H4 · ต้นทุนจาก data/bundle/broker_specs.json · คำนวณ 1 ต.ค. 2026`;
+  renderCharts();
+}
+
+document.getElementById("sysTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; SYS = b.dataset.k; try { localStorage.setItem("g27ksys", SYS); } catch (x) {} render(); });
+document.getElementById("uniTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; UNI = b.dataset.u; try { localStorage.setItem("g27kuni", UNI); } catch (x) {} render(); });
+document.getElementById("modeTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; MODE = b.dataset.m; render(); });
+document.getElementById("histTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; HMODE = b.dataset.m; render(); });
+let rt = null, lastW = 0;
+window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { const w = document.querySelector(".wrap").clientWidth; if (w !== lastW) { lastW = w; renderCharts(); } }, 150); });
+render(); lastW = document.querySelector(".wrap").clientWidth;
+</script>
