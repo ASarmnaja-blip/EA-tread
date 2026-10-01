@@ -1253,3 +1253,10 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   PF 0.62 and -4.4 %/y in 2017-21: overfit. D1 C2/D1 (the G768 system on D1): 10.7 %/y, DD 7 %, PF 2.94 and 12.2 %/y, DD 10 %, PF 3.97 in
   2017-21 on 49 / 33 trades. H4 C4/D2/E1/F1/G2/H2/I1/J1 (55-bar breakout when ATR is above its median): 31.4 %/y, DD 5.6 %, PF 2.98; 2017-21
   7.5 %/y, PF 2.54. The H4 winners on H1 make similar CAGR with 2-3x the drawdown.
+- Timeframe combinations (research/grid27k/combo_tf.py; gold / silver 2009+, BTC 2018+): H4-1 = setup 1, D1-1 = C2/D1 on D1, H4-55 = C4/D2 on H4.
+  Whole 2009-26 (CAGR / equity DD / balance DD): H4-1 1 % 15.7 / 60.9 / 57.7; D1-1 1 % 7.4 / 28.3 / 19.9; H4-55 1 % 13.0 / 21.3 / 18.6;
+  H4-1 + D1-1 1 % each 21.2 / 68.8 / 63.7, 0.5 % each 11.9 / 43.8 / 38.7; all three 1 % each 30.8 / 74.9 / 69.7, 0.33 % each 12.3 / 36.5 / 31.3;
+  H4-55 + D1-1 1 % each 19.0 / 39.5 / 34.6, 0.75 % each 14.8 / 31.7 / 27.1; H4-55 1.5 % 18.8 / 30.4 / 27.1. Metals bear 2011-15: H4-1 -57 %,
+  all three 1 % -65 % (low 35 % of start), H4-55 + D1-1 0.75 % -14 %, H4-55 1.5 % -20 %. Anything holding H4-1 at full risk loses 60-75 % in
+  2011-15. H4-55 was picked on 2021-26 with a positive-2017-21 condition, so only 2009-16 is unseen for it. Underwater time stays 7-9 years for
+  every mix from the 2011-12 peak. stress_top3.account_window skips windows with fewer than five trades.

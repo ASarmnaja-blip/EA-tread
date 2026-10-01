@@ -36,7 +36,7 @@ def spliced_h1(m):
 
 def account_window(trades, risk, w0, w1, Xs):
     sub = [dict(r) for r in trades if r["t"] >= w0 and (w1 is None or r["t"] < w1)]
-    if not sub:
+    if len(sub) < 5:                                          # too few trades for the report metrics
         return None
     last = max(r["t_exit"] for r in sub)
     T = np.unique(np.concatenate([X["t"] + 14400 for X in Xs.values()] + [np.array([r["t_exit"] for r in sub])]))
