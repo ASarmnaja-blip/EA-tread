@@ -8,6 +8,8 @@ Differences from g768.simulate, made so the numbers behave like an MT5 tester ru
     trades through the raised stop the stop is assumed hit (worst case). g768.py with G768_FIX=h1 applies the same changes.
 Each trade risks a fixed fraction of the realised balance per unit at its 2N stop; equity is marked at every H4 close of the union of all
 markets (open P&L carried forward while a market is closed), spread charged at entry and swap accrued nightly.
+Also reports the same signals on smaller universes (operator 2026-10-01: gold, silver and BTC together, and each alone), at the same risk,
+with a choose/check line for the three-market set (the top three picked on 2021-10..2024-09, measured on 2024-10..2026-09).
 Writes data/grid768/report768.json; `python report768.py TEMPLATE OUT_HTML` also fills the template's /*DATA*/ placeholder."""
 from __future__ import annotations
 
@@ -30,6 +32,8 @@ SYSTEMS = {"A": dict(name="H4 breakout, D1 trend, Turtle adds up to 4 units", I=
 RISKS = (0.001, 0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02)
 R_BINS = [-np.inf, -2, -1.5, -1, -0.5, 0, 0.5, 1, 2, 3, 5, 10, 20, np.inf]
 WEEKDAYS = ["จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส.", "อา."]
+UNIVERSES = {"MET3": ["XAUUSD", "XAGUSD", "BTCUSD"], "XAUUSD": ["XAUUSD"], "XAGUSD": ["XAGUSD"], "BTCUSD": ["BTCUSD"]}
+SPLIT = G.C.ts("2024-10-01")
 MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
 
 
@@ -132,6 +136,15 @@ def account(trades, risk):
         _, k = heapq.heappop(heap); r = live.pop(k); bal += r["pnl"]; r["bal_after"] = bal; rows.append(r)
     rows.sort(key=lambda r: (r["t_exit"], r["t"]))
     return rows
+
+
+def half(trades, risk, lo, hi):
+    """Balance-only account on the trades entered in [lo, hi): return, max balance drawdown, R, trades."""
+    sub = [r for r in trades if lo <= r["t"] < hi]
+    if not sub:
+        return dict(n=0, ret=0.0, dd=0.0, R=0.0)
+    rows = account(sub, risk); bal = np.array([r["bal_after"] for r in rows])
+    return dict(n=len(sub), ret=float(bal[-1] / DEPOSIT - 1), dd=dd(bal, DEPOSIT)["relative_pct"], R=float(sum(r["R"] for r in sub)))
 
 
 def curve(rows, T):
@@ -321,9 +334,27 @@ def main():
         if k == "A":
             target = M["equity_dd"]["relative_pct"]
         bars = int(sum(int(((X["t"] >= G.START) & (X["t"] <= T[-1])).sum()) for X in Xs.values()))
-        res[k]["out"] = dict(key=k, name=cfg["name"], deposit=DEPOSIT, markets=len(G.MKTS), bars=bars, grid_R=res[k]["grid_R"],
-                             risk_table=res[k]["table"], **M)
+        res[k]["out"] = dict(key=k, uni="ALL", mkts=list(G.MKTS), name=cfg["name"], deposit=DEPOSIT, markets=len(G.MKTS), bars=bars,
+                             grid_R=res[k]["grid_R"], risk_table=res[k]["table"], **M)
     out = {k: v["out"] for k, v in res.items()}
+    for k in SYSTEMS:
+        trades, Xs, T = res[k]["trades"], res[k]["Xs"], res[k]["T"]; risk = out[k]["risk"]
+        for u, mk in UNIVERSES.items():
+            sel = [r for r in trades if r["mkt"] in mk]
+            M = metrics(account(sel, risk), T, risk)
+            bars = int(sum(int(((Xs[m]["t"] >= G.START) & (Xs[m]["t"] <= T[-1])).sum()) for m in mk))
+            o = dict(key=k, uni=u, mkts=mk, name=SYSTEMS[k]["name"], deposit=DEPOSIT, markets=len(mk), bars=bars, grid_R=res[k]["grid_R"],
+                     risk_table=[metrics(account(sel, rk), T, rk, full=False) for rk in RISKS], **M)
+            if len(mk) > 1:
+                R1 = {}
+                for r in trades:
+                    if r["t"] < SPLIT:
+                        R1[r["mkt"]] = R1.get(r["mkt"], 0.0) + r["R"]
+                pick = sorted(R1, key=lambda m: -R1[m])[:len(mk)]
+                o["choose"] = dict(pick=pick, split=str(pd.Timestamp(SPLIT, unit="s").date()),
+                                   pick_second=half([r for r in trades if r["mkt"] in pick], risk, SPLIT, 2 ** 62),
+                                   this_second=half(sel, risk, SPLIT, 2 ** 62), this_first=half(sel, risk, G.START, SPLIT))
+            out[f"{k}_{u}"] = o
     gc = grid_check()
     for k in out:
         out[k]["grid_check"] = gc
@@ -331,6 +362,12 @@ def main():
         print("grid check:", json.dumps(gc)[:1500])
     (G.OUT / "report768.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     for k, r in out.items():
+        if r["uni"] != "ALL":
+            ch = r.get("choose")
+            print(f"{k} {r['mkts']}: total {r['net'] / DEPOSIT:+.0%} CAGR {r['cagr']:.1%} eqDD {r['equity_dd']['relative_pct']:.1%} "
+                  f"balDD {r['balance_dd']['relative_pct']:.1%} trades {r['trades']} win {r['win_n'] / r['trades']:.0%} PF {r['pf']:.2f}"
+                  + (f" | chosen on 3y {ch['pick']}: next 2y {ch['pick_second']['ret']:+.0%} vs this set {ch['this_second']['ret']:+.0%}" if ch else ""))
+            continue
         print(f"{k} risk {r['risk']:.4f} | net {r['net']:,.0f} PF {r['pf']:.2f} trades {r['trades']} win {r['win_n'] / r['trades']:.1%} CAGR {r['cagr']:.1%} "
               f"balDD {r['balance_dd']['relative_pct']:.1%} eqDD {r['equity_dd']['relative_pct']:.1%} recovery {r['recovery']:.2f} "
               f"Sharpe/yr {r['sharpe_annual']:.2f} AHPR {r['ahpr']:.5f} GHPR {r['ghpr']:.5f} LRcorr {r['lr_corr']:.3f} Z {r['z_score']:.2f}")

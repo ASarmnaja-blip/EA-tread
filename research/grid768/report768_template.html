@@ -39,6 +39,8 @@ h3{font-size:14px;margin:0;font-weight:600;color:var(--muted)}
 .seg button{font:inherit;font-size:14px;border:0;background:transparent;color:var(--muted);padding:7px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
 .seg button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
 .seg.sm button{font-size:13px;padding:5px 10px}
+.ctl{display:flex;flex-wrap:wrap;gap:8px}
+.seg.wrap{flex-wrap:wrap}
 .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);min-width:0}
 .kpi .l{font-size:12.5px;color:var(--muted)}
@@ -102,9 +104,18 @@ footer{color:var(--faint);font-size:12.5px;margin-top:18px}
       <h1>รายงานผลทดสอบย้อนหลัง 5 ปี</h1>
       <p class="sub" id="sub"></p>
     </div>
-    <div class="seg" role="tablist" id="sysTabs">
-      <button role="tab" data-k="A">A · เติมไม้</button>
-      <button role="tab" data-k="B">B · ไม้เดียว</button>
+    <div class="ctl">
+      <div class="seg wrap" role="tablist" id="uniTabs" aria-label="ตลาด">
+        <button role="tab" data-u="MET3">ทอง + เงิน + BTC</button>
+        <button role="tab" data-u="XAUUSD">ทอง</button>
+        <button role="tab" data-u="XAGUSD">เงิน</button>
+        <button role="tab" data-u="BTCUSD">BTC</button>
+        <button role="tab" data-u="ALL">17 ตลาด</button>
+      </div>
+      <div class="seg" role="tablist" id="sysTabs" aria-label="ระบบ">
+        <button role="tab" data-k="A">A · เติมไม้</button>
+        <button role="tab" data-k="B">B · ไม้เดียว</button>
+      </div>
     </div>
   </header>
 
@@ -187,8 +198,10 @@ footer{color:var(--faint);font-size:12.5px;margin-top:18px}
 const D = /*DATA*/;
 const TH_M = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
 const MKT_TH = {XAUUSD:"ทอง",XAGUSD:"เงิน",EURUSD:"ยูโร/ดอลลาร์",USDJPY:"ดอลลาร์/เยน",AUDUSD:"ออสซี่/ดอลลาร์",USDCHF:"ดอลลาร์/ฟรังก์",US500:"S&P 500",USTEC:"Nasdaq 100",USOIL:"น้ำมัน WTI",BTCUSD:"บิตคอยน์",DE30:"DAX",JP225:"Nikkei 225",XCUUSD:"ทองแดง",XPTUSD:"แพลทินัม",USDCNH:"ดอลลาร์/หยวน",USDMXN:"ดอลลาร์/เปโซ",USDZAR:"ดอลลาร์/แรนด์"};
-let SYS = "A", MODE = "n", HMODE = "n";
-try { const s = localStorage.getItem("g768sys"); if (s && D[s]) SYS = s; } catch (e) {}
+const keyOf = (s, u) => u === "ALL" ? s : s + "_" + u;
+const UNI_TH = {ALL: "17 ตลาด", MET3: "3 ตลาด: ทอง เงิน บิตคอยน์", XAUUSD: "ทอง (XAUUSD) ตลาดเดียว", XAGUSD: "เงิน (XAGUSD) ตลาดเดียว", BTCUSD: "บิตคอยน์ (BTCUSD) ตลาดเดียว"};
+let SYS = "A", UNI = "MET3", MODE = "n", HMODE = "n";
+try { const s = localStorage.getItem("g768sys"); if (s && D[s]) SYS = s; const u = localStorage.getItem("g768uni"); if (u && D[keyOf(SYS, u)]) UNI = u; } catch (e) {}
 
 const nf2 = new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const nf0 = new Intl.NumberFormat("en-US",{maximumFractionDigits:0});
@@ -302,7 +315,7 @@ function barChart(host, ro, o) {
 function sessColor(h) { return (h >= 22 || h <= 6) ? "var(--asia)" : h <= 12 ? "var(--eu)" : "var(--us)"; }
 
 function renderCharts() {
-  const r = D[SYS], c = r.curve;
+  const r = D[keyOf(SYS, UNI)], c = r.curve;
   const w = document.getElementById("chEq").clientWidth;
   lineChart(document.getElementById("chEq"), {t: c.t, h: w < 500 ? 230 : 300, base: r.deposit, ml: 50, label: "Balance and equity",
     yfmt: v => kmoney(v), series: [
@@ -338,12 +351,13 @@ function luckNote() {
 }
 
 function render() {
-  const r = D[SYS], A = D.A, B = D.B;
+  const r = D[keyOf(SYS, UNI)], A = D.A, B = D.B, rA = D[keyOf("A", UNI)], rB = D[keyOf("B", UNI)];
   document.querySelectorAll("#sysTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.k === SYS));
+  document.querySelectorAll("#uniTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.u === UNI));
   document.querySelectorAll("#modeTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.m === MODE));
   document.querySelectorAll("#histTabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.m === HMODE));
   const yrs = r.years;
-  document.getElementById("sub").innerHTML = `${SYS === "A" ? "ระบบ A: เบรคกรอบ H4 ตามทิศ D1 เติมไม้แบบ Turtle" : "ระบบ B: เบรคกรอบ H4 ตามทิศ D1 ไม้เดียว"} · ${r.markets} ตลาด · ${dstr(r.start)} – ${dstr(r.end)} · จำลองบนข้อมูลจริงของ MT5 ไม่ใช่ผลเทรดจริง`;
+  document.getElementById("sub").innerHTML = `${SYS === "A" ? "ระบบ A: เบรคกรอบ H4 ตามทิศ D1 เติมไม้แบบ Turtle" : "ระบบ B: เบรคกรอบ H4 ตามทิศ D1 ไม้เดียว"} · ${UNI_TH[UNI]} · ${dstr(r.start)} – ${dstr(r.end)} · จำลองบนข้อมูลจริงของ MT5 ไม่ใช่ผลเทรดจริง`;
 
   const k = [
     ["กำไรสุทธิ", money0(r.net), "จากเงินต้น $" + nf0.format(r.deposit) + " (" + sgnPct(r.net / r.deposit, 0) + ")", cls(r.net)],
@@ -362,7 +376,7 @@ function render() {
       "เข้า: แท่ง H4 ปิดเหนือ High สูงสุด 20 แท่งก่อนหน้า และ D1 ปิดเหนือกึ่งกลางกรอบ 55 วัน · ซื้ออย่างเดียว · เข้าที่ราคาเปิดแท่งถัดไป",
       "SL 2 × ATR20 (H4) ไม่ขยับ · ออกเมื่อแท่ง H4 ปิดต่ำกว่า Low ต่ำสุด 20 แท่ง (ไม่มี TP ไม่จำกัดกำไร)",
       "ไม่เติมไม้ · ตลาดละ 1 ไม้ ถือหลายตลาดพร้อมกันได้"];
-  const mk = Object.keys(MKT_TH);
+  const mk = r.mkts || Object.keys(MKT_TH);
   document.getElementById("dlSet").innerHTML =
     kv("ระบบ", "Expert", SYS === "A" ? "A · เติมไม้ 4 หน่วย" : "B · ไม้เดียว") +
     `<div class="kv" style="display:block"><ul class="rules">${rules.map(x => `<li>${x}</li>`).join("")}</ul></div>` +
@@ -370,13 +384,13 @@ function render() {
     `<div class="kv" style="display:block"><div class="chips">${mk.map(m => `<span class="chip">${m}</span>`).join("")}</div></div>` +
     kv("ช่วงเวลา", "Period", "H4 · " + dstr(r.start) + " – " + dstr(r.end)) +
     kv("เงินฝากเริ่มต้น", "Initial deposit", "100,000.00 USD") +
-    kv("ความเสี่ยงต่อหน่วย", "Risk per unit (ทบต้นจาก balance)", pct(r.risk, 2), SYS === "A" ? "สูงสุด " + pct(r.risk * 4, 2) + " ต่อตลาดเมื่อครบ 4 หน่วย" : "ตั้งให้ Equity DD เท่ากับระบบ A") +
+    kv("ความเสี่ยงต่อหน่วย", "Risk per unit (ทบต้นจาก balance)", pct(r.risk, 2), SYS === "A" ? "สูงสุด " + pct(r.risk * 4, 2) + " ต่อตลาดเมื่อครบ 4 หน่วย" : (UNI === "ALL" ? "ตั้งให้ Equity DD เท่ากับระบบ A" : "เท่ากับรายงาน 17 ตลาด")) +
     kv("ต้นทุน", "Costs", "spread + 1 bp", "ขั้นต่ำ 2 bp ต่อรอบ + swap จริงของโบรกเกอร์ (รวมวัน triple)") +
     kv("โหมดจำลอง", "Modelling", "แท่ง H1 จาก MT5", "SL และการเติมไม้ตรวจทีละแท่ง H1 · สัญญาณออกตรวจตอนปิด H4");
 
   document.getElementById("dlRes").innerHTML =
     kv("คุณภาพประวัติ", "History quality", "แท่ง H1", "MT5 ที่ขึ้น 99% ใช้ tick จริง") +
-    kv("จำนวนแท่ง H4 รวม 17 ตลาด", "Bars", nf0.format(r.bars)) +
+    kv("จำนวนแท่ง H4 รวม " + r.markets + " ตลาด", "Bars", nf0.format(r.bars)) +
     kv("กำไรสุทธิ", "Total Net Profit", money(r.net), "", cls(r.net)) +
     kv("กำไรรวม", "Gross Profit", money(r.gross_profit)) +
     kv("ขาดทุนรวม", "Gross Loss", money(r.gross_loss), "", "neg") +
@@ -456,13 +470,19 @@ function render() {
   document.getElementById("tbRk").innerHTML = `<table><thead><tr><th>ความเสี่ยงต่อหน่วย</th><th class="n">CAGR</th><th class="n">Balance DD</th><th class="n">Equity DD</th><th class="n">เงินสุดท้าย</th></tr></thead><tbody>` +
     rows.map(x => `<tr class="${Math.abs(x.risk - r.risk) < 1e-9 ? "sel" : ""}"><td>${pct(x.risk, 2)}</td><td class="n ${cls(x.cagr)}">${pct(x.cagr, 0)}</td><td class="n neg">${pct(x.balance_dd.relative_pct, 0)}</td><td class="n neg">${pct(x.equity_dd.relative_pct, 0)}</td><td class="n">${money0(x.final)}</td></tr>`).join("") + `</tbody></table>`;
 
-  const fixd = A.grid_R - A.total_R;
+  const fixd = A.grid_R - A.total_R, n1 = Math.max(1, Math.floor(r.trades / 100));
+  const betterB = rB.cagr >= rA.cagr && rB.equity_dd.relative_pct <= rA.equity_dd.relative_pct * 1.05;
+  const ch = r.choose;
+  const pickNote = UNI === "ALL" ? "" : ch
+    ? `<li><b>3 ตลาดนี้ถูกเลือกหลังเห็นผลครบ 5 ปีแล้ว</b> (เป็นตลาดที่กำไรสูงสุดใน 17 ตลาด) ตัวเลขจึงดีเกินจริง ลองเลือกล่วงหน้าแบบที่ทำได้จริง: ถ้าเลือก 3 ตลาดที่ดีที่สุดจากผล 3 ปีแรก (ต.ค. 2021 – ก.ย. 2024) จะได้ ${ch.pick.join(", ")} ซึ่งใน 2 ปีหลังทำได้ <b>${sgnPct(ch.pick_second.ret, 0)}</b> ส่วน ทอง เงิน BTC ทำได้ ${sgnPct(ch.this_second.ret, 0)} ในช่วงเดียวกัน (คิดจาก balance ที่ความเสี่ยงเท่ากัน)</li>`
+    : `<li><b>ตลาดนี้ถูกเลือกหลังเห็นผลครบ 5 ปีแล้ว</b> และมีแค่ ${r.trades} ไม้ใน 5 ปี ผลจึงขึ้นกับไม้ใหญ่ไม่กี่ไม้ ไม้ที่ดีที่สุดไม้เดียวทำกำไรเท่ากับ ${pct(r.top1_share, 0)} ของกำไรสุทธิ</li>`;
   document.getElementById("notes").innerHTML = `<h2>อ่านก่อนเชื่อตัวเลข</h2><ol>
+    ${pickNote}
     <li><b>นี่คือผลจำลองย้อนหลัง</b> บนราคาจริงของ MT5 (Exness) ไม่ใช่ผลเทรดจริง และไม่ได้บอกอนาคต</li>
     <li><b>แก้ตัวเลขจากตาราง 768 แบบเดิม:</b> โค้ดเดิมให้เติมไม้ที่ระดับราคาเดิม แม้ราคากระโดดข้ามระดับนั้นไปแล้ว (gap) ซึ่งทำจริงไม่ได้ เช่น ไม้น้ำมัน (USOIL) ที่เข้า 27 ก.พ. 2026 ราคาเปิดวันจันทร์กระโดดจาก 67.2 เป็น 72.7 โค้ดเดิมเติมไม้ที่ 68.2–69.1 ซึ่งไม่มีการซื้อขายจริง จึงได้ +43R ถ้าเติมที่ราคาจริง (72.7) SL จะถูกยกขึ้นและโดนในชั่วโมงถัดมา ได้ +0.7R แล้วไม้ต่อมาอีก 3 ไม้ขาดทุนรวม −5.8R รายงานนี้ใช้ราคาเติมจริง และไล่ลำดับราคาทีละแท่ง H1 ทำให้ R รวมของระบบ A ลดจาก ${sgnR(A.grid_R, 0)} เหลือ ${sgnR(A.total_R, 0)} (−${fixd.toFixed(0)}R) ส่วนระบบ B ไม่มีการเติมไม้ ตัวเลขจึงไม่เปลี่ยน (${sgnR(B.total_R, 0)})</li>
-    <li><b>กำไรพึ่งไม้ใหญ่ไม่กี่ไม้:</b> ไม้ที่ดีที่สุด 1% ของระบบ ${SYS} ทำกำไรรวม ${pct(r.top1_share, 0)} ของกำไรสุทธิทั้งหมด ถ้าพลาดไม้กลุ่มนี้ (เช่น ปิดระบบช่วงนั้น หรือ fill ไม่ได้) ผลจะติดลบ</li>
+    <li><b>กำไรพึ่งไม้ใหญ่ไม่กี่ไม้:</b> ไม้ที่ดีที่สุด ${n1} ไม้ (${pct(n1 / r.trades, 1)} ของไม้ทั้งหมด) ทำกำไรรวม ${pct(r.top1_share, 0)} ของกำไรสุทธิ${r.top1_share > 1 ? " ถ้าพลาดไม้กลุ่มนี้ (เช่น ปิดระบบช่วงนั้น หรือ fill ไม่ได้) ผลจะติดลบ" : ""}</li>
     <li><b>DD ของ equity สูงกว่า DD ของ balance มาก</b> (${pct(r.equity_dd.relative_pct, 0)} เทียบกับ ${pct(r.balance_dd.relative_pct, 0)}) เพราะระบบตามเทรนด์จะคืนกำไรที่ยังไม่ปิดไปก่อนสัญญาณออก ในบัญชีจริงคุณจะเห็นตัวเลขแบบ equity</li>
-    <li><b>ที่ DD เท่ากัน การเติมไม้ไม่ได้ช่วย:</b> ระบบ A (เติมไม้ ${pct(A.risk, 2)} ต่อหน่วย) ได้ CAGR ${pct(A.cagr, 0)} ที่ Equity DD ${pct(A.equity_dd.relative_pct, 0)} ส่วนระบบ B (ไม้เดียว ${pct(B.risk, 2)} ต่อไม้) ได้ CAGR ${pct(B.cagr, 0)} ที่ Equity DD ${pct(B.equity_dd.relative_pct, 0)}</li>
+    <li><b>${betterB ? "การเติมไม้ไม่ได้ช่วย" : "เทียบการเติมไม้กับไม้เดียว"}:</b> ${UNI === "ALL" ? "" : "ใน" + UNI_TH[UNI] + " "}ระบบ A (เติมไม้ ${pct(rA.risk, 2)} ต่อหน่วย) ได้ CAGR ${pct(rA.cagr, 0)} ที่ Equity DD ${pct(rA.equity_dd.relative_pct, 0)} ส่วนระบบ B (ไม้เดียว ${pct(rB.risk, 2)} ต่อไม้) ได้ CAGR ${pct(rB.cagr, 0)} ที่ Equity DD ${pct(rB.equity_dd.relative_pct, 0)}${betterB ? " คือไม้เดียวได้มากกว่าโดยเสี่ยงไม่มากกว่า" : ""}</li>
     <li>${luckNote()}</li>
     <li><b>สิ่งที่ยังไม่ได้จำลอง:</b> margin และ stop-out · lot ขั้นต่ำ 0.01 · slippage ที่เกิน spread + 1 bp · การแปลงค่าเงินของตลาดที่ไม่ได้คิดกำไรเป็น USD (ใช้หน่วย R แทน) · ลำดับราคาภายในแท่ง H1 เดียวกัน (ถ้าแท่งเดียวทั้งเติมไม้และชน SL ใหม่ จะถือว่าโดน SL)</li>
   </ol>`;
@@ -471,6 +491,7 @@ function render() {
 }
 
 document.getElementById("sysTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; SYS = b.dataset.k; try { localStorage.setItem("g768sys", SYS); } catch (x) {} render(); });
+document.getElementById("uniTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; UNI = b.dataset.u; try { localStorage.setItem("g768uni", UNI); } catch (x) {} render(); });
 document.getElementById("modeTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; MODE = b.dataset.m; render(); });
 document.getElementById("histTabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; HMODE = b.dataset.m; render(); });
 let rt = null, lastW = 0;
