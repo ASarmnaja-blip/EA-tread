@@ -83,17 +83,31 @@ def rsi(c, n=2):
         return 100 - 100 / (1 + up / dn)
 
 
-def prepare(m, h1, ext):
-    """Every H4 array, signal ingredient and mask a worker needs for one market."""
-    F = G.frames(h1); X = F["H4"]; c, h, l, o = X["c"], X["h"], X["l"], X["o"]; n = len(c)
+TF_SEC = {"H1": 3600, "H4": 14400, "D1": 86400}
+
+
+def frames_for(h1, tf):
+    """Trading bars, first and second higher-timeframe anchors and their bar lengths: H1 / H4 use D1 and W1, D1 uses W1 and the month."""
+    F = G.frames(h1)
+    if tf == "H4":
+        return F["H4"], F["D1"], F["W1"], 86400, 7 * 86400
+    if tf == "H1":
+        return G.agg(h1, h1["t"] // 3600), F["D1"], F["W1"], 86400, 7 * 86400
+    mk = h1["t"].astype("datetime64[s]").astype("datetime64[M]").astype(np.int64)
+    return F["D1"], F["W1"], G.agg(h1, mk), 7 * 86400, 31 * 86400
+
+
+def prepare(m, h1, ext, tf="H4"):
+    """Every array, signal ingredient and mask a worker needs for one market (H4 by default; H1 / D1 for the timeframe check)."""
+    X, A1, A2, a1, a2 = frames_for(h1, tf); sec = TF_SEC[tf]; c, h, l, o = X["c"], X["h"], X["l"], X["o"]; n = len(c)
     S = pd.Series
     M = dict(m=m, t=X["t"], o=o, h=h, l=l, c=c, a14=X["a14"], a20=X["a20"], a22=X["a22"], k0=X["k0"], k1=X["k1"],
              bo=X["b"]["o"], bh=X["b"]["h"], bl=X["b"]["l"], bt=X["b"]["t"].astype(np.int64))
     for k in (10, 20, 55):
         M[f"hi{k}"] = S(h).rolling(k).max().shift(1).to_numpy(); M[f"lo{k}"] = S(l).rolling(k).min().shift(1).to_numpy()
     sw = G.last_swing(X); M["swl"], M["swh"] = sw["sl"], sw["sh"]
-    tc = X["t"] + 14400                                           # signal close
-    d1 = anchor(X, F["D1"], 14400, 86400); w1 = anchor(X, F["W1"], 14400, 7 * 86400)
+    tc = X["t"] + sec                                             # signal close
+    d1 = anchor(X, A1, sec, a1); w1 = anchor(X, A2, sec, a2)        # H4 / H1: D1 and W1; D1: W1 and the month
     with np.errstate(invalid="ignore", divide="ignore"):
         sq = S((M["hi20"] - M["lo20"]) / X["a14"]).rolling(250, min_periods=100).rank(pct=True).to_numpy()
         apct = S(X["a14"]).rolling(250, min_periods=100).rank(pct=True).to_numpy()
@@ -254,12 +268,12 @@ def summary(trades, risk):
 _W = {}
 
 
-def _init(h1s, label, start=None):
+def _init(h1s, label, start=None, tf="H4"):
     global START
     if start is not None:
         START = start
     ext = externals()
-    _W["M"] = {m: prepare(m, b, ext) for m, b in h1s.items()}; _W["label"] = label
+    _W["M"] = {m: prepare(m, b, ext, tf) for m, b in h1s.items()}; _W["label"] = label
 
 
 def _task(sig):
@@ -274,9 +288,9 @@ def _task(sig):
     return res
 
 
-def run(h1s, label, sigs=None, workers=10, start=None):
+def run(h1s, label, sigs=None, workers=10, start=None, tf="H4"):
     sigs = SIG if sigs is None else sigs
-    with Pool(workers, initializer=_init, initargs=(h1s, label, start)) as pool:
+    with Pool(workers, initializer=_init, initargs=(h1s, label, start, tf)) as pool:
         rows = []
         for i, r in enumerate(pool.imap_unordered(_task, sigs, chunksize=1)):
             rows += r
@@ -306,8 +320,10 @@ def placebo_paths(kind, p):
 
 def main():
     mode = sys.argv[1]
+    tf = sys.argv[2] if mode in ("real", "early") and len(sys.argv) > 2 else "H4"
+    sfx = "" if tf == "H4" else f"_{tf}"
     if mode == "real":
-        run({m: G.load_h1(m) for m in MKTS}, "real")
+        run({m: G.load_h1(m) for m in MKTS}, "real" + sfx, tf=tf)
     elif mode in ("placebo", "drift"):
         first, k = int(sys.argv[2]), int(sys.argv[3]); w = int(sys.argv[4]) if len(sys.argv) > 4 else 10
         for p in range(first, first + k):
@@ -315,10 +331,10 @@ def main():
     elif mode == "check":
         check()
     elif mode == "early":
-        early()
+        early(tf, sfx)
 
 
-def early():
+def early(tf="H4", sfx=""):
     """Added after the results (not pre-registered): the whole grid on the same three markets before the five years, entries
     2017-01-01..2021-09-30 (BTC data from 2018-03). H1 data cut at 2021-10-01, open trades closed there. calendar.csv starts in
     2022, so C8 filters nothing in this period."""
@@ -326,7 +342,7 @@ def early():
     for m in MKTS:
         b = G.load_h1(m); keep = b["t"] < START
         h1s[m] = {k: (v[keep] if isinstance(v, np.ndarray) and len(v) == len(keep) else v) for k, v in b.items()}
-    run(h1s, "early", start=C.ts("2017-01-01"))
+    run(h1s, "early" + sfx, start=C.ts("2017-01-01"), tf=tf)
 
 
 def check():

@@ -1247,3 +1247,9 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   (fails the MAR criterion, passes DD) and K1 22.5 % / 28.4 % / 0.79. Whole 2009-26: 12.0 % / 35.7 % / 0.34 against P 15.7 % / 60.9 % / 0.26.
   Bear 2011-15 -30 % (P -57 %); 2022 +18 % (P +12 %). Top selection plans all use quarter risk or no longs plus the brake; volatility scaling
   adds nothing. On 2026-09-30 R5 is bad for gold and silver, good for BTC.
+- G27K on H1 and D1 (added 2026-10-02 after the operator asked whether other trend setups win on other timeframes; g27k.py real/early
+  [H1|D1], research/grid27k/compare_tf.py; not placebo-tested): five-year median CAGR H1 2.3 %, H4 7.5 %, D1 3.6 %; rank correlation of five-
+  year vs 2017-21 CAGR H1 0.13, H4 0.32, D1 0.20. H1's best (C2/D7/E1/F2/G1/H2/I1/J1 pullback with a limit) 99 %/y, DD 42 %, PF 3.36, then
+  PF 0.62 and -4.4 %/y in 2017-21: overfit. D1 C2/D1 (the G768 system on D1): 10.7 %/y, DD 7 %, PF 2.94 and 12.2 %/y, DD 10 %, PF 3.97 in
+  2017-21 on 49 / 33 trades. H4 C4/D2/E1/F1/G2/H2/I1/J1 (55-bar breakout when ATR is above its median): 31.4 %/y, DD 5.6 %, PF 2.98; 2017-21
+  7.5 %/y, PF 2.54. The H4 winners on H1 make similar CAGR with 2-3x the drawdown.
