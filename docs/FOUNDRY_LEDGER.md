@@ -1125,3 +1125,12 @@ Clean evidence = 15 MT5 markets (USDINR excluded) and gold 2003-05..2008-12; gol
 - Y6 WRWR: averaging the top 10 or all 144 configurations narrows the out-of-sample range across perturbations (gold 66 R -> 9-15 R; silver
   23 R -> 3-8 R) but the out-of-sample R is not positive on both metals (gold ~0, silver -19..-32 R): fragility fixed, no edge to select.
 - Y7 invalidation exit: mixed. Y8 volatility router (corrected to one position per market): better than fixed H4 / H1, not better than D1.
+
+## Trend vs holding (2026-10-01; prereg docs/TREND_VS_HOLD_PREREG.md; research/bundle/z1_trend_vs_hold.py, data/bundle2/z1_*.csv)
+15 clean MT5 markets, D1, one position per market. Test 1 timing alpha against 2,000 random placements of the same trades: S1 long +0.51 %
+per trade (p 0.089, 40 % of markets), Chandelier long +0.49 % (p 0.15, 53 %), S2 long +0.16 % (p 0.39); long + short -0.11..+0.17 % -> FAIL
+everywhere: the D1 trend result is mostly beta, not timing. Test 2 buy-and-hold at the same maximum drawdown: Chandelier long-only beats it in
+67 % of markets and at the portfolio level (+8.2 %/yr DD 28 % vs +7.9 %) -> PASS; S1 long portfolio +13.1 % vs +6.5 % but only 53 % of markets;
+long + short far worse than drawdown-matched holding. Test 3: in 30-80 % crashes of holding, long-only trend lost 0-6 % at 1 % risk per trade.
+Reading: trend following's value here is drawdown control (crisis protection), not timing alpha. Research answer on edge difficulty and
+remedies (with literature): docs/EDGE_DIFFICULTY_AND_SOLUTIONS_TH.md.
