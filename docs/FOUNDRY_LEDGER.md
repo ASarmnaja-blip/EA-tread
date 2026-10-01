@@ -1223,3 +1223,10 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   rule); three at 0.33 % each -44 % (DD 47 %). 2013: -19 % / -46 % / -17 %. 2018: -11 % / -17 % / -6 %. 2022: +12 % / +31 % (DD 46 %) / +12 %.
   Whole 2009-09..2026-09: setup 1 CAGR 15.7 % with equity DD 60.9 % and 11.6 years under the 2011 peak; three at 1 % each CAGR 37.8 % with DD
   89.5 %; three at 0.33 % CAGR 17.2 %, DD 49.9 %. Setup 1 at 0.25 / 0.5 / 0.75 %: whole-history DD 20.5 / 37.0 / 50.3 %, CAGR 4.5 / 8.6 / 12.3 %.
+- Complement search (prereg docs/plans/COMPLEMENT_PREREG.md, commit e5cff8f; research/grid27k/complement.py; results
+  docs/plans/STRESS_AND_COMPLEMENT_RESULTS_TH.md): chosen on 2009-09..2017-12 (gold, silver): B = C1/D8/G2/H1 short swing-low breakdown
+  (+131R in the 55 months A lost), C = R2/M2/X2/S1 Bollinger fade in trendless H4 (+30R in the 21 months both lost). Test 2018-01..2026-09:
+  A +295R; B -90R, wins in 36 % of A's losing months (fails); C -7R, wins in 67 % of the months both lose (fails on total R). Monthly
+  correlations A-B -0.17, A-C -0.09, B-C -0.39. A+B+C at 0.33 % each: CAGR 7.2 %, equity DD 9.8 % against A alone 31.9 % / 23.8 %; at 1 % each
+  19.2 % / 26.4 %. Pools in the test period: B 9 of 108 positive (best +11R), C 12 of 72 positive. Shorts and fades act as insurance with a
+  premium: they paid in 2011-15 (in-sample) and cost most of the return in 2018-26.
