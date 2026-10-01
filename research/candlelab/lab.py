@@ -16,7 +16,7 @@ from numpy.lib.stride_tricks import sliding_window_view as swv
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "research" / "wrwr"), str(ROOT / "research" / "foundry"), str(ROOT / "research" / "history")]
 
-TF_SECONDS = {"M5": 300, "M15": 900, "H1": 3600, "H4": 14400, "D1": 86400, "W1": 7 * 86400}
+TF_SECONDS = {"M5": 300, "M15": 900, "M30": 1800, "H1": 3600, "H4": 14400, "D1": 86400, "W1": 7 * 86400}
 ANCHOR = 22 * 3600                    # H4 and D1 are anchored at 22:00 UTC so that they nest inside the trading day and week
 HORIZONS = (1, 2, 3, 5, 10, 20)
 
@@ -68,7 +68,7 @@ def resample(base, tf, cuts):
               i0=("i", "first"), i1=("i", "last"))
     ih = df.loc[g.h.idxmax().to_numpy(), "i"].to_numpy(); il = df.loc[g.l.idxmin().to_numpy(), "i"].to_numpy()
     span = np.maximum(a.i1.to_numpy() - a.i0.to_numpy(), 1)
-    minimum = {"M5": 1, "M15": 2, "H1": 6, "H4": 24, "D1": 120, "W1": 600}[tf]
+    minimum = {"M5": 1, "M15": 2, "M30": 3, "H1": 6, "H4": 24, "D1": 120, "W1": 600}[tf]
     keep = a.n.to_numpy() >= minimum
     B = Bars(tf=tf, t=a.t.to_numpy(np.int64)[keep], o=a.o.to_numpy(float)[keep], h=a.h.to_numpy(float)[keep], l=a.l.to_numpy(float)[keep],
              c=a.c.to_numpy(float)[keep], v=a.v.to_numpy(float)[keep], n=a.n.to_numpy()[keep],

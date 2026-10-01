@@ -35,6 +35,10 @@ EXITS_U = (("CHAND2", "trail", 2.0), ("CHAND3", "trail", 3.0), ("CHAN10", "chan"
 KS = (1, 2)
 TFS = ["H1", "H4", "D1"]
 CODE_SHA = K.sha_files(Path(__file__))
+import os  # noqa: E402
+COST_ADD = float(os.environ.get("X7_COST_ADD", "0"))          # Y6 perturbation: extra round-trip bp
+EXIT_DELAY = int(os.environ.get("X7_EXIT_DELAY", "0"))       # Y6 perturbation: close exits filled this many bars later
+TAG = os.environ.get("X7_TAG", "")
 
 
 def sim_one(B, ents, d, stop, kind, par, nxt=None):
@@ -48,8 +52,8 @@ def sim_one(B, ents, d, stop, kind, par, nxt=None):
             hit = (l[e:jend + 1] <= st0) if d > 0 else (h[e:jend + 1] >= st0)
             if hit.any():
                 x = e + int(np.argmax(hit)); px = st0 if (x == e or d * (o[x] - st0) > 0) else o[x]
-            elif jc < n - 1:
-                x = jc + 1; px = o[jc + 1]                      # booked at the fill bar (the next open), never before
+            elif jc + EXIT_DELAY < n - 1:
+                x = jc + 1 + EXIT_DELAY; px = o[x]              # booked at the fill bar (the next open), never before
             else:
                 x = n - 1; px = c[n - 1]
         else:
@@ -114,7 +118,7 @@ def build_tables(B, cuts, sig, tf, cost_fn, symbol):
                 if not len(e):
                     continue
                 pos = np.searchsorted(U, e)
-                c_bp = cost_fn(e)
+                c_bp = np.asarray(cost_fn(e), float) + COST_ADD
                 for k in KS:
                     stop = k * B.atr[e]
                     for lab, _, _ in EXITS_U:
@@ -183,7 +187,7 @@ def run_metal(sym):
     fin = finance_weekly(out, cuts, used)
     tot = R[active].sum(0)
     full = dict(share_positive=float((tot > 0).mean()), best=float(tot.max()), median=float(np.median(tot)), worst=float(tot.min()))
-    np.savez_compressed(C.OUT / f"x7_family_{sym}.npz", R=R, EQ=EQ, cuts=cuts, active=active, out=out, used=used)
+    np.savez_compressed(C.OUT / f"x7_family_{sym}{TAG}.npz", R=R, EQ=EQ, cuts=cuts, active=active, out=out, used=used)
     return dict(sym=sym, years=f"{years[0]}-{years[-1]}", picks={int(k): int(v) for k, v in picks.items()},
                 pick_labels={int(Y): f"{fam[j]['window']}w z{fam[j]['lcb_z']:g} {fam[j]['pool']} m{fam[j]['m']} eq{fam[j]['equity_filter']}" for Y, j in picks.items()},
                 oos=fin, full_sample_144=full, secs=time.time() - t0, cuts=cuts, active=active)
@@ -208,13 +212,13 @@ def main():
         r.pop("cuts"); r.pop("active")
         res[sym] = r
         log(json.dumps({k: v for k, v in r.items() if k in ("oos", "baseline_chandelier_long_only", "full_sample_144")}, default=float))
-        (C.OUT / "x7_wrwr_uncapped.json").write_text(json.dumps(res, indent=1, default=float))
+        (C.OUT / f"x7_wrwr_uncapped{TAG}.json").write_text(json.dumps(res, indent=1, default=float))
     g, s = res["XAUUSD"], res["XAGUSD"]
     adds = all(m["oos"]["total_R"] > m["baseline_chandelier_long_only"]["total_R"] and m["oos"]["cagr"] > m["baseline_chandelier_long_only"]["cagr"]
                for m in (g, s))
     res["verdict"] = "WRWR adds value (beats the Chandelier long-only baseline on both metals in total R and CAGR)" if adds else \
         "WRWR does NOT add value over the simple trend rule: the trend rule is the core, WRWR at most a risk overlay"
-    (C.OUT / "x7_wrwr_uncapped.json").write_text(json.dumps(res, indent=1, default=float))
+    (C.OUT / f"x7_wrwr_uncapped{TAG}.json").write_text(json.dumps(res, indent=1, default=float))
     log(res["verdict"])
 
 

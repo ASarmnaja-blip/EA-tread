@@ -37,7 +37,7 @@ def metal_bars(sym, tf):
     if not f.exists():
         base = L.base_gold() if sym == "XAUUSD" else L.base_silver()
         cuts = L.cut_grid(base["t"][-1])
-        for t_ in TFS:
+        for t_ in TFS + ("M30",):
             B = L.resample(base, t_, cuts)
             np.savez(OUT / f"bars_{sym}_{t_}.npz", t=B.t, o=B.o, h=B.h, l=B.l, c=B.c, v=B.v, n=B.n, hi_pos=B.hi_pos, lo_pos=B.lo_pos, atr=B.atr)
         del base
@@ -45,8 +45,24 @@ def metal_bars(sym, tf):
     return L.Bars(tf=tf, **{k: z[k] for k in z.files})
 
 
+def _agg(B, key, tf):
+    g = pd.DataFrame(dict(k=key, t=B.t, o=B.o, h=B.h, l=B.l, c=B.c, v=B.v)).groupby("k", sort=True).agg(
+        t=("t", "first"), o=("o", "first"), h=("h", "max"), l=("l", "min"), c=("c", "last"), v=("v", "sum"))
+    X = L.Bars(tf=tf, t=g.t.to_numpy(np.int64), o=g.o.to_numpy(), h=g.h.to_numpy(), l=g.l.to_numpy(), c=g.c.to_numpy(), v=g.v.to_numpy(),
+               n=np.full(len(g), 12), hi_pos=np.full(len(g), np.nan), lo_pos=np.full(len(g), np.nan))
+    X.atr = L.atr(X.h, X.l, X.c, 14)
+    return X
+
+
 def mt5_bars(sym, tf):
-    z = np.load(ROOT / "data" / "mt5" / f"{sym}_{tf}.npz")
+    """MT5 bars: D1 / H1 from data/mt5 (cache), M30 / M15 / M5 from data/bundle/mt5 (read-only fetch), H4 aggregated from H1 at the 22:00
+    UTC anchor, W1 aggregated from D1 by the cut grid."""
+    if tf == "H4":
+        H = mt5_bars(sym, "H1"); return _agg(H, (H.t - L.ANCHOR) // 14400, "H4")
+    if tf == "W1":
+        D = mt5_bars(sym, "D1"); return _agg(D, np.searchsorted(L.cut_grid(int(D.t[-1])), D.t, side="right") - 1, "W1")
+    f = ROOT / "data" / ("mt5" if tf in ("H1", "D1") else "bundle/mt5") / f"{sym}_{tf}.npz"
+    z = np.load(f)
     t, o, h, l, c = z["t"].astype(np.int64), z["o"].astype(float), z["h"].astype(float), z["l"].astype(float), z["c"].astype(float)
     B = L.Bars(tf=tf, t=t, o=o, h=h, l=l, c=c, v=z["tick_volume"].astype(float), n=np.full(len(t), 12), hi_pos=np.full(len(t), np.nan),
                lo_pos=np.full(len(t), np.nan))

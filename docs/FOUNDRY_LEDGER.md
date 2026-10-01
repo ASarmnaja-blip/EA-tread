@@ -1108,3 +1108,20 @@ one sign in all three for 33.1 % (chance 25 %; M5 43.8 %, D1 20.5 %). Recurring:
 short with the D1 close 0.7-1.0 ATR below its SMA20: +0.33 / +0.42 / +0.43 R, bear +0.45), entries against it lose (H1 long after a W1 body
 <= -0.77 ATR: -0.39 / -0.14 / -0.41); late entries lose (H4 long after 3+ up weeks: -0.31 / -0.36 / -0.24); M5 everything negative, worst in
 the lowest 1-year ATR decile and at 20-24 h UTC. Bear phase: D1 breakout shorts still lose (-0.30 R) while H1 / H4 shorts win (+0.42 / +0.26 R).
+
+## Bundle 2 Y1-Y8 (2026-10-01; prereg docs/BUNDLE2_2026-10-01_PREREG.md, commit 74f554a; research/bundle/y*.py, data/bundle2/; Thai report docs/BUNDLE2_2026-10-01_RESULTS_TH.md)
+Clean evidence = 15 MT5 markets (USDINR excluded) and gold 2003-05..2008-12; gold 2009-26 and silver in-sample.
+- Y1 higher-TF-aligned system (anchor direction + side switch + no chasing): 0 / 18 pass. Side switch alone improves BASE by +0.03..+0.10 R on
+  M30 / H1 / H4 (p < 0.05 in several) but pooled R stays <= 0; the no-chasing filter makes H4 / D1 worse in the clean markets (the gold /
+  silver pattern does not travel). The long-only reference D1 S1 meets every criterion (pooled +0.245 R, 60 % of markets positive, p 0.017,
+  +0.22 R vs BASE, gold 2003-08 +0.36 R; 15-market portfolio +13.1 %/yr DD 23 %) but 2016-26 was a rising period for most markets (beta).
+- Y2 the 7 old setups without caps: 0 / 72 pass. Pullback / expansion on H4 turn positive in gold DEV, gold CHECK and silver and beat random
+  timing with the same exits (pullback CHAN20 +0.31 / +0.58 / +0.20 R, excess +0.33 R), but are positive in only 27-47 % of the other
+  markets (median -0.14 R). News accept / reject on M5: nothing stable.
+- Y3 cutting losing conditions: dropping 20-24 h UTC and the lowest-volatility decile helps M5 by about +0.07 R (still -0.41 R); dropping
+  chase entries hurts on every TF. Y4: small TFs anchored to big ones stay negative (M5 -0.4, M15 -0.2, M30 -0.1 R).
+- Y5 grid fixes: basket or equity stops prevent ruin on gold, not on silver (gaps through the stop); every grid variant loses with random or
+  regime directions while a single order of the same first size loses only the cost; the only profitable grids are leveraged long gold.
+- Y6 WRWR: averaging the top 10 or all 144 configurations narrows the out-of-sample range across perturbations (gold 66 R -> 9-15 R; silver
+  23 R -> 3-8 R) but the out-of-sample R is not positive on both metals (gold ~0, silver -19..-32 R): fragility fixed, no edge to select.
+- Y7 invalidation exit: mixed. Y8 volatility router (corrected to one position per market): better than fixed H4 / H1, not better than D1.
