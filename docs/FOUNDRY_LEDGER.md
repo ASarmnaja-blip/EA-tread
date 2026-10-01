@@ -1267,3 +1267,9 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   years 24.8 %/y) beats the dynamic plan scaled to x0.5 (10.5 %, 28.8 %, 24.1 %, -4.3 %/y, 23.0 %/y). The 0.6 % level was read off the whole
   history. combo_tf.py's unequal-risk mix ("H4-55 1 % + H4-1 0.25 %") overstated equity DD (marks used the larger risk); dynamic3 sizes each
   trade with its own multiplier.
+- Market subsets and rotation (prereg docs/plans/ROTATION_PREREG.md, commit 0a08c90; research/grid27k/rotation.py), H4-55 + D1-1 at 0.6 % each.
+  Subsets, test 2018-26 CAGR / equity DD: gold 6.4 / 11, silver 3.3 / 19, BTC 10.7 / 12, gold+silver 9.3 / 23, gold+BTC 17.6 / 14, silver+BTC
+  14.6 / 19, all three 20.9 / 23 (whole 2009-26: all three 12.1 / 26, gold+BTC 9.9 / 16). Rotation (top 1 or 2 by 13 / 26 / 52-week return,
+  monthly): every rule below holding all three; the rule chosen on 2009-17 (26 weeks, top 2) tests at MAR 0.55 against 0.91 for all three:
+  not better. Gold+BTC has the best test MAR (1.26) but was seen after the fact. Picks for 2026-09: 13 / 26 weeks -> BTC only; 52 weeks ->
+  silver and gold.
