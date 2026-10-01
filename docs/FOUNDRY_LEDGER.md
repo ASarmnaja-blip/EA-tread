@@ -1153,3 +1153,9 @@ market. Real: 79 basic passes (p < 0.05, R > 0), 0 strict (Holm + >= 60 % of mar
 pyramiding. Pre-registered fake count (10 mirrored paths, drift removed): basic 0..48 (mean 7.6), strict 0. Added after the results (not
 pre-registered): 10 drift-preserving mirrored paths: basic 25..253 (mean 124), strict 0..30 (mean 10.4). The real 79 sit inside the
 drift-only distribution: the passes are explained by the 2021-26 rise of most markets, not by timing; no combination shows an edge beyond drift.
+- G768 within the five years (operator: rely on the last five years only): choosing on 2021-10..2024-09 by CAGR / DD and checking on
+  2024-10..2026-09, 8 of the top 10 stay positive (R +0.26..+0.90 per trade, p 0.04-0.10; the two broker-carry choices flip negative); the R
+  correlation between the halves over all 768 is 0.06 and 69 % of all combinations are positive in the second half (long bias in a rising
+  period). Best five-year combination H4 Donchian-20 long-only with D1 agreement, 2 ATR stop, 20-bar channel exit, Turtle pyramiding:
+  1,331 trades, CAGR 48 % / DD 20 % at 0.25 % per unit (93 % / 36 % at 0.5 %, 160 % / 61 % at 1 %), positive every calendar year 2022-26,
+  13 of 17 markets positive; without pyramiding 13 % / 10 % at 0.25 %. Explained by the period's drift (drift-preserving placebo above).

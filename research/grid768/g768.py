@@ -221,7 +221,15 @@ def run_grid(H1s, label):
         R = np.concatenate(allR); TT = pd.concat(trades)
         eq = C.equity(TT.sort_values("t").assign(s=np.arange(len(TT))), 0.01)
         elig = [v for v in mk.values() if v[0] >= 5]
-        rows.append(dict(combo="/".join(combo), tf=tf, C=Cc, D=D, E=Ee, G=G, H=H, I=I, J=J, n=len(R), per_year=len(R) / 5.0, win=float((R > 0).mean()),
+        Tall = np.concatenate(allT); Kall = np.concatenate(keys); SPLIT = C.ts("2024-10-01")
+        sub = {}
+        for nm, msk in (("A", Tall < SPLIT), ("B", Tall >= SPLIT)):
+            sub[f"n_{nm}"] = int(msk.sum()); sub[f"R_{nm}"] = float(R[msk].mean()) if msk.any() else np.nan
+            sub[f"p_{nm}"] = boot_p(R[msk], Kall[msk]) if msk.sum() >= 10 else np.nan
+            ta = TT[(TT.t < SPLIT) if nm == "A" else (TT.t >= SPLIT)]
+            e2 = C.equity(ta.sort_values("t").assign(s=np.arange(len(ta))), 0.01) if len(ta) else {}
+            sub[f"cagr_{nm}"] = e2.get("cagr"); sub[f"dd_{nm}"] = e2.get("dd")
+        rows.append(dict(combo="/".join(combo), tf=tf, C=Cc, D=D, E=Ee, G=G, H=H, I=I, J=J, **sub, n=len(R), per_year=len(R) / 5.0, win=float((R > 0).mean()),
                          R=float(R.mean()), p=boot_p(R, np.concatenate(keys)), markets=len(elig),
                          share_pos=float(np.mean([v[1] > 0 for v in elig])) if elig else np.nan, cagr=eq.get("cagr"), dd=eq.get("dd")))
     Dd = pd.DataFrame(rows)
