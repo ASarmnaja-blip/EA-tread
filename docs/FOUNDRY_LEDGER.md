@@ -1134,3 +1134,14 @@ everywhere: the D1 trend result is mostly beta, not timing. Test 2 buy-and-hold 
 long + short far worse than drawdown-matched holding. Test 3: in 30-80 % crashes of holding, long-only trend lost 0-6 % at 1 % risk per trade.
 Reading: trend following's value here is drawdown control (crisis protection), not timing alpha. Research answer on edge difficulty and
 remedies (with literature): docs/EDGE_DIFFICULTY_AND_SOLUTIONS_TH.md.
+
+## Plans P01-P16 (2026-10-01; separate preregistrations docs/plans/P00..P16, commit 7353c94 before any run; research/setups/; data/setups/; Thai report docs/plans/RESULTS_TH.md)
+14 setups decoded from the operator's six videos (transcribed with faster-whisper on CPU), the operator's HL-test-to-HH plan and the
+long-history trend-vs-hold plan. P01-P15: 0 of 184 tests pass. On gold CHECK the mean gross R is about 0 (-0.07..+0.18) and the net R
+negative (-0.04 .. -1.16, intraday structures are small relative to costs); RR 1:1 setups win 41-49 % before costs (claims: QM 80-90 % ->
+41 %, three-bar 70 % -> 36 %). The few positive cells (P15 H4 +0.38 R, P05 H1 uncapped +0.30 R) are gold-only (silver and the other markets
+negative). P04 accumulation breakouts are too rare to judge. P16 (14 FRED daily closes, 1949-2026, close-only, no carry, 2-3 bp): every
+system passes: timing alpha +0.52..+0.94 % per trade (p <= 0.01, 93-100 % of markets) and beats drawdown-matched holding in 86-93 % of
+markets; positive in every decade 1950s-2020s; long + short gained in the long bear phases (Nikkei 1989-2009 +52 %, oil 2008-20 +92 %).
+Deviation: P03 limit orders are cancelled on a new extreme beyond L2 (the plan's "TP before fill" was ill-defined). A verdict bug (column
+name `sample`) was fixed and verdicts recomputed from the saved rows.
