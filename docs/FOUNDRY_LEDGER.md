@@ -1192,3 +1192,15 @@ drift-only distribution: the passes are explained by the 2021-26 rise of most ma
   0.19 % of 10,000 USC. B (1 % per trade) from 10,000 USC, whole lots: gold +60 % (DD 8.4 %), gold+silver +124 % (DD 13.1 %),
   gold+silver+BTC +553 % (CAGR 45.6 %, equity DD 16.7 %, worst run 12 losses = -1,077 USC) against +562 % fractional. A (adds) from
   10,000 USC: gold+silver+BTC +263 % with DD 23.9 % (fractional +338 % / 19.2 %): the minimum lot over-sizes A until ~20,000 USC.
+
+## G27K (2026-10-01; prereg docs/plans/G27K_PREREG.md, commit cd1cee2; research/grid27k/, data/grid27k/, results docs/plans/G27K_RESULTS_TH.md)
+27,648 setups (context 8 incl. real yields / VIX / GPR / USD news x entry 8 x confirmation 3 x entry method 2 x stop 3 x exit 6 x adds 2 x
+direction 2) on H4 for gold, silver and BTC in one account (operator's fixed choices), entries 2021-10..2026-09, H1-walked fills. Real: 87 %
+positive, 9,390 basic passes; strict not claimable (bootstrap floor 0.001 vs Holm 1.8e-6). Best total R C1/D8/E1/F1/G2/H2/I2/J1 +836R
+(CAGR 42 % at 0.25 % per unit); best CAGR C8/D3/E1/F1/G2/H2/I1/J1 53.6 % at 1 %. Channel-20 exit best, fixed TPs worst, market entry > limit,
+no confirmation best, macro filters worst (real yields), long-only > both. Drift-preserving placebos (10): basic 361..14,456, best-of-grid
+304..2,286R (2 of 10 >= real), best CAGR up to 53.6 %, 3y-choose/2y-check median +289R real vs -17..+271R; drift-free (5): basic 51..594,
+best 136..824R. Real sits at the top of every placebo range (rank 1-3 of 11) but inside it. Other 14 markets, same period: 0 basic passes of
+1,728, the #1 setup -426R. Added after the results (not pre-registered): 2017-01..2021-09 on the same three markets: grid median +2R, 213 basic;
+the five-year top 20 by total R sit at the 99th percentile there (+272R median, CAGR 11 %, 15/20 positive) but almost all from BTC (gold and
+silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lose; rank correlation 0.21.

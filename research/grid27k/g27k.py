@@ -252,7 +252,10 @@ def summary(trades, risk):
 _W = {}
 
 
-def _init(h1s, label):
+def _init(h1s, label, start=None):
+    global START
+    if start is not None:
+        START = start
     ext = externals()
     _W["M"] = {m: prepare(m, b, ext) for m, b in h1s.items()}; _W["label"] = label
 
@@ -269,9 +272,9 @@ def _task(sig):
     return res
 
 
-def run(h1s, label, sigs=None, workers=10):
+def run(h1s, label, sigs=None, workers=10, start=None):
     sigs = SIG if sigs is None else sigs
-    with Pool(workers, initializer=_init, initargs=(h1s, label)) as pool:
+    with Pool(workers, initializer=_init, initargs=(h1s, label, start)) as pool:
         rows = []
         for i, r in enumerate(pool.imap_unordered(_task, sigs, chunksize=1)):
             rows += r
@@ -309,6 +312,19 @@ def main():
             run(placebo_paths(mode, p), f"{mode}{p}", workers=w)
     elif mode == "check":
         check()
+    elif mode == "early":
+        early()
+
+
+def early():
+    """Added after the results (not pre-registered): the whole grid on the same three markets before the five years, entries
+    2017-01-01..2021-09-30 (BTC data from 2018-03). H1 data cut at 2021-10-01, open trades closed there. calendar.csv starts in
+    2022, so C8 filters nothing in this period."""
+    h1s = {}
+    for m in MKTS:
+        b = G.load_h1(m); keep = b["t"] < START
+        h1s[m] = {k: (v[keep] if isinstance(v, np.ndarray) and len(v) == len(keep) else v) for k, v in b.items()}
+    run(h1s, "early", start=C.ts("2017-01-01"))
 
 
 def check():
