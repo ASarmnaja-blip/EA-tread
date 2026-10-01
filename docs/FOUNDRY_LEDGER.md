@@ -1217,3 +1217,9 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   Alone at 1 %: balance DD 13-17 %, equity DD 21-24 %, max leverage ~3x. Together at 1 % each: balance DD 38.0 %, equity DD 47.8 %, 9 open
   positions, 8.2x notional, worst month -24 %, a 28-loss run; close to setup 1 alone at 3 % (42.3 % / 53.0 %). Together at 0.33 % each: equity
   DD 20.9 %, CAGR 52.4 %, about the same as one setup at 1 %: little diversification between near-identical setups.
+- Stress test (prereg docs/plans/STRESS_TOP3_PREREG.md, commit bf71b41; research/grid27k/stress_top3.py): gold / silver Candle Lab H1 before
+  2016-08 then MT5, BTC from 2018-03; fresh $100k per window. 2011-09..2015-12 metals bear: setup 1 at 1 % -57 % (equity DD 59.8 %, low 43 %
+  of start, PF 0.55, win 17 %; -60R of the -79R is price, not costs); three at 1 % each -87 % (DD 88 %, low 13 %: blown by the plan's 70 %
+  rule); three at 0.33 % each -44 % (DD 47 %). 2013: -19 % / -46 % / -17 %. 2018: -11 % / -17 % / -6 %. 2022: +12 % / +31 % (DD 46 %) / +12 %.
+  Whole 2009-09..2026-09: setup 1 CAGR 15.7 % with equity DD 60.9 % and 11.6 years under the 2011 peak; three at 1 % each CAGR 37.8 % with DD
+  89.5 %; three at 0.33 % CAGR 17.2 %, DD 49.9 %. Setup 1 at 0.25 / 0.5 / 0.75 %: whole-history DD 20.5 / 37.0 / 50.3 %, CAGR 4.5 / 8.6 / 12.3 %.
