@@ -1174,3 +1174,11 @@ drift-only distribution: the passes are explained by the 2021-26 rise of most ma
   still 30.9 % below the peak on 2026-09-30); the top 1 % of trades make 115 % of the net R; BTC alone +385R of +857R; costs -122R spread and
   -261R swap against +1,240R gross. The same signals with one unit at the same equity DD (1 % per trade): CAGR 43.3 %, so pyramiding adds
   nothing per unit of drawdown. The earlier "48 % / DD 20 % at 0.25 %" came from the bugged fills and a balance-only drawdown.
+- TF sweep (2026-10-01; prereg docs/plans/TF_SWEEP_PREREG.md, commit f43a7eb; research/grid768/tf_sweep.py, data/grid768/tf_sweep.json):
+  the report768 system on M5..W1 for gold, silver and BTC, entries 2021-10..2026-09, same costs, swap and risk. Three-market account,
+  A (adds, 0.25 % per unit) / B (one unit, 1 % per trade), total return and equity DD: M5 -100 % / -100 %; M15 -41 % (DD 81 %) / +42 %
+  (DD 69 %); M30 +36 % (61 %) / +363 % (55 %); H1 +217 % (33 %) / +213 % (45 %); H4 +338 % (19 %) / +562 % (18 %); D1 +65 % (26 %) /
+  +65 % (28 %); W1 +22 % (13 %) / +32 % (16 %). Equal-weight buy-and-hold of the three: +134 % (DD 41 %). Cost per trade in R: 0.16-0.46
+  on M5, 0.07-0.19 on M30 / H1, rising again with swap on D1 / W1 (0.20-1.05). H4 has the best return per drawdown (B: CAGR 46 % / DD 18 %)
+  but is the timeframe the grid selected; BTC M5 / M15 data start 2025-10 / 2023-11. Gold alone does better on M15 / M30 in total return
+  (B +200 % / +98 %) with equity DD 58 % / 44 % against 11 % on H4.

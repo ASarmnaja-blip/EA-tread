@@ -101,7 +101,7 @@ def build(I):
 
 def timeline(trades, Xs):
     last = max(r["t_exit"] for r in trades)
-    T = np.unique(np.concatenate([X["t"] + 14400 for X in Xs.values()] + [np.array([r["t_exit"] for r in trades])]))
+    T = np.unique(np.concatenate([X["t"] + X.get("sec", 14400) for X in Xs.values()] + [np.array([r["t_exit"] for r in trades])]))
     return T[(T >= G.START) & (T <= last)]
 
 
@@ -113,7 +113,7 @@ def prep_marks(trades, T):
         r["mk"] = None
         if x <= e or hi <= lo:
             continue
-        js = np.arange(e, x); tc = X["t"][js] + 14400; cj = X["c"][js]
+        js = np.arange(e, x); tc = X["t"][js] + X.get("sec", 14400); cj = X["c"][js]
         val = np.zeros(len(js)); nu = np.zeros(len(js))
         for u, jb, ta in r["units"]:
             on = js >= jb
@@ -198,10 +198,10 @@ def decimate(T, *ys, buckets=700):
     return np.array(sorted(keep))
 
 
-def metrics(rows, T, risk, full=True):
+def metrics(rows, T, risk, full=True, start=None):
     balT, eq, npos, lev = curve(rows, T)
     pnl = np.array([r["pnl"] for r in rows]); bal = np.array([r["bal_after"] for r in rows]); R = np.array([r["R"] for r in rows])
-    yrs = (T[-1] - G.START) / (365.25 * 86400)
+    yrs = (T[-1] - (G.START if start is None else start)) / (365.25 * 86400)
     bdd, edd = dd(bal, DEPOSIT), dd(eq, DEPOSIT)
     out = dict(risk=risk, net=float(pnl.sum()), cagr=float((bal[-1] / DEPOSIT) ** (1 / yrs) - 1), balance_dd=bdd, equity_dd=edd, final=float(bal[-1]))
     if not full:
