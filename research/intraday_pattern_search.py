@@ -34,7 +34,10 @@ TFS = ("M15", "M30", "H1")
 
 def load_m1(start):
     m = DK.load(start, None, verbose=False)
-    m = m[(m.ask_close > m.bid_close) & (m.bid_high >= m.bid_low)]
+    # minutes with no price change at all (h == l) carry no information, and
+    # the drift placebo turns runs of them into smooth rising bars that the
+    # search can exploit; dropped from real and placebo alike
+    m = m[(m.ask_close > m.bid_close) & (m.bid_high > m.bid_low)]
     t = ((m.index - pd.Timestamp("1970-01-01", tz="UTC")) // pd.Timedelta("1s")).to_numpy(np.int64)
     mid = {k: ((m[f"bid_{k}"] + m[f"ask_{k}"]) / 2).to_numpy(float)
            for k in ("open", "high", "low", "close")}
