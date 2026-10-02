@@ -909,7 +909,21 @@
    "criterion": "Viable only if edge exceeds one round trip with t above the current floor on a majority of markets, at both the pooled panel level and on gold specifically since gold is the traded instrument. If it fails, the finding stands alongside the NFP result as two independent measures of the same underlying question - does a market's own reaction to a shared shock predict its next move - now at a sample size an order of magnitude larger, which rules out sample size as the reason for failure if it fails again.",
    "min_improvement": 0.02,
    "test_period": "Nine markets H1 2004-2026 on the cleaned frame. No holdout touched.",
-   "result": null
+   "result": {
+    "recorded": "2026-10-02T02:07:08.456628+00:00",
+    "baseline_er": 1.0,
+    "variant_er": 1.1591,
+    "improvement": 0.15910000000000002,
+    "t_stat": 2.45,
+    "n_baseline": 9,
+    "n_variant": 9,
+    "k_at_test": 1890,
+    "floor_at_test": 5.062144426975066,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "INCONCLUSIVE, NOT REJECTED - different outcome from the NFP test despite being built to answer the same question. 2,678 synchronized-event hours found (122/year vs NFP's 12/year), confirming the calendar-free detector does catch far more events as designed. +1h pooled edge +0.0215 (t+0.41, 6/9 positive) and +4h +0.1624 (t+1.08, 6/9 positive) are both small and statistically weak. +24h pooled edge +1.1591 (t+2.45, 6/9 positive) clears the declared margin (one round trip) for the first time in this whole news-proxy line of inquiry, but t+2.45 is far below the current floor of |t|>5.06 earned by this project's hypothesis count - so by the pre-registered rule this is INCONCLUSIVE, not a finding, and the setup does not change. Gold specifically tracks the panel: +1h edge -0.2343 (t-0.87), +4h +0.2504 (t+0.53), +24h +2.6220 (t+2.52) - same shape, same statistical weakness. WHY THIS DIFFERS FROM THE NFP RESULT: NFP failed outright (negative edge, wrong-signed). This one is positive-signed and directionally consistent on a majority of markets at +24h, but at n=2678 events the effect is simply too small relative to its own noise to clear the bar this project requires before calling anything a finding - it would need roughly 4x today's t-stat (and therefore roughly 16x today's sample size, since t scales with sqrt(n) at fixed effect size) to pass. Collecting more years of data would eventually settle it, but more years are not available. FAILURE CODE: UNDERPOWERED, not WRONG_SIGN - the one real difference from every other negative result this project has recorded against this same user question."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
