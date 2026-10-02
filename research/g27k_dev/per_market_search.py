@@ -73,7 +73,15 @@ def _split(E):
 
 
 def load_m1(sym):
-    """Dukascopy M1 mid prices, same cleaning as intraday_pattern_search."""
+    """Dukascopy M1 mid prices, same cleaning as intraday_pattern_search.
+    BTC: Binance BTCUSDT spot 1m (Dukascopy throttles too hard through the
+    session proxy); flat minutes dropped the same way."""
+    if sym == "BTCUSD":
+        b = pd.read_parquet(HERE.parent / ".cache_duka" / "BTCUSD_binance_M1.parquet")
+        b = b[(b.h > b.l) & (b.index < pd.Timestamp(END, tz="UTC"))]
+        t = ((b.index - pd.Timestamp("1970-01-01", tz="UTC")) // pd.Timedelta("1s")).to_numpy(np.int64)
+        return dict(t=t, o=b.o.to_numpy(float), h=b.h.to_numpy(float), l=b.l.to_numpy(float), c=b.c.to_numpy(float),
+                    v=b.v.to_numpy(float), step=60)
     m = DK.load("2009-01-01" if sym != "BTCUSD" else "2021-01-01", END, verbose=False, symbol=sym)
     m = m[(m.ask_close > m.bid_close) & (m.bid_high > m.bid_low)]
     t = ((m.index - pd.Timestamp("1970-01-01", tz="UTC")) // pd.Timedelta("1s")).to_numpy(np.int64)

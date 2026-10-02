@@ -144,7 +144,7 @@ def load(start="2020-01-01", end=None, refresh=False, verbose=True, symbol="XAUU
     CACHE.mkdir(exist_ok=True)
     s, e = pd.Timestamp(start), pd.Timestamp(end)
     parts = []
-    for year in range(s.year, e.year + 1):
+    for year in range(s.year, (e - pd.Timedelta(days=1)).year + 1):   # an end of 1 Jan does not touch that year
         p = CACHE / f"{symbol}_M1_{year}.parquet"
         y0 = max(s, pd.Timestamp(f"{year}-01-01"))
         y1 = min(e, pd.Timestamp(f"{year + 1}-01-01"))
@@ -159,6 +159,40 @@ def load(start="2020-01-01", end=None, refresh=False, verbose=True, symbol="XAUU
                             (df.index < y1.tz_localize("UTC"))])
     if not parts: return None
     return pd.concat(parts).sort_index()
+
+def fill(symbol, year, end=None, workers=6, passes=4, verbose=True):
+    """Complete one cached year: fetch every expected day that is missing,
+    in several low-concurrency passes. Through the session proxy, bursts of
+    parallel requests get their tunnels closed and the day silently comes back
+    empty, so a single pass leaves holes; holidays simply stay empty."""
+    CACHE.mkdir(exist_ok=True)
+    p = CACHE / f"{symbol}_M1_{year}.parquet"
+    y0 = pd.Timestamp(f"{year}-01-01")
+    y1 = min(pd.Timestamp(f"{year + 1}-01-01"), pd.Timestamp(end or dt.date.today().isoformat()))
+    have = pd.read_parquet(p) if p.exists() else None
+    if have is not None:
+        have = have[(have.index >= y0.tz_localize("UTC")) & (have.index < y1.tz_localize("UTC"))]
+    got = set() if have is None else set(have.index.date)
+    want = [d.date() for d in pd.date_range(y0, y1, freq="D", inclusive="left")
+            if d.weekday() < 5 or d.weekday() == 6 or symbol in WEEKEND]
+    parts = [] if have is None else [have]
+    for k in range(passes):
+        miss = [d for d in want if d not in got]
+        if not miss:
+            break
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            new = [df for df in ex.map(lambda d: fetch_day(d, symbol), miss) if df is not None]
+        for df in new:
+            got.add(df.index[0].date())
+        parts += new
+        if new:
+            out = pd.concat(parts).sort_index()
+            out = out[~out.index.duplicated(keep="last")]
+            out.to_parquet(p)
+            parts = [out]
+        if verbose:
+            print(f"  {symbol} {year} pass {k + 1}: {len(miss)} missing, fetched {len(new)}", flush=True)
+    return len(got), len(want)
 
 # ------------------------------------------------------------------- H1 ----
 # The same binary layout is served at coarser granularities with far fewer
