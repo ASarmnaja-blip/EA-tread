@@ -134,7 +134,11 @@ def slim(c):
 
 
 def stage_search(a):
+    global MKTS, SCOPES
     G = P._M["G"]
+    if a.mkts:                                    # interim run on the markets whose data is complete
+        MKTS = tuple(a.mkts.split(","))
+        SCOPES = MKTS + (("pooled",) if len(MKTS) == 3 else ())
     P._M["scopes"] = SCOPES
     if a.stage == "hourly":
         P._M["h1"] = {m: W.hybrid_h1(m, G) for m in MKTS}
@@ -147,7 +151,7 @@ def stage_search(a):
     best, total = run_search(P._M["h1"], "real", tfs)
     res = dict(total=total, best=best, placebos=[])
     CACHE.mkdir(exist_ok=True)
-    path = CACHE / f"pms_{a.stage}.pkl"
+    path = CACHE / f"pms_{a.stage}{a.tag}.pkl"
     path.write_bytes(pickle.dumps(res))
     for s in SCOPES:
         c = best[s][0]
@@ -204,6 +208,8 @@ def main():
     ap.add_argument("--root", required=True)
     ap.add_argument("--stage", choices=("hourly", "minute", "combine"), required=True)
     ap.add_argument("--placebos", type=int, default=0)
+    ap.add_argument("--mkts", default="", help="comma list for an interim run, e.g. XAUUSD,BTCUSD")
+    ap.add_argument("--tag", default="", help="suffix of the stage pickle, keeps interim runs apart")
     a = ap.parse_args()
     t0 = time.time()
     P.setup(a.root)
