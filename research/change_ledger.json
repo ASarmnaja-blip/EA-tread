@@ -1095,7 +1095,21 @@
    "criterion": "A system PASSES phase 1 only if all hold: (a) 2009-2026 CAGR > 0 and PF > 1.2, positive in both halves; (b) at least 70% of the 80 neighbouring rules have PF > 1 over 2009-2026 and the median neighbour MAR is at least half the base MAR (a plateau, not a spike); (c) PF > 1.1 with costs doubled plus slippage; (d) base total R above the 95th percentile of the 100 drift placebos; (e) Monte Carlo at 1% risk gives P(max drawdown > 50%) < 5%. A failing system does not go to phase 2.",
    "min_improvement": 0.0,
    "test_period": "2009-09..2026-09, gold and silver Candle Lab/MT5, BTC MT5 from 2021",
-   "result": null
+   "result": {
+    "recorded": "2026-10-02T09:38:24.673812+00:00",
+    "baseline_er": 115.0,
+    "variant_er": 132.0,
+    "improvement": 17.0,
+    "t_stat": 0.0,
+    "n_baseline": 100,
+    "n_variant": 396,
+    "k_at_test": 15001994,
+    "floor_at_test": 7.933174859581944,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "System A (gold only) PASSES phase 1; system B (gold+silver+BTC) FAILS on drawdown risk at 1%. Baseline reproduced: B five-year 359 trades +255.4R, as in the G27K report. 2009-09..2026-09 at 1%: A 396 trades +132R PF 1.54 CAGR 7.0% balance DD 35.4% (first half 2009-16 +2.1%/yr PF 1.17 DD 35.4%; second half +11.2%/yr PF 1.94 DD 11.1%); B 984 trades +310R PF 1.50 CAGR 15.3% DD 57.7% (first half +1.0%/yr PF 1.09 DD 57.7%; second half +27.7%/yr PF 1.78 DD 26.6%). Neighbourhood (80 rules): PF > 1 in 100% for both; base MAR rank 28/80 (A) and 27/80 (B), median neighbour MAR 0.18 vs 0.20 (A), 0.23 vs 0.27 (B) - a plateau. Costs x2 + 0.1 ATR stop slippage: PF 1.44 (A), 1.40 (B). Drift placebos (100): A +132R vs p95 +115R, max +136R, p=0.040; B +310R vs p95 +211R, max +286R, p=0.010. Monte Carlo 10y at 1%: A P(DD>50%) 0.0%, DD p95 30%; B P(DD>50%) 8.6%, DD p95 54% -> B fails check (e); at 0.5% B gives P(DD>50%) 0.0%, DD p95 31%. Main weakness of both: the 2011-15 metals bear (A 35%, B 58% drawdown). Units: baseline/variant fields hold A placebo p95 and real total R."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
