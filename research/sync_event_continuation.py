@@ -70,30 +70,32 @@ def prep_all():
 
 def build_events(P):
     """Per-market ATR-normalised return aligned on one UTC index, then flag
-    the hours where enough markets move together."""
+    the hours where enough markets move together.
+
+    Fully vectorised over numpy arrays. The first version used
+    DataFrame.apply(row-wise) for the consensus direction, which evaluates a
+    Python function once per row - about 200,000 times - and did not finish
+    inside a 30-minute budget. nanmedian over a masked array does the same
+    computation as one array operation."""
     frames = {}
     for sym, p in P.items():
-        r = pd.Series(np.asarray(p["c"], float), index=pd.DatetimeIndex(p["idx"]))
-        r = r.diff()
-        A = pd.Series(np.asarray(p["A"], float), index=pd.DatetimeIndex(p["idx"]))
+        idx = pd.DatetimeIndex(p["idx"])
+        r = pd.Series(np.asarray(p["c"], float), index=idx).diff()
+        A = pd.Series(np.asarray(p["A"], float), index=idx)
         z = (r / A) * USD_SIGN.get(sym, 1)
         frames[sym] = z
     D = pd.DataFrame(frames)
-    big = D.abs() > MOVE_ATR
+    arr = D.to_numpy(float)
+    big = np.abs(arr) > MOVE_ATR
     n_big = big.sum(axis=1)
-    event = n_big >= MIN_MARKETS
-    # consensus direction: sign of the median USD-signed move among the
-    # markets that moved that hour
-    def consensus(row):
-        vals = row[big.loc[row.name]] if row.name in big.index else row.dropna()
-        vals = row.dropna()
-        big_vals = vals[vals.abs() > MOVE_ATR]
-        if len(big_vals) == 0:
-            return np.nan
-        return float(np.sign(np.median(big_vals)))
-    cons = D.apply(consensus, axis=1)
-    ev = event[event].index
-    return D, cons.loc[ev], n_big.loc[ev]
+    event_mask = n_big >= MIN_MARKETS
+    masked = np.where(big, arr, np.nan)
+    with np.errstate(invalid="ignore", all="ignore"):
+        med = np.nanmedian(masked, axis=1)
+        cons_all = np.sign(med)
+    cons = pd.Series(cons_all, index=D.index)[event_mask]
+    n_big_s = pd.Series(n_big, index=D.index)[event_mask]
+    return D, cons, n_big_s
 
 
 def continuation(P, sym, ev_index, cons, horizons=HORIZONS):
@@ -136,8 +138,8 @@ def matched_control(P, sym, ev_index, horizons=HORIZONS, rng=None):
     c = np.asarray(p["c"], float)
     sp = np.asarray(p["spread"], float)
     eligible = np.arange(300, N - max(horizons) - 1)
-    ev_pos = np.array([i for i, t in enumerate(idx) if t in set(ev_index)])
-    take = rng.choice(eligible, size=len(ev_index), replace=False)
+    take = rng.choice(eligible, size=min(len(ev_index), len(eligible)),
+                      replace=False)
     d = rng.choice([-1.0, 1.0], size=len(take))
     rows = []
     for i, dd in zip(take, d):
