@@ -1020,7 +1020,21 @@
    "criterion": "Round 1 is judged on MAR (CAGR / max equity drawdown) and on net profit, against both comparisons. 'Better' requires a higher MAR than BOTH the hindsight G27K #1 and the no-decision version of the same patterns; 'same' if within 10% of either on MAR; otherwise worse. Reported regardless of outcome, and the rules are not changed after seeing round 1 - a round 2 would be a new registered entry.",
    "min_improvement": 0.0,
    "test_period": "Entries 2021-10-01..2026-09-30; every decision uses only data before its own timestamp.",
-   "result": null
+   "result": {
+    "recorded": "2026-10-02T06:27:37.127464+00:00",
+    "baseline_er": 2.13,
+    "variant_er": 1.26,
+    "improvement": -0.8699999999999999,
+    "t_stat": 0.0,
+    "n_baseline": 3778,
+    "n_variant": 1728,
+    "k_at_test": 15001895,
+    "floor_at_test": 7.933173106122037,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "ROUND 1 VERDICT: WORSE. Units are MAR (CAGR / max equity DD), entries 2021-10-01..2026-09-30, $100,000. Controller (rules as registered, news-time bug fixed before this run): 1,728 trades, net +$116,490, CAGR 16.7%, equity DD 13.3%, MAR 1.26, PF 1.22. Same adopted patterns with no decisions: 3,778 trades, net +$1,541,308, CAGR 75.0%, equity DD 35.2%, MAR 2.13, PF 1.28. G27K #1 chosen with hindsight (recomputed with the report's own code, matching the user's report to the dollar): 359 trades, net +$751,882, CAGR 53.6%, equity DD 23.8%, MAR 2.25, PF 2.18. Monitors in the controller skipped 1,204 entries on the 2-per-market cap, 436 on news and 15 on the 4% total-risk cap; 10 patterns adopted over 20 refits, 5 retired. A first run with a news-time unit bug (filter never fired) gave controller MAR 1.45 and is kept as walkforward_round1_newsbug.json. NOTABLE: patterns found strictly forward, traded without decisions, reached CAGR 75% - above G27K #1's 53.6% - at a higher drawdown; the adopted patterns overlap heavily (mostly H4 breakout-near-extreme families with a 6-bar exit), so the no-decision book stacks up to five positions on one move. t field unused (0) for this MAR comparison."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
