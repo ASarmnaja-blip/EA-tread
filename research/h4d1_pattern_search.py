@@ -622,7 +622,9 @@ def main():
         for p in range(a.placebos):
             r = run_once(drift_placebo(p), f"drift{p}")
             out["placebos"].append({k: v for k, v in r.items() if k != "top"}
-                                   | dict(top=r["top"][:10]))
+                                   | dict(top=r["top"][:10],
+                                          top100=[{k: c[k] for k in ("tf", "exit", "n_val", "R_val", "t_val")}
+                                                  for c in r["top"]]))
             path.write_text(json.dumps(out, indent=1, default=str))
     report(out)
     path.write_text(json.dumps(out, indent=1, default=str))
