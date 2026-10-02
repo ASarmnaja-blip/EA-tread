@@ -28,9 +28,9 @@ from numba import njit
 
 warnings.filterwarnings("ignore")
 HERE = pathlib.Path(__file__).parent
-TF_SEC = {"H4": 14400, "D1": 86400}
+TF_SEC = {"M15": 900, "M30": 1800, "H1": 3600, "H4": 14400, "D1": 86400}
 EXITS = ("ch20", "ch10", "chand", "t6", "tp2")
-MIN_N = {"H4": 150, "D1": 60}
+MIN_N = {"M15": 300, "M30": 200, "H1": 150, "H4": 150, "D1": 60}
 TOP_PAIRS_BEAM = 30
 TOP_K = 100
 WARM = 260
@@ -183,7 +183,7 @@ def h1_anatomy(X):
 def market_frame(m, h1, tf):
     """Bars, base measurements and simulated outcomes for one market and timeframe."""
     K, G, C = _M["K"], _M["G"], _M["C"]
-    X, A1, A2, a1, a2 = K.frames_for(h1, tf)
+    X, A1, A2, a1, a2 = _M.get("frames_for", K.frames_for)(h1, tf)
     sec = TF_SEC[tf]
     o, h, l, c, v, t = X["o"], X["h"], X["l"], X["c"], X["v"], X["t"]
     a14, a20 = X["a14"], X["a20"]
@@ -277,7 +277,8 @@ def market_frame(m, h1, tf):
         nts[good] = C.nights(t_ent[good], TX[good], spec["rollover3"])
         swr = np.where(d_arr > 0, spec["swap_long_bp"], spec["swap_short_bp"]) / 1e4
         with np.errstate(invalid="ignore", divide="ignore"):
-            R = (d_arr * (PX - EP) - EP * cost - EP * swr * nts) / RK
+            cst = _M["cost_fn"](EP) if "cost_fn" in _M else EP * cost
+            R = (d_arr * (PX - EP) - cst - EP * swr * nts) / RK
         out[f"R_{ex}"] = R
         out[f"x_{ex}"] = XJ
         out[f"tx_{ex}"] = TX
@@ -335,6 +336,8 @@ def direction_features(F):
 def cross_market(frames):
     """For each event: how many of the other markets are on the same side of
     their 55-bar midpoint, and their average 10-bar move, in this direction."""
+    if len(frames) < 2:
+        return {m: (np.zeros(len(F["s"])), np.zeros(len(F["s"]))) for m, F in frames.items()}
     ser = {}
     for m, F in frames.items():
         B = F["B"]
@@ -437,7 +440,7 @@ def nov_stats(order, mcode, s, x, R, mask):
 
 
 SHORTLIST = 300
-MIN_NOV = {"H4": 80, "D1": 40}
+MIN_NOV = {"M15": 150, "M30": 100, "H1": 80, "H4": 80, "D1": 40}
 def pair_stats(Bm, R):
     """n, sum and sum of squares of R for every single (diagonal) and pair of conditions."""
     W = Bm.astype(np.float32)
@@ -462,7 +465,7 @@ def search(tf, E, names, Bm, disc_mask):
     total = 0
     mcode = pd.factorize(E["mkt"])[0].astype(np.int64)
     order = np.lexsort((E["s"], mcode)).astype(np.int64)
-    for scope in ("pooled", "XAUUSD"):
+    for scope in _M.get("scopes", ("pooled", "XAUUSD")):
         sm = disc_mask & ((E["mkt"] == "XAUUSD") if scope == "XAUUSD" else True)
         for ex in EXITS:
             R = E[f"R_{ex}"]
@@ -556,7 +559,7 @@ def validate(E, Bm, names, c):
 def run_once(h1s, label):
     t0 = time.time()
     allc, total, store = [], 0, {}
-    for tf in ("H4", "D1"):
+    for tf in _M.get("tfs", ("H4", "D1")):
         E, feats, cats = build(h1s, tf)
         disc = E["t"] < _M["SPLIT"]
         names, Bm = conditions(feats, cats, disc)
@@ -613,7 +616,8 @@ def report(out):
     pl = out["placebos"]
     print("\n" + "=" * 110)
     print(f"REAL: {real['patterns']:,} patterns searched; top {len(real['top'])} by "
-          f"discovery t (2009-2019), validated 2020-2026 without overlap")
+          f"discovery t (before {pd.Timestamp(int(_M['SPLIT']), unit='s').date()}), "
+          f"validated after it without overlap")
     print("=" * 110)
     for c in real["top"][:25]:
         print(f"  {c['tf']} {c['exit']:<5} {c['scope']:<6} t_disc {c['t_disc']:5.1f} "
