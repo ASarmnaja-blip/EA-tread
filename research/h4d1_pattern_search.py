@@ -492,7 +492,7 @@ def search(tf, E, names, Bm, disc_mask):
     mcode = pd.factorize(E["mkt"])[0].astype(np.int64)
     order = np.lexsort((E["s"], mcode)).astype(np.int64)
     for scope in _M.get("scopes", ("pooled", "XAUUSD")):
-        sm = disc_mask & ((E["mkt"] == scope) if scope != "pooled" else True)
+        sm = disc_mask & scope_mask(E, scope)
         for ex in EXITS:
             R = E[f"R_{ex}"]
             xj = E[f"x_{ex}"]
@@ -540,6 +540,16 @@ def search(tf, E, names, Bm, disc_mask):
     return cands, total
 
 
+def scope_mask(E, scope):
+    """pooled = every market; a market name = that market alone; a name in
+    _M["scope_sets"] = that group of markets."""
+    if scope == "pooled":
+        return np.ones(len(E["mkt"]), bool)
+    if scope in _M.get("scope_sets", {}):
+        return np.isin(E["mkt"], list(_M["scope_sets"][scope]))
+    return E["mkt"] == scope
+
+
 def no_overlap(E, mask, ex):
     """Greedy in time: one open trade per market, skipping signals while busy."""
     idx = np.flatnonzero(mask)
@@ -563,8 +573,7 @@ def validate(E, Bm, names, c):
     mask = np.ones(len(R), bool)
     for q in c["conds"]:
         mask &= Bm[:, q]
-    if c["scope"] != "pooled":
-        mask &= E["mkt"] == c["scope"]
+    mask &= scope_mask(E, c["scope"])
     mask &= np.isfinite(R)
     val = mask & (E["t"] >= _M["SPLIT"])
     k = no_overlap(E, val, ex)

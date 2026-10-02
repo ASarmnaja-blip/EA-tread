@@ -61,8 +61,7 @@ def trades_of(E, Bm, c):
     mask = np.isfinite(R) & (E["t"] >= _split(E))
     for q in c["conds"]:
         mask &= Bm[:, q]
-    if c["scope"] != "pooled":
-        mask &= E["mkt"] == c["scope"]
+    mask &= P.scope_mask(E, c["scope"])
     k = P.no_overlap(E, mask, ex)
     sec = P.TF_SEC[c["tf"]]
     return pd.DataFrame(dict(mkt=E["mkt"][k], t=E["t"][k] + sec, tx=E[f"tx_{ex}"][k], R=R[k]))
