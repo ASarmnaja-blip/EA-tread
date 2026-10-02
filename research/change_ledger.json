@@ -1070,7 +1070,21 @@
    "criterion": "PASS only if, in BOTH cross directions, the chosen rule on its test window has higher MAR than the ungated base (0.5%, no cap, no filters) on that window AND equity drawdown at most 60% of the base's. Otherwise the rule set does not transfer and no gate is recommended.",
    "min_improvement": 0.0,
    "test_period": "Windows 2016-10..2021-09 and 2021-10..2026-09; every gate input known before the entry it sizes.",
-   "result": null
+   "result": {
+    "recorded": "2026-10-02T07:57:12.855996+00:00",
+    "baseline_er": 2.38,
+    "variant_er": 0.76,
+    "improvement": -1.6199999999999999,
+    "t_stat": 0.0,
+    "n_baseline": 3903,
+    "n_variant": 1813,
+    "k_at_test": 15001914,
+    "floor_at_test": 7.9331734426951925,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "FAIL in both cross directions; no gate is recommended. Units MAR. Main window (2021-10..2026-09) ungated base at 0.5%: CAGR 67.8%, equity DD 28.4%, MAR 2.38 - the best of all 18 rules there; every gate lowered MAR (trend gate alone 0.79, equity-curve filters 1.34-1.78, open-risk caps 1.66-1.89). Independent window (2016-10..2021-09) base: CAGR +0.6%, DD 55.2%, MAR 0.01; best there was cap 6% + trend gate (CAGR +1.8%, DD 23.3%, MAR 0.08); applied to the main window it gives MAR 0.76 (CAGR 21.3%) against the base 2.38. Fit-main rule (the base itself) on the independent window equals the base, so it cannot pass. The daily-efficiency trend gate is insurance, not an edge: it halves drawdown in the range regime and removes two thirds of the profit in the trend regime, partly because the dominant pattern family (first breakout after a quiet spell) fires precisely when efficiency is still low. Equity-curve filters whipsawed in both windows. Plain size scaling (no gates): main 0.25% -> CAGR 32.0% DD 15.2%; 0.15% -> 18.7% / 9.3%; independent 0.25% -> +2.0% / 31.2%; 0.15% -> +1.6% / 19.5%. Drawdown is set by size and by regime, not by any gate tested."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
