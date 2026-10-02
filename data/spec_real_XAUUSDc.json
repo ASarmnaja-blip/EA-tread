@@ -1,0 +1,17 @@
+{
+  "when_utc": "2026-09-21T04:26:26+00:00",
+  "symbol": "XAUUSDc",
+  "digits": 3,
+  "point": 0.001,
+  "contract_size": 1.0,
+  "volume_min": 0.01,
+  "stops_level": 0,
+  "spread_points_now": 260,
+  "spread_usd_now": 0.26,
+  "spread_points_median_60s": 260.0,
+  "bid": 4363.606,
+  "ask": 4363.866,
+  "swap_long": -549.3,
+  "swap_short": 0.0,
+  "swap_mode": 1
+}
