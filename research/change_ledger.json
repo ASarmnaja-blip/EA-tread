@@ -1228,7 +1228,21 @@
    "criterion": "ALL16 pick: test mean R > 0 with t > 2 on all 16 markets, positive test total R on at least 2 of the 3 target markets, and target-market account MAR above the POOL3 pick's.",
    "min_improvement": 0.0,
    "test_period": "discovery to 2017-12 (BTC 2020-12), test after",
-   "result": null
+   "result": {
+    "recorded": "2026-10-02T18:09:05.434797+00:00",
+    "baseline_er": -0.017,
+    "variant_er": 0.002,
+    "improvement": 0.019000000000000003,
+    "t_stat": 0.17,
+    "n_baseline": 0,
+    "n_variant": 1858,
+    "k_at_test": 15002015,
+    "floor_at_test": 7.933175230576818,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "FAIL. ALL16 top-1 (H1 t6: pos20<=0.079 & atr_ratio>=1.114 & hour22): discovery +0.096R t5.43, test +0.002R t0.17 over 16 markets, 6/16 markets positive; on gold/silver/BTC +2R/+5R/-13R, account -0.8%/yr DD 12.5% (POOL3 pick: -10.4%/yr DD 77.5%, 0/16 positive). Drift placebos top-1 test R: ALL16 -0.033/-0.064/-0.018 (real beats 3/3, p=0.25), POOL3 +0.018/-0.046/+0.051. Baseline value is the POOL3 test R."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
