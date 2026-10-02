@@ -1110,6 +1110,28 @@
     "verdict": "INCONCLUSIVE",
     "note": "System A (gold only) PASSES phase 1; system B (gold+silver+BTC) FAILS on drawdown risk at 1%. Baseline reproduced: B five-year 359 trades +255.4R, as in the G27K report. 2009-09..2026-09 at 1%: A 396 trades +132R PF 1.54 CAGR 7.0% balance DD 35.4% (first half 2009-16 +2.1%/yr PF 1.17 DD 35.4%; second half +11.2%/yr PF 1.94 DD 11.1%); B 984 trades +310R PF 1.50 CAGR 15.3% DD 57.7% (first half +1.0%/yr PF 1.09 DD 57.7%; second half +27.7%/yr PF 1.78 DD 26.6%). Neighbourhood (80 rules): PF > 1 in 100% for both; base MAR rank 28/80 (A) and 27/80 (B), median neighbour MAR 0.18 vs 0.20 (A), 0.23 vs 0.27 (B) - a plateau. Costs x2 + 0.1 ATR stop slippage: PF 1.44 (A), 1.40 (B). Drift placebos (100): A +132R vs p95 +115R, max +136R, p=0.040; B +310R vs p95 +211R, max +286R, p=0.010. Monte Carlo 10y at 1%: A P(DD>50%) 0.0%, DD p95 30%; B P(DD>50%) 8.6%, DD p95 54% -> B fails check (e); at 0.5% B gives P(DD>50%) 0.0%, DD p95 31%. Main weakness of both: the 2011-15 metals bear (A 35%, B 58% drawdown). Units: baseline/variant fields hold A placebo p95 and real total R."
    }
+  },
+  {
+   "id": "macro_only_portfolio",
+   "registered": "2026-10-02T10:10:49.310767+00:00",
+   "why": "User question: what if the portfolio is adjusted using external (macro) factors only, no price chart signals.",
+   "change": "Weekly decision at Monday 00:00 UTC. Votes (+1/-1), each a 63-row change unless stated, using only observations old enough to be published: FRED daily series dated <= D-4 days, broad dollar DTWEXBGS / NFCI / GPR dated <= D-10 days. Gold and silver score = mean of: DFII10 chg<0, DTWEXBGS chg<0, T10YIE chg>0, DGS2 chg<0, VIXCLS > trailing 252-row median, GPRD > trailing 250-row median. BTC score = mean of: DTWEXBGS chg<0, DFII10 chg<0, DGS2 chg<0, VIXCLS < trailing 252-row median, NFCI 13-row chg<0. Missing votes dropped from the mean. Primary P1: hold each asset long at its weight when score>0, else flat. Secondary P2: weight x max(score,0). Weights: A gold 1.0; B equal across XAUUSD, XAGUSD and BTCUSD where data exist (BTC from 2021). Notional 1x equity, weekly rebalance to target, cost cost_rt_bp/2 per side on turnover, long swap swap_long_bp x 7 per week. Benchmark: same weights always long. Null: 1000 circular shifts of the score series against returns.",
+   "sweep_size": 4,
+   "criterion": "P1 MAR above buy-and-hold for both A and B over 2009-09..2026-09, in both halves (split 2017-01-01), and circular-shift p<0.05 on MAR for both.",
+   "min_improvement": 0.0,
+   "test_period": "2009-09-07..2026-09-28 weekly, hybrid H1 prices (Candle Lab metals pre-2021, MT5 from 2021)",
+   "result": null
+  },
+  {
+   "id": "g27k_macro_overlay",
+   "registered": "2026-10-02T10:10:50.136632+00:00",
+   "why": "Same user question applied to the G27K trades: let macro factors set position size.",
+   "change": "G27K #1 base rules (N10/M20/k2.0) for systems A and B, trades unchanged. Each trade takes the latest weekly macro score of its market at or before entry (same score definitions as macro_only_portfolio). O1: skip trades with score<0. O2: risk multiplier 1+score, rescaled so the mean multiplier over the system's trades is 1. Base risk 1%. Null: 1000 circular shifts of the weekly score series.",
+   "sweep_size": 4,
+   "criterion": "MAR at least 10% above the unchanged G27K for both A and B, in both halves (split 2017-01-01), and circular-shift p<0.05 for both.",
+   "min_improvement": 0.0,
+   "test_period": "2009-09-01..2026-10-01, hybrid H1 data",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
