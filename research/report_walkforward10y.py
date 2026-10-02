@@ -119,6 +119,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--start", default="2016-10-01")
+    ap.add_argument("--end", default="2026-10-01")
     a = ap.parse_args()
     t0 = time.time()
     P.setup(a.root)
@@ -128,7 +130,11 @@ def main():
     P._M["h1"] = {m: W.hybrid_h1(m, G) for m in K.MKTS}
     B = {tf: P.build(P._M["h1"], tf) for tf in W.TFS}
     allref = pickle.loads((HERE / ".cache_wf" / "refits.pkl").read_bytes())
-    S, E = W10.START, W10.END
+    S, E = pd.Timestamp(a.start, tz="UTC"), pd.Timestamp(a.end, tz="UTC")
+    years = round((E - S).days / 365.25)
+    TH_M = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
+    last = E - pd.Timedelta(days=1)
+    period_th = f"{years} ปี {S.day} {TH_M[S.month - 1]} {S.year} – {last.day} {TH_M[last.month - 1]} {last.year}"
     dates = [W.ts(d) for d in pd.date_range(S, E - pd.Timedelta(days=1), freq="QS")]
     refits = {D: allref[D] for D in dates}
     news = W.news_times(a.root)
@@ -181,7 +187,7 @@ def main():
 
     M3 = {k: out[f"{k}_MET3"] for k in ("W2", "W1", "ND", "G1")}
     line = lambda k: (f"{M3[k]['cagr'] * 100:.1f}% ต่อปี, Equity DD {M3[k]['equity_dd']['relative_pct'] * 100:.0f}%")
-    common_rules = ["ทุกต้นไตรมาสค้นรูปแบบใหม่บน H4 และ D1 จากข้อมูลก่อนวันนั้นเท่านั้น (40 ครั้งใน 10 ปี)",
+    common_rules = [f"ทุกต้นไตรมาสค้นรูปแบบใหม่บน H4 และ D1 จากข้อมูลก่อนวันนั้นเท่านั้น ({len(dates)} ครั้งใน {years} ปี)",
                     "รับรูปแบบที่ผ่านทั้งช่วงค้นและช่วงตรวจ 2 ปีล่าสุด ไตรมาสละไม่เกิน 2 รูปแบบ",
                     "SL 2 × ATR20 ไม่ขยับ · ออกตามกติกาของแต่ละรูปแบบ (ช่อง 10/20 แท่ง, Chandelier, ครบ 6 แท่ง หรือ TP 2R)"]
     info = {
@@ -192,7 +198,7 @@ def main():
                                          "ปลดรูปแบบเมื่อเทรดจริง ≥ 20 ไม้ และต่ำกว่าที่คาดเกิน 2.5 SE หรือขาดทุนสะสม −15R",
                                          "เบรก: บัญชี DD 15% → ครึ่งขนาด, 25% → หนึ่งในสี่ กลับเต็มเมื่อ DD ต่ำกว่า 7.5%"],
                    notes=[f"<b>ระบบนี้คือสิ่งที่ผมตัดสินใจเองแบบไม่รู้อนาคต</b> ได้ {line('W2')} เทียบกับ G27K อันดับ 1 ที่ {line('G1')}",
-                          "<b>เบรก DD ทำงานตั้งแต่ ต.ค. 2018 และไม่ปลดจนถึง เม.ย. 2024</b> ช่วงทองขาขึ้นปี 2023 จึงเทรดด้วยขนาดครึ่งเดียว"]),
+                          "<b>เบรก DD:</b> " + (" · ".join(f"{pd.Timestamp(l['t'], unit='s').date()} {l['text']}" for l in l2 if l['kind'] == 'brake') or "ไม่ทำงานในช่วงนี้")]),
         "W1": dict(label="กฎรอบ 1", tab="กฎรอบ 1", combo="walk-forward round 1", risk=0.0075, adds=False, tf="H4 + D1",
                    risk_note="0.75% ต่อไม้ ลดตามเบรก DD (10% → ครึ่ง, 20% → หนึ่งในสี่) และรูปแบบที่แพ้ติด",
                    rules=common_rules + ["ไม่เกิน 2 ไม้ต่อตลาด ความเสี่ยงรวมไม่เกิน 4%",
@@ -211,29 +217,30 @@ def main():
                           "ไม่เข้า ถ้ามีข่าว USD ระดับ HIGH ภายใน 8 ชั่วโมงหลังเข้า (ปฏิทินข่าวมีตั้งแต่ปี 2022)",
                           "SL 2 × ATR20 ไม่ขยับ · ออกเมื่อแท่ง H4 ปิดต่ำกว่า Low ต่ำสุด 20 แท่ง (ไม่มี TP)",
                           "ไม้เดียว ความเสี่ยง 1% ต่อไม้ · ตลาดละ 1 ไม้"],
-                   notes=[f"<b>ระบบนี้ถูกเลือกจาก 27,648 แบบโดยเห็นผลปี 2021–2026 แล้ว</b> ช่วงนั้นจึงดีเกินจริง · ช่วง 2016–2021 ไม่ได้ใช้เลือก · 10 ปีได้ {line('G1')}"]),
+                   notes=[f"<b>ระบบนี้ถูกเลือกจาก 27,648 แบบโดยเห็นผลปี 2021–2026 แล้ว</b> ช่วงนั้นจึงดีเกินจริง" + (" · ช่วงก่อนปี 2021 ไม่ได้ใช้เลือก" if S.year < 2021 else "") + f" · ช่วงนี้ได้ {line('G1')}"]),
     }
     wf = {}
     for k, (rows, pats, log, base) in systems.items():
         pl = pat_list(pats) if k != "ND" else pat_list(p2)
         wf[k] = dict(patterns=pl, log=log_list(log) if k != "ND" else [],
-                     pat_note=(f"{len(pl)} รูปแบบที่ระบบนี้รับเข้ามาระหว่าง 10 ปี · ช่วงค้น/ช่วงตรวจ = สถิติตอนตัดสินใจรับ (ไม้ / R เฉลี่ย) · "
+                     pat_note=(f"{len(pl)} รูปแบบที่ระบบนี้รับเข้ามาระหว่าง {years} ปี · ช่วงค้น/ช่วงตรวจ = สถิติตอนตัดสินใจรับ (ไม้ / R เฉลี่ย) · "
                                "เทรดจริง = ไม้ที่รูปแบบนั้นเกิดสัญญาณหลังรับเข้ามา"),
                      pat_empty="", log_note="ทุกครั้งที่ระบบรับรูปแบบ ปลดรูปแบบ หรือเปลี่ยนขนาดจากเบรก DD เรียงตามเวลา",
                      log_empty="แบบนี้ไม่มีการตัดสินใจระหว่างทาง")
     wf["G1"] = dict(patterns=[], log=[], pat_note="", pat_empty="ระบบนี้เป็นกฎตายตัวกฎเดียว ไม่มีการค้นหรือเปลี่ยนรูปแบบระหว่างทาง",
                     log_note="", log_empty="ไม่มีการตัดสินใจระหว่างทาง")
-    out["META"] = dict(systems_info=info, wf=wf, period_th="10 ปี 1 ต.ค. 2016 – 30 ก.ย. 2026",
+    out["META"] = dict(systems_info=info, wf=wf, period_th=period_th,
                        data_note="ทอง/เงิน: Candle Lab H1 ก่อนปี 2021 ต่อด้วย MT5 H1 · BTC: MT5 H1 ตั้งแต่ปี 2021 · SL ตรวจทีละแท่ง H1",
-                       notes_common=["<b>ตัวเลขทั้งหน้านี้คือ 10 ปี (1 ต.ค. 2016 – 30 ก.ย. 2026) บัญชีเดียวต่อเนื่อง</b> จำลองบนราคาจริง ไม่ใช่ผลเทรดจริง และไม่ได้บอกอนาคต",
+                       notes_common=[f"<b>ตัวเลขทั้งหน้านี้คือ {period_th} บัญชีเดียวต่อเนื่อง เริ่ม $100,000</b> จำลองบนราคาจริง ไม่ใช่ผลเทรดจริง และไม่ได้บอกอนาคต",
                                      "<b>ต้นทุนเหมือนรายงาน G27K:</b> spread + 1 bp (ขั้นต่ำ 2 bp ต่อรอบ) และ swap จริงของโบรกเกอร์",
-                                     "<b>BTC มีข้อมูลครบตั้งแต่ปี 2021 เท่านั้น</b> ช่วง 2016–2020 จึงเทรดแค่ทองกับเงิน",
+                                     *(["<b>BTC มีข้อมูลครบตั้งแต่ปี 2021 เท่านั้น</b> ช่วงก่อนปี 2021 จึงเทรดแค่ทองกับเงิน"] if S.year < 2021 else []),
                                      "<b>ผมรู้อยู่แล้วว่าตลาดช่วงนี้เป็นอย่างไร</b> จึงล็อกกฎทุกรอบลง ledger ก่อนรัน แต่การออกแบบกฎก็ยังทำโดยคนที่รู้อนาคต ข้อนี้กำจัดไม่ได้ 100%"],
                        footer="สร้างจาก research/report_walkforward10y.py · ledger: walkforward_controller_round1 / round2 · ตัวเลขคำนวณด้วย report768.metrics ชุดเดียวกับรายงาน G27K · คำนวณ 2 ต.ค. 2026")
     G.START = W.ts("2021-10-01")
     data = clean(out)
-    (HERE / "walkforward_report10y.json").write_text(json.dumps(data, ensure_ascii=False))
+    (HERE / f"walkforward_report{years}y.json").write_text(json.dumps(data, ensure_ascii=False))
     tpl = (HERE / "walkforward_report_template.html").read_text(encoding="utf-8")
+    tpl = tpl.replace("Walk-forward 10 ปี", f"Walk-forward {years} ปี").replace("Walk-forward · 10 ปี", f"Walk-forward · {years} ปี")
     pathlib.Path(a.out).write_text(tpl.replace("/*DATA*/", json.dumps(data, ensure_ascii=False)), encoding="utf-8")
     for k in ("W2", "W1", "ND", "G1"):
         m = out[f"{k}_MET3"]
