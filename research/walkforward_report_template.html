@@ -95,6 +95,7 @@ footer{color:var(--faint);font-size:12.5px;margin-top:18px}
 @media (max-width:900px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:720px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}h1{font-size:21px}}
 @media (max-width:420px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .v{font-size:19px}.card{padding:14px 12px}}
+.kv dd{white-space:normal;overflow-wrap:anywhere;min-width:0}
 </style>
 
 <div class="wrap">
@@ -386,7 +387,7 @@ function render() {
     `<div class="kv" style="display:block"><ul class="rules">${rules.map(x => `<li>${x}</li>`).join("")}</ul></div>` +
     kv("ตลาด", "Symbols", r.markets + " ตลาด", "") +
     `<div class="kv" style="display:block"><div class="chips">${mk.map(m => `<span class="chip">${m}</span>`).join("")}</div></div>` +
-    kv("ช่วงเวลา", "Period", SI.tf + " · " + GM.period_th, "นับไม้ที่เข้าในช่วงนี้ · การตัดสินใจทุกครั้งใช้ข้อมูลก่อนเวลานั้นเท่านั้น") +
+    kv("ช่วงเวลา", "Period", SI.tf, GM.period_th + " · นับไม้ที่เข้าในช่วงนี้ · การตัดสินใจทุกครั้งใช้ข้อมูลก่อนเวลานั้นเท่านั้น") +
     kv("เงินฝากเริ่มต้น", "Initial deposit", "100,000.00 USD") +
     kv("ความเสี่ยงต่อไม้", "Risk per trade (ทบต้นจาก balance)", pct(r.risk, 2), SI.risk_note) +
     kv("ต้นทุน", "Costs", "spread + 1 bp", "ขั้นต่ำ 2 bp ต่อรอบ + swap จริงของโบรกเกอร์ (รวมวัน triple)") +
