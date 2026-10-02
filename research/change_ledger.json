@@ -1218,6 +1218,17 @@
    "min_improvement": 0.0,
    "test_period": "as per_market_free_search",
    "result": null
+  },
+  {
+   "id": "multi_market_pooled_search",
+   "registered": "2026-10-02T14:45:55.800427+00:00",
+   "why": "User: search on H1 and above across many markets, not only gold, silver and BTC, so a pattern has to hold in many places instead of fitting one market's past.",
+   "change": "Same free search engine (every H1, H4, D1 bar long and short; 1-3 conditions; 5 exits; one trade per market) on 16 markets with real broker cost and swap specs: XAUUSD, XAGUSD, XCUUSD, USOIL, US500, USTEC, DE30, JP225, EURUSD, USDJPY, AUDUSD, USDCHF, USDCNH, USDMXN, USDZAR, BTCUSD. Data: Dukascopy H1 bid 2009-09..2026-09 (metals hybrid H1 as before), BTC Binance BTCUSDT 1h from 2017-08. Discovery before 2018-01-01 (BTC before 2021-01-01), test after. Scopes: pooled over all 16 (ALL16) and pooled over XAUUSD/XAGUSD/BTCUSD (POOL3, rerun on the same data for comparison). Pick = top-1 by non-overlapping discovery t. Test: the ALL16 pick traded on the three target markets (gold, silver, BTC) as one account at 1% per trade, against the POOL3 pick on the same markets and the earlier per-market picks; also its test R on all 16 markets. Null: drift-placebo runs of the whole search.",
+   "sweep_size": 2,
+   "criterion": "ALL16 pick: test mean R > 0 with t > 2 on all 16 markets, positive test total R on at least 2 of the 3 target markets, and target-market account MAR above the POOL3 pick's.",
+   "min_improvement": 0.0,
+   "test_period": "discovery to 2017-12 (BTC 2020-12), test after",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
