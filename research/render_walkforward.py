@@ -160,7 +160,10 @@ new MutationObserver(draw).observe(document.documentElement,{attributes:true,att
 
 
 def main():
+    global SERIES
     res = json.load(open(sys.argv[1]))
+    if "labels" in res:
+        SERIES = [(k, res["labels"].get(k, lab), c) for k, lab, c in SERIES]
     names = {k: lab for k, lab, _ in SERIES}
     v, vtxt = verdict(res)
     col = {"better": "var(--good)", "same": "var(--warn)", "worse": "var(--bad)"}[v]
@@ -187,6 +190,15 @@ def main():
     log = "".join(f"<li><span class='n' style='font-family:var(--mono)'>{e(l['t'])}</span> "
                   f"<span class='{e(l['kind'])}'>{e(l['text'])}</span></li>" for l in C["log"])
     sk = C["skipped"]
+    if "signals" in sk:
+        kh = " · ".join(f"{k} รูปแบบ: {v}" for k, v in sorted(sk["k_hist"].items(), key=lambda x: int(x[0])))
+        monitors = (f"<li>สัญญาณรวม {sk['signals']:,} ครั้ง ข้ามเพราะมีไม้ทิศเดียวกันเปิดอยู่ {sk['busy']:,} ครั้ง</li>"
+                    f"<li>ไม้ที่เปิด แยกตามจำนวนรูปแบบที่ยืนยัน: {kh}</li>"
+                    f"<li>ลดขนาดครึ่งหนึ่งเพราะใกล้ข่าว: {sk['news_half']} ไม้ · ข้ามเพราะความเสี่ยงรวมเกิน 6%: {sk['cap_risk']} ไม้</li>")
+    else:
+        monitors = (f"<li>ข้ามเพราะข่าว USD ระดับสูง: {sk['news']} ไม้</li>"
+                    f"<li>ข้ามเพราะตลาดเดียวมีไม้เปิดครบ 2 ไม้: {sk['cap_market']} ไม้</li>"
+                    f"<li>ข้ามเพราะความเสี่ยงรวมเกิน 4%: {sk['cap_risk']} ไม้</li>")
     best = "".join(f"<tr><td>{e(t['mkt'])}</td><td class='n'>{e(t['t'])}</td><td class='n'>{e(t['t_exit'])}</td>"
                    f"<td class='n'>{t['R']:+.2f}R</td><td class='n'>{usd(t['pnl'])}</td></tr>" for t in M["controller"]["best_trades"][:5])
     worst = "".join(f"<tr><td>{e(t['mkt'])}</td><td class='n'>{e(t['t'])}</td><td class='n'>{e(t['t_exit'])}</td>"
@@ -212,15 +224,16 @@ def main():
     data["names"] = names
     cfg = res["config"]
     elig = " · ".join(f"{c['date'][:7]}: {c['eligible']}" for c in cfg["candidates"])
-    out = f"""<title>Walk-forward รอบ 1</title>
+    out = f"""<title>{e(res.get("title", "Walk-forward รอบ 1"))}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
 <style>{CSS}</style>
 <div class="wrap">
 <header><div class="eyebrow">Strategy Tester · Walk-forward · ทอง เงิน BTC · H4 และ D1</div>
-<h1>Walk-forward รอบ 1: ผมคุมเองโดยไม่รู้อนาคต</h1>
+<h1>{e(res.get("h1", "Walk-forward รอบ 1: ผมคุมเองโดยไม่รู้อนาคต"))}</h1>
 <p class="sub">เริ่ม {e(cfg['start'])} ด้วยเงิน $100,000 · ทุกต้นไตรมาสค้นรูปแบบใหม่จากข้อมูลก่อนวันนั้นเท่านั้น ({cfg['refits']} ครั้ง) แล้วตัดสินใจรับ ปลด และปรับความเสี่ยงตามกฎที่เขียนลง ledger ก่อนรัน · ต้นทุนเดียวกับรายงาน G27K (spread + 1bp ขั้นต่ำ 2bp และ swap จริง) · จำลองบนข้อมูลจริง ไม่ใช่ผลเทรดจริง</p></header>
-<section><div class="verdict" style="--c:{col}"><div><b>ผลรอบ 1: {word}</b><div>{e(vtxt)} · วัดด้วย MAR (CAGR ÷ Equity DD) ตามเกณฑ์ที่ล็อกไว้: ผม {num(M['controller']['mar'])} · ไม่ตัดสินใจ {num(M['no_decisions']['mar'])} · G27K อันดับ 1 {num(M['g27k_1']['mar'])}</div></div></div></section>
+<section><div class="verdict" style="--c:{col}"><div><b>{e(res.get("round_name", "ผลรอบ 1"))}: {word}</b><div>{e(vtxt)} · วัดด้วย MAR (CAGR ÷ Equity DD) ตามเกณฑ์ที่ล็อกไว้: ผม {num(M['controller']['mar'])} · ไม่ตัดสินใจ {num(M['no_decisions']['mar'])} · G27K อันดับ 1 {num(M['g27k_1']['mar'])}</div></div></div></section>
+{res.get("extra_html", "")}
 <section><h2>เทียบสามแบบ ช่วงเดียวกัน</h2><div class="scroll"><table><tr><th></th>{head}</tr>{body}</table></div></section>
 <section><h2>Equity (สเกล log)</h2>
 <div class="legend">{''.join(f'<span class="key"><span class="sw" style="--c:var({c})"></span>{e(lab)}</span>' for _, lab, c in SERIES)}</div>
@@ -229,9 +242,7 @@ def main():
 <div class="grid2">
 <section><h2>แยกตามตลาด (ผมคุมเอง)</h2><div class="scroll"><table><tr><th>ตลาด</th><th class="n">ไม้</th><th class="n">ชนะ</th><th class="n">กำไร</th><th class="n">R</th><th class="n">PF</th></tr>{pm}</table></div></section>
 <section><h2>ตัวเฝ้าดูทำงานกี่ครั้ง</h2><ul>
-<li>ข้ามเพราะข่าว USD ระดับสูง: {sk['news']} ไม้</li>
-<li>ข้ามเพราะตลาดเดียวมีไม้เปิดครบ 2 ไม้: {sk['cap_market']} ไม้</li>
-<li>ข้ามเพราะความเสี่ยงรวมเกิน 4%: {sk['cap_risk']} ไม้</li>
+{monitors}
 <li>เบรกจาก DD และการลดขนาดรายรูปแบบ: ดูบันทึกการตัดสินใจ</li></ul>
 <p class="sub">รูปแบบที่ผ่านเกณฑ์ในแต่ละไตรมาส: {e(elig)}</p></section></div>
 {abl}
@@ -246,7 +257,7 @@ def main():
 <li>G27K อันดับ 1 ถูกเลือกจาก 27,648 แบบโดยเห็นผลช่วงนี้แล้ว จึงเป็นเพดานที่การเลือกล่วงหน้าทำได้ยากมาก ส่วนแบบที่ไม่ตัดสินใจใช้รูปแบบชุดเดียวกับของผม จึงวัดคุณค่าของการตัดสินใจได้ตรงที่สุด</li>
 <li>BTC มีข้อมูลครบตั้งแต่ปี 2021 เท่านั้น การค้นช่วงแรกจึงอาศัยทองและเงินเป็นหลัก</li>
 <li>ปฏิทินข่าวมีตั้งแต่ปี 2022 ตัวกรองข่าวจึงยังไม่ทำงานในไตรมาสแรก</li></ul></section>
-<footer>สร้างจาก research/walkforward_controller.py · ledger id walkforward_controller_round1 · ตัวเลขทุกตัวคำนวณด้วยโค้ดรายงานของ G27K (report768.metrics)</footer>
+<footer>สร้างจาก research/walkforward_controller.py · ledger id {e(res.get("ledger_id", "walkforward_controller_round1"))} · ตัวเลขทุกตัวคำนวณด้วยโค้ดรายงานของ G27K (report768.metrics)</footer>
 </div>
 <script>window.WF={json.dumps(data)};</script>
 <script>{JS}</script>
