@@ -1278,3 +1278,8 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   test 2018-26 10.5 %/y, DD 21 %, MAR 0.50 against all three always 20.9 %/y, DD 23 %, MAR 0.91: not better. Best test MAR of the eight 0.87
   (26 weeks top 1, 6.7 %/y, DD 8 %). Selection changes 135-335 times in 1,223 weeks. Weekly rotation is defensive in the metals bear and gives up
   most of the bull-market return.
+- Start-now check (research/grid27k/start_now.py): fresh accounts started every month 2009-09..2025-09. H4-55 alone at 1.5 %: 12-month return
+  median +7 % (p5 -11 %, p95 +86 %), 31 % of starts down after a year, equity DD median 12 %, worst 24 %; starts with gold and silver W1 down
+  (like 2026-09, n 74): median +4 %, 36 % down, 24 months median +2 % with 45 % down. H4-55 + D1-1 at 1 % each, starts like now: 12 months
+  median +2 % (45 % down), 24 months -3 % (58 % down). Last bar 2026-09-30: no open trades; gold and silver 8-11 ATR under their 55-bar highs
+  with ATR at the 1st-6th percentile (high-volatility filter off), BTC 3.4 ATR under with the filter on.
