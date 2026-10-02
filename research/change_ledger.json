@@ -985,6 +985,17 @@
    "min_improvement": 0.0,
    "test_period": "Gold M1 2009-01..2026-09; discovery before 2020-01-01, validation after. No holdout touched.",
    "result": null
+  },
+  {
+   "id": "h4d1_fine_pattern_search_complete_data",
+   "registered": "2026-10-02T04:43:37.965291+00:00",
+   "why": "data_audit_gold.py found the spliced history behind h4d1_fine_pattern_search has ~300 H1 bars a year for gold and silver in 2017-2020 and a near-empty BTC 2018-2020. The search is repeated unchanged on complete data.",
+   "change": "h4d1_pattern_search.py --complete-data: gold and silver Candle Lab H1 2009-2026 (verified against Dukascopy within $0.01-0.05 median), BTC MT5 H1 from 2021 only. Everything else identical: same features, exits, discovery 2009-2019 / validation 2020-2026, 20 drift placebos.",
+   "sweep_size": 4500000,
+   "criterion": "Identical to h4d1_fine_pattern_search, plus the like-for-like comparison: real best-of-top-10 validation R against the placebo best-of-top-10 distribution. Also reported: whether the pos250 family found on the gapped data survives on complete data.",
+   "min_improvement": 0.0,
+   "test_period": "Discovery 2009-09..2019-12 (metals only), validation 2020-01..2026-09 (BTC from 2021).",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"

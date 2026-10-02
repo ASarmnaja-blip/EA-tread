@@ -37,7 +37,22 @@ WARM = 260
 _M = {}
 
 
-def setup(root):
+def complete_h1(m, G):
+    """Gold and silver: Candle Lab H1 for the whole span (the MT5 export behind
+    spliced_h1 has ~300 H1 bars a year in 2017-2020). BTC: MT5 from 2021 only,
+    the first year its export is complete."""
+    if m == "BTCUSD":
+        b = G.load_h1(m)
+        k = b["t"] >= G.C.ts("2021-01-01")
+        return {x: (v[k] if isinstance(v, np.ndarray) else v) for x, v in b.items()}
+    z = np.load(G.ROOT / "data" / "bundle" / f"bars_{m}_H1.npz")
+    out = {x: z[x].astype(float) for x in ("o", "h", "l", "c", "v")}
+    out["t"] = z["t"].astype(np.int64)
+    out["step"] = 3600
+    return out
+
+
+def setup(root, complete=False):
     g = pathlib.Path(root) / "research" / "grid27k"
     sys.path[:0] = [str(g), str(g.parent / "grid768"), str(g.parent / "candlelab")]
     import complement as CP
@@ -46,7 +61,8 @@ def setup(root):
     import lab as L
     import stress_top3 as S
     _M.update(CP=CP, K=K, G=G, L=L, S=S, C=G.C,
-              h1={m: S.spliced_h1(m) for m in K.MKTS},
+              h1={m: complete_h1(m, G) for m in K.MKTS} if complete
+              else {m: S.spliced_h1(m) for m in K.MKTS},
               FIRST=CP.FIRST, SPLIT=G.C.ts("2020-01-01"))
 
 
@@ -593,12 +609,14 @@ def main():
     ap.add_argument("--root", required=True)
     ap.add_argument("--placebos", type=int, default=20)
     ap.add_argument("--only-real", action="store_true")
+    ap.add_argument("--complete-data", action="store_true")
+    ap.add_argument("--out", default="h4d1_pattern_search.json")
     a = ap.parse_args()
     t0 = time.time()
-    setup(a.root)
+    setup(a.root, a.complete_data)
     real = run_once(_M["h1"], "real")
     out = dict(real=real, placebos=[])
-    path = HERE / "h4d1_pattern_search.json"
+    path = HERE / a.out
     path.write_text(json.dumps(out, indent=1, default=str))
     if not a.only_real:
         for p in range(a.placebos):
