@@ -995,7 +995,21 @@
    "criterion": "Identical to h4d1_fine_pattern_search, plus the like-for-like comparison: real best-of-top-10 validation R against the placebo best-of-top-10 distribution. Also reported: whether the pos250 family found on the gapped data survives on complete data.",
    "min_improvement": 0.0,
    "test_period": "Discovery 2009-09..2019-12 (metals only), validation 2020-01..2026-09 (BTC from 2021).",
-   "result": null
+   "result": {
+    "recorded": "2026-10-02T05:27:31.838244+00:00",
+    "baseline_er": 0.446,
+    "variant_er": 0.462,
+    "improvement": 0.016000000000000014,
+    "t_stat": 2.56,
+    "n_baseline": 20,
+    "n_variant": 287,
+    "k_at_test": 15001894,
+    "floor_at_test": 7.933173088912388,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "Complete data (Candle Lab metals 2009-2026, BTC from 2021). 4,421,850 patterns. ONE CANDIDATE meets every registered per-pattern condition: H4, brk100 >= -1.879 ATR (within 1.9 ATR of, or beyond, the 100-bar extreme in the trade direction) & atr_pct <= 0.576 (ATR14 in the lower 58% of its 250-bar range) & since_brk >= 37 (no 55-bar breakout that way for 37+ H4 bars), stop 2xATR20, exit on a close through the 10-bar channel. Discovery 272 trades +0.53R; validation 287 trades +0.46R t 2.56; gold +40R, silver +28R, BTC +65R in validation; positive in 16 of 18 calendar years (negatives -0.3R 2017, -2.9R 2022); gold short +0.63R/trade, gold long +0.40R; win 40%, avg win 2.5R, avg loss 0.9R. LIKE-FOR-LIKE TEST (placebo runs re-done with identical seeds, full top 100 kept): best validation R among each placebo search's top 100 with n>=30 and t>=2 - 0 of 20 reach +0.462; the highest is +0.446 and 11 of 20 have no qualifying pattern at all. WHOLE SEARCH: median top-100 val R +0.069 vs placebo median -0.017; 1 of 20 placebos higher, so the whole-search condition (beat all 20) is NOT met. pos250 family from the gapped-data run weakens to +0.111 and no longer qualifies - it was partly a product of the 2017-2020 data hole. Ledger floor (|t| > 7.7 at this k) not cleared -> INCONCLUSIVE; the candidate goes to forward paper logging, not to money."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
