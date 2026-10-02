@@ -15,6 +15,7 @@ import argparse
 import heapq
 import json
 import math
+import pickle
 import pathlib
 import sys
 import time
@@ -153,11 +154,12 @@ class Pattern:
 def news_times(root):
     cal = pd.read_csv(pathlib.Path(root) / "data" / "calendar.csv", encoding="cp1252")
     hi = cal[(cal.importance == "HIGH") & (cal.currency == "USD")]
-    t = pd.to_datetime(hi.time, format="%Y.%m.%d %H:%M").astype("int64") // 10 ** 9
+    t = (pd.to_datetime(hi.time, format="%Y.%m.%d %H:%M", utc=True)
+         - pd.Timestamp("1970-01-01", tz="UTC")) // pd.Timedelta("1s")
     return np.sort(t.to_numpy(np.int64))
 
 
-def run(B, refits, news, decide=True, fixed=None):
+def run(B, refits, news, decide=True, fixed=None, off=()):
     """Event-driven account. decide=False trades every pattern adopted on the
     controller's schedule at flat risk, with no retirements, filters, caps or
     brakes - the 'no decisions' comparison."""
@@ -182,10 +184,12 @@ def run(B, refits, news, decide=True, fixed=None):
             if decide:
                 dd = 1 - bal / peak
                 nb = 0.25 if dd >= 0.20 else 0.5 if dd >= 0.10 else (1.0 if dd < 0.05 else brake)
+                if "brake" in off:
+                    nb = 1.0
                 if nb != brake:
                     log.append(dict(t=tx, kind="brake", text=f"บัญชี DD {dd:.1%} → ความเสี่ยง x{nb}"))
                     brake = nb
-                if p.t_off is None:
+                if p.t_off is None and "live_retire" not in off:
                     cum = sum(p.live)
                     if cum <= -8 or (len(p.live) >= 15 and np.mean(p.live) < -0.15):
                         p.t_off, p.why_off = tx, (f"ผลจริงสะสม {cum:+.1f}R" if cum <= -8
@@ -232,7 +236,7 @@ def run(B, refits, news, decide=True, fixed=None):
                         for ent in candidate_entries(p):
                             heapq.heappush(queue, (ent[0], 1, ("entry", ent[1], ent[2])))
                 continue
-            if decide:
+            if decide and "refit_retire" not in off:
                 for pid in list(active):
                     p = patterns[pid]
                     E, feats, cats = B[p.c["tf"]]
@@ -291,16 +295,16 @@ def run(B, refits, news, decide=True, fixed=None):
         if decide:
             sig_close = int(E["t"][i]) + SEC[p.c["tf"]]
             j = np.searchsorted(news, sig_close - 3600)
-            if j < len(news) and news[j] <= sig_close + 7200:
+            if "news" not in off and j < len(news) and news[j] <= sig_close + 7200:
                 skipped["news"] += 1
                 continue
-            if sum(1 for o in open_list if o["mkt"] == mkt) >= 2:
+            if "cap_market" not in off and sum(1 for o in open_list if o["mkt"] == mkt) >= 2:
                 skipped["cap_market"] += 1
                 continue
-            f_p = 0.5 if (len(p.live) >= 8 and np.mean(p.live[-8:]) < -0.3) else 1.0
-            f_v = 0.5 if feats["atr_pct"][i] > 0.95 else 1.0
+            f_p = 0.5 if ("probation" not in off and len(p.live) >= 8 and np.mean(p.live[-8:]) < -0.3) else 1.0
+            f_v = 0.5 if ("vol" not in off and feats["atr_pct"][i] > 0.95) else 1.0
             risk = BASE_RISK * f_p * f_v * brake
-            if sum(o["risk_frac"] for o in open_list) + risk > 0.04 + 1e-12:
+            if "cap_risk" not in off and sum(o["risk_frac"] for o in open_list) + risk > 0.04 + 1e-12:
                 skipped["cap_risk"] += 1
                 continue
         tx = int(E[f"tx_{ex}"][i])
@@ -403,9 +407,13 @@ def main():
     print(f"  built events: " + ", ".join(f"{tf} {len(B[tf][0]['t']):,}" for tf in TFS)
           + f"  {time.time() - t0:.0f}s", flush=True)
     dates = [ts(d) for d in pd.date_range(START, END - pd.Timedelta(days=1), freq="QS")]
-    refits = {}
+    cache = HERE / ".cache_wf" / "refits.pkl"
+    refits = pickle.loads(cache.read_bytes()) if cache.exists() else {}
     for D in dates:
-        refits[D] = refit_candidates(D, B)
+        if D not in refits:
+            refits[D] = refit_candidates(D, B)
+            cache.parent.mkdir(exist_ok=True)
+            cache.write_bytes(pickle.dumps(refits))
         ne = sum(eligible(c) for c in refits[D])
         print(f"  refit {pd.Timestamp(D, unit='s').date()}: {len(refits[D])} candidates, "
               f"{ne} eligible  {time.time() - t0:.0f}s", flush=True)
