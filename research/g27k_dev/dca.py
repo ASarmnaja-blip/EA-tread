@@ -71,7 +71,7 @@ def run_dca(T, risk, start, end):
             dd_nav = max(dd_nav, 1 - nav / peak_nav)
             peak_bal = max(peak_bal, bal)
             dd_usd = max(dd_usd, peak_bal - bal)
-            curve.append((tx, bal))
+            curve.append((tx, bal, nav, sum(flows)))
 
     for i, (t, pri, kind, r) in enumerate(events):
         settle(t)
@@ -81,7 +81,7 @@ def run_dca(T, risk, start, end):
             flows.append(amt)
             ftimes.append(t)
             peak_bal = max(peak_bal, bal)
-            curve.append((t, bal))
+            curve.append((t, bal, nav, sum(flows)))
         else:
             heapq.heappush(heap, (r.tx, i, risk * bal * r.R))
     settle(2 ** 62)
