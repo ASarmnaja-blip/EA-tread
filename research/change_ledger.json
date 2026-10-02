@@ -1120,7 +1120,21 @@
    "criterion": "P1 MAR above buy-and-hold for both A and B over 2009-09..2026-09, in both halves (split 2017-01-01), and circular-shift p<0.05 on MAR for both.",
    "min_improvement": 0.0,
    "test_period": "2009-09-07..2026-09-28 weekly, hybrid H1 prices (Candle Lab metals pre-2021, MT5 from 2021)",
-   "result": null
+   "result": {
+    "recorded": "2026-10-02T10:28:14.298521+00:00",
+    "baseline_er": 0.07,
+    "variant_er": 0.02,
+    "improvement": -0.05,
+    "t_stat": -0.1,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 15002002,
+    "floor_at_test": 7.933175001369917,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "FAIL. Values are MAR (not E(R)); t is the normal quantile of the circular-shift p. P1 A: MAR 0.02 vs buy-and-hold 0.07 (p 0.539); P1 B: 0.05 vs 0.08 (p 0.347). P2 A 0.03 (p 0.439), B 0.14 (p 0.120). Gold score was negative through 2022-24 while gold doubled; long swap (~4.7%/yr) cuts buy-and-hold CFD gold to 3.9% CAGR."
+   }
   },
   {
    "id": "g27k_macro_overlay",
@@ -1131,7 +1145,21 @@
    "criterion": "MAR at least 10% above the unchanged G27K for both A and B, in both halves (split 2017-01-01), and circular-shift p<0.05 for both.",
    "min_improvement": 0.0,
    "test_period": "2009-09-01..2026-10-01, hybrid H1 data",
-   "result": null
+   "result": {
+    "recorded": "2026-10-02T10:28:14.815226+00:00",
+    "baseline_er": 0.27,
+    "variant_er": 0.33,
+    "improvement": 0.06,
+    "t_stat": 1.19,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 15002002,
+    "floor_at_test": 7.933175001369917,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "FAIL. Values are MAR; t from circular-shift p. O2 B: MAR 0.33 vs 0.27, CAGR 20.0% vs 15.3%, DD 60% vs 58%, both halves higher, p 0.116. O2 A: 0.19 vs 0.20 (p 0.460). O1 skips worse: A 0.12, B 0.22."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
