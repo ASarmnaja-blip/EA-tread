@@ -465,11 +465,15 @@ SHORTLIST = 300
 MIN_NOV = {"M15": 150, "M30": 100, "H1": 80, "H4": 80, "D1": 40}
 def pair_stats(Bm, R):
     """n, sum and sum of squares of R for every single (diagonal) and pair of conditions."""
-    W = Bm.astype(np.float32)
-    n = W.T @ W
-    s1 = W.T @ (W * R[:, None].astype(np.float32))
-    s2 = W.T @ (W * (R * R)[:, None].astype(np.float32))
-    return n.astype(np.float64), s1.astype(np.float64), s2.astype(np.float64)
+    k = Bm.shape[1]
+    n, s1, s2 = np.zeros((k, k)), np.zeros((k, k)), np.zeros((k, k))
+    for a in range(0, len(R), 200_000):          # row chunks keep M15 memory bounded
+        W = Bm[a:a + 200_000].astype(np.float32)
+        r = R[a:a + 200_000].astype(np.float32)[:, None]
+        n += W.T @ W
+        s1 += W.T @ (W * r)
+        s2 += W.T @ (W * (r * r))
+    return n, s1, s2
 
 
 def tstat(n, s1, s2):

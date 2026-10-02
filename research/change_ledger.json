@@ -1207,6 +1207,17 @@
    "min_improvement": 0.0,
    "test_period": "discovery up to 2017-12 (BTC 2023-12), test after; no reverse fold",
    "result": null
+  },
+  {
+   "id": "per_market_free_search_minute_tfs",
+   "registered": "2026-10-02T11:56:48.118564+00:00",
+   "why": "Amendment to per_market_free_search before any result was seen (the first run was stopped before its first timeframe finished): user asked to include M15 and M30.",
+   "change": "Same scopes, splits, ranking and test as per_market_free_search, with M15 and M30 added from Dukascopy M1 bid/ask mid prices (XAUUSD and XAGUSD from 2009, BTCUSD from 2021; flat minutes dropped; stops walked on M1). Costs: the same broker specs as the hourly frames. Each scope's top-1 is chosen across all five timeframes by non-overlapping discovery t.",
+   "sweep_size": 2,
+   "criterion": "As per_market_free_search.",
+   "min_improvement": 0.0,
+   "test_period": "as per_market_free_search",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"

@@ -63,8 +63,11 @@ POINTS = {"XAUUSD": 1000.0, "XAGUSD": 1000.0, "USDJPY": 1000.0,
           # whose median of 10.51 is a sane USDSEK level
           "USDSEK": 100000.0,
           "EURUSD": 100000.0, "GBPUSD": 100000.0, "AUDUSD": 100000.0,
-          "USDCHF": 100000.0, "USDCAD": 100000.0, "NZDUSD": 100000.0}
+          "USDCHF": 100000.0, "USDCAD": 100000.0, "NZDUSD": 100000.0,
+          # BTCUSD quotes one decimal: 682268 = 68,226.8 on 9 Mar 2024
+          "BTCUSD": 10.0}
 POINT = POINTS["XAUUSD"]      # kept so existing XAUUSD callers are unchanged
+WEEKEND = {"BTCUSD"}          # trades seven days a week
 
 def _get(url, tries=4):
     """503 is Dukascopy's normal answer for an hour it has no data for AND its
@@ -83,9 +86,9 @@ def _get(url, tries=4):
             time.sleep(1.5 * (a + 1))
     return None
 
-def _day_side(day, side):
+def _day_side(day, side, symbol="XAUUSD"):
     """One day, one side. Returns (minute_index, o, h, l, c, v) or None."""
-    url = (f"{BASE}/XAUUSD/{day.year}/{day.month - 1:02d}/{day.day:02d}/"
+    url = (f"{BASE}/{symbol}/{day.year}/{day.month - 1:02d}/{day.day:02d}/"
            f"{side}_candles_min_1.bi5")
     raw = _get(url)
     if not raw: return None
@@ -97,17 +100,17 @@ def _day_side(day, side):
     if n == 0: return None
     a = np.frombuffer(dec[:n * REC.size], dtype=">u4,>i4,>i4,>i4,>i4,>f4")
     t = a["f0"].astype(np.int64)
-    o, c, l, h = (a[f"f{i}"].astype(np.float64) / POINT for i in (1, 2, 3, 4))
+    o, c, l, h = (a[f"f{i}"].astype(np.float64) / POINTS[symbol] for i in (1, 2, 3, 4))
     v = a["f5"].astype(np.float64)
     keep = (o > 0) & (h > 0) & (l > 0) & (c > 0)
     if not keep.any(): return None
     return t[keep] // 60, o[keep], h[keep], l[keep], c[keep], v[keep]
 
-def fetch_day(day):
+def fetch_day(day, symbol="XAUUSD"):
     """Both sides of one UTC day, joined on the minutes present in both."""
-    b = _day_side(day, "BID")
+    b = _day_side(day, "BID", symbol)
     if b is None: return None
-    a = _day_side(day, "ASK")
+    a = _day_side(day, "ASK", symbol)
     if a is None: return None
     bi = pd.DataFrame({"bid_open": b[1], "bid_high": b[2], "bid_low": b[3],
                        "bid_close": b[4], "volume": b[5]}, index=b[0])
@@ -118,14 +121,14 @@ def fetch_day(day):
     j.index = pd.to_datetime(day) + pd.to_timedelta(j.index, unit="m")
     return j.tz_localize("UTC")
 
-def fetch_range(start, end, workers=WORKERS, verbose=True):
+def fetch_range(start, end, workers=WORKERS, verbose=True, symbol="XAUUSD"):
     """Every UTC day in [start, end). Weekends are skipped - the metal is shut
     and Dukascopy serves nothing for them anyway."""
     days = [d.date() for d in pd.date_range(start, end, freq="D", inclusive="left")
-            if d.weekday() < 5 or d.weekday() == 6]   # Sunday evening opens
+            if d.weekday() < 5 or d.weekday() == 6 or symbol in WEEKEND]   # Sunday evening opens
     out, done = [], 0
     with ThreadPoolExecutor(max_workers=workers) as ex:
-        for df in ex.map(fetch_day, days):
+        for df in ex.map(lambda d: fetch_day(d, symbol), days):
             done += 1
             if df is not None: out.append(df)
             if verbose and done % 200 == 0:
@@ -134,7 +137,7 @@ def fetch_range(start, end, workers=WORKERS, verbose=True):
     if not out: return None
     return pd.concat(out).sort_index()
 
-def load(start="2020-01-01", end=None, refresh=False, verbose=True):
+def load(start="2020-01-01", end=None, refresh=False, verbose=True, symbol="XAUUSD"):
     """Cached M1. One parquet per calendar year so a partial year can be
     refreshed without redownloading the settled ones."""
     end = end or dt.date.today().isoformat()
@@ -142,14 +145,14 @@ def load(start="2020-01-01", end=None, refresh=False, verbose=True):
     s, e = pd.Timestamp(start), pd.Timestamp(end)
     parts = []
     for year in range(s.year, e.year + 1):
-        p = CACHE / f"XAUUSD_M1_{year}.parquet"
+        p = CACHE / f"{symbol}_M1_{year}.parquet"
         y0 = max(s, pd.Timestamp(f"{year}-01-01"))
         y1 = min(e, pd.Timestamp(f"{year + 1}-01-01"))
         if p.exists() and not refresh:
             df = pd.read_parquet(p)
         else:
             if verbose: print(f"  downloading {year} ...", flush=True)
-            df = fetch_range(y0, y1, verbose=verbose)
+            df = fetch_range(y0, y1, verbose=verbose, symbol=symbol)
             if df is None: continue
             df.to_parquet(p)
         parts.append(df.loc[(df.index >= y0.tz_localize("UTC")) &
