@@ -111,7 +111,9 @@ def picks():
 def simulate(T, version, start, end=END, news=None, macro=None, deposits=False):
     """One account over [start, end): returns stats, monthly equity and per-trade risk."""
     s0, s1 = W.ts(start), W.ts(end)
-    T = T[(T.t >= s0) & (T.t < s1)].sort_values(["t", "mkt"]).reset_index(drop=True)
+    T = T[(T.t >= s0) & (T.t < s1)].sort_values(["t", "mkt"], kind="mergesort")
+    idx = T.index
+    T = T.reset_index(drop=True)
     mult = np.ones(len(T))
     if version == "macro":
         mult = 1 + np.nan_to_num(np.array([macro(m, t) for m, t in zip(T.mkt, T.t)]))
@@ -187,7 +189,7 @@ def simulate(T, version, start, end=END, news=None, macro=None, deposits=False):
             yr = y / y.shift(1).fillna(1.0) - 1
             st.update(worst_year=float(yr.min()), worst_year_at=int(yr.idxmin().year), losing_years=int((yr < 0).sum()),
                       years=int(len(yr)))
-    return st, eq, risk_of
+    return st, eq, pd.Series(risk_of, index=idx)
 
 
 def monte_carlo(eq, runs=4000, years=10, block=6, seed=7):
