@@ -488,7 +488,7 @@ def search(tf, E, names, Bm, disc_mask):
     mcode = pd.factorize(E["mkt"])[0].astype(np.int64)
     order = np.lexsort((E["s"], mcode)).astype(np.int64)
     for scope in _M.get("scopes", ("pooled", "XAUUSD")):
-        sm = disc_mask & ((E["mkt"] == "XAUUSD") if scope == "XAUUSD" else True)
+        sm = disc_mask & ((E["mkt"] == scope) if scope != "pooled" else True)
         for ex in EXITS:
             R = E[f"R_{ex}"]
             xj = E[f"x_{ex}"]
@@ -559,8 +559,8 @@ def validate(E, Bm, names, c):
     mask = np.ones(len(R), bool)
     for q in c["conds"]:
         mask &= Bm[:, q]
-    if c["scope"] == "XAUUSD":
-        mask &= E["mkt"] == "XAUUSD"
+    if c["scope"] != "pooled":
+        mask &= E["mkt"] == c["scope"]
     mask &= np.isfinite(R)
     val = mask & (E["t"] >= _M["SPLIT"])
     k = no_overlap(E, val, ex)
