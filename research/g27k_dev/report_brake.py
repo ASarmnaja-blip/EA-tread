@@ -21,6 +21,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import h4d1_pattern_search as P
+import brake as BR
 import report_walkforward10y as RWF
 import walkforward_controller as W
 
@@ -70,19 +71,17 @@ CMP_CSS = """<style>
 </style>"""
 
 
-def compare_section(bk, b1, log, mc, dca):
+def compare_section(bk, b1, log, mc, dca_rows, start, nyears, curves):
     """Static side-by-side of the brake and no brake (three-market portfolio)."""
     on = pd.Timestamp(log[0]["t"]) if log else None
     off = pd.Timestamp(log[1]["t"]) if len(log) > 1 else None
     yrs_bk = {y["year"]: y for y in bk["yearly"]}
     yrs_nb = {y["year"]: y for y in b1["yearly"]}
     years = sorted(yrs_bk)
-    pts = [dict(x="2009-09-01", bk=bk["deposit"], nb=b1["deposit"])]
-    vb = vn = bk["deposit"]
-    for y in years:
-        vb *= 1 + yrs_bk[y]["ret"]
-        vn *= 1 + yrs_nb[y]["ret"]
-        pts.append(dict(x=f"{y}-12-31" if y < 2026 else "2026-09-28", bk=vb, nb=vn, y=y))
+    TH = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
+    pts = [dict(x=start, bk=bk["deposit"], nb=b1["deposit"], lab="เริ่ม " + start)]
+    for d, vb, vn in curves:
+        pts.append(dict(x=str(d.date()), bk=vb, nb=vn, lab=f"สิ้น {TH[d.month - 1]} {d.year}"))
 
     def state(y):
         if on is None or y < on.year or (off is not None and y > off.year):
@@ -94,8 +93,6 @@ def compare_section(bk, b1, log, mc, dca):
     mar = lambda r: r["cagr"] / r["equity_dd"]["relative_pct"]
     worst = lambda r: min(r["yearly"], key=lambda y: y["ret"])
     neg_years = lambda r: sum(y["ret"] < 0 for y in r["yearly"])
-    d09b, d09n = dca["2009-10-01 brake 25%"], dca["2009-10-01 const 1%"]
-    d16b, d16n = dca["2016-10-01 brake 25%"], dca["2016-10-01 const 1%"]
     mb, mn = mc["brake 25%"], mc["const 1%"]
     # (label, brake, no brake, which is better: 1 brake, -1 no brake, 0 none)
     rows = [("เงินสุดท้าย (เริ่ม $100,000)", f"${bk['final']:,.0f}", f"${b1['final']:,.0f}", -1),
@@ -110,13 +107,12 @@ def compare_section(bk, b1, log, mc, dca):
             ("สุ่ม 10 ปี: โอกาส DD เกิน 50%", f"{mb['p_dd50']:.1%}", f"{mn['p_dd50']:.1%}", 1),
             ("สุ่ม 10 ปี: DD มัธยฐาน", f"{mb['dd_median']:.0%}", f"{mn['dd_median']:.0%}", 1),
             ("สุ่ม 10 ปี: ผลตอบแทนมัธยฐาน", f"{mb['cagr_median']:.1%}", f"{mn['cagr_median']:.1%}", -1),
-            ("เติม $100/เดือน ตั้งแต่ 2009 (ใส่ $20,500)", f"${d09b['final']:,.0f} · {d09b['irr']:.1%}/ปี", f"${d09n['final']:,.0f} · {d09n['irr']:.1%}/ปี", -1),
-            ("เติม $100/เดือน ตั้งแต่ 2016 (ใส่ $12,100)", f"${d16b['final']:,.0f} · {d16b['irr']:.1%}/ปี", f"${d16n['final']:,.0f} · {d16n['irr']:.1%}/ปี", -1)]
+            *dca_rows]
     td = lambda v, w: f'<td class="n{" win" if w else ""}">{v}</td>'
     table = ('<table class="cmp"><thead><tr><th></th><th class="n"><span class="sw" style="background:var(--s-bk)"></span>เบรก 25%</th>'
              '<th class="n"><span class="sw" style="background:var(--s-nb)"></span>ไม่มีเบรก</th></tr></thead><tbody>'
-             + "".join(f"<tr><td style='white-space:normal'>{l}</td>{td(a, w == 1)}{td(b, w == -1)}</tr>" for l, a, b, w in rows)
-             + "</tbody></table><p class='muted small' style='margin:8px 0 0'>ตัวหนา = ฝั่งที่ดีกว่าในข้อนั้น · พอร์ต 3 ตลาด · “สุ่ม 10 ปี” = Monte Carlo 10,000 รอบจากผลรายเดือน</p>")
+             + "".join(f"<tr><td style='white-space:normal'>{l}</td>{td(a, w == 1 and a != b)}{td(b, w == -1 and a != b)}</tr>" for l, a, b, w in rows)
+             + "</tbody></table><p class='muted small' style='margin:8px 0 0'>ตัวหนา = ฝั่งที่ดีกว่าในข้อนั้น · พอร์ต 3 ตลาด · “สุ่ม 10 ปี” = Monte Carlo 10,000 รอบจากผลรายเดือนของประวัติ 17 ปีทั้งหมด</p>")
     yt = ('<table class="cmp"><thead><tr><th>ปี</th><th class="n">ความเสี่ยง</th><th class="n">เบรก 25%</th><th class="n">ไม่มีเบรก</th>'
           '<th class="n">ต่าง (จุด)</th></tr></thead><tbody>'
           + "".join(f"<tr><td>{y}</td><td class='n'>{state(y)}</td>"
@@ -126,9 +122,12 @@ def compare_section(bk, b1, log, mc, dca):
           + "</tbody></table>")
     gap = 1 - bk["final"] / b1["final"]
     summary = (f"<p class='cmp-sum'>เบรกทำงาน <b>{on:%d/%m/%Y}</b> และปลด <b>{off:%d/%m/%Y}</b> "
-               f"(ใช้ 0.5% อยู่ราว {(off - on).days / 365.25:.0f} ปี) · ผลรวม 17 ปี: เงินสุดท้ายน้อยกว่าไม่มีเบรก {gap:.0%} "
+               f"(ใช้ 0.5% อยู่ราว {(off - on).days / 365.25:.0f} ปี) · ผลรวม {nyears} ปี: เงินสุดท้ายน้อยกว่าไม่มีเบรก {gap:.0%} "
                f"แต่ Equity DD ลดจาก {b1['equity_dd']['relative_pct']:.0%} เหลือ {bk['equity_dd']['relative_pct']:.0%} "
-               f"และโอกาสพอร์ตร่วงเกินครึ่งลดจาก {mn['p_dd50']:.1%} เหลือ {mb['p_dd50']:.1%}</p>") if off is not None else ""
+               f"และโอกาสพอร์ตร่วงเกินครึ่งลดจาก {mn['p_dd50']:.1%} เหลือ {mb['p_dd50']:.1%}</p>") if off is not None else (
+        f"<p class='cmp-sum'><b>ช่วง {nyears} ปีนี้เบรกไม่ทำงานเลย</b> เพราะพอร์ตไม่เคยต่ำกว่ายอดสูงสุดถึง 25% "
+        f"(Balance DD สูงสุด {bk['balance_dd']['relative_pct']:.1%}) ผลจึงเหมือนไม่มีเบรกทุกไม้ · "
+        f"เบรกคือประกันสำหรับช่วงแบบปี 2013–2015 ซึ่งช่วงนี้ไม่เกิด · ตัวเลข “สุ่ม 10 ปี” ด้านล่างคือสิ่งที่เบรกป้องกัน</p>")
     data = json.dumps(dict(pts=pts, on=log[0]["t"] if log else None, off=log[1]["t"] if len(log) > 1 else None))
     script = """<script>
 (function(){
@@ -142,7 +141,8 @@ function draw(){
   const all = C.pts.flatMap(p => [p.bk, p.nb]), lo = Math.log(Math.min(...all) * 0.9), hi = Math.log(Math.max(...all) * 1.08);
   const X = t => L + (t - x0) / (x1 - x0) * (W - L - R), Y = v => T + (hi - Math.log(v)) / (hi - lo) * (H - T - B);
   const ticks = [1e5, 2e5, 5e5, 1e6, 2e6].filter(v => Math.log(v) > lo && Math.log(v) < hi);
-  const yearsT = W < 520 ? [2010, 2014, 2018, 2022, 2026] : [2010, 2013, 2016, 2019, 2022, 2025];
+  const ya = new Date(x0).getUTCFullYear() + 1, yb = new Date(x1).getUTCFullYear(), stp = Math.max(1, Math.ceil((yb - ya + 1) / (W < 520 ? 5 : 7)));
+  const yearsT = []; for (let y = ya; y <= yb; y += stp) yearsT.push(y);
   const line = k => C.pts.map((p, i) => (i ? "L" : "M") + X(ts(p.x)).toFixed(1) + "," + Y(p[k]).toFixed(1)).join("");
   const last = C.pts[C.pts.length - 1];
   let s = `<svg class="svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Balance เบรก 25% เทียบกับไม่มีเบรก สเกล log">`;
@@ -170,7 +170,7 @@ function draw(){
     cx.setAttribute("x1", x); cx.setAttribute("x2", x);
     db.setAttribute("cx", x); db.setAttribute("cy", Y(best.bk)); dn.setAttribute("cx", x); dn.setAttribute("cy", Y(best.nb));
     tp.style.display = "block";
-    tp.innerHTML = `<b>${best.y ? "สิ้นปี " + best.y : "เริ่ม ก.ย. 2009"}</b><br><span class="sw" style="background:var(--s-bk)"></span>เบรก $${nf.format(best.bk)}<br><span class="sw" style="background:var(--s-nb)"></span>ไม่มีเบรก $${nf.format(best.nb)}`;
+    tp.innerHTML = `<b>${best.lab}</b><br><span class="sw" style="background:var(--s-bk)"></span>เบรก $${nf.format(best.bk)}<br><span class="sw" style="background:var(--s-nb)"></span>ไม่มีเบรก $${nf.format(best.nb)}`;
     const tw = tp.offsetWidth; tp.style.left = Math.min(Math.max(x + 10, 0), W - tw) + "px"; tp.style.top = "8px";
   };
   const hide = () => { [cx, db, dn, tp].forEach(n => n.style.display = "none"); };
@@ -184,7 +184,7 @@ window.addEventListener("resize", () => { if (el.clientWidth !== w0) { w0 = el.c
 </script>""".replace("__DATA__", data)
     html = (CMP_CSS + '<section class="card"><h2>เทียบกับไม่มีเบรก · พอร์ต 3 ตลาด 1% ต่อไม้</h2>' + summary +
             '<div class="legend" style="margin-bottom:6px"><span><i style="background:var(--s-bk)"></i>เบรก 25%</span>'
-            '<span><i style="background:var(--s-nb)"></i>ไม่มีเบรก</span><span class="muted">Balance สิ้นปี · สเกล log</span></div>'
+            '<span><i style="background:var(--s-nb)"></i>ไม่มีเบรก</span><span class="muted">Balance สิ้นเดือน · สเกล log</span></div>'
             '<div id="cmpChart" class="chart"></div></section>'
             '<div class="cmp-grid"><section class="card"><h2>ตัวเลขเทียบกัน</h2><div class="tbl">' + table + '</div></section>'
             '<section class="card"><h2>รายปี</h2><div class="tbl">' + yt + '</div></section></div>')
@@ -195,13 +195,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--start", default=START)
+    ap.add_argument("--end", default=END)
     a = ap.parse_args()
     P.setup(a.root)
     G, K = P._M["G"], P._M["K"]
     sys.path.insert(0, str(pathlib.Path(a.root) / "research" / "grid768"))
     import report768 as RP
     P._M["h1"] = {m: W.hybrid_h1(m, G) for m in K.MKTS}
-    S, E = pd.Timestamp(START, tz="UTC"), pd.Timestamp(END, tz="UTC")
+    S, E = pd.Timestamp(a.start, tz="UTC"), pd.Timestamp(a.end, tz="UTC")
+    ny = round((E - S).days / 365.25)
     G.START = K.START = int(S.timestamp())
     ext = K.externals()
     rows = []
@@ -234,7 +237,7 @@ def main():
                   "ตลาดละ 1 ไม้ · ทอง เงิน และบิตคอยน์ (บิตคอยน์เริ่มปี 2021)"]
     TH_M = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
     last = E - pd.Timedelta(days=1)
-    period_th = f"17 ปี {S.day} {TH_M[S.month - 1]} {S.year} – {last.day} {TH_M[last.month - 1]} {last.year}"
+    period_th = f"{ny} ปี {S.day} {TH_M[S.month - 1]} {S.year} – {last.day} {TH_M[last.month - 1]} {last.year}"
     info = {
         "BK": dict(label="ระบบ B 1% + เบรก 25%", tab="B 1% + เบรก", combo="G27K #1 · เบรก DD 25%", risk=0.01, adds=False, tf="H4",
                    risk_note=f"ปกติ 1% · Balance DD ถึง 25% → 0.5% · กลับ 1% เมื่อ DD ไม่เกิน 12.5% · {braked:.0%} ของไม้ทั้งหมดเข้าตอนเบรกทำงาน",
@@ -243,7 +246,7 @@ def main():
                    notes=[f"<b>ระบบที่คุณเลือก</b> ได้ {line(bk)} เทียบกับ 1% ไม่มีเบรก {line(b1)} และ 0.5% {line(b05)}",
                           "<b>เบรกลงทะเบียนไว้ก่อนรัน (ledger g27k_b_1pct_brake) ผ่าน 3 จาก 4 เกณฑ์</b> ช่วง 2017–2026 MAR ต่ำกว่าการใช้ความเสี่ยงคงที่เท่ากัน (0.94 เทียบกับ 1.01) จึงถือเป็นนโยบายคุมความเสี่ยง ไม่ใช่ความได้เปรียบที่พิสูจน์แล้ว",
                           f"<b>Monte Carlo 10 ปี 10,000 รอบ:</b> โอกาส DD เกิน 50% = {mc['brake 25%']['p_dd50']:.1%} (ไม่มีเบรก {mc['const 1%']['p_dd50']:.1%}) · DD มัธยฐาน {mc['brake 25%']['dd_median']:.0%} · ผลตอบแทนมัธยฐาน {mc['brake 25%']['cagr_median']:.1%} ต่อปี",
-                          f"<b>เติมเงิน $100 ทุกเดือนตั้งแต่ ต.ค. 2009:</b> ใส่ ${dca['2009-10-01 brake 25%']['deposited']:,.0f} ได้ ${dca['2009-10-01 brake 25%']['final']:,.0f} (IRR {dca['2009-10-01 brake 25%']['irr']:.1%}) · ไม่มีเบรกได้ ${dca['2009-10-01 const 1%']['final']:,.0f}",
+                          *([f"<b>เติมเงิน $100 ทุกเดือนตั้งแต่ ต.ค. 2009:</b> ใส่ ${dca['2009-10-01 brake 25%']['deposited']:,.0f} ได้ ${dca['2009-10-01 brake 25%']['final']:,.0f} (IRR {dca['2009-10-01 brake 25%']['irr']:.1%}) · ไม่มีเบรกได้ ${dca['2009-10-01 const 1%']['final']:,.0f}"] if S.year < 2010 else []),
                           "<b>แท็บตลาดเดียว</b> ใช้ขนาดไม้เดียวกับพอร์ต 3 ตลาด (เบรกดู DD ของทั้งพอร์ต) · ตาราง “ถ้าเปลี่ยนความเสี่ยง” ย่อ/ขยายทุกไม้ตามสัดส่วน โดยจังหวะเบรกคงเดิม"]),
         "B1": dict(label="ระบบ B 1% ไม่มีเบรก", tab="B 1%", combo="G27K #1", risk=0.01, adds=False, tf="H4", risk_note="ต่อไม้ คงที่",
                    rules=base_rules + ["ความเสี่ยง 1% ต่อไม้ ทบต้นจาก balance ไม่มีเบรก"],
@@ -254,7 +257,7 @@ def main():
     }
     empty = "ระบบนี้เป็นกฎตายตัว G27K #1 กฎเดียว ไม่มีการค้นหรือเปลี่ยนรูปแบบระหว่างทาง"
     wf = {"BK": dict(patterns=[], pat_note="", pat_empty=empty, log=log,
-                     log_note=f"ทุกครั้งที่เบรกทำงานหรือปลดเบรก ({len(log)} ครั้งใน 17 ปี)", log_empty="เบรกไม่ทำงานเลย"),
+                     log_note=f"ทุกครั้งที่เบรกทำงานหรือปลดเบรก ({len(log)} ครั้งใน {ny} ปี)", log_empty=f"เบรกไม่ทำงานเลยใน {ny} ปีนี้ (Balance DD ไม่ถึง 25%)"),
           "B1": dict(patterns=[], pat_note="", pat_empty=empty, log=[], log_note="", log_empty="ไม่มีเบรก ไม่มีการตัดสินใจระหว่างทาง"),
           "B05": dict(patterns=[], pat_note="", pat_empty=empty, log=[], log_note="", log_empty="ไม่มีเบรก ไม่มีการตัดสินใจระหว่างทาง")}
     out["META"] = dict(
@@ -262,18 +265,36 @@ def main():
         data_note="ทอง/เงิน: Candle Lab H1 ก่อนปี 2021 ต่อด้วย MT5 H1 · BTC: MT5 H1 ตั้งแต่ปี 2021 · SL ตรวจทีละแท่ง H1",
         notes_common=[f"<b>ตัวเลขทั้งหน้านี้คือ {period_th} บัญชีเดียวต่อเนื่อง เริ่ม $100,000</b> จำลองบนราคาจริง ไม่ใช่ผลเทรดจริง และไม่ได้บอกอนาคต · ทุกตัวเลขย่อขยายตามเงินต้นได้ ($100 = 10,000 USC)",
                       "<b>ต้นทุนเหมือนรายงาน G27K:</b> spread + 1 bp (ขั้นต่ำ 2 bp ต่อรอบ) และ swap จริงของโบรกเกอร์",
-                      "<b>กฎ G27K #1 ถูกเลือกจาก 27,648 แบบโดยเห็นผลปี 2021–2026 แล้ว</b> ช่วงนั้นจึงดีเกินจริง · ช่วง 2009–2020 ไม่ได้ใช้เลือก และได้ผลอ่อนกว่ามาก (ตลาดโลหะขาลงปี 2011–2015)",
-                      "<b>BTC มีข้อมูลตั้งแต่ปี 2021 เท่านั้น</b> ก่อนหน้านั้นระบบ B เทรดแค่ทองกับเงิน และ 5 ปีของ BTC ยังไม่ครอบคลุมการร่วงแบบ 75–80% ทุกแบบที่เคยเกิด"],
+                      *(["<b>กฎ G27K #1 ถูกเลือกจาก 27,648 แบบโดยเห็นผลปี 2021–2026 แล้ว</b> ช่วงนั้นจึงดีเกินจริง · ช่วง 2009–2020 ไม่ได้ใช้เลือก และได้ผลอ่อนกว่ามาก (ตลาดโลหะขาลงปี 2011–2015)",
+                         "<b>BTC มีข้อมูลตั้งแต่ปี 2021 เท่านั้น</b> ก่อนหน้านั้นระบบ B เทรดแค่ทองกับเงิน และ 5 ปีของ BTC ยังไม่ครอบคลุมการร่วงแบบ 75–80% ทุกแบบที่เคยเกิด"]
+                        if S.year < 2021 else
+                        ["<b>ทั้งช่วงนี้อยู่ในช่วงที่ใช้เลือกกฎ G27K #1 (เห็นผลปี 2021–2026 แล้วจึงเลือกจาก 27,648 แบบ)</b> ตัวเลขจึงดีเกินจริงมาก และเป็นช่วงที่ทอง เงิน และ BTC ขึ้นแรง ห้ามใช้เป็นภาพของอนาคต · ภาพที่สมจริงกว่าคือรายงาน 17 ปี"])],
         footer="สร้างจาก research/g27k_dev/report_brake.py · ledger: g27k_two_systems_phase1 / g27k_b_1pct_brake · ตัวเลขคำนวณด้วย report768.metrics ชุดเดียวกับรายงาน G27K · คำนวณ 2 ต.ค. 2026")
     data = RWF.clean(out)
-    (HERE / "report_brake.json").write_text(json.dumps(data, ensure_ascii=False))
+    (HERE / f"report_brake_{ny}y.json").write_text(json.dumps(data, ensure_ascii=False))
     tpl = (HERE.parent / "walkforward_report_template.html").read_text(encoding="utf-8")
-    tpl = (tpl.replace("<title>รายงาน Walk-forward 10 ปี</title>", "<title>ระบบ B 1% + เบรก</title>")
+    tpl = (tpl.replace("<title>รายงาน Walk-forward 10 ปี</title>", "<title>ระบบ B 1% + เบรก</title>" if ny == 17 else f"<title>ระบบ B + เบรก {ny} ปี</title>")
               .replace("Strategy Tester · Walk-forward report", "Strategy Tester · G27K ระบบ B")
-              .replace("รายงานผลทดสอบ Walk-forward · 10 ปี", "รายงานผลทดสอบระบบ B 1% + เบรก · 17 ปี")
+              .replace("รายงานผลทดสอบ Walk-forward · 10 ปี", f"รายงานผลทดสอบระบบ B 1% + เบรก · {ny} ปี")
               .replace("การตัดสินใจทุกครั้งใช้ข้อมูลก่อนเวลานั้นเท่านั้น", "เบรกใช้แค่ balance ณ เวลาเข้าไม้")
               .replace('<h2>บันทึกการตัดสินใจ</h2>', '<h2>บันทึกเบรก</h2>'))
-    cmp_html, cmp_js = compare_section(bk, b1, log, mc, dca)
+    Tdf = pd.DataFrame(dict(t=[r["t"] for r in rows], tx=[r["t_exit"] for r in rows], R=[r["R"] for r in rows]))
+    dca_rows = []
+    d0 = (S + pd.offsets.MonthBegin(0)).strftime("%Y-%m-%d")
+    for ds in [d0] + (["2016-10-01"] if S.year < 2016 else []):
+        db, dn = (BR.dca_brake(Tdf[Tdf.t >= W.ts(ds)], X, ds, a.end) for X in (X_BRAKE, None))
+        dca_rows.append((f"เติม $100/เดือน ตั้งแต่ {ds[:7]} (ใส่ ${db['deposited']:,.0f})",
+                         f"${db['final']:,.0f} · {db['irr']:.1%}/ปี", f"${dn['final']:,.0f} · {dn['irr']:.1%}/ปี",
+                         0 if abs(db['final'] - dn['final']) < 1 else (1 if db['final'] > dn['final'] else -1)))
+    me = pd.date_range(S, E, freq="ME")
+    def monthly(acc):
+        tx = np.array([r["t_exit"] for r in acc]); ba = np.array([r["bal_after"] for r in acc])
+        j = np.searchsorted(tx, me.values.astype("datetime64[s]").astype(np.int64) + 86399, side="right") - 1
+        return np.where(j >= 0, ba[np.maximum(j, 0)], W.DEPOSIT)
+    cb = monthly(RWF.account_var(rows))
+    cn = monthly(RWF.account_var([dict(r, risk_frac=0.01) for r in rows]))
+    curves = [(d, float(x), float(y)) for d, x, y in zip(me, cb, cn)]
+    cmp_html, cmp_js = compare_section(bk, b1, log, mc, dca_rows, str(S.date()), ny, curves)
     tpl = (tpl.replace('<section class="kpis" id="kpis"></section>',
                        cmp_html + '<h2 style="margin:6px 0 10px">รายละเอียดแต่ละระบบ</h2>\n  <section class="kpis" id="kpis"></section>', 1)
               + "\n" + cmp_js)
