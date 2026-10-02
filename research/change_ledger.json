@@ -1160,6 +1160,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "FAIL. Values are MAR; t from circular-shift p. O2 B: MAR 0.33 vs 0.27, CAGR 20.0% vs 15.3%, DD 60% vs 58%, both halves higher, p 0.116. O2 A: 0.19 vs 0.20 (p 0.460). O1 skips worse: A 0.12, B 0.22."
    }
+  },
+  {
+   "id": "g27k_b_1pct_brake",
+   "registered": "2026-10-02T10:38:13.366722+00:00",
+   "why": "User wants system B at 1% risk (highest return) but B 1% had 58% balance DD and MC P(DD>50%) 8.6% in phase 1; test whether a drawdown brake keeps most of the return with less depth.",
+   "change": "System B, G27K #1 base rules (N10/M20/k2.0), trades unchanged. Risk per trade = 1% x mult. At each entry, after settling closed trades, dd = 1 - balance/peak balance. mult starts 1; becomes 0.5 when dd >= X; returns to 1 when dd <= X/2. Primary X = 25%; also X = 20% and 30%. Comparison: constant risk equal to the brake's trade-weighted average risk over 2009-09..2026-10 (matched constant), plus constant 1% and 0.5%. Monte Carlo: 10,000 ten-year paths of 6-month blocks of monthly returns at 1%, brake applied month by month on each path's own DD.",
+   "sweep_size": 3,
+   "criterion": "X=25% passes if all hold: full-period MAR above the matched constant's; MAR at least the matched constant's in both halves (split 2017-01-01); MC P(DD>50%) <= 5%; CAGR at least 80% of constant 1% CAGR.",
+   "min_improvement": 0.0,
+   "test_period": "2009-09-01..2026-10-01 hybrid H1 data",
+   "result": {
+    "recorded": "2026-10-02T10:39:20.372852+00:00",
+    "baseline_er": 0.25,
+    "variant_er": 0.34,
+    "improvement": 0.09000000000000002,
+    "t_stat": 0.0,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 15002005,
+    "floor_at_test": 7.93317505436918,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "FAIL on one of four criteria. Values are MAR vs the matched constant (0.723%); no t-statistic, pass/fail is the registered criteria. X=25%: full MAR 0.34 vs 0.25 PASS; 2009-16 0.09 vs 0.02 PASS; 2017-26 0.94 vs 1.01 FAIL; MC P(DD>50%) 0.6% PASS; CAGR 14.8% vs 15.3% at 1% PASS (>=80%). Full-period DD 43% vs 58% at constant 1%. X=20% would pass all four but was not the primary, so it is not adopted."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
