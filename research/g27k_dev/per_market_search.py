@@ -54,17 +54,23 @@ def split_for(E):
     return np.select([E["mkt"] == m for m in MKTS], [W.ts(SPLITS[m]) for m in MKTS], W.ts(TEST0)).astype(np.int64)
 
 
-def trades_of(E, Bm, c):
-    """Non-overlapping test-period trades of one pattern: market, entry, exit, R."""
+def trades_of(E, Bm, c, feats=None, full=False):
+    """Non-overlapping trades of one pattern: market, entry, exit, R, plus the
+    ATR percentile at the signal and the signal close (for the monitor layer).
+    Test period only, or the whole history with full=True."""
     ex = c["exit"]
     R = E[f"R_{ex}"]
-    mask = np.isfinite(R) & (E["t"] >= _split(E))
+    mask = np.isfinite(R) & (np.ones(len(R), bool) if full else (E["t"] >= _split(E)))
     for q in c["conds"]:
         mask &= Bm[:, q]
     mask &= P.scope_mask(E, c["scope"])
     k = P.no_overlap(E, mask, ex)
     sec = P.TF_SEC[c["tf"]]
-    return pd.DataFrame(dict(mkt=E["mkt"][k], t=E["t"][k] + sec, tx=E[f"tx_{ex}"][k], R=R[k]))
+    T = pd.DataFrame(dict(mkt=E["mkt"][k], t=E["t"][k] + sec, tx=E[f"tx_{ex}"][k], R=R[k], d=E["d"][k], i=k))
+    if feats is not None:
+        T["vp"] = feats["atr_pct"][k]
+    T["sc"] = T.t
+    return T
 
 
 def _split(E):
@@ -104,7 +110,8 @@ def run_search(h1s, label, tfs):
             top = sorted([c for c in cands if c["scope"] == s], key=lambda c: -c["t_disc"])[:KEEP]
             for c in top:
                 c.update(P.validate(E, Bm, names, c))
-                c["trades"] = trades_of(E, Bm, c)
+                c["trades"] = trades_of(E, Bm, c, feats)
+                c["trades_all"] = trades_of(E, Bm, c, feats, full=True)
             best[s] += top
         store[tf] = None
         print(f"  [{label}] {tf}: {len(E['t']):,} events, {len(names)} conditions, {tot:,} patterns  "
@@ -129,7 +136,7 @@ def account(T, start=TEST0, end=END):
 
 
 def slim(c):
-    return {k: v for k, v in c.items() if k != "trades"} | dict(n_test=len(c["trades"]))
+    return {k: v for k, v in c.items() if k not in ("trades", "trades_all")} | dict(n_test=len(c["trades"]))
 
 
 def stage_search(a):
