@@ -1085,6 +1085,17 @@
     "verdict": "REJECTED",
     "note": "FAIL in both cross directions; no gate is recommended. Units MAR. Main window (2021-10..2026-09) ungated base at 0.5%: CAGR 67.8%, equity DD 28.4%, MAR 2.38 - the best of all 18 rules there; every gate lowered MAR (trend gate alone 0.79, equity-curve filters 1.34-1.78, open-risk caps 1.66-1.89). Independent window (2016-10..2021-09) base: CAGR +0.6%, DD 55.2%, MAR 0.01; best there was cap 6% + trend gate (CAGR +1.8%, DD 23.3%, MAR 0.08); applied to the main window it gives MAR 0.76 (CAGR 21.3%) against the base 2.38. Fit-main rule (the base itself) on the independent window equals the base, so it cannot pass. The daily-efficiency trend gate is insurance, not an edge: it halves drawdown in the range regime and removes two thirds of the profit in the trend regime, partly because the dominant pattern family (first breakout after a quiet spell) fires precisely when efficiency is still low. Equity-curve filters whipsawed in both windows. Plain size scaling (no gates): main 0.25% -> CAGR 32.0% DD 15.2%; 0.15% -> 18.7% / 9.3%; independent 0.25% -> +2.0% / 31.2%; 0.15% -> +1.6% / 19.5%. Drawdown is set by size and by regime, not by any gate tested."
    }
+  },
+  {
+   "id": "g27k_two_systems_phase1",
+   "registered": "2026-10-02T09:35:56.001348+00:00",
+   "why": "User chose G27K #1 for development as two systems: A = gold only, B = gold + silver + BTC. Before any improvement, establish whether each is robust: longer history including the 2011-15 metals bear, parameter neighbourhood, cost stress, drift placebo, and drawdown risk by Monte Carlo.",
+   "change": "Rules fixed: H4 close above the prior N-bar high (base N=10), long only, skip if a HIGH USD event is within 8h after the signal close (calendar from 2022), enter next open, stop k x ATR20 (base k=2) walked on H1, exit at the next open after an H4 close below the prior M-bar low (base M=20), one trade per market, 1% risk compounding, G27K cost model. Data: Candle Lab H1 metals before 2021, MT5 H1 from 2021; BTC MT5 from 2021. Window 2009-09..2026-09, halves 2009-09..2016-12 and 2017-01..2026-09. Tests per system: (0) reproduce the baseline (5y system B = +751,882; 10y A 11.2%/16.1%, B 26.7%/30.6%); (1) full 2009-2026 statistics; (2) neighbourhood N in {8,10,12,15,20} x M in {15,20,25,30} x k in {1.5,2,2.5,3} = 80 rules; (3) costs x2 and stop slippage 0.1 ATR; (4) 100 drift placebos of the H1 history with the base rule; (5) Monte Carlo of monthly portfolio returns with 6-month blocks over 10 years, 10,000 runs, at 0.5/1/2% risk.",
+   "sweep_size": 80,
+   "criterion": "A system PASSES phase 1 only if all hold: (a) 2009-2026 CAGR > 0 and PF > 1.2, positive in both halves; (b) at least 70% of the 80 neighbouring rules have PF > 1 over 2009-2026 and the median neighbour MAR is at least half the base MAR (a plateau, not a spike); (c) PF > 1.1 with costs doubled plus slippage; (d) base total R above the 95th percentile of the 100 drift placebos; (e) Monte Carlo at 1% risk gives P(max drawdown > 50%) < 5%. A failing system does not go to phase 2.",
+   "min_improvement": 0.0,
+   "test_period": "2009-09..2026-09, gold and silver Candle Lab/MT5, BTC MT5 from 2021",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
