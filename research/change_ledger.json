@@ -974,6 +974,17 @@
     "verdict": "INCONCLUSIVE",
     "note": "4,447,950 patterns on real data (H4 + D1, gold/silver/BTC, 2009-2026), ranked on non-overlapping 2009-2019 trades, top 100 validated 2020-2026, identical search on 20 drift placebos. PER-PATTERN: 6 patterns meet every registered condition (val t>=2, val mean R above the top-1 val R of all 20 placebo searches = +0.097, gold positive). All six are one family on H4: price in the top 20% of its 250-bar range in the trade direction, near a 10/20/55-bar breakout, not overextended over 100 bars, exit TP 2R or 6 bars. Best: brk55>=-1.39 ATR & pos250>=0.81, TP 2R: disc 497 trades +0.233R; val 716 trades +0.159R t 3.11, gold +42R silver +26R BTC +46R. WHOLE SEARCH: NOT distinguishable from placebo - median val R of the real top 100 +0.049 vs placebo max +0.064 (real ranks 2nd of 21); best discovery t real 4.63 vs placebo median 4.52; real best-of-top-10 val R +0.136 vs placebo best-of-top-10 median ~+0.12, so the per-pattern bar (placebo top-1) is lenient. DIRECTION CHECK: in validation the family's profit is entirely long (+119R long, -5R short); taking EVERY H4 bar long with the same exit makes +132R in validation (+0.069R/trade) but -18R in discovery, where the family made +116R with shorts also positive (+36R). Reading: a consistent 'trade with the 250-bar extreme' family that selects better trades than blanket long exposure, but at a strength the same search also finds in fake data about one time in ten. Verdict per the ledger floor: INCONCLUSIVE."
    }
+  },
+  {
+   "id": "intraday_fine_pattern_search_2009_2026",
+   "registered": "2026-10-02T03:10:29.944598+00:00",
+   "why": "User allowed M15 and above. The H4 search found one consistent family (trade with the 250-bar extreme near a breakout) that passed per-pattern but not whole-search placebo comparison. Gold M1 bid/ask 2009-2026 lets the same search run on M15/M30/H1 with stops walked minute by minute and the same discovery/validation split as H4/D1.",
+   "change": "intraday_pattern_search.py --start 2009-01-01 --split 2020-01-01: gold only, Dukascopy M1 mid prices, M15/M30/H1 bars, every bar long and short, five exits, same ~45 features (no cross-market), singles + pairs + beam triples, non-overlapping discovery ranking (min 150/100/80 trades), top 100 validated 2020-2026, cost = 0.26 USD spread + 1 bp + real long swap; identical search on 20 drift placebos of the M1 history. Secondary, stated now: whether the 250-bar-extreme family (pos250 >= its discovery 80th percentile) appears in the real top 100 at any intraday timeframe.",
+   "sweep_size": 3500000,
+   "criterion": "Same as h4d1_fine_pattern_search: a pattern is a CANDIDATE only if validation non-overlapping mean R > 0 with t >= 2.0 and >= 30 trades AND its validation mean R exceeds the top-1 validation mean R of every one of the 20 placebo searches; the search shows structure beyond drift only if the median validation R of the real top 100 exceeds that statistic in all 20 placebo searches. Also reported: real best-of-top-10 against the placebo best-of-top-10 distribution, the like-for-like comparison the H4 run showed the top-1 bar is lenient against.",
+   "min_improvement": 0.0,
+   "test_period": "Gold M1 2009-01..2026-09; discovery before 2020-01-01, validation after. No holdout touched.",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
