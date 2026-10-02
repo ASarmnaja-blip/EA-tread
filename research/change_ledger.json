@@ -1060,6 +1060,17 @@
     "verdict": "REJECTED",
     "note": "ROUND 2 VERDICT: WORSE on the main window, and the independent window shows the round-1 observations do not generalise. MAIN 2021-10..2026-09 (MAR = CAGR / max equity DD): round 2 1,035 trades, net +$72,117, CAGR 11.5%, equity DD 6.4%, MAR 1.78, PF 1.29 - better than round-1 rules (1.26) but below G27K #1 (2.25) and below the no-decision trading of round 2's own 12 adopted patterns (3,903 trades, CAGR 106%, DD 40.0%, MAR 2.65). The one-open-trade-per-market-and-direction rule blocked 2,823 of 3,858 aggregated signals, which is why round 2 used so little risk. INDEPENDENT 2016-10..2021-09 (metals, no news calendar): every version lost money - round 2 CAGR -3.1%, DD 20.4%, MAR -0.15; round-1 rules -4.1%, DD 23.5%, MAR -0.17; no-decision -3.9%, DD 72.4%. 22 patterns adopted forward there, most retired with negative live R. Round-2 rules beat round-1 rules on MAR in both windows, but only marginally in the independent one, where nothing worked. READING: forward pattern discovery on H4/D1 breakout families earned money only in 2021-2026, the strong-trend regime; in the 2016-2021 range-bound metals regime the same machinery found patterns that failed live. The confluence and news observations were properties of the 2021-2026 regime, not established edges. t field unused (0)."
    }
+  },
+  {
+   "id": "regime_gate_crossval",
+   "registered": "2026-10-02T07:55:24.858008+00:00",
+   "why": "User: profit is very high but so is drawdown; permission to change the question. Two forward rounds showed the forward-discovered pattern book makes money only in trending regimes (2021-26) and loses in range regimes (2016-21), and that its drawdown comes from stacked exposure. New question: is there a simple, causal sizing/gating rule that keeps most of the profit while cutting drawdown, and does it hold on a window it was not chosen on?",
+   "change": "Trade streams: every trade of the forward-adopted patterns (round-2 adoption, no decisions) in both windows, main 2021-10..2026-09 and independent 2016-10..2021-09, same fills and costs. Account re-simulated with base risk 0.5% per trade and an 18-rule grid: total open-risk cap {3%, 6%, none} (new trades scaled down to fit, skipped below 0.05%) x book equity-curve filter {off, trailing 30 closed trades, trailing 60 closed trades; size x0.25 while that trailing sum of R is negative; shadow outcomes of all signals, known only at their exit} x market trend gate {off, on: daily efficiency ratio over 60 days at or above its own trailing-250-day median, read from the last daily bar closed before entry}. CROSS-VALIDATION: choose the rule with the best MAR on one window, apply it unchanged to the other; both directions. All 18 rules are reported on both windows.",
+   "sweep_size": 18,
+   "criterion": "PASS only if, in BOTH cross directions, the chosen rule on its test window has higher MAR than the ungated base (0.5%, no cap, no filters) on that window AND equity drawdown at most 60% of the base's. Otherwise the rule set does not transfer and no gate is recommended.",
+   "min_improvement": 0.0,
+   "test_period": "Windows 2016-10..2021-09 and 2021-10..2026-09; every gate input known before the entry it sizes.",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
