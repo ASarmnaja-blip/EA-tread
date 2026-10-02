@@ -924,6 +924,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "INCONCLUSIVE, NOT REJECTED - different outcome from the NFP test despite being built to answer the same question. 2,678 synchronized-event hours found (122/year vs NFP's 12/year), confirming the calendar-free detector does catch far more events as designed. +1h pooled edge +0.0215 (t+0.41, 6/9 positive) and +4h +0.1624 (t+1.08, 6/9 positive) are both small and statistically weak. +24h pooled edge +1.1591 (t+2.45, 6/9 positive) clears the declared margin (one round trip) for the first time in this whole news-proxy line of inquiry, but t+2.45 is far below the current floor of |t|>5.06 earned by this project's hypothesis count - so by the pre-registered rule this is INCONCLUSIVE, not a finding, and the setup does not change. Gold specifically tracks the panel: +1h edge -0.2343 (t-0.87), +4h +0.2504 (t+0.53), +24h +2.6220 (t+2.52) - same shape, same statistical weakness. WHY THIS DIFFERS FROM THE NFP RESULT: NFP failed outright (negative edge, wrong-signed). This one is positive-signed and directionally consistent on a majority of markets at +24h, but at n=2678 events the effect is simply too small relative to its own noise to clear the bar this project requires before calling anything a finding - it would need roughly 4x today's t-stat (and therefore roughly 16x today's sample size, since t scales with sqrt(n) at fixed effect size) to pass. Collecting more years of data would eventually settle it, but more years are not available. FAILURE CODE: UNDERPOWERED, not WRONG_SIGN - the one real difference from every other negative result this project has recorded against this same user question."
    }
+  },
+  {
+   "id": "h4_trend_drift_placebo_2009_2026",
+   "registered": "2026-10-02T02:29:09.883364+00:00",
+   "why": "The user approved running gate 1 of the H4 trend plan handover (branch claude/claude-md-project-file-qh0ier, docs/HANDOVER_2026-10-02_H4_TREND_PLAN_TH.md): a placebo check of the candidate H4-55, D1-1 and their pair on 2009-2026. The user relies on the 17-year backtest; this asks whether that 17-year result is timing skill or just the average upward drift of gold, silver and BTC, which the G27K drift placebos already matched on the 2021-26 window.",
+   "change": "Use the other branch's own code unchanged (g27k.prepare/directions, complement.sim with 2xATR20 stop and 20-bar channel exit, stress_top3.spliced_h1 data, combo_tf system definitions). Real run vs 100 DRIFT placebo paths (g27k placebo_paths 'drift' logic: each H1 bar's direction flipped at random around the previous close after removing the market's average log drift, then the drift put back - volatility, clock and average trend kept, timing destroyed) and 30 NO-DRIFT placebo paths (lab.mirror_base). Systems: H4-55 (C4/D2), D1-1 (C2/D1), pair H4-55+D1-1, and H4-1 (C8/D3, the screenshot system) for information. Metric: total R of all trades entered 2009-09..2026-09; secondary: same metric 2009-09..2016-12, the only window never used to select H4-55.",
+   "sweep_size": 4,
+   "criterion": "PASS for a system only if its real 2009-2026 total R exceeds the 95th percentile of its 100 drift-placebo totals (rank p < 0.05 one-sided). The candidate plan passes gate 1 only if H4-55 AND the pair pass; D1-1 and H4-1 are reported either way. If real sits inside the drift-placebo range, the 17-year profit is attributed to average drift (being long a rising asset) rather than entry/exit timing, and the honest comparison becomes a plain buy-and-hold of the same markets.",
+   "min_improvement": 0.0,
+   "test_period": "Gold and silver H1 2009-09..2026-09 (Candle Lab spliced to MT5 at 2016-08), BTC MT5 H1 2018-03..2026-09, from the data-snapshot-2026-10-02 branch. No holdout of this project touched.",
+   "result": {
+    "recorded": "2026-10-02T02:30:46.630577+00:00",
+    "baseline_er": 194.0,
+    "variant_er": 385.0,
+    "improvement": 191.0,
+    "t_stat": 3.98,
+    "n_baseline": 100,
+    "n_variant": 407,
+    "k_at_test": 1894,
+    "floor_at_test": 5.062991040534446,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "REGISTERED CRITERION PASSED (gate 1 of the H4 trend handover); the ledger's own project-wide floor (|t|>5.06 at k=1894) is not cleared, so the ledger verdict reads INCONCLUSIVE. Units: total R of trades 2009-09..2026-09, baseline = 95th percentile of 100 drift placebos. Real vs drift placebo (median / p95 / max, rank p): H4-55 +242R vs +53/+121/+226, p=0.010, z 3.86; D1-1 +143R vs +41/+103/+137, p=0.010, z 2.84; pair +385R vs +89/+194/+329, p=0.010, z 3.98; H4-1 (the screenshot system) +318R vs +132/+269/+403, p=0.030, z 2.35. No-drift placebo medians -5 to -33R. Every real system beat all 100 drift paths except H4-1. Gold alone in H4-55: real +82R vs drift median +18R. THE CAVEAT THAT MATTERS: in 2009-09..2016-12, the only window never used to select H4-55, none of them is distinguishable from drift: H4-55 +45R vs drift p95 +66R (p=0.149), D1-1 p=0.287, pair p=0.188, and H4-1 +22R sits BELOW the drift median +41R (p=0.723). The placebo also runs a fixed rule on each path, so it does not charge for H4-55 having been picked from 27,648 configurations; the full-period pass is therefore an upper bound. Reading: the rules capture regime-length trends better than constant drift over 17 years, mostly in 2017-2026, but the unseen early window cannot confirm it. Gate 2 (forward paper/demo) is the only remaining test that can."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
