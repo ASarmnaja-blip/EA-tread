@@ -35,6 +35,7 @@ TOP_PAIRS_BEAM = 30
 TOP_K = 100
 WARM = 260
 _M = {}
+FRAMES = {}
 
 
 def complete_h1(m, G):
@@ -298,6 +299,11 @@ def market_frame(m, h1, tf):
         out[f"R_{ex}"] = R
         out[f"x_{ex}"] = XJ
         out[f"tx_{ex}"] = TX
+        out[f"ep_{ex}"] = EP
+        out[f"px_{ex}"] = PX
+        out[f"rk_{ex}"] = RK
+        out[f"nts_{ex}"] = nts
+    FRAMES[(m, tf)] = X
     out["B"] = B
     return out
 
@@ -389,7 +395,7 @@ def build(h1s, tf):
              s=np.concatenate([F["s"] for _, F, _, _ in rows]),
              d=np.concatenate([F["d"] for _, F, _, _ in rows]))
     for ex in EXITS:
-        for k in ("R", "x", "tx"):
+        for k in ("R", "x", "tx", "ep", "px", "rk", "nts"):
             E[f"{k}_{ex}"] = np.concatenate([F[f"{k}_{ex}"] for _, F, _, _ in rows])
     feats = {k: np.concatenate([f[k] for _, _, f, _ in rows]) for k in rows[0][2]}
     cats = {}
