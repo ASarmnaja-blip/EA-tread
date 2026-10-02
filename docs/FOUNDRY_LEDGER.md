@@ -1273,3 +1273,8 @@ silver ~0 or negative); the D7 pullback setups that made 2024-26 gold profits lo
   monthly): every rule below holding all three; the rule chosen on 2009-17 (26 weeks, top 2) tests at MAR 0.55 against 0.91 for all three:
   not better. Gold+BTC has the best test MAR (1.26) but was seen after the fact. Picks for 2026-09: 13 / 26 weeks -> BTC only; 52 weeks ->
   silver and gold.
+- Weekly rotation (prereg docs/plans/ROTATION_WEEKLY_PREREG.md, commit cd2622c; research/grid27k/rotation_weekly.py): 8 rules (4 / 8 / 13 / 26
+  weeks, top 1 / 2), decided at each week start. Chosen on 2009-17 by MAR: 4 weeks top 2 (selection MAR 0.45, metals bear +2.0 %/y with DD 4 %);
+  test 2018-26 10.5 %/y, DD 21 %, MAR 0.50 against all three always 20.9 %/y, DD 23 %, MAR 0.91: not better. Best test MAR of the eight 0.87
+  (26 weeks top 1, 6.7 %/y, DD 8 %). Selection changes 135-335 times in 1,223 weeks. Weekly rotation is defensive in the metals bear and gives up
+  most of the bull-market return.
