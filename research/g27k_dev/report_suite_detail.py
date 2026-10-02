@@ -21,6 +21,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import h4d1_pattern_search as P
+import intraday_pattern_search as IP
+import per_market_search as PMS
 import multi_market_search as MMS
 import report_walkforward10y as RWF
 import suite as SU
@@ -51,7 +53,17 @@ def g27k_rows(mkts, H1, RP, G, K, ext):
 
 def pattern_rows(c, H1, mkts, trade_mkts):
     """Report rows of one searched pattern over the whole history."""
-    E, feats, cats = P.build({m: H1[m] for m in mkts}, c["tf"])
+    minute = c["tf"] in ("M15", "M30")
+    if minute:                                  # minute patterns rebuild on M1 bars of their own market
+        old = P._M.get("frames_for")
+        P._M["frames_for"] = IP.frames_minute
+        E, feats, cats = P.build({x: PMS.load_m1(x) for x in trade_mkts}, c["tf"])
+        if old is None:
+            P._M.pop("frames_for")
+        else:
+            P._M["frames_for"] = old
+    else:
+        E, feats, cats = P.build({m: H1[m] for m in mkts}, c["tf"])
     m = W.pmask(feats, cats, [W.parse(n) for n in c["names"]]) & P.scope_mask(E, c["scope"]) & np.isfinite(E[f"R_{c['exit']}"])
     m &= np.isin(E["mkt"], list(trade_mkts))
     k = P.no_overlap(E, m, c["exit"])
@@ -97,7 +109,7 @@ def main():
     systems = {"A": [r for r in g if r["mkt"] == "XAUUSD"], "B": [r for r in g if r["mkt"] in SU.TARGET], "B16": g}
     pk = SU.picks()
     names = {}
-    if all(m in pk and pk[m]["tf"] in ("H1", "H4", "D1") for m in SU.TARGET):
+    if all(m in pk for m in SU.TARGET):
         systems["PM"] = sum((pattern_rows(pk[m], H1, SU.TARGET, [m]) for m in SU.TARGET), [])
         names["PM"] = " · ".join(f"{m}: {pk[m]['tf']} {pk[m]['exit']} {' & '.join(pk[m]['names'])}" for m in SU.TARGET)
     for key, src, mk in (("POOL3", "POOL3", SU.TARGET), ("ALL16", "ALL16", MMS.MARKETS)):
