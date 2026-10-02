@@ -1,0 +1,197 @@
+[
+ {
+  "variant": "full controller",
+  "off": [],
+  "trades": 1728,
+  "net": 116489.67053771052,
+  "cagr": 0.16712685599555988,
+  "eq_dd": 0.133107369148593,
+  "mar": 1.2555792895958269,
+  "pf": 1.2181982125069735,
+  "skipped": {
+   "news": 436,
+   "cap_market": 1204,
+   "cap_risk": 15
+  },
+  "patterns": 10,
+  "retired": 5
+ },
+ {
+  "variant": "without cap_market",
+  "off": [
+   "cap_market"
+  ],
+  "trades": 2145,
+  "net": 200241.9455924305,
+  "cagr": 0.24605688121879976,
+  "eq_dd": 0.16185867210665283,
+  "mar": 1.520195847502484,
+  "pf": 1.288020013263902,
+  "skipped": {
+   "news": 356,
+   "cap_market": 0,
+   "cap_risk": 162
+  },
+  "patterns": 9,
+  "retired": 4
+ },
+ {
+  "variant": "without cap_risk",
+  "off": [
+   "cap_risk"
+  ],
+  "trades": 1734,
+  "net": 119410.1210444986,
+  "cagr": 0.17026034591759265,
+  "eq_dd": 0.1351556455323596,
+  "mar": 1.2597353610125603,
+  "pf": 1.2213650123701676,
+  "skipped": {
+   "news": 436,
+   "cap_market": 1205,
+   "cap_risk": 0
+  },
+  "patterns": 10,
+  "retired": 5
+ },
+ {
+  "variant": "without brake",
+  "off": [
+   "brake"
+  ],
+  "trades": 1723,
+  "net": 167255.4547400063,
+  "cagr": 0.2173747661925054,
+  "eq_dd": 0.16819865105170514,
+  "mar": 1.2923692599989,
+  "pf": 1.2393954615683662,
+  "skipped": {
+   "news": 440,
+   "cap_market": 1196,
+   "cap_risk": 31
+  },
+  "patterns": 10,
+  "retired": 5
+ },
+ {
+  "variant": "without live_retire",
+  "off": [
+   "live_retire"
+  ],
+  "trades": 1420,
+  "net": 195058.19800294543,
+  "cagr": 0.24172218746997864,
+  "eq_dd": 0.1222783802965384,
+  "mar": 1.9768186893200252,
+  "pf": 1.3567111296842054,
+  "skipped": {
+   "news": 425,
+   "cap_market": 1358,
+   "cap_risk": 27
+  },
+  "patterns": 8,
+  "retired": 3
+ },
+ {
+  "variant": "without refit_retire",
+  "off": [
+   "refit_retire"
+  ],
+  "trades": 1728,
+  "net": 116489.67053771054,
+  "cagr": 0.16712685599555988,
+  "eq_dd": 0.133107369148593,
+  "mar": 1.2555792895958269,
+  "pf": 1.2181982125069737,
+  "skipped": {
+   "news": 436,
+   "cap_market": 1204,
+   "cap_risk": 15
+  },
+  "patterns": 10,
+  "retired": 5
+ },
+ {
+  "variant": "without news",
+  "off": [
+   "news"
+  ],
+  "trades": 1843,
+  "net": 138418.8267688094,
+  "cagr": 0.18987834785257096,
+  "eq_dd": 0.14099199607628748,
+  "mar": 1.346731397077549,
+  "pf": 1.2386228348893369,
+  "skipped": {
+   "news": 0,
+   "cap_market": 1344,
+   "cap_risk": 30
+  },
+  "patterns": 10,
+  "retired": 5
+ },
+ {
+  "variant": "without vol",
+  "off": [
+   "vol"
+  ],
+  "trades": 1728,
+  "net": 116244.39445426801,
+  "cagr": 0.16686215158205675,
+  "eq_dd": 0.13106957484670426,
+  "mar": 1.2730807418671695,
+  "pf": 1.2197097914566524,
+  "skipped": {
+   "news": 436,
+   "cap_market": 1204,
+   "cap_risk": 15
+  },
+  "patterns": 10,
+  "retired": 5
+ },
+ {
+  "variant": "without probation",
+  "off": [
+   "probation"
+  ],
+  "trades": 1724,
+  "net": 97669.48215322316,
+  "cagr": 0.14608003000579117,
+  "eq_dd": 0.1443499201510255,
+  "mar": 1.0119855269262052,
+  "pf": 1.1848416069910106,
+  "skipped": {
+   "news": 436,
+   "cap_market": 1199,
+   "cap_risk": 30
+  },
+  "patterns": 10,
+  "retired": 5
+ },
+ {
+  "variant": "adoption only, every monitor off",
+  "off": [
+   "cap_market",
+   "cap_risk",
+   "brake",
+   "live_retire",
+   "refit_retire",
+   "news",
+   "vol",
+   "probation"
+  ],
+  "trades": 2154,
+  "net": 700220.3476920023,
+  "cagr": 0.5160879087008745,
+  "eq_dd": 0.2433731204769945,
+  "mar": 2.1205624831919723,
+  "pf": 1.4306483366073344,
+  "skipped": {
+   "news": 0,
+   "cap_market": 0,
+   "cap_risk": 0
+  },
+  "patterns": 8,
+  "retired": 3
+ }
+]

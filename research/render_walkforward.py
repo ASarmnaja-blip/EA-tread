@@ -191,6 +191,23 @@ def main():
                    f"<td class='n'>{t['R']:+.2f}R</td><td class='n'>{usd(t['pnl'])}</td></tr>" for t in M["controller"]["best_trades"][:5])
     worst = "".join(f"<tr><td>{e(t['mkt'])}</td><td class='n'>{e(t['t'])}</td><td class='n'>{e(t['t_exit'])}</td>"
                     f"<td class='n'>{t['R']:+.2f}R</td><td class='n'>{usd(t['pnl'])}</td></tr>" for t in M["controller"]["worst_trades"][:5])
+    abl = ""
+    if len(sys.argv) > 3:
+        A = json.load(open(sys.argv[3]))
+        base = A[0]["mar"]
+        TH = {"cap_market": "จำกัด 2 ไม้ต่อตลาด", "cap_risk": "จำกัดความเสี่ยงรวม 4%", "brake": "เบรกเมื่อบัญชี DD 10%/20%",
+              "live_retire": "ปลดรูปแบบจากผลเทรดจริง", "refit_retire": "ปลดรูปแบบตอนค้นใหม่", "news": "ข้ามไม้ใกล้ข่าว USD",
+              "vol": "ลดขนาดตอนผันผวนสุดขั้ว", "probation": "ลดขนาดรูปแบบที่แพ้ติด"}
+        rows_a = ""
+        for r in A:
+            nm = "ตัวควบคุมเต็ม (ผลรอบ 1)" if not r["off"] else ("ปิดตัวเฝ้าดูทุกตัว (เหลือแค่การเลือกรูปแบบ)" if len(r["off"]) > 1 else "ปิด: " + TH[r["off"][0]])
+            dm = r["mar"] - base
+            eff = "" if not r["off"] or len(r["off"]) > 1 else ("ถ่วงผล" if dm > 0.05 else "ช่วย" if dm < -0.05 else "แทบไม่มีผล")
+            rows_a += (f"<tr><td>{e(nm)}</td><td class='n'>{r['trades']:,}</td><td class='n'>{usd(r['net'])}</td><td class='n'>{pct(r['cagr'])}</td>"
+                       f"<td class='n'>{pct0(r['eq_dd'])}</td><td class='n'>{num(r['mar'])}</td><td>{eff}</td></tr>")
+        abl = ("<section><h2>ตัวเฝ้าดูตัวไหนช่วย ตัวไหนถ่วง (วิเคราะห์หลังเห็นผล ใช้ออกแบบรอบ 2 เท่านั้น)</h2><div class='scroll'><table>"
+               "<tr><th>รุ่น</th><th class='n'>ไม้</th><th class='n'>กำไร</th><th class='n'>CAGR</th><th class='n'>Equity DD</th><th class='n'>MAR</th><th>ตัวนี้</th></tr>"
+               + rows_a + "</table></div></section>")
     data = {k: {"metrics": {"curve": M[k]["curve"]}} for k in M}
     data["names"] = names
     cfg = res["config"]
@@ -217,6 +234,7 @@ def main():
 <li>ข้ามเพราะความเสี่ยงรวมเกิน 4%: {sk['cap_risk']} ไม้</li>
 <li>เบรกจาก DD และการลดขนาดรายรูปแบบ: ดูบันทึกการตัดสินใจ</li></ul>
 <p class="sub">รูปแบบที่ผ่านเกณฑ์ในแต่ละไตรมาส: {e(elig)}</p></section></div>
+{abl}
 <section><h2>รูปแบบที่ผมเลือกใช้ ({len(C['patterns'])} รูปแบบ)</h2><div class="scroll"><table>
 <tr><th>รหัส</th><th>เงื่อนไข</th><th class="n">รับเมื่อ</th><th class="n">ปลดเมื่อ</th><th>เหตุผลที่ปลด</th><th class="n">ช่วงค้น ไม้/R</th><th class="n">ช่วงตรวจ ไม้/R</th><th class="n">เทรดจริง</th><th class="n">R จริง</th></tr>{pats}</table></div></section>
 <section><h2>บันทึกการตัดสินใจ</h2><ul class="log">{log}</ul></section>
