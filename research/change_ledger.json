@@ -1257,6 +1257,17 @@
     "verdict": "INCONCLUSIVE",
     "note": "FAIL. ALL16 top-1 (H1 t6: pos20<=0.079 & atr_ratio>=1.114 & hour22): discovery +0.096R t5.43, test +0.002R t0.17 over 16 markets, 6/16 markets positive; on gold/silver/BTC +2R/+5R/-13R, account -0.8%/yr DD 12.5% (POOL3 pick: -10.4%/yr DD 77.5%, 0/16 positive). Drift placebos top-1 test R: ALL16 -0.033/-0.064/-0.018 (real beats 3/3, p=0.25), POOL3 +0.018/-0.046/+0.051. Baseline value is the POOL3 test R."
    }
+  },
+  {
+   "id": "g27k_b_plus_jp225",
+   "registered": "2026-10-03T01:34:12.704576+00:00",
+   "why": "In the 16-market suite JP225 had the third-best G27K #1 result (+0.30R/trade, t 2.15, positive in 2011-17 and 2018-26) and near-zero correlation with gold/silver/BTC; the user asked whether adding it as a fourth market raises drawdown. Chosen after seeing all 16 markets' full history, so the backtest cannot validate it.",
+   "change": "System B4 = G27K #1 (C8/D3/E1/F1/G2/H2/I1/J1) on XAUUSD, XAGUSD, BTCUSD and JP225, 1% per trade with the 25% balance-DD brake (0.5% until DD <= 12.5%), one trade per market. Reference: the same on the three markets (B).",
+   "sweep_size": 1,
+   "criterion": "Forward test from 2026-10-05: after 12 months or 30 JP225 trades (whichever is later), JP225 mean R > 0 and B4 max balance DD not above B's by more than 3 points over the same period.",
+   "min_improvement": 0.0,
+   "test_period": "forward only, from 2026-10-05",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
