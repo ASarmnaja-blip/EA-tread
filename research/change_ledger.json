@@ -984,7 +984,21 @@
    "criterion": "Same as h4d1_fine_pattern_search: a pattern is a CANDIDATE only if validation non-overlapping mean R > 0 with t >= 2.0 and >= 30 trades AND its validation mean R exceeds the top-1 validation mean R of every one of the 20 placebo searches; the search shows structure beyond drift only if the median validation R of the real top 100 exceeds that statistic in all 20 placebo searches. Also reported: real best-of-top-10 against the placebo best-of-top-10 distribution, the like-for-like comparison the H4 run showed the top-1 bar is lenient against.",
    "min_improvement": 0.0,
    "test_period": "Gold M1 2009-01..2026-09; discovery before 2020-01-01, validation after. No holdout touched.",
-   "result": null
+   "result": {
+    "recorded": "2026-10-03T04:07:50.624958+00:00",
+    "baseline_er": 0.081,
+    "variant_er": 0.125,
+    "improvement": 0.044,
+    "t_stat": 2.2,
+    "n_baseline": 0,
+    "n_variant": 566,
+    "k_at_test": 15002017,
+    "floor_at_test": 7.933175266366343,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "INCOMPLETE: only 6 of the 20 registered drift placebos finished (the run hit its time limit), so the registered test cannot be judged. On the 6 that ran: real top-1 (gold M30 tp2: pos250>=0.908 & ret100<=6.6 & c_ema50>=2.02) validation 2020-2026 +0.125R t2.20 n566, above every placebo top-1 (max +0.081); real top-100 median +0.061R above every placebo median (-0.03..-0.13). Secondary: the 250-bar-extreme family does appear (it is the top-1). Validation window is a strong gold uptrend. Baseline value is the best placebo top-1."
+   }
   },
   {
    "id": "h4d1_fine_pattern_search_complete_data",
