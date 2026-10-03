@@ -1357,6 +1357,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "Fields hold brake-25% MAR (CAGR / balance DD), not E(R). Pre-registered criterion PASSES: Q2-pure MAR 0.40 vs all-16 0.09 (halves -0.10/+1.13 vs -0.11/+0.66), MC P(DD>50%) 2.2%. 2012-01..2026-10 brake: ALL16 6.0%/DD 65.1%; Q2-pure 15.3%/38.7%; Q2-anchored 20.4%/47.9%; Q1-pure 13.7%/61.7%; Q3-pure 9.9%/58.4%; hindsight S3 20.6%/43.4%, S4J 26.2%/35.1%, S4U 27.8%/34.1%, S5 31.6%/35.4%. Blind selection beats trading everything, but reaches about half of S5's return: the gap is the value of hindsight. 7 of 16 markets positive 2012-26 (BTC, JP225, XAU, USDJPY, XAG, USDZAR, USTEC); S5 = the top 5."
    }
+  },
+  {
+   "id": "designed_setups_losing_markets",
+   "registered": "2026-10-03T14:03:24.524454+00:00",
+   "why": "User asked for a new kind of search on the markets where G27K #1 loses: setups designed from each market class's own mechanism, not a brute-force pattern grid. G27K is a long-only breakout; equity indices are known for short-term reversal inside a long-term uptrend and for month-end flows, and FX majors have no drift and tend to revert at daily scale, so a breakout is the wrong tool there. Parameters are fixed from the standard literature definitions BEFORE any run; none will be tuned.",
+   "change": "D1 bars from H1 (day boundary 22:00 UTC), entry at the next D1 open, stop 2.5 x ATR20(D1) from entry walked on H1 bars (gap fills at the H1 open), exits at the next D1 open after the exit condition, one position per market per family, cost = broker spec round trip (min 2 bp) + broker swap per night (current spec applied to all history). A IDX_DIP on US500, USTEC, DE30, JP225: long when D1 close > SMA200 and close < lowest close of the prior 5 days; exit when close > SMA5 or after 10 days. B IDX_TOM on the same 4 indices: long at the open of the last trading day of each month, exit at the open after the close of the 3rd trading day of the next month. C FX_BB_FADE on EURUSD, AUDUSD, USDCHF, USDCNH, USDMXN, USDZAR, USDJPY: long when close < SMA20 - 2 sd(20), short when close > SMA20 + 2 sd(20); exit when close crosses back over SMA20 or after 10 days. Window 2009-09-01..2026-10-01 (data from 2009 for FX, 2011-09 for US500/USTEC/JP225, 2013-09 for DE30).",
+   "sweep_size": 3,
+   "criterion": "Per family, pooled over its markets: PASS if all of (1) mean net R > 0 with t > 2.0; (2) mean net R > 0 in both halves (split 2018-01-01); (3) positive on more than half of its markets; (4) beats a matched random control (random entry days on the same markets, same direction, same holding length and stop; real mean above at least 95% of 200 control draws). Then, for any family that passes: does S5 + family (brake 25%, 2011-09..2026-10) have higher MAR than S5 in both halves. A family that fails any of (1)-(4) is not added.",
+   "min_improvement": 0.0,
+   "test_period": "2009-09-01..2026-10-01 (per-market data start)",
+   "result": {
+    "recorded": "2026-10-03T14:05:08.533882+00:00",
+    "baseline_er": 0.006,
+    "variant_er": 0.061,
+    "improvement": 0.055,
+    "t_stat": 3.49,
+    "n_baseline": 861,
+    "n_variant": 861,
+    "k_at_test": 15002028,
+    "floor_at_test": 7.93317546134437,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "Fields: A_IDX_DIP real vs its matched random control. A_IDX_DIP PASSES checks 1-4: 861 trades, +0.061R t 3.49, halves +0.121/+0.025, 4/4 indices positive (US500 +0.070, USTEC +0.104, DE30 +0.035, JP225 +0.021), control +0.006R p 0.000. But 2018+ alone is +0.025R t 1.13, and at cost x2 the whole is +0.033 t 1.90 and 2018+ is 0.000. Portfolio check FAILS: S5 + A brake 36.3%/DD 30.8%/MAR 1.18 vs S5 30.2%/35.4%/0.85, halves +0.41/+2.06 vs +0.12/+2.41 (worse after 2018). B_IDX_TOM FAILS (-0.008R t -0.36, 1/4 markets, control p 0.865). C_FX_BB_FADE FAILS (-0.038R t -2.02, 3/7, both halves negative, long -0.020 short -0.055). Swap = current broker spec applied to all history."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
