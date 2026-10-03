@@ -1382,6 +1382,17 @@
     "verdict": "INCONCLUSIVE",
     "note": "Fields: A_IDX_DIP real vs its matched random control. A_IDX_DIP PASSES checks 1-4: 861 trades, +0.061R t 3.49, halves +0.121/+0.025, 4/4 indices positive (US500 +0.070, USTEC +0.104, DE30 +0.035, JP225 +0.021), control +0.006R p 0.000. But 2018+ alone is +0.025R t 1.13, and at cost x2 the whole is +0.033 t 1.90 and 2018+ is 0.000. Portfolio check FAILS: S5 + A brake 36.3%/DD 30.8%/MAR 1.18 vs S5 30.2%/35.4%/0.85, halves +0.41/+2.06 vs +0.12/+2.41 (worse after 2018). B_IDX_TOM FAILS (-0.008R t -0.36, 1/4 markets, control p 0.865). C_FX_BB_FADE FAILS (-0.038R t -2.02, 3/7, both halves negative, long -0.020 short -0.055). Swap = current broker spec applied to all history."
    }
+  },
+  {
+   "id": "g27k_fresh_markets",
+   "registered": "2026-10-03T14:11:49.947207+00:00",
+   "why": "User: the pattern search has saturated with 5 winners; test markets never searched. A fixed rule on markets it has never seen is out of sample in every respect.",
+   "change": "G27K #1 exactly as specified (C8/D3/E1/F1/G2/H2/I1/J1), no change, on 28 markets never run with it: FX GBPUSD USDCAD NZDUSD USDSEK EURJPY GBPJPY AUDJPY CADJPY CHFJPY NZDJPY EURGBP EURAUD EURCAD EURCHF GBPAUD GBPCHF AUDCAD AUDNZD (Dukascopy H1 bid, cached); UK100 FRA40 AUS200 HK50 STOXX50 UKOIL XPTUSD XPDUSD XNGUSD (Dukascopy H1 bid, to download); ETHUSD (Binance ETHUSDT 1h). Window 2009-09-01 (or data start)..2026-10-01. Costs: round trip = max(2 bp, median Dukascopy spread + 1 bp), spread measured from ask-bid (FX on 2019-2026 H1 closes, others on 2024-2026); swap assumed per night: FX 1.0 bp both sides, indices and commodities 2.0 bp long / 1.0 bp short, ETH = BTC broker spec; real Exness swaps to be confirmed in MT5.",
+   "sweep_size": 28,
+   "criterion": "Per market, ADMIT if all: (a) mean net R > 0 with t > 2.0 over its full window; (b) mean net R > 0 in both halves of its own data range (split at the time midpoint); (c) mean R still > 0 with the assumed swap doubled. Report how many of 28 are positive against the 16-market base rate (7/16). Portfolio: S5 + all admitted markets (brake 25%, 2011-09..2026-10) must beat S5's MAR in both halves (split 2018-01-01); report each admitted market's monthly R correlation with S5 and with USDJPY/JP225 (JPY theme). An admitted market is a candidate for forward test, not for live trading.",
+   "min_improvement": 0.0,
+   "test_period": "2009-09-01..2026-10-01 per data start",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
