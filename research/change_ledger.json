@@ -1307,6 +1307,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "PASS. Values are MAR (CAGR / balance DD), brake version, 2015-01..2026-09. The blind yearly choice picked JP225 every year 2015-2026 (past mean R +1.14 in 2015 falling to +0.30 by 2026). B4wf: CAGR 36.2% DD 28.5% (MC P(DD>50%) 1.7%) vs B: 32.4% DD 27.3% (1.0%); DD +1.2 points (limit +3). Average of adding each of the 13 candidates fixed: 29.2% DD 29.0%, i.e. a random fourth market hurts. No t-statistic; pass/fail on the registered criteria."
    }
+  },
+  {
+   "id": "g27k_usdjpy_and_five_markets",
+   "registered": "2026-10-03T13:30:37.814377+00:00",
+   "why": "User wants (a) a cent-account set: Exness Standard Cent has no JP225 (official help centre, 2026-10-03), so swap JP225 for USDJPY (USDJPYc exists on cent); (b) a five-market set gold+silver+BTC+JP225+USDJPY. Choice driven by account availability, not by results; but USDJPY was already seen in the 16-market runs and in the blind fourth-market rankings (3rd-5th every year, mean R 0.00-0.15).",
+   "change": "G27K #1 unchanged (C8/D3/E1/F1/G2/H2/I1/J1), one trade per market. Sets: S3 = XAUUSD,XAGUSD,BTCUSD; S4J = S3+JP225 (current); S4U = S3+USDJPY; S5 = S3+JP225+USDJPY. USDJPY = Dukascopy H1 bid, Exness spec (long swap 0). Sizing versions normal 1%, brake 25%, AI monitor. Common window 2011-09-01..2026-10-01; also S3 vs S4U from 2009-09-01.",
+   "sweep_size": 2,
+   "criterion": "Report, user decides. Flags recorded per set: (1) USDJPY standalone mean R > 0 in both halves (split 2019-01-01); (2) brake-25% MAR of S4U >= S3 and of S5 >= S4J, in both halves; (3) MC 10y P(DD>50%) <= 5% for the brake version; (4) monthly R correlation of the added market with the base set.",
+   "min_improvement": 0.0,
+   "test_period": "2011-09-01..2026-10-01 (S3 vs S4U also 2009-09-01..)",
+   "result": {
+    "recorded": "2026-10-03T13:31:41.233019+00:00",
+    "baseline_er": 0.47,
+    "variant_er": 0.78,
+    "improvement": 0.31000000000000005,
+    "t_stat": NaN,
+    "n_baseline": 1001,
+    "n_variant": 1385,
+    "k_at_test": 15002019,
+    "floor_at_test": 7.9331753021558695,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "Fields hold brake-25% MAR (balance DD), not E(R): a portfolio set change has no per-trade t. 2011-09..2026-10, brake 25%: S3 20.3%/DD 43.0%/MAR 0.47; S4J 25.6%/35.1%/0.73; S4U 26.5%/34.1%/0.78; S5 30.2%/35.4%/0.85 (worst year -23% in 2015, 5 open at once). Flags: USDJPY mean R +0.169/+0.285 by half (all 384 trades +0.224, t 1.75) PASS; S4U MAR >= S3 both halves PASS; S5 >= S4J both halves PASS; MC P(DD>50%) <= 5% all PASS (S4U 0.2%, S5 0.7%). Monthly R corr with S3: USDJPY -0.10, JP225 +0.03; JP225~USDJPY +0.06. USDJPY was seen before in the 16-market runs, so this is not a blind test. Adoption is the user's call."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
