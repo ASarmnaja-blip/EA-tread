@@ -1268,6 +1268,31 @@
    "min_improvement": 0.0,
    "test_period": "forward only, from 2026-10-05",
    "result": null
+  },
+  {
+   "id": "g27k_fourth_market_walkforward",
+   "registered": "2026-10-03T03:28:05.215980+00:00",
+   "why": "User wants the fourth market chosen without seeing the data it is judged on (JP225 was picked after seeing all 16 markets' full history).",
+   "change": "B4wf = G27K #1 on XAUUSD, XAGUSD, BTCUSD plus one fourth market re-chosen every 1 January from 2015: among the 13 other markets, the one with the highest mean R per G27K #1 trade over all trades closed before that date (needs >= 30 trades and mean R > 0; otherwise no fourth market that year). Its trades entered during that calendar year are added. 1% per trade, 25% brake version primary, normal reported. Compared over 2015-01-01..2026-09-30 with B (3 markets), with B+JP225 fixed (hindsight), and with the average of B+each candidate fixed (a random pick).",
+   "sweep_size": 1,
+   "criterion": "B4wf brake version: MAR (CAGR / balance DD) above B's and max balance DD not more than 3 points above B's over 2015-01..2026-09.",
+   "min_improvement": 0.0,
+   "test_period": "2015-01-01..2026-09-30, choice made yearly from past data only",
+   "result": {
+    "recorded": "2026-10-03T03:28:49.383724+00:00",
+    "baseline_er": 1.19,
+    "variant_er": 1.27,
+    "improvement": 0.08000000000000007,
+    "t_stat": 0.0,
+    "n_baseline": 825,
+    "n_variant": 1123,
+    "k_at_test": 15002017,
+    "floor_at_test": 7.933175266366343,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "PASS. Values are MAR (CAGR / balance DD), brake version, 2015-01..2026-09. The blind yearly choice picked JP225 every year 2015-2026 (past mean R +1.14 in 2015 falling to +0.30 by 2026). B4wf: CAGR 36.2% DD 28.5% (MC P(DD>50%) 1.7%) vs B: 32.4% DD 27.3% (1.0%); DD +1.2 points (limit +3). Average of adding each of the 13 candidates fixed: 29.2% DD 29.0%, i.e. a random fourth market hurts. No t-statistic; pass/fail on the registered criteria."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
