@@ -7,8 +7,9 @@ import argparse
 import json
 import pathlib
 
-SPLITS = {"PM": "2018-01-01", "POOL3": "2018-01-01", "ALL16": "2018-01-01", "ALL16>3": "2018-01-01"}
-WIN_START = {"17y": "2009-09-01", "10y": "2016-10-01", "5y": "2021-10-01", "3y": "2023-10-01"}
+# the last day of discovery data any part of the system saw (BTC was searched to 2023-12 for PM and POOL3, to 2020-12 for ALL16)
+SPLITS = {"PM": "2024-01-01", "POOL3": "2024-01-01", "ALL16": "2021-01-01", "ALL16>3": "2021-01-01"}
+WIN_START = {"17y": "2009-09-01", "10y": "2016-10-01", "5y": "2021-10-01", "3y": "2023-10-01", "oos": "2024-01-01"}
 SYS_INFO = {
     "A": ("G27K #1 · ทอง", "กฎ G27K อันดับ 1 เทรดทองตลาดเดียว"),
     "B": ("G27K #1 · ทอง เงิน BTC", "กฎเดียวกันบน 3 ตลาด (BTC ตั้งแต่ ส.ค. 2017)"),
@@ -132,7 +133,7 @@ footer{color:var(--faint);font-size:12.5px;margin-top:18px}
 
 <script>
 const D = /*DATA*/;
-const WIN = [["17y","17 ปี"],["10y","10 ปี"],["5y","5 ปี"],["3y","3 ปี"]];
+const WIN = [["17y","17 ปี"],["10y","10 ปี"],["5y","5 ปี"],["3y","3 ปี"],["oos","2024–2026 ไม่เคยเห็น"]];
 const MET = [["cagr","ผลตอบแทน/ปี"],["dd","ติดลบหนักสุด"],["mar","MAR"],["pf","Profit Factor"],["final","เงินสุดท้าย"],["n","จำนวนไม้"]];
 const VERS = ["normal","half","brake","monitor","macro"];
 const VCOL = {normal:"var(--v-normal)",half:"var(--v-half)",brake:"var(--v-brake)",monitor:"var(--v-monitor)",macro:"var(--v-macro)"};
@@ -187,13 +188,17 @@ function scatter() {
   for (let y = Math.ceil(ymin / ys) * ys; y <= ymax + 1e-9; y += ys) s += `<line x1="${L}" x2="${W - R}" y1="${Y(y)}" y2="${Y(y)}" stroke="var(--grid)"/><text x="${L - 6}" y="${Y(y) + 4}" text-anchor="end" font-size="11.5" fill="var(--faint)">${Math.round(y * 100)}%</text>`;
   s += `<line x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--faint)" stroke-dasharray="4 4"/>`;
   s += `<text x="${W - R}" y="${H - 4}" text-anchor="end" font-size="11.5" fill="var(--muted)">ติดลบหนักสุด →</text><text x="${L + 4}" y="${T + 10}" font-size="11.5" fill="var(--muted)">↑ ผลตอบแทน/ปี</text>`;
+  const placed = [];
   pts.forEach((p, i) => {
     const cx = X(p.x), cy = Y(p.y), c = VCOL[p.v], sh = SHAPE[p.v];
     const mk = sh === "circle" ? `<circle cx="${cx}" cy="${cy}" r="5"` : sh === "square" ? `<rect x="${cx - 4.5}" y="${cy - 4.5}" width="9" height="9"` :
       sh === "triangle" ? `<path d="M${cx} ${cy - 6}L${cx + 5.5} ${cy + 4}L${cx - 5.5} ${cy + 4}Z"` : sh === "diamond" ? `<path d="M${cx} ${cy - 6}L${cx + 6} ${cy}L${cx} ${cy + 6}L${cx - 6} ${cy}Z"` :
       `<path d="M${cx - 5} ${cy - 5}L${cx + 5} ${cy + 5}M${cx + 5} ${cy - 5}L${cx - 5} ${cy + 5}" stroke-width="2.5"`;
     s += `${mk} fill="${sh === "cross" ? "none" : c}" stroke="${sh === "cross" ? c : "var(--panel)"}" ${sh === "cross" ? "" : 'stroke-width="1.5"'}/>`;
-    s += `<text x="${cx + 8}" y="${cy + 4}" font-size="10.5" fill="var(--muted)">${D.short[p.s]}</text>`;
+    if (!placed.some(([a, b]) => Math.abs(a - cx) < 34 && Math.abs(b - cy) < 12)) {   // skip labels that would collide
+      placed.push([cx, cy]);
+      s += `<text x="${cx + 8}" y="${cy + 4}" font-size="10.5" fill="var(--muted)">${D.short[p.s]}</text>`;
+    }
     s += `<circle cx="${cx}" cy="${cy}" r="11" fill="transparent" data-i="${i}" class="hit"/>`;
   });
   el.innerHTML = s + `</svg><div id="tip"></div>`;
@@ -283,7 +288,7 @@ def main():
                   sub="16 ตลาด ข้อมูลรายชั่วโมงถึง 30 ก.ย. 2026 · บัญชีเริ่มใหม่ทุกช่วง · ต้นทุน spread + 1 bp และ swap จริงของโบรกเกอร์ · จำลองบนราคาจริง ไม่ใช่ผลเทรดจริง",
                   footer="สร้างจาก research/g27k_dev/suite.py และ render_suite.py · ledger: g27k_two_systems_phase1, g27k_b_1pct_brake, per_market_free_search, multi_market_pooled_search, macro_only_portfolio, g27k_macro_overlay, walkforward_controller_round2"),
         notes=["<b>กฎ G27K #1 ถูกเลือกจาก 27,648 แบบหลังเห็นผลปี 2021–2026</b> ช่วง 5 และ 3 ปีของระบบ A, B, B16 จึงดีเกินจริง · ช่วงก่อนปี 2021 ไม่ได้ใช้เลือก",
-               "<b>รูปแบบที่ค้นหา (รายตลาด, 3 ตลาด, 16 ตลาด) ค้นจากข้อมูลก่อนปี 2018</b> (BTC ก่อนปี 2021 หรือ 2024) ตัวเลขที่ติด IS จึงรวมช่วงที่รูปแบบ \"รู้คำตอบ\" อยู่แล้ว · ดูช่วง 5 และ 3 ปีเพื่อดูผลที่ไม่เคยเห็น",
+               "<b>รูปแบบที่ค้นหาเห็นข้อมูลถึงต่างกัน:</b> ทอง เงิน และตลาดอื่นถึงสิ้นปี 2017 · BTC ถึงสิ้นปี 2023 (รายตลาด, 3 ตลาด) หรือสิ้นปี 2020 (16 ตลาด) · ตัวเลขที่ติด IS จึงรวมช่วงที่รูปแบบ \"รู้คำตอบ\" อยู่แล้ว · <b>ช่วง 2024–2026 คือช่วงเดียวที่ทุกระบบที่ค้นมาไม่เคยเห็นเลย</b>",
                "<b>BTC ใช้ราคา Binance ตั้งแต่ ส.ค. 2017</b> ระบบ B จึงต่างจากรายงานก่อนหน้า (ที่ BTC เริ่มปี 2021) และรวมการร่วงของ BTC ปี 2018 ด้วย",
                "<b>ติดลบหนักสุดในหน้านี้วัดจาก balance เมื่อปิดไม้</b> ตัวเลขแบบ equity (รวมไม้ที่ยังเปิด) จะลึกกว่าราว 3–5 จุด",
                "<b>ระบบ 16 ตลาดเสี่ยง 1% ต่อไม้ต่อตลาด</b> อาจเปิดพร้อมกันได้ถึง 16% · AI monitor จำกัดไว้ที่ 6%",

@@ -54,7 +54,8 @@ import per_market_search as PMS
 import walkforward_controller as W
 
 END = "2026-10-01"
-WINDOWS = {"17y": "2009-09-01", "10y": "2016-10-01", "5y": "2021-10-01", "3y": "2023-10-01"}
+WINDOWS = {"17y": "2009-09-01", "10y": "2016-10-01", "5y": "2021-10-01", "3y": "2023-10-01",
+           "oos": "2024-01-01"}   # after every searched pattern's discovery data (BTC searched to 2023-12)
 VERSIONS = ("normal", "half", "brake", "monitor", "macro")
 TARGET = ("XAUUSD", "XAGUSD", "BTCUSD")
 DAY = 86400
