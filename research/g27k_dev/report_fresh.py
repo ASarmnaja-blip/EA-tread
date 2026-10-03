@@ -116,13 +116,17 @@ def compare(defs, E, MC, halves, curves, fr):
                f"<b>ผ่านเกณฑ์รับเข้า {len(adm)} ตลาด</b>{(': ' + ', '.join(adm)) if adm else ''}</li>"
                + (f"<li>กลุ่ม Cent รับเข้า {len(fr['admitted_cent'])} ตลาด · เพิ่มเข้าพอร์ต Cent แล้ว MAR ดีขึ้นทั้งสองช่วง: <b>{verdict(pc)}</b></li>" if pc is not None else "")
                + (f"<li>พอร์ต Standard + ตลาดที่รับเข้าทั้งหมด · MAR ดีขึ้นทั้งสองช่วง: <b>{verdict(ps)}</b></li>" if ps is not None else "")
+               + ("<li><b>ETHUSD ผ่านเกณฑ์รายตลาด แต่ไม่ผ่านการตรวจพอร์ต</b> เพราะ ETH มีข้อมูลตั้งแต่ ส.ค. 2017 จึงแทบไม่อยู่ในช่วงแรก (2011–2017) ทำให้ MAR ช่วงแรกไม่ดีขึ้น · "
+                  "ช่วงหลังดีขึ้นมาก แต่ <b>ETH ขยับตาม BTC</b> (correlation ผลรายเดือน +0.65 · 92% ของไม้ ETH เปิดซ้อนกับไม้ BTC) จึงเท่ากับเพิ่มความเสี่ยงคริปโตเป็น 2 เท่า</li>"
+                  if "ETHUSD" in adm else "")
                + "<li>ต้นทุน: spread วัดจาก Dukascopy · <b>swap เป็นค่าสมมติ</b> (ค่าเงิน 1 bp/คืน, ดัชนีและสินค้า 2 bp/คืนฝั่ง Buy) ต้องยืนยันค่าจริงใน MT5 · "
                  f"แพลทินัมที่สเปกจริงของ Exness (spread 18.6 bp): {fr['xptusd_real_spec']['mean']:+.3f}R ต่อไม้</li>"
                + "<li>ตลาดที่ผ่านคือหลักฐานใหม่จริง (กฎไม่เคยเห็นตลาดนี้) แต่ยังควรเริ่มที่ forward test ก่อนเทรดจริง</li></ul>")
     pts = [dict(x=START, lab="เริ่ม " + START, **{s: float(W.DEPOSIT) for s in keys})]
     for d, vals in curves:
         pts.append(dict(x=str(d.date()), lab=f"สิ้น {TH_M[d.month - 1]} {d.year}", **{s: float(v) for s, v in zip(keys, vals)}))
-    data = json.dumps(dict(pts=pts, keys=keys, names=[defs[s][0] for s in keys]), ensure_ascii=False)
+    short = {"C0": "Cent 4", "C1": "Cent 4+ใหม่", "S0": "Std 5", "S1": "Std 5+ใหม่"}
+    data = json.dumps(dict(pts=pts, keys=keys, names=[short.get(s, defs[s][0]) for s in keys]), ensure_ascii=False)
     legend = "".join(f'<span><i style="background:var(--c{i + 1})"></i>{defs[s][0]}</span>' for i, s in enumerate(keys))
     html = (R5.CSS + '<section class="card"><h2>ตลาดใหม่ 28 ตลาด · กฎ G27K #1 เดิม</h2>' + summary + '</section>' + market_table(fr) +
             f'<section class="card"><h2>พอร์ตตามประเภทบัญชี · เบรก 25%</h2><div class="legend" style="margin-bottom:6px">{legend}'
