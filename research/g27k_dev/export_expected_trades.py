@@ -31,23 +31,28 @@ M4 = ("XAUUSD", "XAGUSD", "BTCUSD", "JP225")
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
+    ap.add_argument("--markets", default=",".join(M4), help="comma list; default is the handoff's four markets")
+    ap.add_argument("--tag", default="", help="output name suffix; empty keeps the handoff file names")
+    ap.add_argument("--offsets", default="0,22", help="H4 boundary hours to export (UTC)")
     a = ap.parse_args()
+    mkts = tuple(m.strip() for m in a.markets.split(","))
+    offs = [int(x) for x in a.offsets.split(",")]
     P.setup(a.root)
     G, K = P._M["G"], P._M["K"]
     sys.path.insert(0, str(pathlib.Path(a.root) / "research" / "grid768"))
     import report768 as RP
     ext = K.externals()
     K.START = W.ts("2009-09-01")
-    H1 = {m: MMS.load(m, G) for m in M4}
+    H1 = {m: MMS.load(m, G) for m in mkts}
     orig = G.frames
-    for off, name in ((0, "00utc"), (22, "22utc")):
+    for off, name in ((o, f"{o:02d}utc") for o in offs):
         def frames(b, off=off):
             t = b["t"]
             return {"H4": G.agg(b, (t - off * 3600) // 14400), "D1": G.agg(b, t // 86400),
                     "W1": G.agg(b, np.searchsorted(G.CUTS, t, side="right") - 1)}
         G.frames = frames
         rows = []
-        for m in M4:
+        for m in mkts:
             Mk = K.prepare(m, H1[m], ext)
             X = G.features(G.frames(H1[m]), m, "H4")
             d = K.directions(Mk, "C8", "D3", "E1", "J1")
@@ -70,7 +75,7 @@ def main():
                 f"at that H1 open; exit = open of the bar after an H4 close below the lowest low of the previous 20 H4 bars; one trade "
                 f"per market; prices are the research data (gold/silver: Candle Lab to 2020 then MT5; JP225: Dukascopy bid; BTC: Binance), "
                 f"so broker prices differ slightly; R_net includes spread + 1 bp and the broker-spec swap.")
-        p = HERE / f"handoff_expected_trades_h4_{name}.json"
+        p = HERE / f"handoff_expected_trades_h4_{name}{'_' + a.tag if a.tag else ''}.json"
         p.write_text(json.dumps(dict(note=note, trades=rows), indent=0))
         print(f"  {p.name}: {len(rows)} trades")
     G.frames = orig
