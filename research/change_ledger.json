@@ -1403,6 +1403,31 @@
    "criterion": "A setup PASSES if all: (1) group A 2020-01-01..2026-09-30 mean net R > 0 with t > 2; (2) group B markets 2012-01-01..2026-09-30 mean net R > 0 with t > 2; (3) its discovery t is above the top-1 discovery t of every one of the 5 drift-placebo searches. A passing setup is a candidate second EA setup; it is then checked for S4U/S5 portfolio MAR in both halves (split 2018-01-01) and goes to forward test, not live trading. If no setup passes, the 28-market avenue is closed.",
    "min_improvement": 0.0,
    "test_period": "discovery 2012-2019 on group A; validation 2020-2026 group A and 2012-2026 group B",
+   "result": {
+    "recorded": "2026-10-03T15:18:43.270305+00:00",
+    "baseline_er": 0.0,
+    "variant_er": 0.0,
+    "improvement": 0.0,
+    "t_stat": NaN,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 15029704,
+    "floor_at_test": 7.933665110762611,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "WITHDRAWN BEFORE ANY RUN and before the stage-1 result was known: the user judged the 27,648-setup grid too narrow for the 28 fresh markets (it was refined by trial and error on gold, silver and BTC). Replaced by fresh_markets_search_v2 (docs/PLAN_FRESH_MARKETS_SEARCH.md). No data was searched under this id."
+   }
+  },
+  {
+   "id": "fresh_markets_search_v2",
+   "registered": "2026-10-03T15:18:43.706732+00:00",
+   "why": "Replaces fresh_markets_grid_search (withdrawn unrun): the G27K grid was tuned to trending metals and BTC; FX crosses, indices and commodities also carry reversion, session and risk-regime mechanisms. Wider search, stricter validation. Registered before the stage-1 result (g27k_fresh_markets) is known. Full plan: docs/PLAN_FRESH_MARKETS_SEARCH.md.",
+   "change": "Trigger unchanged: runs unless both the Cent and the Standard portfolio checks of stage 1 pass (a group with no admitted market fails). Three layers on the same discovery data: L1 about 60 mechanism variants in 6 families (two-way Donchian breakout; pullback in the D1 SMA200 trend; z-score range fade with optional ADX<20; Bollinger-width compression breakout; Asian-range breakout 07-12 UTC; families 1-2 gated by US500 above/below its D1 SMA200), L2 the full G27K grid of 27,648 setups on H4, L3 the free search engine (every H1/H4/D1 bar long and short, 1-3 of ~50 conditions, 5 exits). Markets: GROUP A (discovery) GBPUSD NZDUSD EURJPY AUDJPY CHFJPY EURGBP EURCAD GBPAUD AUDCAD UK100 HK50 STOXX50 UKOIL XPDUSD; GROUP B (replication) USDCAD USDSEK GBPJPY CADJPY NZDJPY EURAUD EURCHF GBPCHF AUDNZD FRA40 AUS200 XPTUSD XNGUSD ETHUSD. Time: discovery 2012-01..2019-12, validation 2020-01..2023-12, SEALED 2024-01..2026-09 opened once for finalists only. Costs and swap as stage 1.",
+   "sweep_size": 5027708,
+   "criterion": "Funnel, all gates required: (1) discovery rank by pooled per-trade net R t on group A 2012-2019; (2) per layer, the real top-100 median t must beat the top-100 median of every one of 10 drift-placebo runs of the identical procedure, else the layer is declared empty and stops; (3) validation t > 2 on group A 2020-2023 AND on group B 2012-2023, positive on >= 60% of markets in each, still positive at cost x2 and swap x2, still positive without its best market; (4) >= 70% of parameter neighbours positive in discovery; (5) cluster survivors by trade-timing overlap, best per cluster, at most 3 finalists; (6) sealed 2024-2026 on A+B opened once: mean net R > 0; (7) adding it to S4U (Cent) or S5 (Standard) raises brake-25% MAR in both halves (split 2018-01-01). A finalist goes to forward test as a second EA setup; if none survives, the 28-market avenue is closed.",
+   "min_improvement": 0.0,
+   "test_period": "discovery 2012-2019 group A; validation 2020-2023 A and 2012-2023 B; sealed 2024-01..2026-09",
    "result": null
   }
  ],
