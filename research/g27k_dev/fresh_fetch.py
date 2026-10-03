@@ -60,7 +60,12 @@ def fill_bid(passes=6, workers=8):
         p = CACHE / f"{m}_H1BID.parquet"
         have[m] = pd.read_parquet(p) if p.exists() else pd.DataFrame(columns=list("ohlcv"))
     for k in range(passes):
-        todo = [(m, ym, "BID") for m, d in have.items() for ym in MONTHS if ym not in live_months(d)]
+        todo = []
+        for m, d in have.items():
+            live = live_months(d)
+            # after the first pass, months before a market's first live month are history Dukascopy does not have
+            first = min(live) if (k > 0 and live) else (0, 0)
+            todo += [(m, ym, "BID") for ym in MONTHS if ym not in live and ym >= first]
         print(f"  bid pass {k + 1}: {len(todo)} market-months to fetch", flush=True)
         if not todo:
             break
