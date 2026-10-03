@@ -82,6 +82,7 @@ def main():
     ap.add_argument("--trades", default=str(HERE / "handoff_expected_trades_h4_00utc.json"))
     ap.add_argument("--start", default="2011-09-01")
     ap.add_argument("--balance", type=float, default=10_000.0)
+    ap.add_argument("--markets", default="", help="comma list to restrict to, e.g. the three a cent account can trade")
     a = ap.parse_args()
 
     specs, meta = load_specs(a.specs)
@@ -92,6 +93,10 @@ def main():
     T["tx"] = pd.to_datetime(T.exit_time_utc).astype("datetime64[s]").astype("int64")
     T["sl_dist"] = (T.entry_price - T.stop_price).abs()
     T["risk_per_lot"] = [ (d / specs[m]["tick_size"]) * specs[m]["tick_value"] for d, m in zip(T.sl_dist, T.market) ]
+    if a.markets:
+        keep = [m.strip() for m in a.markets.split(",")]
+        T = T[T.market.isin(keep)]
+        specs = {k: v for k, v in specs.items() if k in keep}
     T = T.sort_values("t").reset_index(drop=True)
     print(f"specs from {meta['server']} ({meta['account_type']}, read {meta['checked_utc'][:19]}), start balance {a.balance:,.0f} "
           f"{meta['currency']}")
