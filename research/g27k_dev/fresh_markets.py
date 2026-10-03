@@ -32,6 +32,9 @@ IDX = ["UK100", "FRA40", "AUS200", "HK50", "STOXX50"]
 COM = ["UKOIL", "XPTUSD", "XPDUSD", "XNGUSD"]
 NEW = FX + IDX + COM + ["ETHUSD"]
 S5 = ("XAUUSD", "XAGUSD", "BTCUSD", "JP225", "USDJPY")
+S4U = ("XAUUSD", "XAGUSD", "BTCUSD", "USDJPY")
+# Exness Standard Cent instrument list (help centre, 2026-10-03): every FX pair here except USDSEK, UKOIL, ETHUSD (MT5)
+CENT = [m for m in FX if m != "USDSEK"] + ["UKOIL", "ETHUSD"]
 PSTART, MID, END = "2011-09-01", "2018-01-01", "2026-10-01"
 
 
@@ -98,14 +101,19 @@ def main():
                  cost_rt_bp=C.SPECS[m]["cost_rt_bp"])
         r["admit"] = bool(r["mean"] > 0 and r["t"] > 2.0 and r["mean_h1"] > 0 and r["mean_h2"] > 0 and r["mean_swap2"] > 0)
         res["markets"][m] = r
-    print(f"  {'market':8s} {'from':10s} {'n':>4s} {'mean R':>7s} {'t':>6s} {'half1':>7s} {'half2':>7s} {'swap x2':>7s} {'cost bp':>7s}")
-    for m, r in sorted(res["markets"].items(), key=lambda kv: -kv[1]["mean"]):
-        print(f"  {m:8s} {r['first']:10s} {r['n']:4d} {r['mean']:+7.3f} {r['t']:+6.2f} {r['mean_h1']:+7.3f} {r['mean_h2']:+7.3f} "
-              f"{r['mean_swap2']:+7.3f} {r['cost_rt_bp']:7.2f}" + ("  ADMIT" if r["admit"] else ""))
+    for m, r in res["markets"].items():
+        r["account"] = "cent" if m in CENT else "standard"
+    for grp, label in (("cent", "CENT (also on Standard)"), ("standard", "STANDARD ONLY")):
+        print(f"  --- {label}")
+        print(f"  {'market':8s} {'from':10s} {'n':>4s} {'mean R':>7s} {'t':>6s} {'half1':>7s} {'half2':>7s} {'swap x2':>7s} {'cost bp':>7s}")
+        for m, r in sorted(((k, v) for k, v in res["markets"].items() if v["account"] == grp), key=lambda kv: -kv[1]["mean"]):
+            print(f"  {m:8s} {r['first']:10s} {r['n']:4d} {r['mean']:+7.3f} {r['t']:+6.2f} {r['mean_h1']:+7.3f} {r['mean_h2']:+7.3f} "
+                  f"{r['mean_swap2']:+7.3f} {r['cost_rt_bp']:7.2f}" + ("  ADMIT" if r["admit"] else ""))
     pos = sum(r["mean"] > 0 for r in res["markets"].values())
     res["positive"] = pos
     res["admitted"] = [m for m, r in res["markets"].items() if r["admit"]]
-    print(f"  positive {pos}/{len(res['markets'])} (16-market base rate 7/16) · admitted: {res['admitted']}")
+    res["admitted_cent"] = [m for m in res["admitted"] if m in CENT]
+    print(f"  positive {pos}/{len(res['markets'])} (16-market base rate 7/16) · admitted: {res['admitted']} · on cent: {res['admitted_cent']}")
 
     # XPTUSD at the real Exness broker spec (fidelity check, reported only)
     C.SPECS["XPTUSD"] = specs(C, real_xpt=True)["XPTUSD"]
@@ -126,29 +134,35 @@ def main():
         x = mon(T[m][T[m].t >= W.ts(PSTART)])
         r["corr_S5"], r["corr_JPY"] = cor(x, s5m), cor(x, jpy)
 
-    base = g[["mkt", "t", "tx", "R", "vp", "sc"]]
+    cols = ["mkt", "t", "tx", "R", "vp", "sc"]
     res["portfolio"] = {}
-    cands = {"S5": []}
-    if res["admitted"]:
-        cands["S5+admitted"] = res["admitted"]
     pos_all = [m for m, r in res["markets"].items() if r["mean"] > 0]
-    cands["S5+all positive (hindsight, reported only)"] = pos_all
-    for name, add in cands.items():
-        TT = pd.concat([base] + [T[m][base.columns] for m in add], ignore_index=True)
+    # (name, base set, added markets)
+    cands = [("CENT: S4U", S4U, [])]
+    if res["admitted_cent"]:
+        cands.append(("CENT: S4U+admitted cent", S4U, res["admitted_cent"]))
+    cands += [("STANDARD: S5", S5, [])]
+    if res["admitted"]:
+        cands.append(("STANDARD: S5+admitted", S5, res["admitted"]))
+    cands.append(("STANDARD: S5+all positive (hindsight, info)", S5, pos_all))
+    for name, bset, add in cands:
+        TT = pd.concat([g[g.mkt.isin(bset)][cols]] + [T[m][cols] for m in add], ignore_index=True)
         st, eq, _ = SU.simulate(TT, "brake", PSTART, END, news=news)
         a1, _, _ = SU.simulate(TT, "brake", PSTART, MID, news=news)
         a2, _, _ = SU.simulate(TT, "brake", MID, END, news=news)
-        st.update(mar_h1=a1["mar"], mar_h2=a2["mar"], mc=SU.monte_carlo(eq), markets=list(S5) + add)
+        st.update(mar_h1=a1["mar"], mar_h2=a2["mar"], mc=SU.monte_carlo(eq), markets=list(bset) + add)
         res["portfolio"][name] = st
         print(f"  {name:44s} CAGR {st['cagr']:+6.1%}  DD {st['dd']:5.1%}  MAR {st['mar']:.2f}  halves {a1['mar']:+.2f}/{a2['mar']:+.2f}  "
               f"worst yr {st['worst_year']:+.0%}  n {st['n']}  MC P(DD>50%) {st['mc']['p_dd50']:.1%}", flush=True)
     for m in res["admitted"]:
         r = res["markets"][m]
         print(f"  {m}: corr with S5 {r['corr_S5']:+.2f}, with USDJPY+JP225 {r['corr_JPY']:+.2f}")
-    if "S5+admitted" in res["portfolio"]:
-        p, b = res["portfolio"]["S5+admitted"], res["portfolio"]["S5"]
-        res["portfolio_pass"] = bool(p["mar_h1"] > b["mar_h1"] and p["mar_h2"] > b["mar_h2"])
-        print("  portfolio check (MAR better in both halves):", res["portfolio_pass"])
+    P_ = res["portfolio"]
+    for new, old, key in (("STANDARD: S5+admitted", "STANDARD: S5", "portfolio_pass"),
+                          ("CENT: S4U+admitted cent", "CENT: S4U", "portfolio_pass_cent")):
+        if new in P_:
+            res[key] = bool(P_[new]["mar_h1"] > P_[old]["mar_h1"] and P_[new]["mar_h2"] > P_[old]["mar_h2"])
+            print(f"  {key} (MAR better in both halves): {res[key]}")
     (HERE / "fresh_markets.json").write_text(json.dumps(res, indent=1, default=float))
 
 
