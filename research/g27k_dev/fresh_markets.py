@@ -38,15 +38,20 @@ CENT = [m for m in FX if m != "USDSEK"] + ["UKOIL", "ETHUSD"]
 PSTART, MID, END = "2011-09-01", "2018-01-01", "2026-10-01"
 
 
+REAL = {}
+
+
 def specs(C, real_xpt=False):
+    for k in ("XPTUSD", "BTCUSD"):
+        REAL.setdefault(k, dict(C.SPECS[k]))
     sp = {**json.loads((HERE / "fresh_spreads_fx.json").read_text()), **json.loads((HERE / "fresh_spreads_other.json").read_text())}
     out = {}
     for m in NEW:
         if m == "ETHUSD":
-            out[m] = dict(C.SPECS["BTCUSD"])
+            out[m] = dict(REAL["BTCUSD"])
             continue
         if m == "XPTUSD" and real_xpt:
-            out[m] = dict(C.SPECS["XPTUSD"])
+            out[m] = dict(REAL["XPTUSD"])
             continue
         fx = m in FX
         s = sp.get(m, np.nan)
