@@ -1307,6 +1307,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "PASS. Values are MAR (CAGR / balance DD), brake version, 2015-01..2026-09. The blind yearly choice picked JP225 every year 2015-2026 (past mean R +1.14 in 2015 falling to +0.30 by 2026). B4wf: CAGR 36.2% DD 28.5% (MC P(DD>50%) 1.7%) vs B: 32.4% DD 27.3% (1.0%); DD +1.2 points (limit +3). Average of adding each of the 13 candidates fixed: 29.2% DD 29.0%, i.e. a random fourth market hurts. No t-statistic; pass/fail on the registered criteria."
    }
+  },
+  {
+   "id": "g27k_lot_rounding_nearest",
+   "registered": "2026-10-03T08:44:03.210555+00:00",
+   "why": "Account check 2026-10-03 (docs/G27K_ACCOUNT_CHECK_2026-10-03.md): on the live Exness account at 10,000 USD the written round-down rule makes realised risk 0.57-1.00 percent per trade instead of the intended 1 percent, because the broker lot step is coarse (silver loses 43 percent of the intended risk, gold 17, BTC 21). The research sized positions with unrounded fractional lots, so the live account would systematically under-risk by about 20 percent. Operator asked for round-to-nearest.",
+   "change": "Position size = risk_money / risk_per_lot, then rounded to the NEAREST broker lot step (fractional part below 0.5 rounds down, 0.5 and above rounds up) instead of always rounding down. Still floored at the broker minimum lot and capped at the maximum. Everything else unchanged: 1 percent of balance per trade, 0.5 percent while the 25 percent brake is on, same entries, stops and exits.",
+   "sweep_size": 3,
+   "criterion": "Average realised risk per trade across the four markets is closer to the 1 percent target than round-down gives, with no change to entries, exits or R per trade. This is a sizing-fidelity fix, not an edge claim: E(R) per trade is unchanged by construction because R is scale-free, so no E(R) improvement is claimed or expected.",
+   "min_improvement": 0.0,
+   "test_period": "handoff_expected_trades_h4_00utc.json, 1,497 trades 2009-09 to 2026-09, four markets, with live Exness contract specs read on 2026-10-03",
+   "result": {
+    "recorded": "2026-10-03T08:46:24.653293+00:00",
+    "baseline_er": 0.3744,
+    "variant_er": 0.3744,
+    "improvement": 0.0,
+    "t_stat": 0.0,
+    "n_baseline": 1393,
+    "n_variant": 1393,
+    "k_at_test": 15002020,
+    "floor_at_test": 7.933175319365655,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "Measured with research/g27k_dev/lot_rounding.py on handoff_expected_trades_h4_00utc.json using the live Exness specs. E(R) per trade is identical by construction (rounding changes position size, not which trades are taken or their R), so t = 0 and no edge is claimed. Criterion was risk fidelity: from 2011-09 the average realised risk per trade is fractional 0.95 pct, round-down 0.89 pct, round-to-nearest 0.93 pct against the 1 pct target, so nearest is closer - criterion met. Compounded effect 2011-09 to 2026-09 from 10,000 USD: fractional 28.1 pct per year DD 32.3 pct final 417,008; round-down 26.8 pct DD 31.0 pct final 359,048; nearest 27.7 pct DD 32.0 pct final 398,932. Round-down also forced one trade above target because balance fell under the minimum lot (max realised risk 1.71 pct); nearest forced none. Validation: the fractional run reproduces the handoff section 1.1 figure for 00 UTC bars exactly (28.1 pct per year, DD 32.3 pct)."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
