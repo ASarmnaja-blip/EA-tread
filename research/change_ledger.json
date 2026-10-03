@@ -1332,6 +1332,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "Measured with research/g27k_dev/lot_rounding.py on handoff_expected_trades_h4_00utc.json using the live Exness specs. E(R) per trade is identical by construction (rounding changes position size, not which trades are taken or their R), so t = 0 and no edge is claimed. Criterion was risk fidelity: from 2011-09 the average realised risk per trade is fractional 0.95 pct, round-down 0.89 pct, round-to-nearest 0.93 pct against the 1 pct target, so nearest is closer - criterion met. Compounded effect 2011-09 to 2026-09 from 10,000 USD: fractional 28.1 pct per year DD 32.3 pct final 417,008; round-down 26.8 pct DD 31.0 pct final 359,048; nearest 27.7 pct DD 32.0 pct final 398,932. Round-down also forced one trade above target because balance fell under the minimum lot (max realised risk 1.71 pct); nearest forced none. Validation: the fractional run reproduces the handoff section 1.1 figure for 00 UTC bars exactly (28.1 pct per year, DD 32.3 pct)."
    }
+  },
+  {
+   "id": "g27k_min_lot_floor_in_brake",
+   "registered": "2026-10-03T11:07:51.118459+00:00",
+   "why": "Broker constraint found in the account check on 2026-10-03, not a result-driven idea. The written rule says risk 1 percent, or 0.5 percent while the 25 percent brake is on, with the lot rounded to the broker step. It does not say what to do when the resulting lot falls below the broker minimum. On Exness the minimum lot of silver risks 0.57 percent of a 10,000-unit balance, so inside the brake it cannot be sized down to 0.5 percent. With three markets the brake is active 37 percent of the time, so this case is common, not rare. Operator chose to keep trading silver at the minimum lot.",
+   "change": "When the computed lot is below the broker minimum lot, trade the minimum lot even though the realised risk then exceeds the target, rather than skipping the signal. Applies to every market and to both the 1 percent and the 0.5 percent target. No other rule changes.",
+   "sweep_size": 1,
+   "criterion": "Clarifies a case the written rules leave undefined; it does not alter entries, exits or R per trade, so no E(R) improvement is claimed or expected. Recorded so the deviation from the stated 0.5 percent target is visible, with the measured frequency and the largest realised risk it causes.",
+   "min_improvement": 0.0,
+   "test_period": "handoff_expected_trades_h4_00utc.json restricted to the three markets a cent account can trade, 1,039 trades 2011-09 to 2026-09, live Exness cent specs confirmed 2026-10-03",
+   "result": {
+    "recorded": "2026-10-03T11:07:52.448894+00:00",
+    "baseline_er": 0.3474,
+    "variant_er": 0.3474,
+    "improvement": 0.0,
+    "t_stat": 0.0,
+    "n_baseline": 1039,
+    "n_variant": 1039,
+    "k_at_test": 15002021,
+    "floor_at_test": 7.933175337945397,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "Measured with research/g27k_dev/lot_rounding.py --markets XAUUSD,XAGUSD,BTCUSD. Keeping the minimum lot rather than skipping the signal is what the three-market figures already reported assume: 21.2 pct per year, balance DD 42.6 pct from 10,000 units, average realised risk 0.81 pct, no trade forced above target under round-to-nearest. The alternative of skipping silver inside the brake would drop signals, which handoff section 6 item 2 warns against because a few large trades carry the profit. E(R) per trade is unchanged by construction, so t = 0 and the INCONCLUSIVE verdict is expected: this is a broker-constraint clarification, not an edge claim. Operator decision recorded 2026-10-03 together with adopting round-to-nearest sizing (ledger g27k_lot_rounding_nearest)."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
