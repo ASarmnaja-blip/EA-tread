@@ -1393,6 +1393,17 @@
    "min_improvement": 0.0,
    "test_period": "2009-09-01..2026-10-01 per data start",
    "result": null
+  },
+  {
+   "id": "fresh_markets_grid_search",
+   "registered": "2026-10-03T15:12:18.770916+00:00",
+   "why": "User: if G27K #1 on the 28 fresh markets is not good enough, search the other possibilities on those 28 markets the way G27K itself was found. Registered BEFORE the stage-1 result (g27k_fresh_markets) is known.",
+   "change": "Runs only if stage 1 is not OK, defined now: NOT (Cent portfolio check passes AND Standard portfolio check passes), where a group with no admitted market counts as failed. Search space: the full G27K grid of research/grid27k/g27k.py, 27,648 setups (C1-8 x D1-8 x E1-3 x J1-2 signals, F1-2 x G1-3 x H1-6 x I1-2 trade handling), H4 bars, same engine, costs and swap assumptions as stage 1, one trade per market. Market split fixed now (stratified, before any result): GROUP A = GBPUSD, NZDUSD, EURJPY, AUDJPY, CHFJPY, EURGBP, EURCAD, GBPAUD, AUDCAD, UK100, HK50, STOXX50, UKOIL, XPDUSD; GROUP B = USDCAD, USDSEK, GBPJPY, CADJPY, NZDJPY, EURAUD, EURCHF, GBPCHF, AUDNZD, FRA40, AUS200, XPTUSD, XNGUSD, ETHUSD. Discovery: group A, 2012-01-01..2019-12-31, pooled per-trade net R, ranked by t (n >= 300). Top 10 go to validation; 5 drift-placebo searches of group A give the null for the top-1.",
+   "sweep_size": 27648,
+   "criterion": "A setup PASSES if all: (1) group A 2020-01-01..2026-09-30 mean net R > 0 with t > 2; (2) group B markets 2012-01-01..2026-09-30 mean net R > 0 with t > 2; (3) its discovery t is above the top-1 discovery t of every one of the 5 drift-placebo searches. A passing setup is a candidate second EA setup; it is then checked for S4U/S5 portfolio MAR in both halves (split 2018-01-01) and goes to forward test, not live trading. If no setup passes, the 28-market avenue is closed.",
+   "min_improvement": 0.0,
+   "test_period": "discovery 2012-2019 on group A; validation 2020-2026 group A and 2012-2026 group B",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
