@@ -1332,6 +1332,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "Fields hold brake-25% MAR (balance DD), not E(R): a portfolio set change has no per-trade t. 2011-09..2026-10, brake 25%: S3 20.3%/DD 43.0%/MAR 0.47; S4J 25.6%/35.1%/0.73; S4U 26.5%/34.1%/0.78; S5 30.2%/35.4%/0.85 (worst year -23% in 2015, 5 open at once). Flags: USDJPY mean R +0.169/+0.285 by half (all 384 trades +0.224, t 1.75) PASS; S4U MAR >= S3 both halves PASS; S5 >= S4J both halves PASS; MC P(DD>50%) <= 5% all PASS (S4U 0.2%, S5 0.7%). Monthly R corr with S3: USDJPY -0.10, JP225 +0.03; JP225~USDJPY +0.06. USDJPY was seen before in the 16-market runs, so this is not a blind test. Adoption is the user's call."
    }
+  },
+  {
+   "id": "g27k_blind_quality_basket",
+   "registered": "2026-10-03T13:44:39.366071+00:00",
+   "why": "User: adding markets lowered DD, but only quality markets help; all 16 markets together was poor because the weak ones dragged it down. Question: can quality be chosen without hindsight? S5/S4U/S4J were chosen after seeing results.",
+   "change": "G27K #1 unchanged on the 16 markets of multi_market_search.MARKETS (trades from 2009-09). Every 1 January 2012..2026 choose the markets to trade that year from trades CLOSED before that date only (expanding history), n >= 30 required. Rules: Q1 mean R > 0; Q2 t-stat of mean R > 1.0 (PRIMARY); Q3 the 5 best by t with t > 0. Two variants: pure (all 16 are candidates) and anchored (gold, silver, BTC always traded + blind picks from the other 13). Brake 25% and normal 1%. Window 2012-01-01..2026-10-01. Comparators on the same window: all 16, S3, and the hindsight sets S4J, S4U, S5.",
+   "sweep_size": 6,
+   "criterion": "Primary = Q2 pure, brake 25%: PASS if its MAR (CAGR / balance DD) beats all-16 in the full window AND in both halves (split 2019-01-01) AND MC 10y P(DD>50%) <= 5%. Reported, not judged: Q1, Q3, anchored variants, and the gap to the hindsight sets (the cost of not knowing the future).",
+   "min_improvement": 0.0,
+   "test_period": "2012-01-01..2026-10-01, selection from trades before each 1 January",
+   "result": {
+    "recorded": "2026-10-03T13:45:37.663062+00:00",
+    "baseline_er": 0.09,
+    "variant_er": 0.4,
+    "improvement": 0.31000000000000005,
+    "t_stat": NaN,
+    "n_baseline": 5859,
+    "n_variant": 1274,
+    "k_at_test": 15002025,
+    "floor_at_test": 7.9331754083450265,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "Fields hold brake-25% MAR (CAGR / balance DD), not E(R). Pre-registered criterion PASSES: Q2-pure MAR 0.40 vs all-16 0.09 (halves -0.10/+1.13 vs -0.11/+0.66), MC P(DD>50%) 2.2%. 2012-01..2026-10 brake: ALL16 6.0%/DD 65.1%; Q2-pure 15.3%/38.7%; Q2-anchored 20.4%/47.9%; Q1-pure 13.7%/61.7%; Q3-pure 9.9%/58.4%; hindsight S3 20.6%/43.4%, S4J 26.2%/35.1%, S4U 27.8%/34.1%, S5 31.6%/35.4%. Blind selection beats trading everything, but reaches about half of S5's return: the gap is the value of hindsight. 7 of 16 markets positive 2012-26 (BTC, JP225, XAU, USDJPY, XAG, USDZAR, USTEC); S5 = the top 5."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
