@@ -1632,6 +1632,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "WITHDRAWN BEFORE ANY RUN: the user cancelled the stock test because Exness offers stocks only on Standard accounts, not on Standard Cent. Fetch stopped at 23 of 90 tickers (19 with data under .cache_duka/STK_*_H1BID.parquet, kept on request; ABBV, BEKE, BILI, CHTR had no Dukascopy data). No backtest was run and no result was seen under this id."
    }
+  },
+  {
+   "id": "g27k_filtered_variants",
+   "registered": "2026-10-04T08:43:27.864038+00:00",
+   "why": "User asked whether G27K #1 can be better. #1 is flat in 2011-2018 (Cent -20%, Standard +7% over 7 years; 6-market t 1.68 in 2011-19). In tf_l2_H4_real, one-step neighbours of #1 that filter its trades have 2-3x the R per trade in 2011-19 and higher R in 2020-23 (read from the grid table on 2026-10-04; the four below were chosen from that table, so they are not blind).",
+   "change": "Four fixed variants of #1 C8/D3/E1/F1/G2/H2/I1/J1, each changing one slot: V1 C2/D3/E1/F1/G2/H2/I1/J1 (D1 trend must agree, no news filter), V2 C8/D2 (55-bar breakout), V3 C8/D4 (squeeze breakout), V4 C8/D6 (Bollinger breakout); every other slot as #1. Engine g27k_fast via grid_diverse.trades on the six markets (tf_search.MKTS), trades 2011-09-01..2026-09-30. Account: suite.simulate brake version (1%, halved while balance DD >= 25%), BTC and ETH at 0.5% risk (R x 0.5), Cent = XAUUSD XAGUSD BTCUSD ETHUSD USDJPY, Standard = those + JP225.",
+   "sweep_size": 4,
+   "criterion": "A variant PASSES only if, on BOTH Cent and Standard: (1) balance MAR above #1 in 2011-09..2018-12 AND in 2019-01..2026-09 (separate simulations); (2) full-period MAR above #1 under stress (j) = costs x2 + 0.05R + entry one H1 bar late; (3) Monte Carlo P(DD>50%) (suite.monte_carlo, full period) not above #1's + 0.5 percentage point. If several pass, pick the one with the highest Standard MAR in 2011-09..2018-12. Final gate for the pick: Standard account return 2024-01..2026-09 at least 90% of #1's. If none passes, #1 stays unchanged. Ledger floor (t>7.93) will not be met; a pass means candidate for forward test next to #1, not a proven improvement.",
+   "min_improvement": 0.0,
+   "test_period": "2011-09-01..2026-09-30, split 2018-12-31; final gate 2024-01..2026-09",
+   "result": {
+    "recorded": "2026-10-04T08:44:27.368568+00:00",
+    "baseline_er": 0.349,
+    "variant_er": 0.627,
+    "improvement": 0.278,
+    "t_stat": 5.07,
+    "n_baseline": 2034,
+    "n_variant": 1027,
+    "k_at_test": 22140373,
+    "floor_at_test": 8.035952640945572,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "FAIL by the pre-registered criterion: all four variants beat #1 on 2011-2018 MAR, on stress (j) MAR and on MC, on both Cent and Standard, but all four have LOWER MAR than #1 in 2019-01..2026-09 (e.g. Standard V3 D4 2.15 vs 3.07; 2024-26 return +196% vs +421%). #1 stays. Note: 2019-2026 contains the 2021-2026 window #1 was selected on, so #1 has a home advantage there. Full period, Standard crypto 0.5%: #1 CAGR 30.2% DD 35.4% MAR 0.85; V3 D4 30.4%/20.8%/1.46; V2 D2 27.0%/20.9%/1.30. Recorded figures: E(R) #1 vs V3 over all six markets 2011-09..2026-09, t is V3's own t."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
