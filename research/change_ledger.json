@@ -1582,6 +1582,31 @@
     "verdict": "REJECTED",
     "note": "Fields: brake MAR of G27K alone vs G27K + all three at 0.33% with H1 streams under (j). Per finalist (2011-09..2026-09, 6 markets): H1#1 base +0.153R t 6.81; x2 +0.100 t 4.48; +0.05R +0.103 t 4.58; stop 0.10R +0.111; late +0.123 t 5.70; no 20-24 UTC +0.155; (j) +0.021 t 1.00; without best 5% -0.214; 15/16 years positive -> ROBUST by the rule. H1#2 base +0.120 t 5.95; x2 +0.073; +0.05R +0.070; stop 0.25R -0.003; late +0.082; (j) -0.014 -> NOT ROBUST (dropped). H1#3 base +0.152 t 5.82; x2 +0.105; +0.05R +0.102; late +0.103; (j) +0.007 t 0.26; 13/16 years -> ROBUST by the rule. PLAN FAILS: under (j), G27K + 3 x 0.33% = 14.3%/DD 48.8%/MAR 0.29, MC P(DD>50%) 23.1%; G27K + #1 and #3 x 0.33% = 16.5%/45.3%/MAR 0.37, MC 12.8%; G27K alone 30.2%/35.4%/0.85. The family survives each moderate cost alone, but the combined realistic-to-harsh case leaves ~0R per trade, and near-zero streams trading thousands of times make the account worse. Not for live trading; at most a demo forward test that measures the real per-trade cost."
    }
+  },
+  {
+   "id": "grid_diverse_from_g27k1",
+   "registered": "2026-10-04T03:20:35.818498+00:00",
+   "why": "User wants more winning setups from the 27,648 grid that behave differently from G27K #1 (not another BTC/ETH-style duplicate). Selection must not use 2024-2026.",
+   "change": "Pool: grid setups on the six main markets (H4, numba engine, broker costs, ETH = BTC spec) with t > 2 in 2011-09..2019-12 AND t > 2 in 2020-01..2023-12, and positive on gold/silver/BTC in 2017-01..2021-09 (g27k_early). Difference from #1, measured on 2011-09..2023-12 trades: (a) share of the candidate's trades open at the same time as a same-direction #1 trade in the same market <= 30%, and (b) monthly R correlation with #1 <= 0.30. Rank survivors by 2020-2023 t; among themselves keep a new one only if its trade overlap with every kept one is <= 50%; at most 3.",
+   "sweep_size": 27648,
+   "criterion": "Each selected setup must then be (1) positive in 2024-01..2026-09 (opened once), and (2) positive with t > 2 over 2011-09..2026-09 under the execution stress costs x2 + 0.05R + entry one H1 bar late. Survivors are added to G27K #1 on S5 and on S4U (1% each, account brake 25%, 2011-09..2026-09); a setup is adopted if MAR is higher than G27K alone, neither half (split 2018-01-01) loses more than 10% of its MAR, MC 10y P(DD>50%) <= 5%, and its monthly correlation with #1 stays <= 0.30 over the full period. Adopted setups go to forward test first.",
+   "min_improvement": 0.0,
+   "test_period": "selection 2011-09..2023-12; final 2024-01..2026-09",
+   "result": {
+    "recorded": "2026-10-04T03:23:26.557810+00:00",
+    "baseline_er": 0.0,
+    "variant_er": 0.0,
+    "improvement": 0.0,
+    "t_stat": NaN,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 22140368,
+    "floor_at_test": 8.035952581434975,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "NO SETUP SELECTED. Pool 2,673 grid setups (t>2 in 2011-19 and 2020-23 on the six markets, positive 2017-21 on gold/silver/BTC). Against #1 on 2011-09..2023-12: zero meet overlap <= 30% AND monthly corr <= 0.30. Overlap: min 47%, median 98% - every long-only setup trades while #1 is in the same market; only two-way setups (J2, ~50% shorts) reach ~47-48%. Correlation: min 0.07, median 0.58; low correlation only with fixed-target exits (H4-H6 medians 0.23-0.29) which still overlap 98% in time. 89 setups have both <= 0.50 (all two-way J2 or D8 swing). Conclusion: the grid's winners on these markets are variants of #1; diversification here comes from markets, not from more grid setups."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"

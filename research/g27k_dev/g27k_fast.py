@@ -10,7 +10,7 @@ TP = {"H4": 2.0, "H5": 3.0, "H6": 5.0}
 
 @njit(cache=True)
 def _sim(o, h, l, c, a14, a20, a22, t, bo, bh, bl, bt, k0, k1, lo20, hi20, lo10, hi10, swl, swh,
-         s_idx, d_arr, fm, gm, hm, tpk, add):
+         s_idx, d_arr, fm, gm, hm, tpk, add, late=False):
     n = len(c)
     m = len(s_idx)
     TE = np.empty(m, np.int64); TX = np.empty(m, np.int64); DD = np.empty(m, np.int64)
@@ -25,6 +25,8 @@ def _sim(o, h, l, c, a14, a20, a22, t, bo, bh, bl, bt, k0, k1, lo20, hi20, lo10,
         e = -1; q0 = 0; ep = 0.0
         if fm == 1:
             e = s + 1; q0 = k0[e]; ep = o[e]
+            if late and k0[e] + 1 < k1[e]:          # stress: fill at the next H1 open inside the entry bar
+                q0 = k0[e] + 1; ep = bo[q0]
         else:
             lim = c[s] - d * 0.5 * N
             for jj in range(s + 1, min(s + 4, n)):
@@ -94,14 +96,14 @@ def _sim(o, h, l, c, a14, a20, a22, t, bo, bh, bl, bt, k0, k1, lo20, hi20, lo10,
     return TE[:k], TX[:k], DD[:k], RISK[:k], PX[:k], U[:k], UT[:k], NU[:k]
 
 
-def simulate(M, s_idx, d_arr, Fm, Gm, Hm, Im, nights):
+def simulate(M, s_idx, d_arr, Fm, Gm, Hm, Im, nights, late=False):
     """Same return as g27k.simulate: list of (entry time, exit time, R, direction)."""
     f = lambda x: np.ascontiguousarray(x, dtype=np.float64)
     TE, TX, D, RISK, PX, U, UT, NU = _sim(
         f(M["o"]), f(M["h"]), f(M["l"]), f(M["c"]), f(M["a14"]), f(M["a20"]), f(M["a22"]), np.asarray(M["t"], np.int64),
         f(M["bo"]), f(M["bh"]), f(M["bl"]), np.asarray(M["bt"], np.int64), np.asarray(M["k0"], np.int64), np.asarray(M["k1"], np.int64),
         f(M["lo20"]), f(M["hi20"]), f(M["lo10"]), f(M["hi10"]), f(M["swl"]), f(M["swh"]),
-        np.asarray(s_idx, np.int64), np.asarray(d_arr, np.int64), 1 if Fm == "F1" else 2, int(Gm[1]), HCODE[Hm], TP.get(Hm, 0.0), Im == "I2")
+        np.asarray(s_idx, np.int64), np.asarray(d_arr, np.int64), 1 if Fm == "F1" else 2, int(Gm[1]), HCODE[Hm], TP.get(Hm, 0.0), Im == "I2", late)
     if not len(TE):
         return []
     mask = np.arange(4)[None, :] < NU[:, None]
