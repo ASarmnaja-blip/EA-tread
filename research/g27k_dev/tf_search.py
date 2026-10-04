@@ -38,7 +38,7 @@ import walkforward_controller as W
 MKTS = ("XAUUSD", "XAGUSD", "BTCUSD", "JP225", "USDJPY", "ETHUSD")
 D0, SPLIT, CUT, END = "2011-09-01", "2020-01-01", "2024-01-01", "2026-10-01"
 LO, SP, HI, FIN = W.ts(D0), W.ts(SPLIT), W.ts(CUT), W.ts(END)
-MIN_N_L2 = {"H1": 300, "D1": 100}
+MIN_N_L2 = {"H1": 300, "D1": 100, "H4": 300}  # H4: calibration only (the timeframe G27K came from)
 OUT = PMS.CACHE
 
 
@@ -246,7 +246,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
     ap.add_argument("cmd", choices=("l2", "l3", "grade"))
-    ap.add_argument("tf", choices=("H1", "D1"))
+    ap.add_argument("tf", choices=("H1", "D1", "H4"))
     ap.add_argument("mode", nargs="?", default="real")
     ap.add_argument("first", nargs="?", type=int, default=0)
     ap.add_argument("count", nargs="?", type=int, default=1)
