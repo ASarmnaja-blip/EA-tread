@@ -33,11 +33,15 @@ import walkforward_controller as W
 
 START, MID, END = "2011-09-01", "2018-01-01", "2026-10-01"
 CENT = ("XAUUSD", "XAGUSD", "BTCUSD", "ETHUSD", "USDJPY")
-STD = CENT + ("JP225",)
+STD = ("XAUUSD", "XAGUSD", "BTCUSD", "ETHUSD", "USDJPY", "JP225")
 S5 = STD
 # (label, markets, risk per trade, version); every market at the same risk, BTC and ETH included
-SYS = {"A": ("Cent 0.75%", CENT, 0.75, "normal"), "B": ("Cent 1%", CENT, 1.0, "normal"), "C": ("Cent 1% + เบรก 25%", CENT, 1.0, "brake"),
-       "D": ("Standard 0.75%", STD, 0.75, "normal"), "E": ("Standard 1%", STD, 1.0, "normal"), "F": ("Standard 1% + เบรก 25%", STD, 1.0, "brake")}
+def systems(cent):
+    return {"A": ("Cent 0.75%", cent, 0.75, "normal"), "B": ("Cent 1%", cent, 1.0, "normal"), "C": ("Cent 1% + เบรก 25%", cent, 1.0, "brake"),
+            "D": ("Standard 0.75%", STD, 0.75, "normal"), "E": ("Standard 1%", STD, 1.0, "normal"), "F": ("Standard 1% + เบรก 25%", STD, 1.0, "brake")}
+
+
+SYS = systems(CENT)
 VERS = {"lock": "ความเสี่ยงที่ล็อก"}
 HALF_OF = lambda ms, k: {m: k for m in ms}
 TH = {"XAUUSD": "ทอง", "XAGUSD": "เงิน", "BTCUSD": "BTC", "ETHUSD": "ETH"}
@@ -61,7 +65,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--cent", default="", help="markets tradable on the Cent account, e.g. XAUUSD,XAGUSD,BTCUSD,USDJPY")
     a = ap.parse_args()
+    global CENT, SYS
+    if a.cent:
+        CENT = tuple(a.cent.split(","))
+        SYS = systems(CENT)
     t0 = time.time()
     P.setup(a.root)
     G, K, C = P._M["G"], P._M["K"], P._M["C"]
@@ -214,7 +223,7 @@ def main():
                "ให้ปิดไม้ทอง เงิน BTC ETH ที่ราคาเปิดชั่วโมงถัดไปหลัง 22:00 UTC ของวันทำการถัดไป และไม่เข้าไม้ใหม่ในตลาดเหล่านี้ 5 วัน"]
     info = {}
     for s, (label, ms, k, ver) in SYS.items():
-        acct = "บัญชี Cent: ไม่มี JP225 · BTCUSDc/ETHUSDc บน MT5 เท่านั้น" if "JP225" not in ms else "บัญชี Standard: มี JP225 ครบ 6 ตลาด"
+        acct = (f"บัญชี Cent: {', '.join(ms)} (ไม่มี JP225" + (" และ ETH" if "ETHUSD" not in ms else "") + ") · BTCUSDc บน MT5 เท่านั้น") if "JP225" not in ms else "บัญชี Standard: มี JP225 ครบ 6 ตลาด"
         risk = (f"ความเสี่ยง {k:g}% ต่อไม้ทุกตลาด รวม BTC และ ETH" + (" · เบรก: ลดครึ่งเมื่อ DD ถึง 25% จนกลับมาไม่เกิน 12.5%" if ver == "brake" else " · ไม่มีเบรก"))
         info[s] = dict(label=f"G27K-F · {label}", tab=label, rules=g_rules + [f"ตลาด: {', '.join(ms)}"], notes=[f"<b>{acct}</b>", risk],
                        combo="C8/D3/E1/F1/G2/H2/I1/J1 + Fed", risk=k / 100, adds=False, tf="H4", risk_note=risk, risk_notes={"lock": risk})

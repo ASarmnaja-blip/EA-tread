@@ -35,7 +35,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
     ap.add_argument("--all-new", action="store_true")
+    ap.add_argument("--cent", default="", help="markets tradable on the Cent account")
     a = ap.parse_args()
+    if a.cent:
+        NS.RF.CENT = tuple(a.cent.split(","))
     P.setup(a.root)
     S = pickle.loads((PMS.CACHE / "m30_sleeve6.pkl").read_bytes())
     p1 = json.loads((HERE / "m30_new_markets.json").read_text())
@@ -71,7 +74,7 @@ def main():
     v = bool(new) and out["runs"]["Cent 1% + brake"]["pass_"] and out["runs"]["Standard 1% + brake"]["pass_"]
     out["verdict"] = v
     print(f"  PART 2 VERDICT (Cent and Standard, 1% + brake): {'ADOPT extended sleeve' if v else 'do not adopt'}")
-    (HERE / ("m30_combo6_allnew.json" if a.all_new else "m30_combo6.json")).write_text(json.dumps(out, indent=1, default=float))
+    (HERE / (("m30_combo6_allnew" if a.all_new else "m30_combo6") + ("_cent" + str(len(NS.RF.CENT)) if a.cent else "") + ".json")).write_text(json.dumps(out, indent=1, default=float))
 
 
 if __name__ == "__main__":

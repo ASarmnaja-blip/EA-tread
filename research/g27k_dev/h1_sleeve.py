@@ -173,7 +173,7 @@ def part_combo(a, s):
     v = out["runs"]["Cent 1% + brake"]["pass_"] and out["runs"]["Standard 1% + brake"]["pass_"]
     out["verdict"] = bool(v)
     print(f"  ACCOUNT VERDICT (Cent and Standard, 1% + brake): {'ADOPT H1 sleeve' if v else 'do not adopt'}")
-    (HERE / "h1_sleeve_combo.json").write_text(json.dumps(out, indent=1, default=float))
+    (HERE / ("h1_sleeve_combo" + ("_cent" + str(len(NS.RF.CENT)) if a.cent else "") + ".json")).write_text(json.dumps(out, indent=1, default=float))
 
 
 def neighbours(s):
@@ -242,7 +242,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
     ap.add_argument("--part", choices=("newmkt", "combo", "robust"), required=True)
+    ap.add_argument("--cent", default="", help="markets tradable on the Cent account (combo)")
     a = ap.parse_args()
+    if a.cent:
+        NS.RF.CENT = tuple(a.cent.split(","))
     s = spec_of(pick())
     print(f"  pick: {s}", flush=True)
     {"newmkt": part_newmkt, "combo": part_combo, "robust": part_robust}[a.part](a, s)

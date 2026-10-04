@@ -37,17 +37,22 @@ import walkforward_controller as W
 
 START, MID, END = "2011-09-01", "2018-01-01", "2026-10-01"
 CENT = ("XAUUSD", "XAGUSD", "BTCUSD", "ETHUSD", "USDJPY")
-STD = CENT + ("JP225",)
+STD = ("XAUUSD", "XAGUSD", "BTCUSD", "ETHUSD", "USDJPY", "JP225")
 S5 = STD
 # (label, markets, risk per trade, version); every market at the same risk, BTC and ETH included
 SLEEVE = ("XAUUSD_M30", "XAGUSD_M30", "BTCUSD_M30")
 K_SLEEVE = 0.5
 # (label, markets, risk per trade, version, with M30 sleeve)
-SYS = {"A": ("Cent G27K-F", CENT, ()), "B": ("Cent G27K-F + M30", CENT, ("M30",)),
-       "C": ("Standard G27K-F", STD, ()), "D": ("Standard G27K-F + M30", STD, ("M30",))}
-# with --h1: every system carries the M30 sleeve, B and D add the H1 sleeve
-SYS_H1 = {"A": ("Cent G27K-F + M30", CENT, ("M30",)), "B": ("Cent G27K-F + M30 + H1", CENT, ("M30", "H1")),
-          "C": ("Standard G27K-F + M30", STD, ("M30",)), "D": ("Standard G27K-F + M30 + H1", STD, ("M30", "H1"))}
+def systems(cent, h1=False):
+    """Without the H1 sleeve: G27K-F alone vs + M30; with it every system carries M30 and B, D add H1."""
+    if h1:
+        return {"A": ("Cent G27K-F + M30", cent, ("M30",)), "B": ("Cent G27K-F + M30 + H1", cent, ("M30", "H1")),
+                "C": ("Standard G27K-F + M30", STD, ("M30",)), "D": ("Standard G27K-F + M30 + H1", STD, ("M30", "H1"))}
+    return {"A": ("Cent G27K-F", cent, ()), "B": ("Cent G27K-F + M30", cent, ("M30",)),
+            "C": ("Standard G27K-F", STD, ()), "D": ("Standard G27K-F + M30", STD, ("M30",))}
+
+
+SYS = systems(CENT)
 M30_SPEC = dict(tf="M30", near="brk55", thr=-1.0, vol=1.5, ctx="htf1_with", dir="both", exit="tp2", scope="pooled")
 # locked G27K-F risk: (risk per trade %, suite version)
 VCONF = {"r075": (0.75, "normal"), "r1": (1.0, "normal"), "r1b": (1.0, "brake")}
@@ -150,12 +155,14 @@ def main():
     ap.add_argument("--robust", default="", help="json from m30_robust.py to show as a card")
     ap.add_argument("--h1", default="", help="H1 sleeve markets (the h1_sleeve pick): F + M30 vs F + M30 + H1")
     ap.add_argument("--h1-robust", default="", help="json from h1_sleeve.py --part robust")
+    ap.add_argument("--cent", default="", help="markets tradable on the Cent account, e.g. XAUUSD,XAGUSD,BTCUSD,USDJPY")
     a = ap.parse_args()
-    global SLEEVE, SYS
+    global SLEEVE, SYS, CENT
     smk = a.sleeve.split(",")
     hmk = a.h1.split(",") if a.h1 else []
-    if hmk:
-        SYS = SYS_H1
+    if a.cent:
+        CENT = tuple(a.cent.split(","))
+    SYS = systems(CENT, bool(hmk))
     SLEEVE = tuple(m + "_M30" for m in smk) + tuple(m + "_H1" for m in hmk)
     t0 = time.time()
     P.setup(a.root)
@@ -334,7 +341,7 @@ def main():
                "ให้ปิดไม้ทอง เงิน BTC ETH ที่ราคาเปิดชั่วโมงถัดไปหลัง 22:00 UTC ของวันทำการถัดไป และไม่เข้าไม้ใหม่ในตลาดเหล่านี้ 5 วัน"]
     info = {}
     for s, (label, ms, bk) in SYS.items():
-        acct = "บัญชี Cent: ไม่มี JP225 · BTCUSDc/ETHUSDc บน MT5 เท่านั้น" if "JP225" not in ms else "บัญชี Standard: มี JP225 ครบ 6 ตลาด"
+        acct = (f"บัญชี Cent: {', '.join(ms)} (ไม่มี JP225" + (" และ ETH" if "ETHUSD" not in ms else "") + ") · BTCUSDc บน MT5 เท่านั้น") if "JP225" not in ms else "บัญชี Standard: มี JP225 ครบ 6 ตลาด"
         rn = {v: f"G27K-F {k:g}% ต่อไม้ทุกตลาด รวม BTC และ ETH" + (" · เบรก: ลดครึ่งเมื่อ DD ถึง 25% จนกลับมาไม่เกิน 12.5%" if ver == "brake" else " · ไม่มีเบรก")
               + "".join(f" · ไม้ {b} 0.5%" for b in bk) for v, (k, ver) in VCONF.items()}
         risk = rn["r1b"]
