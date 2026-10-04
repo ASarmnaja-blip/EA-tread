@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Adding weakly profitable markets to the five-market G27K #1 system, in the
-G27K Strategy-Tester layout. Systems: S5; S5 + USDZAR, USTEC (1%); S5 + five
+"""Adding weakly profitable markets to the six-market G27K #1 system (five + ETH), in the
+G27K Strategy-Tester layout. Systems: S6; S6 + USDZAR, USTEC (1%); S5 + five
 weak markets (USDZAR, USTEC, GBPJPY, CHFJPY, EURJPY) at 1%; the same at 0.5%.
 A comparison section on top (balance, numbers, years, and the same four with
 every trade 0.10R worse), then version and market tabs. 2011-09..2026-09.
@@ -31,10 +31,10 @@ import suite as SU
 import walkforward_controller as W
 
 START, MID, END = "2011-09-01", "2018-01-01", "2026-10-01"
-S5 = ("XAUUSD", "XAGUSD", "BTCUSD", "JP225", "USDJPY")
+S5 = ("XAUUSD", "XAGUSD", "BTCUSD", "JP225", "USDJPY", "ETHUSD")   # the base: five markets + ETH
 W2 = ("USDZAR", "USTEC")
 W5 = W2 + ("GBPJPY", "CHFJPY", "EURJPY")
-SYS = {"A": ("5 ตลาด", S5, 1.0), "B": ("+USDZAR, USTEC", S5 + W2, 1.0), "C": ("+กำไรน้อย 5 ตัว 1%", S5 + W5, 1.0),
+SYS = {"A": ("6 ตลาด (+ETH)", S5, 1.0), "B": ("+USDZAR, USTEC", S5 + W2, 1.0), "C": ("+กำไรน้อย 5 ตัว 1%", S5 + W5, 1.0),
        "D": ("+กำไรน้อย 5 ตัว 0.5%", S5 + W5, 0.5)}
 VERS = {"brake": "เบรก 25%", "normal": "ปกติ 1%", "monitor": "AI monitor"}
 TH = {"XAUUSD": "ทอง", "XAGUSD": "เงิน", "BTCUSD": "BTC"}
@@ -145,15 +145,18 @@ def main():
               + "".join(perm) + "</tbody></table>")
     s0, s1, s2 = stress[("A", 0.10)], stress[("B", 0.10)], stress[("C", 0.10)]
     summary = ("<ul class='cmp-sum'>"
+               f"<li><b>ชุดฐาน 6 ตลาด (รวม ETH)</b>: {E['A']['cagr']:.1%} ต่อปี · Equity DD {E['A']['equity_dd']['relative_pct']:.0%} · MAR {mar(E['A']):.2f} · "
+               f"แต่ BTC กับ ETH ขยับตามกัน ความเสี่ยงคริปโตรวม 2% ถ้าต้นทุนแย่ลง 0.10R โอกาส DD เกิน 50% เป็น {s0['p50']:.1%} (เกินเกณฑ์ 5%) "
+               "ทางเลือกที่ปลอดภัยกว่าคือ BTC และ ETH ตัวละ 0.5%</li>"
                f"<li><b>เพิ่ม USDZAR และ USTEC</b>: MAR {mar(E['A']):.2f} → {mar(E['B']):.2f} และ Equity DD {E['A']['equity_dd']['relative_pct']:.0%} → {E['B']['equity_dd']['relative_pct']:.0%} · "
-               f"ถ้าต้นทุนแย่ลง 0.10R ยังดีกว่า 5 ตลาดเดิมเล็กน้อย (MAR {s0['mar']:.2f} → {s1['mar']:.2f}) แต่โอกาส DD เกิน 50% เป็น {s1['p50']:.1%}</li>"
+               f"ถ้าต้นทุนแย่ลง 0.10R: MAR 6 ตลาดฐาน → เพิ่มสองตัว ( {s0['mar']:.2f} → {s1['mar']:.2f}) แต่โอกาส DD เกิน 50% เป็น {s1['p50']:.1%}</li>"
                f"<li><b>เพิ่มตลาดกำไรน้อยทั้ง 5 ตัว</b>: แย่ลงแม้ต้นทุนปกติ และพังเมื่อต้นทุนแย่ลง (MAR {s2['mar']:.2f}, โอกาส DD เกิน 50% {s2['p50']:.0%})</li>"
                "<li><b>หลัก</b>: ตลาดที่จะเพิ่มควรกำไรเกินต้นทุนจริงชัดเจน (ราว 0.15–0.2R ต่อไม้ขึ้นไปหลังต้นทุน) ตัวที่บางกว่านี้เพิ่มไม้และความเสี่ยงโดยไม่คุ้ม</li>"
                "<li><b>USDZAR และ USTEC ถูกเลือกหลังเห็นผล</b> (hindsight บางส่วน) หลักฐานรายตลาดยังอ่อน (t ประมาณ 1.1) ควรเริ่มที่ forward test หรือความเสี่ยงต่ำ</li></ul>")
     pts = [dict(x=START, lab="เริ่ม " + START, **{s: float(W.DEPOSIT) for s in keys})]
     for d, vals in curves:
         pts.append(dict(x=str(d.date()), lab=f"สิ้น {RJ.TH_M[d.month - 1]} {d.year}", **{s: float(v) for s, v in zip(keys, vals)}))
-    short = {"A": "5 ตลาด", "B": "+ZAR,TEC", "C": "+5 ตัว 1%", "D": "+5 ตัว 0.5%"}
+    short = {"A": "6 ตลาด", "B": "+ZAR,TEC", "C": "+5 ตัว 1%", "D": "+5 ตัว 0.5%"}
     data = json.dumps(dict(pts=pts, keys=keys, names=[short[s] for s in keys]), ensure_ascii=False)
     legend = "".join(f'<span><i style="background:var(--c{i + 1})"></i>{name[s]}</span>' for i, s in enumerate(keys))
     cmp_html = (R5.CSS + '<section class="card"><h2>เพิ่มตลาดที่กำไรน้อยแต่ยังบวก · เบรก 25%</h2>' + summary +
@@ -169,19 +172,20 @@ def main():
                "SL 2 × ATR20 ไม่ขยับ · ออกเมื่อแท่ง H4 ปิดต่ำกว่า Low ต่ำสุด 20 แท่ง · ตลาดละ 1 ไม้"]
     info = {}
     for s, (label, ms, w) in SYS.items():
-        extra_note = [] if s == "A" else [f"<b>ตลาดที่เพิ่ม:</b> {', '.join(m for m in ms if m not in S5)} · ความเสี่ยง {w:.1%} ต่อไม้ (5 ตลาดเดิม 1%)",
+        extra_note = [] if s == "A" else [f"<b>ตลาดที่เพิ่ม:</b> {', '.join(m for m in ms if m not in S5)} · ความเสี่ยง {w:.1%} ต่อไม้ (6 ตลาดฐาน 1%)",
                                           "swap ของ GBPJPY, CHFJPY, EURJPY เป็นค่าสมมติ (1 bp/คืน) · USDZAR และ USTEC ใช้สเปกจริงของโบรก"]
-        info[s] = dict(label=f"G27K #1 · {label}", tab=label, rules=g_rules + [f"ตลาด: {', '.join(ms)}"], notes=extra_note or ["ระบบหลักปัจจุบัน 5 ตลาด"],
+        info[s] = dict(label=f"G27K #1 · {label}", tab=label, rules=g_rules + [f"ตลาด: {', '.join(ms)}"], notes=extra_note or ["ชุดฐาน 6 ตลาด: ทอง เงิน BTC JP225 USDJPY ETH · ต้องใช้บัญชี Standard (JP225) · BTC และ ETH ขยับตามกัน (correlation รายเดือน +0.65) ความเสี่ยงคริปโตรวมจึงเป็น 2%"],
                        combo="C8/D3/E1/F1/G2/H2/I1/J1", risk=0.01, adds=False, tf="H4", risk_note=RSD.RISK_NOTE["brake"], risk_notes=RSD.RISK_NOTE)
     wf = {s: dict(patterns=[], pat_note="", pat_empty="กฎตายตัว G27K #1 กฎเดียว", log=[], log_note="",
                   log_empty="ขนาดไม้ของแต่ละเวอร์ชันคำนวณที่เวลาเข้าไม้ ดูกฎในช่อง ตั้งค่า") for s in SYS}
     last = E_ - pd.Timedelta(days=1)
     out["META"] = dict(systems_info=info, wf=wf, versions=VERS,
                        period_th=f"15 ปี {S_.day} {RJ.TH_M[S_.month - 1]} {S_.year} – {last.day} {RJ.TH_M[last.month - 1]} {last.year}",
-                       data_note="ทอง/เงิน: Candle Lab H1 ก่อนปี 2021 ต่อด้วย MT5 · ตลาดอื่น: Dukascopy H1 · BTC: Binance · SL ตรวจทีละแท่ง H1",
+                       data_note="ทอง/เงิน: Candle Lab H1 ก่อนปี 2021 ต่อด้วย MT5 · ตลาดอื่น: Dukascopy H1 · BTC/ETH: Binance · SL ตรวจทีละแท่ง H1",
                        notes_common=["<b>บัญชีเดียวต่อเนื่อง เริ่ม $100,000 เมื่อ ก.ย. 2011</b> จำลองบนราคาจริง ไม่ใช่ผลเทรดจริง",
                                      "<b>ต้นทุน:</b> spread + 1 bp (ขั้นต่ำ 2 bp ต่อรอบ) และ swap",
                                      "<b>กฎ G27K #1 ถูกเลือกโดยเห็นผลปี 2021–2026</b> และตลาดที่เพิ่มถูกเลือกหลังเห็นผล ตัวเลขจึงดีเกินจริงบางส่วน",
+                                     "<b>ETH มีข้อมูลตั้งแต่ ส.ค. 2017</b> ก่อนหน้านั้นชุดฐานเทรด 5 ตลาด",
                                      "<b>แท็บตลาดเดียว</b> ใช้ขนาดไม้เดียวกับพอร์ตของระบบนั้น"],
                        footer="สร้างจาก research/g27k_dev/report_weak.py · ตัวเลขคำนวณด้วย report768.metrics ชุดเดียวกับรายงาน G27K")
     data = RWF.clean(out)
