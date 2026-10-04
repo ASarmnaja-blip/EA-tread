@@ -72,7 +72,7 @@ class Events:
     def get(self, tf):
         if tf not in self.cache:
             C = P._M["C"]
-            base = FM.specs(C)
+            base = {m: dict(C.SPECS[m]) for m in self.h1s}
             C.SPECS.update({m: dict(s, cost_rt_bp=s["cost_rt_bp"] * self.mult, swap_long_bp=s["swap_long_bp"] * self.mult,
                                     swap_short_bp=s["swap_short_bp"] * self.mult) for m, s in base.items()})
             P._M["h1"] = self.h1s

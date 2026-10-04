@@ -197,7 +197,7 @@ def grade(root, tf):
             continue
         if layer == "L2":
             Ms = {m: K.prepare(m, b, ext, tf) for m, b in h1s.items()}
-            base = FM.specs(C)
+            base = {m: dict(C.SPECS[m]) for m in MKTS}
             C.SPECS.update({m: dict(base[m], cost_rt_bp=base[m]["cost_rt_bp"] * 2, swap_long_bp=base[m]["swap_long_bp"] * 2,
                                     swap_short_bp=base[m]["swap_short_bp"] * 2) for m in MKTS})
             Ms2 = {m: K.prepare(m, b, ext, tf) for m, b in h1s.items()}
