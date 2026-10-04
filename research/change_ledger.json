@@ -1767,7 +1767,21 @@
    "criterion": "Adopt the sleeve at 0.5% only if, on BOTH Cent and Standard with G27K-F at 1% + brake 25%: (1) full-period MAR (CAGR / balance DD) above G27K-F alone; (2) MAR above G27K-F alone in 2011-09..2018-12 AND in 2019-01..2026-09; (3) full-period MAR above G27K-F alone with every trade (both books) 0.10R worse; (4) Monte Carlo P(DD>50%) not above G27K-F alone + 1 percentage point. Overlap with G27K (share of sleeve trades opened while a same-direction G27K trade is open in that market) and monthly R correlation are reported.",
    "min_improvement": 0.0,
    "test_period": "2011-09-01..2026-09-30, halves split 2019-01-01",
-   "result": null
+   "result": {
+    "recorded": "2026-10-04T15:06:45.838743+00:00",
+    "baseline_er": 1.5,
+    "variant_er": 1.67,
+    "improvement": 0.16999999999999993,
+    "t_stat": NaN,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 31909263,
+    "floor_at_test": 8.13134977282402,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "DO NOT ADOPT by the pre-registered criterion: passes on Cent 1%+brake (MAR 1.35 -> 1.44, halves -0.05/+3.68 -> +0.07/+3.99, -0.10R 0.54 -> 0.62, P(DD>50%) 1.1 -> 1.8%) but fails on Standard 1%+brake at condition 3 (-0.10R MAR 0.69 -> 0.62) though conditions 1, 2, 4 pass (MAR 1.50 -> 1.67, halves +0.12/+3.90 -> +0.34/+4.73, P(DD>50%) 1.8 -> 1.7%). Sleeve: 1,945 trades +0.137R; 35% open while a same-direction G27K-F trade is open; monthly R corr +0.13. Its edge (~0.14R) is small next to a 0.10R cost shock, so the sleeve is cost-fragile; DD rises 29 -> 34% at 0.5%. Fields: Standard MAR alone vs with sleeve."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
