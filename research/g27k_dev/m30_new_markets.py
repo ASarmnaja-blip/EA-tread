@@ -41,11 +41,18 @@ CACHE_DUKA = HERE.parent / ".cache_duka"
 
 def load_m1(sym):
     """Old markets exactly as before; ETH from Binance like BTC; USDJPY and
-    JP225 from the cached Dukascopy years only (never triggers a download)."""
+    JP225 from histdata.com bid if fetched, else the cached Dukascopy years
+    (never triggers a download)."""
     if sym in OLD:
         return PMS.load_m1(sym)
     if sym == "ETHUSD":
         b = pd.read_parquet(CACHE_DUKA / "ETHUSD_binance_M1.parquet")
+        b = b[(b.h > b.l) & (b.index < pd.Timestamp(END, tz="UTC"))]
+        t = ((b.index - pd.Timestamp("1970-01-01", tz="UTC")) // pd.Timedelta("1s")).to_numpy(np.int64)
+        return dict(t=t, o=b.o.to_numpy(float), h=b.h.to_numpy(float), l=b.l.to_numpy(float), c=b.c.to_numpy(float), v=b.v.to_numpy(float), step=60)
+    hd = CACHE_DUKA / f"{sym}_histdata_M1.parquet"
+    if hd.exists():                                   # histdata.com bid (see m30_fetch_new.py), flat minutes dropped
+        b = pd.read_parquet(hd)
         b = b[(b.h > b.l) & (b.index < pd.Timestamp(END, tz="UTC"))]
         t = ((b.index - pd.Timestamp("1970-01-01", tz="UTC")) // pd.Timedelta("1s")).to_numpy(np.int64)
         return dict(t=t, o=b.o.to_numpy(float), h=b.h.to_numpy(float), l=b.l.to_numpy(float), c=b.c.to_numpy(float), v=b.v.to_numpy(float), step=60)
