@@ -8,7 +8,7 @@ monthly returns (P(DD>35%), P(DD>40%), 95th percentile DD), also with every
 trade 0.10R worse. Pick: the largest base risk with historical equity DD
 <= 35%, bootstrap P(DD>40%) <= 5%, and balance DD <= 40% at -0.10R.
 
-Usage: python3 research/g27k_dev/dd_target.py --root <snap>
+Usage: python3 research/g27k_dev/dd_target.py --root <snap> [--start 2020-10-01]
 """
 import argparse
 import json
@@ -33,7 +33,7 @@ import suite as SU
 import walkforward_controller as W
 
 START, END = "2011-09-01", "2026-10-01"
-KS = [round(x, 2) for x in np.arange(0.50, 1.31, 0.05)]
+KS = [round(x, 2) for x in np.arange(0.50, 2.01, 0.05)]
 
 
 def boot(eq, runs=4000, years=10, block=6, seed=7):
@@ -50,9 +50,12 @@ def boot(eq, runs=4000, years=10, block=6, seed=7):
 
 
 def main():
+    global START
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
+    ap.add_argument("--start", default=START)
     a = ap.parse_args()
+    START = RF.START = a.start
     P.setup(a.root)
     G, K, C = P._M["G"], P._M["K"], P._M["C"]
     sys.path.insert(0, str(pathlib.Path(a.root) / "research" / "grid768"))
@@ -85,7 +88,7 @@ def main():
         pick = max(ok, key=lambda r: r["k"]) if ok else None
         out[acct] = dict(rows=res, pick=pick["k"] if pick else None)
         print(f"  {acct} pick: base {pick['k'] if pick else None}%")
-    (HERE / "dd_target.json").write_text(json.dumps(out, indent=1, default=float))
+    (HERE / ("dd_target.json" if START == "2011-09-01" else f"dd_target_{START[:7]}.json")).write_text(json.dumps(out, indent=1, default=float))
 
 
 if __name__ == "__main__":
