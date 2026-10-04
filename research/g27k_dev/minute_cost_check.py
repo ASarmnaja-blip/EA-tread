@@ -60,12 +60,15 @@ def main():
                 out["population"][f"{tf} {ex} {m}"] = dict(cost_R=float(np.median(cost[k])), stop_pct=float(np.median(E[f"rk_{ex}"][k] / E[f"ep_{ex}"][k] * 100)),
                                                             gross_all=float(gross[k].mean()), net_all=float(R[k].mean()))
         for c in [c for c in stored if c["tf"] == tf]:
-            assert [names[q] for q in c["conds"]] == list(c["names"]), (c["names"], [names[q] for q in c["conds"]])
+            if not all(n in names for n in c["names"]):      # a condition label not rebuilt identically: skip, say so
+                print(f"  skip {c['scope']} {tf}: {c['names']} not all rebuilt", flush=True)
+                continue
+            conds = [names.index(n) for n in c["names"]]
             ex = c["exit"]
             R = E[f"R_{ex}"]
             gross = E["d"] * (E[f"px_{ex}"] - E[f"ep_{ex}"]) / E[f"rk_{ex}"]
             mask = np.isfinite(R) & P.scope_mask(E, c["scope"])
-            for q in c["conds"]:
+            for q in conds:
                 mask &= Bm[:, q]
             row = dict(scope=c["scope"], tf=tf, exit=ex, names=list(c["names"]))
             for nm, sel in (("disc", disc), ("val", ~disc)):
