@@ -1657,6 +1657,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "FAIL by the pre-registered criterion: all four variants beat #1 on 2011-2018 MAR, on stress (j) MAR and on MC, on both Cent and Standard, but all four have LOWER MAR than #1 in 2019-01..2026-09 (e.g. Standard V3 D4 2.15 vs 3.07; 2024-26 return +196% vs +421%). #1 stays. Note: 2019-2026 contains the 2021-2026 window #1 was selected on, so #1 has a home advantage there. Full period, Standard crypto 0.5%: #1 CAGR 30.2% DD 35.4% MAR 0.85; V3 D4 30.4%/20.8%/1.46; V2 D2 27.0%/20.9%/1.30. Recorded figures: E(R) #1 vs V3 over all six markets 2011-09..2026-09, t is V3's own t."
    }
+  },
+  {
+   "id": "g27k_risk_overlays",
+   "registered": "2026-10-04T09:33:24.431824+00:00",
+   "why": "User asked for more risk control than the 25% brake. Max DD of the six-market system is 35-38% and 2011-2018 was a long flat drawdown.",
+   "change": "Six risk overlays on unchanged G27K #1 trades (report_final6 rows, BTC/ETH 0.5%, others 1%), 2011-09..2026-09, Cent 5 and Standard 6: B brake 25% (current: x0.5 while balance DD>=25% until <12.5%); C steps by current balance DD (<10% x1, <20% x0.75, <30% x0.5, else x0.25); D brake 25% + open-risk cap 3% (skip a trade that would take open risk above 3%); E brake 25% + equity filter (x0.5 while balance below the mean of its last 30 closed-trade balances); F brake 25% + x0.5 when ATR percentile at signal > 0.9; G steps C + open-risk cap 3%.",
+   "sweep_size": 6,
+   "criterion": "An overlay ADDS VALUE only if, on BOTH Cent and Standard, its CAGR beats plain fixed risk scaled to the same full-period max balance DD (bisection on the risk scale) in 2011-09..2018-12 AND 2019-01..2026-09 (each half compared at that same scale), and its full-period MAR also beats the plain same-DD version when every trade is 0.10R worse. Otherwise the overlay only trades less and the cheaper equivalent is simply a smaller fixed risk.",
+   "min_improvement": 0.0,
+   "test_period": "2011-09-01..2026-09-30, halves split 2019-01-01",
+   "result": {
+    "recorded": "2026-10-04T09:34:13.409157+00:00",
+    "baseline_er": 0.201,
+    "variant_er": 0.248,
+    "improvement": 0.046999999999999986,
+    "t_stat": NaN,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 22140379,
+    "floor_at_test": 8.035952711448017,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "NONE ADDS VALUE by the pre-registered criterion. Every overlay (incl. the current brake) beats plain fixed risk at the same max DD over the full period and 2019-2026 and under -0.10R, but loses to it in 2011-2018 on Cent and Standard (e.g. Standard E brake+equity filter: 24.8% CAGR DD 23.9% vs plain x0.60 20.1%; 2011-18 +1.2% vs +3.7%). Recorded figures: Standard full-period CAGR, plain same-DD vs overlay E. The 25% brake stays as a safety rule; a lower fixed risk is the proven way to cut DD."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
