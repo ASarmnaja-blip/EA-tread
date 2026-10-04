@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """G27K-F: G27K #1 plus the Fed-shock exit (ledger g27k_fast_news_shock), in
-the G27K Strategy-Tester layout. Locked risk: 0.75% per trade with no brake,
-and 1% per trade with the 25% brake; BTC and ETH always at half. Cent 5 and
+the G27K Strategy-Tester layout. Locked risk: 0.75% and 1% per trade with no brake,
+and 1% per trade with the 25% brake; BTC and ETH at the same risk as the rest. Cent 5 and
 Standard 6 markets. Comparison on top (also without the Fed rule), then
 system and market tabs. 2011-09..2026-09.
 
@@ -35,11 +35,11 @@ START, MID, END = "2011-09-01", "2018-01-01", "2026-10-01"
 CENT = ("XAUUSD", "XAGUSD", "BTCUSD", "ETHUSD", "USDJPY")
 STD = CENT + ("JP225",)
 S5 = STD
-# (label, markets, risk per trade, version); BTC and ETH always at half that risk
-SYS = {"A": ("Cent 0.75%", CENT, 0.75, "normal"), "B": ("Cent 1% + เบรก 25%", CENT, 1.0, "brake"),
-       "C": ("Standard 0.75%", STD, 0.75, "normal"), "D": ("Standard 1% + เบรก 25%", STD, 1.0, "brake")}
+# (label, markets, risk per trade, version); every market at the same risk, BTC and ETH included
+SYS = {"A": ("Cent 0.75%", CENT, 0.75, "normal"), "B": ("Cent 1%", CENT, 1.0, "normal"), "C": ("Cent 1% + เบรก 25%", CENT, 1.0, "brake"),
+       "D": ("Standard 0.75%", STD, 0.75, "normal"), "E": ("Standard 1%", STD, 1.0, "normal"), "F": ("Standard 1% + เบรก 25%", STD, 1.0, "brake")}
 VERS = {"lock": "ความเสี่ยงที่ล็อก"}
-HALF_OF = lambda ms, k: {m: k * (0.5 if m in ("BTCUSD", "ETHUSD") else 1.0) for m in ms}
+HALF_OF = lambda ms, k: {m: k for m in ms}
 TH = {"XAUUSD": "ทอง", "XAGUSD": "เงิน", "BTCUSD": "BTC", "ETHUSD": "ETH"}
 ACCT = {"JP225": "Standard เท่านั้น", "BTCUSD": "Cent (MT5) + Standard", "ETHUSD": "Cent (MT5) + Standard"}
 
@@ -185,23 +185,25 @@ def main():
     summary = ("<ul class='cmp-sum'>"
                f"<li><b>G27K-F</b> = G27K #1 + กฎข่าว Fed: เมื่อผลตอบแทนพันธบัตรสหรัฐ 2 ปีขึ้นแรงผิดปกติในวันเดียว (เกิน 2 เท่าของความผันผวนปกติ) "
                f"ปิดไม้ทอง เงิน BTC ETH ที่เปิดอยู่ และหยุดเข้าไม้ใหม่ 5 วัน · เกิด {len(shocks)} ครั้งในข้อมูล (ราว 9 ครั้งต่อปี) · ปิดก่อนกำหนด {n_fed} ไม้ · ไม่ได้เข้า {len(raw) - len(rows)} ไม้</li>"
-               f"<li><b>Cent 0.75%</b>: {E['A']['cagr']:.1%} ต่อปี · Equity DD {eq('A'):.0%} · <b>Cent 1% + เบรก 25%</b>: {E['B']['cagr']:.1%} ต่อปี · Equity DD {eq('B'):.0%}</li>"
-               f"<li><b>Standard 0.75%</b>: {E['C']['cagr']:.1%} ต่อปี · Equity DD {eq('C'):.0%} · <b>Standard 1% + เบรก 25%</b>: {E['D']['cagr']:.1%} ต่อปี · Equity DD {eq('D'):.0%}</li>"
-               "<li><b>BTC และ ETH เสี่ยงครึ่งหนึ่งเสมอ</b> (0.375% หรือ 0.5% ตัวละ) เพราะขยับตามกัน</li>"
+               + "".join(f"<li><b>{lab}</b>: " + " · ".join(f"{name[k]}: {E[k]['cagr']:.1%} ต่อปี, Equity DD {eq(k):.0%}" for k in ks) + "</li>"
+                         for lab, ks in (("Cent", "ABC"), ("Standard", "DEF"))) +
+               "<li><b>ทุกตลาดเสี่ยงเท่ากัน รวม BTC และ ETH</b> · BTC กับ ETH ขยับตามกัน (correlation รายเดือน +0.65) ช่วงคริปโตร่วงพร้อมกันจึงเสียสองเท่า</li>"
                "<li><b>หลักฐานกฎ Fed ระดับปานกลาง</b>: ผ่านเกณฑ์ที่ลงทะเบียนไว้ทั้ง Cent, Standard, สองช่วงเวลา และต้นทุนแย่ลง · วันสุ่มแทนวันข่าว 200 ชุด ดีเท่าหรือดีกว่าแค่ 7% · "
                "ปรับค่าตั้ง 9 แบบดีกว่าไม่มีกฎทุกแบบ · แต่ไอเดียมาจากการดูช่วง DD ในข้อมูลชุดเดียวกัน</li></ul>")
     pts = [dict(x=START, lab="เริ่ม " + START, **{s: float(W.DEPOSIT) for s in keys})]
     for d, vals in curves:
         pts.append(dict(x=str(d.date()), lab=f"สิ้น {RJ.TH_M[d.month - 1]} {d.year}", **{s: float(v) for s, v in zip(keys, vals)}))
-    short = {"A": "Cent 0.75", "B": "Cent 1%+B", "C": "Std 0.75", "D": "Std 1%+B"}
+    short = {"A": "Cent 0.75", "B": "Cent 1%", "C": "Cent 1%+B", "D": "Std 0.75", "E": "Std 1%", "F": "Std 1%+B"}
     data = json.dumps(dict(pts=pts, keys=keys, names=[short[s] for s in keys]), ensure_ascii=False)
     legend = "".join(f'<span><i style="background:var(--c{i + 1})"></i>{name[s]}</span>' for i, s in enumerate(keys))
-    cmp_html = (R5.CSS + '<section class="card"><h2>G27K-F · G27K #1 + กฎข่าว Fed · ความเสี่ยงที่ล็อก</h2>' + summary +
+    css6 = ("<style>:root{--c5:#e87ba4;--c6:#008300}@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){--c5:#d55181;--c6:#008300}}"
+            ":root[data-theme=\"dark\"]{--c5:#d55181;--c6:#008300}</style>")
+    cmp_html = (R5.CSS + css6 + '<section class="card"><h2>G27K-F · G27K #1 + กฎข่าว Fed · ความเสี่ยงที่ล็อก</h2>' + summary +
                 f'<div class="legend" style="margin-bottom:6px">{legend}<span class="muted">Balance สิ้นเดือน · สเกล log</span></div><div id="cmpChart" class="chart"></div></section>'
                 '<div class="cmp-grid"><section class="card"><h2>กฎข่าว Fed ช่วยแค่ไหน</h2><div class="tbl">' + fed_t + '</div></section>'
                 '<section class="card"><h2>คุณภาพรายตลาด (ต่อไม้ 2011–2026)</h2><div class="tbl">' + perm_t + '</div></section></div>'
-                '<div class="cmp-grid"><section class="card"><h2>ตัวเลขเทียบกัน</h2><div class="tbl">' + table + '</div></section>'
-                '<section class="card"><h2>รายปี</h2><div class="tbl">' + yt + '</div></section></div>'
+                '<section class="card"><h2>ตัวเลขเทียบกัน</h2><div class="tbl">' + table + '</div></section>'
+                '<section class="card"><h2>รายปี</h2><div class="tbl">' + yt + '</div></section>'
                 '<section class="card"><h2>ถ้าต้นทุนจริงแย่กว่าโมเดล</h2><div class="tbl">' + stress_html + '</div></section>')
     cmp_js = R5.SCRIPT.replace("__DATA__", data)
 
@@ -213,7 +215,7 @@ def main():
     info = {}
     for s, (label, ms, k, ver) in SYS.items():
         acct = "บัญชี Cent: ไม่มี JP225 · BTCUSDc/ETHUSDc บน MT5 เท่านั้น" if "JP225" not in ms else "บัญชี Standard: มี JP225 ครบ 6 ตลาด"
-        risk = (f"ความเสี่ยง {k:g}% ต่อไม้ · BTC และ ETH ตัวละ {k / 2:g}%" + (" · เบรก: ลดครึ่งเมื่อ DD ถึง 25% จนกลับมาไม่เกิน 12.5%" if ver == "brake" else " · ไม่มีเบรก"))
+        risk = (f"ความเสี่ยง {k:g}% ต่อไม้ทุกตลาด รวม BTC และ ETH" + (" · เบรก: ลดครึ่งเมื่อ DD ถึง 25% จนกลับมาไม่เกิน 12.5%" if ver == "brake" else " · ไม่มีเบรก"))
         info[s] = dict(label=f"G27K-F · {label}", tab=label, rules=g_rules + [f"ตลาด: {', '.join(ms)}"], notes=[f"<b>{acct}</b>", risk],
                        combo="C8/D3/E1/F1/G2/H2/I1/J1 + Fed", risk=k / 100, adds=False, tf="H4", risk_note=risk, risk_notes={"lock": risk})
     wf = {s: dict(patterns=[], pat_note="", pat_empty="กฎตายตัว G27K #1 กฎเดียว", log=[], log_note="",
