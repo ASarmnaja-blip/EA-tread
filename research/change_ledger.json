@@ -1517,7 +1517,21 @@
    "criterion": "Per setup, pooled over the 38 markets: works if mean net R > 0 with t > 2, positive in both halves (split 2018-01-01), positive on more than half of the markets, and the real mean above 95% of 100 matched random-control draws. Also reported per market group (FX, indices, commodities).",
    "min_improvement": 0.0,
    "test_period": "2011-09-01..2023-12-31",
-   "result": null
+   "result": {
+    "recorded": "2026-10-04T01:36:03.226167+00:00",
+    "baseline_er": 0.0,
+    "variant_er": -0.042,
+    "improvement": -0.042,
+    "t_stat": -5.12,
+    "n_baseline": 0,
+    "n_variant": 3667,
+    "k_at_test": 20057421,
+    "floor_at_test": 8.009980137544817,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "ALL FOUR FAIL on the 38 other markets (2011-09..2023-12). Fields: DN2, the least negative. DN1 -0.149R t -3.03, 7/38 markets positive, control p 0.970 (FX -0.135, IDX -0.261, COM -0.147); DN2 -0.042R t -5.12, 6/38; SD1 -0.080R t -4.06, 9/38; SD2 -0.085R t -9.11, 4/38. Every group negative for every setup, both halves negative, none beats its matched random control. Diagnostic: G27K #1 on these markets loses in UP (n 4469 -0.151R t -5.46) and DOWN (n 4380 -0.118R t -4.34), flat in SIDE (-0.011R)."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
