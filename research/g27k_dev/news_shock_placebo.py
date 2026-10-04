@@ -46,7 +46,8 @@ def main():
     res = {}
     for act, ex in (("EXIT", True), ("BLOCK", False)):
         e_real, f = edge(NS.apply(rows, real, H1, ex), rows, news)
-        n_exit = sum(1 for r0, r1 in zip(rows, NS.apply(rows, real, H1, True)) if r0["t_exit"] != r1["t_exit"]) if ex else None
+        orig = {(r["mkt"], r["t"]): r["t_exit"] for r in rows}
+        n_exit = sum(1 for r in NS.apply(rows, real, H1, True) if r["t_exit"] != orig[(r["mkt"], r["t"])]) if ex else None
         bdays = pd.bdate_range(NS.START, NS.END)
         rng = np.random.default_rng(11)
         pl = []
