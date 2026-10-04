@@ -1532,6 +1532,17 @@
     "verdict": "REJECTED",
     "note": "ALL FOUR FAIL on the 38 other markets (2011-09..2023-12). Fields: DN2, the least negative. DN1 -0.149R t -3.03, 7/38 markets positive, control p 0.970 (FX -0.135, IDX -0.261, COM -0.147); DN2 -0.042R t -5.12, 6/38; SD1 -0.080R t -4.06, 9/38; SD2 -0.085R t -9.11, 4/38. Every group negative for every setup, both halves negative, none beats its matched random control. Diagnostic: G27K #1 on these markets loses in UP (n 4469 -0.151R t -5.46) and DOWN (n 4380 -0.118R t -4.34), flat in SIDE (-0.011R)."
    }
+  },
+  {
+   "id": "h1_d1_search",
+   "registered": "2026-10-04T01:56:14.121348+00:00",
+   "why": "User: search H1 and D1 separately from each other and from H4 for every possibility on the main markets, accept evidence of medium probability or better, then combine any survivors with G27K #1 (H4) in one account. Plan: docs/PLAN_H1_D1_SEARCH.md.",
+   "change": "Markets XAUUSD XAGUSD BTCUSD JP225 USDJPY ETHUSD. Per timeframe (H1 and D1, run separately): L2 = the full G27K grid (27,648 setups, numba engine checked equal) on that timeframe; L3 = the free search engine on that timeframe only (every bar long and short, 1-3 of ~50 conditions, 5 exits, pooled over the 6 markets). Discovery 2011-09..2019-12, validation 2020-01..2023-12, final 2024-01..2026-09 opened once. 10 drift placebos per timeframe x layer. Costs: broker spec (ETH = BTC spec).",
+   "sweep_size": 2055296,
+   "criterion": "Grades per candidate (top 100 per timeframe x layer). GRADE A: layer top-100 median beats 10/10 placebos; candidate discovery t beats every placebo top-1; validation t >= 2.5; >= 5/6 markets positive in validation; positive at cost x2 and without its best market; >= 70% of neighbours positive; positive in 2024-2026. GRADE B (medium): layer beats >= 8/10 placebos; candidate beats >= 8/10 placebo top-1; validation t >= 1.5; >= 4/6 markets; positive at cost x2 and without its best market; >= 60% neighbours positive; positive in 2024-2026. Max 3 per timeframe after clustering. Combination: A/B survivors added to G27K H4 on S5 and S4U at 1% each with the account brake 25%, 2011-09..2026-09; adopted if full MAR is higher than G27K alone, neither half (split 2018-01-01) loses more than 10% of its MAR, and MC 10y P(DD>50%) <= 5%. Survivors go to forward test before live money.",
+   "min_improvement": 0.0,
+   "test_period": "discovery 2011-09..2019-12, validation 2020-2023, final 2024-01..2026-09",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
