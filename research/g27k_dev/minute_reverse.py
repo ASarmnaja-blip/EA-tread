@@ -47,9 +47,9 @@ def stats(E, k, ex):
                 cost=float((g - R).mean()) if len(k) else np.nan)
 
 
-def family(h1, label):
+def family(h1, label, tfs=("M15", "M30")):
     out = []
-    for tf in ("M15", "M30"):
+    for tf in tfs:
         t0 = time.time()
         E, feats, cats = P.build(h1, tf)
         split = PMS.split_for(E)
