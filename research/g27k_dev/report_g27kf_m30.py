@@ -41,9 +41,11 @@ S5 = STD
 SLEEVE = ("XAUUSD_M30", "XAGUSD_M30", "BTCUSD_M30")
 K_SLEEVE = 0.5
 # (label, markets, risk per trade, version, with M30 sleeve)
-SYS = {"A": ("Cent G27K-F", CENT, 1.0, "brake", False), "B": ("Cent G27K-F + M30", CENT, 1.0, "brake", True),
-       "C": ("Standard G27K-F", STD, 1.0, "brake", False), "D": ("Standard G27K-F + M30", STD, 1.0, "brake", True)}
-VERS = {"lock": "ความเสี่ยงที่ล็อก"}
+SYS = {"A": ("Cent G27K-F", CENT, False), "B": ("Cent G27K-F + M30", CENT, True),
+       "C": ("Standard G27K-F", STD, False), "D": ("Standard G27K-F + M30", STD, True)}
+# locked G27K-F risk: (risk per trade %, suite version)
+VCONF = {"r075": (0.75, "normal"), "r1": (1.0, "normal"), "r1b": (1.0, "brake")}
+VERS = {"r075": "0.75%", "r1": "1%", "r1b": "1% + เบรก 25%"}
 HALF_OF = lambda ms, k: {m: k for m in ms}
 TH = {"XAUUSD": "ทอง", "XAGUSD": "เงิน", "BTCUSD": "BTC", "ETHUSD": "ETH", "XAUUSD_M30": "ทอง M30", "XAGUSD_M30": "เงิน M30", "BTCUSD_M30": "BTC M30"}
 ACCT = {"JP225": "Standard เท่านั้น", "BTCUSD": "Cent (MT5) + Standard", "ETHUSD": "Cent (MT5) + Standard"}
@@ -123,71 +125,67 @@ def main():
     n_fed = sum(1 for r in rows if r.get("fed_exit"))
     print(f"  Fed shocks {len(shocks)}, trades {len(raw)} -> {len(rows)} (blocked {len(raw) - len(rows)}, closed early {n_fed})", flush=True)
     port = {s: "P" + s for s in SYS}
-    RWF.UNIS.update({port[s]: list(ms) + (list(SLEEVE) if w30 else []) for s, (_, ms, _, _, w30) in SYS.items()}, **{m: [m] for m in allm + SLEEVE})
+    RWF.UNIS.update({port[s]: list(ms) + (list(SLEEVE) if w30 else []) for s, (_, ms, w30) in SYS.items()}, **{m: [m] for m in allm + SLEEVE})
     out, sized_rows, stress, mc, halves = {}, {}, {}, {}, {}
-    for s, (label, ms, k, ver, w30) in SYS.items():
+    for s, (label, ms, w30) in SYS.items():
         rr = [r for r in rows if r["mkt"] in ms] + (sleeve if w30 else [])
         rr.sort(key=lambda r: (r["t"], r["mkt"]))
-        scale = dict(HALF_OF(ms, k), **({m: K_SLEEVE for m in SLEEVE} if w30 else {}))
-        for v in VERS:
+        for v, (k, ver) in VCONF.items():
+            scale = dict(HALF_OF(ms, k), **({m: K_SLEEVE for m in SLEEVE} if w30 else {}))
             vr = sized(rr, ver, news, scale)
             sized_rows[(s, v)] = vr
             for u in [port[s], *ms, *(SLEEVE if w30 else ())]:
                 ent = RWF.build_entry(f"{s}~{v}", u, vr, k / 100, None, RP, G)
                 if ent:
                     out[f"{s}~{v}_{u}"] = ent
-        for extra in (0.0, 0.10):
-            st, eq, _ = SU.simulate(frame(rr, scale, extra), ver, START, END, news=news)
-            a1, _, _ = SU.simulate(frame(rr, scale, extra), ver, START, MID, news=news)
-            a2, _, _ = SU.simulate(frame(rr, scale, extra), ver, MID, END, news=news)
-            m_ = SU.monte_carlo(eq)
-            stress[(s, extra)] = dict(cagr=st["cagr"], dd=st["dd"], mar=st["mar"], h1=a1["mar"], h2=a2["mar"], p50=m_["p_dd50"])
-            if extra == 0.0:
-                mc[s], halves[s] = m_, (a1["mar"], a2["mar"])
+            for extra in (0.0, 0.10):
+                st, eq, _ = SU.simulate(frame(rr, scale, extra), ver, START, END, news=news)
+                a1, _, _ = SU.simulate(frame(rr, scale, extra), ver, START, MID, news=news)
+                a2, _, _ = SU.simulate(frame(rr, scale, extra), ver, MID, END, news=news)
+                m_ = SU.monte_carlo(eq)
+                stress[(s + v, extra)] = dict(cagr=st["cagr"], dd=st["dd"], mar=st["mar"], h1=a1["mar"], h2=a2["mar"], p50=m_["p_dd50"])
+                if extra == 0.0:
+                    mc[s + v], halves[s + v] = m_, (a1["mar"], a2["mar"])
         print(f"  {s} {label} done  {time.time() - t0:.0f}s", flush=True)
 
     S_, E_ = pd.Timestamp(START, tz="UTC"), pd.Timestamp(END, tz="UTC")
-    cur = {}
-    for s in SYS:
-        me, cur[s] = RJ.monthly(RWF.account_var(sized_rows[(s, "lock")]), S_, E_)
-    curves = [(d, [cur[s][i] for s in SYS]) for i, d in enumerate(me)]
-    E = {s: out[f"{s}~lock_{port[s]}"] for s in SYS}
-    keys = list(SYS)
-    name = {s: SYS[s][0] for s in SYS}
+    keys = [s + v for v in VCONF for s in SYS]                     # 12 combinations, grouped by risk level
+    E = {s + v: out[f"{s}~{v}_{port[s]}"] for s in SYS for v in VCONF}
+    name = {s + v: f"{SYS[s][0]} · {VERS[v]}" for s in SYS for v in VCONF}
     mar = lambda r: r["cagr"] / r["equity_dd"]["relative_pct"]
     worst = lambda r: min(r["yearly"], key=lambda y: y["ret"])
-    rws = [("เงินสุดท้าย (เริ่ม $100,000)", lambda s: E[s]["final"], 1, lambda v: f"${v:,.0f}"),
-           ("ผลตอบแทนทบต้นต่อปี", lambda s: E[s]["cagr"], 1, lambda v: f"{v:.1%}"),
-           ("Equity DD สูงสุด", lambda s: E[s]["equity_dd"]["relative_pct"], -1, lambda v: f"{v:.1%}"),
-           ("MAR (ต่อปี ÷ Equity DD)", lambda s: mar(E[s]), 1, lambda v: f"{v:.2f}"),
-           ("MAR ปี 2011–2017 (balance)", lambda s: halves[s][0], 1, lambda v: f"{v:+.2f}"),
-           ("MAR ปี 2018–2026 (balance)", lambda s: halves[s][1], 1, lambda v: f"{v:+.2f}"),
-           ("ปีที่แย่สุด", lambda s: worst(E[s])["ret"], 1, lambda v: f"{v:+.0%}"),
-           ("จำนวนไม้", lambda s: E[s]["trades"], 0, lambda v: f"{v:,}"),
-           ("สุ่ม 10 ปี: โอกาส DD เกิน 50%", lambda s: mc[s]["p_dd50"], -1, lambda v: f"{v:.1%}")]
-
-    def tr(label, get, w, f):
-        vals = {s: get(s) for s in keys}
-        best = (max if w > 0 else min)(vals.values()) if w else None
-        return f"<tr><td>{label}</td>" + "".join(f'<td class="n{" win" if w and f(v) == f(best) else ""}">{f(v)}</td>' for v in vals.values()) + "</tr>"
-    head = "".join(f'<th class="n"><span class="sw" style="background:var(--c{i + 1})"></span>{name[s]}</th>' for i, s in enumerate(keys))
-    table = f'<table class="cmp"><thead><tr><th></th>{head}</tr></thead><tbody>' + "".join(tr(*r) for r in rws) + "</tbody></table>"
-    st_rows = [("ต่อปี", "cagr", 1, lambda v: f"{v:+.1%}"), ("DD (balance)", "dd", -1, lambda v: f"{v:.1%}"), ("MAR", "mar", 1, lambda v: f"{v:.2f}"),
-               ("MAR ปี 2011–2017", "h1", 1, lambda v: f"{v:+.2f}"), ("MAR ปี 2018–2026", "h2", 1, lambda v: f"{v:+.2f}"),
-               ("โอกาส DD เกิน 50%", "p50", -1, lambda v: f"{v:.1%}")]
-    stress_html = ""
-    for extra, lab in ((0.0, "ต้นทุนตามโมเดล"), (0.10, "ต้นทุนจริงแย่ลง 0.10R ทุกไม้ (ทุกตลาด)")):
-        body = ""
-        for l, k_, w, f in st_rows:
-            vals = {s: stress[(s, extra)][k_] for s in keys}
-            best = (max if w > 0 else min)(vals.values())
-            body += f"<tr><td>{l}</td>" + "".join(f'<td class="n{" win" if f(v) == f(best) else ""}">{f(v)}</td>' for v in vals.values()) + "</tr>"
-        stress_html += f"<h3 style='margin:12px 0 6px;font-size:15px'>{lab}</h3><table class='cmp'><thead><tr><th></th>{head}</tr></thead><tbody>{body}</tbody></table>"
-    Y = {s: {y["year"]: y["ret"] for y in E[s]["yearly"]} for s in keys}
-    years = sorted(set.intersection(*(set(Y[s]) for s in keys)))
-    yt = (f'<table class="cmp"><thead><tr><th>ปี</th>{"".join(f"<th class=n>{name[s]}</th>" for s in keys)}</tr></thead><tbody>'
-          + "".join(f"<tr><td>{y}</td>" + "".join(f"<td class='n {'pos' if Y[s][y] >= 0 else 'neg'}'>{Y[s][y]:+.0%}</td>" for s in keys) + "</tr>" for y in years)
+    rws = [("เงินสุดท้าย (เริ่ม $100,000)", lambda s: E[s]["final"], 0, lambda v: f"${v / 1e6:,.1f}M"),
+           ("ต่อปี", lambda s: E[s]["cagr"], 0, lambda v: f"{v:.1%}"),
+           ("Equity DD", lambda s: E[s]["equity_dd"]["relative_pct"], 0, lambda v: f"{v:.1%}"),
+           ("MAR", lambda s: mar(E[s]), 0, lambda v: f"{v:.2f}"),
+           ("MAR 2011–17", lambda s: halves[s][0], 0, lambda v: f"{v:+.2f}"),
+           ("MAR 2018–26", lambda s: halves[s][1], 0, lambda v: f"{v:+.2f}"),
+           ("ปีแย่สุด", lambda s: worst(E[s])["ret"], 0, lambda v: f"{v:+.0%}"),
+           ("ไม้", lambda s: E[s]["trades"], 0, lambda v: f"{v:,}"),
+           ("DD>50%", lambda s: mc[s]["p_dd50"], 0, lambda v: f"{v:.1%}"),
+           ("ต่อปี ถ้าแย่ลง 0.10R", lambda s: stress[(s, 0.10)]["cagr"], 0, lambda v: f"{v:+.1%}"),
+           ("MAR ถ้าแย่ลง 0.10R", lambda s: stress[(s, 0.10)]["mar"], 0, lambda v: f"{v:.2f}"),
+           ("DD>50% ถ้าแย่ลง 0.10R", lambda s: stress[(s, 0.10)]["p50"], 0, lambda v: f"{v:.1%}")]
+    # one row per system, columns are measures; grouped by risk level
+    head = "<th>ระบบ</th>" + "".join(f"<th class='n'>{lab}</th>" for lab, *_ in rws)
+    body = ""
+    for v in VCONF:
+        body += f"<tr><td colspan='{len(rws) + 1}' style='font-weight:600;padding-top:14px'>G27K-F ความเสี่ยง {VERS[v]} · ไม้ M30 0.5%</td></tr>"
+        for s in SYS:
+            body += f"<tr><td>{SYS[s][0]}</td>" + "".join(f"<td class='n'>{f(g(s + v))}</td>" for lab, g, w, f in rws) + "</tr>"
+    table = f"<table class='cmp'><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
+    stress_html = ("<p class='muted' style='margin:0;font-size:13px'>รวมอยู่ในตารางตัวเลขเทียบกันแล้ว (3 คอลัมน์ขวาสุด) "
+                   "ทุกไม้ทั้ง G27K-F และ M30 แย่ลง 0.10R</p>")
+    years = sorted(set.intersection(*(set(y["year"] for y in E[k]["yearly"]) for k in keys)))
+    Y = {k: {y["year"]: y["ret"] for y in E[k]["yearly"]} for k in keys}
+    yhead = "<th>ปี</th>" + "".join(f"<th class='n'>{SYS[k[0]][0].replace('G27K-F', 'F')}<br>{VERS[k[1:]]}</th>" for k in keys)
+    yt = (f"<table class='cmp'><thead><tr>{yhead}</tr></thead><tbody>"
+          + "".join(f"<tr><td>{y}</td>" + "".join(f"<td class='n {'pos' if Y[k][y] >= 0 else 'neg'}'>{Y[k][y]:+.0%}</td>" for k in keys) + "</tr>" for y in years)
           + "</tbody></table>")
+    cur = {}
+    for s in SYS:
+        me, cur[s] = RJ.monthly(RWF.account_var(sized_rows[(s, "r1b")]), S_, E_)
+    curves = [(d, [cur[s][i] for s in SYS]) for i, d in enumerate(me)]
     def tstat(R):
         return float(R.mean() / R.std(ddof=1) * np.sqrt(len(R))) if len(R) > 2 and R.std() > 0 else float("nan")
     cl = lambda v: "pos" if v > 0 else "neg"
@@ -212,33 +210,34 @@ def main():
               "<th class='n'>R F</th><th class='n'>t</th><th class='n'>2011–18</th><th class='n'>2019–26</th><th>บัญชี</th></tr></thead><tbody>" + "".join(perm) + "</tbody></table>"
               "<p class='muted' style='margin:8px 0 0;font-size:13px'>R = R ต่อไม้หลังต้นทุน · F = G27K-F · กฎ Fed ใช้กับทอง เงิน BTC ETH เท่านั้น</p>")
     def cmp_row(lab, x, y):
+        lab = lab
         f0, f1, s0, s1 = stress[(x, 0.0)], stress[(y, 0.0)], stress[(x, 0.10)], stress[(y, 0.10)]
         return (f"<tr><td>{lab}</td><td class='n'>{f0['cagr']:+.1%} → <b>{f1['cagr']:+.1%}</b></td><td class='n'>{f0['dd']:.1%} → <b>{f1['dd']:.1%}</b></td>"
                 f"<td class='n'>{f0['mar']:.2f} → <b>{f1['mar']:.2f}</b></td><td class='n'>{s0['mar']:.2f} → <b>{s1['mar']:.2f}</b></td>"
                 f"<td class='n'>{f0['p50']:.1%} → <b>{f1['p50']:.1%}</b></td></tr>")
     fed_t = ("<table class='cmp'><thead><tr><th>บัญชี</th><th class='n'>ต่อปี</th><th class='n'>DD (balance)</th><th class='n'>MAR</th><th class='n'>MAR ถ้าแย่ลง 0.10R</th>"
-             "<th class='n'>โอกาส DD เกิน 50%</th></tr></thead><tbody>" + cmp_row("Cent", "A", "B") + cmp_row("Standard", "C", "D") + "</tbody></table>"
+             "<th class='n'>โอกาส DD เกิน 50%</th></tr></thead><tbody>" + "".join(cmp_row(f"{acc} · {VERS[v]}", x + v, y + v) for v in VCONF for acc, x, y in (("Cent", "A", "B"), ("Standard", "C", "D"))) + "</tbody></table>"
              "<p class='muted' style='margin:8px 0 0;font-size:13px'>ซ้าย = G27K-F อย่างเดียว · ขวา = รวมไม้ M30 ที่ 0.5% ต่อไม้</p>")
     eq = lambda s: E[s]["equity_dd"]["relative_pct"]
     sr = np.array([r["R"] for r in sleeve])
     summary = ("<ul class='cmp-sum'>"
                f"<li><b>ไม้ M30</b> = รูปแบบที่ผ่านการค้นแบบบีบให้แคบ: แท่ง M30 ปิดใกล้จุดสูง 55 แท่ง (ไม่เกิน 1 ATR) + ความผันผวน 14 แท่งสูงกว่า 100 แท่ง 1.5 เท่า + TF ใหญ่ไปทางเดียวกัน "
                f"เทรดทั้งสองทาง ทำกำไรที่ 2R · ทอง เงิน BTC · {len(sleeve):,} ไม้ เฉลี่ย {sr.mean():+.3f}R · เปิดเป็นไม้แยก ความเสี่ยง 0.5% ต่อไม้</li>"
-               + "".join(f"<li><b>{lab}</b>: " + " · ".join(f"{name[k]}: {E[k]['cagr']:.1%} ต่อปี, Equity DD {eq(k):.0%}" for k in ks) + "</li>"
-                         for lab, ks in (("Cent", "AB"), ("Standard", "CD"))) +
+               + "".join(f"<li><b>G27K-F {VERS[v]}</b>: " + " · ".join(f"{SYS[s][0]} {E[s + v]['cagr']:.1%} ต่อปี DD {eq(s + v):.0%}" for s in SYS) + "</li>" for v in VCONF) +
                "<li><b>ผลการทดสอบที่ลงทะเบียนไว้: ยังไม่รับเข้าใช้</b> · ดีขึ้นทั้งสองบัญชีในสภาพปกติและทั้งสองช่วงเวลา แต่ Standard แย่ลงเมื่อทุกไม้แย่ลง 0.10R "
                "เพราะไม้ M30 ได้ราว 0.14R ต่อไม้ ต้นทุนที่แย่ลงเพียง 0.10R กินไปเกือบหมด · ควร forward test เพื่อวัดต้นทุนจริงก่อน</li>"
-               "<li><b>G27K-F</b> = G27K #1 + กฎข่าว Fed · ความเสี่ยง 1% ต่อไม้ทุกตลาด + เบรก 25%</li></ul>")
-    pts = [dict(x=START, lab="เริ่ม " + START, **{s: float(W.DEPOSIT) for s in keys})]
+               "<li><b>G27K-F</b> = G27K #1 + กฎข่าว Fed · ทุกตลาดเสี่ยงเท่ากัน · ไม้ M30 ความเสี่ยง 0.5% ต่อไม้ทุกระดับ · เบรก 25% ใช้กับทั้งบัญชี</li></ul>")
+    ckeys = list(SYS)
+    pts = [dict(x=START, lab="เริ่ม " + START, **{s: float(W.DEPOSIT) for s in ckeys})]
     for d, vals in curves:
-        pts.append(dict(x=str(d.date()), lab=f"สิ้น {RJ.TH_M[d.month - 1]} {d.year}", **{s: float(v) for s, v in zip(keys, vals)}))
+        pts.append(dict(x=str(d.date()), lab=f"สิ้น {RJ.TH_M[d.month - 1]} {d.year}", **{s: float(v) for s, v in zip(ckeys, vals)}))
     short = {"A": "Cent F", "B": "Cent F+M30", "C": "Std F", "D": "Std F+M30"}
-    data = json.dumps(dict(pts=pts, keys=keys, names=[short[s] for s in keys]), ensure_ascii=False)
-    legend = "".join(f'<span><i style="background:var(--c{i + 1})"></i>{name[s]}</span>' for i, s in enumerate(keys))
+    data = json.dumps(dict(pts=pts, keys=ckeys, names=[short[s] for s in ckeys]), ensure_ascii=False)
+    legend = "".join(f'<span><i style="background:var(--c{i + 1})"></i>{SYS[s][0]}</span>' for i, s in enumerate(ckeys))
     css6 = ("<style>:root{--c5:#e87ba4;--c6:#008300}@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){--c5:#d55181;--c6:#008300}}"
             ":root[data-theme=\"dark\"]{--c5:#d55181;--c6:#008300}</style>")
-    cmp_html = (R5.CSS + css6 + '<section class="card"><h2>G27K-F + M30 · 1% + เบรก 25% · ไม้ M30 0.5%</h2>' + summary +
-                f'<div class="legend" style="margin-bottom:6px">{legend}<span class="muted">Balance สิ้นเดือน · สเกล log</span></div><div id="cmpChart" class="chart"></div></section>'
+    cmp_html = (R5.CSS + css6 + '<section class="card"><h2>G27K-F + M30 · ความเสี่ยง 0.75% / 1% / 1% + เบรก 25% · ไม้ M30 0.5%</h2>' + summary +
+                f'<div class="legend" style="margin-bottom:6px">{legend}<span class="muted">Balance สิ้นเดือน · สเกล log · กราฟนี้คือ G27K-F 1% + เบรก 25% (ระดับอื่นดูในตารางและแท็บด้านล่าง)</span></div><div id="cmpChart" class="chart"></div></section>'
                 '<div class="cmp-grid"><section class="card"><h2>ไม้ M30 ช่วยแค่ไหน</h2><div class="tbl">' + fed_t + '</div></section>'
                 '<section class="card"><h2>คุณภาพรายตลาด (ต่อไม้ 2011–2026)</h2><div class="tbl">' + perm_t + '</div></section></div>'
                 '<section class="card"><h2>ตัวเลขเทียบกัน</h2><div class="tbl">' + table + '</div></section>'
@@ -252,13 +251,15 @@ def main():
                "กฎข่าว Fed: ถ้าผลตอบแทนพันธบัตรสหรัฐ 2 ปี (DGS2) วันใดขึ้นเกิน 2 เท่าของ SD การเปลี่ยนรายวันย้อนหลัง 250 วัน "
                "ให้ปิดไม้ทอง เงิน BTC ETH ที่ราคาเปิดชั่วโมงถัดไปหลัง 22:00 UTC ของวันทำการถัดไป และไม่เข้าไม้ใหม่ในตลาดเหล่านี้ 5 วัน"]
     info = {}
-    for s, (label, ms, k, ver, w30) in SYS.items():
+    for s, (label, ms, w30) in SYS.items():
         acct = "บัญชี Cent: ไม่มี JP225 · BTCUSDc/ETHUSDc บน MT5 เท่านั้น" if "JP225" not in ms else "บัญชี Standard: มี JP225 ครบ 6 ตลาด"
-        risk = (f"ความเสี่ยง {k:g}% ต่อไม้ทุกตลาด รวม BTC และ ETH" + (" · เบรก: ลดครึ่งเมื่อ DD ถึง 25% จนกลับมาไม่เกิน 12.5%" if ver == "brake" else " · ไม่มีเบรก"))
+        rn = {v: f"G27K-F {k:g}% ต่อไม้ทุกตลาด รวม BTC และ ETH" + (" · เบรก: ลดครึ่งเมื่อ DD ถึง 25% จนกลับมาไม่เกิน 12.5%" if ver == "brake" else " · ไม่มีเบรก")
+              + (" · ไม้ M30 0.5%" if w30 else "") for v, (k, ver) in VCONF.items()}
+        risk = rn["r1b"]
         m30r = ["ไม้ M30 (แยกจาก G27K-F): แท่ง M30 ปิดไม่เกิน 1 ATR จาก High/Low 55 แท่งในทิศที่เทรด + ATR14/ATR100 ≥ 1.5 + TF ใหญ่ไปทางเดียวกัน · "
                 "ซื้อหรือขายตามทิศนั้น · SL 2 × ATR20 (M30) · TP 2R · ทอง เงิน BTC · ความเสี่ยง 0.5% ต่อไม้"] if w30 else []
         info[s] = dict(label=f"{label}", tab=label, rules=g_rules + m30r + [f"ตลาด: {', '.join(ms)}"], notes=[f"<b>{acct}</b>", risk],
-                       combo="C8/D3/E1/F1/G2/H2/I1/J1 + Fed", risk=k / 100, adds=False, tf="H4", risk_note=risk, risk_notes={"lock": risk})
+                       combo="C8/D3/E1/F1/G2/H2/I1/J1 + Fed", risk=0.01, adds=False, tf="H4", risk_note=risk, risk_notes=rn)
     wf = {s: dict(patterns=[], pat_note="", pat_empty="กฎตายตัว G27K #1 กฎเดียว", log=[], log_note="",
                   log_empty="ขนาดไม้ของแต่ละเวอร์ชันคำนวณที่เวลาเข้าไม้ ดูกฎในช่อง ตั้งค่า") for s in SYS}
     last = E_ - pd.Timedelta(days=1)
@@ -288,7 +289,7 @@ def main():
         ('<button role="tab" data-u="BTCUSD">BTC</button>', '<button role="tab" data-u="BTCUSD">BTC</button>\n        ' + mbtn),
         ('<div class="seg wrap" role="tablist" id="sysTabs" aria-label="ระบบ"></div>',
          '<div class="seg wrap" role="tablist" id="sysTabs" aria-label="ระบบ"></div>\n      <div class="seg wrap" role="tablist" id="verTabs" aria-label="เวอร์ชัน"></div>'),
-        ('const keyOf = (s, u) => s + "_" + u;', 'let VER = "lock";\nconst PORTS = ' + json.dumps(port) + ';\nconst keyOf = (s, u) => s + "~" + VER + "_" + u;'),
+        ('const keyOf = (s, u) => s + "_" + u;', 'let VER = "r1b";\nconst PORTS = ' + json.dumps(port) + ';\nconst keyOf = (s, u) => s + "~" + VER + "_" + u;'),
         ('const UNI_TH = {MET3: "3 ตลาด: ทอง เงิน บิตคอยน์", XAUUSD: "ทอง (XAUUSD) ตลาดเดียว", XAGUSD: "เงิน (XAGUSD) ตลาดเดียว", BTCUSD: "บิตคอยน์ (BTCUSD) ตลาดเดียว"};',
          "const UNI_TH = " + json.dumps(uni_th, ensure_ascii=False) + ";"),
         ('let SYS = Object.keys(SINFO)[0], UNI = "MET3"', 'let SYS = Object.keys(SINFO)[0], UNI = "PA"'),
@@ -313,10 +314,10 @@ def main():
         tpl = tpl.replace(x, y, 1)
     tpl = tpl.replace("__CMP__", cmp_html) + "\n" + cmp_js
     pathlib.Path(a.out).write_text(tpl.replace("/*DATA*/", json.dumps(data, ensure_ascii=False)), encoding="utf-8")
-    for s in SYS:
-        m = E[s]
-        print(f"  {s} {SYS[s][0]:22s} CAGR {m['cagr']:+.1%} eqDD {m['equity_dd']['relative_pct']:.1%} MAR {mar(m):.2f} trades {m['trades']} | "
-              f"stress MAR {stress[(s, 0.1)]['mar']:.2f} p50 {stress[(s, 0.1)]['p50']:.1%}")
+    for k_ in keys:
+        m = E[k_]
+        print(f"  {k_:4s} {name[k_]:40s} CAGR {m['cagr']:+.1%} eqDD {m['equity_dd']['relative_pct']:.1%} MAR {mar(m):.2f} trades {m['trades']} | "
+              f"stress MAR {stress[(k_, 0.1)]['mar']:.2f} p50 {stress[(k_, 0.1)]['p50']:.1%}")
     print(f"  written {a.out}  {time.time() - t0:.0f}s")
 
 
