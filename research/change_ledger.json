@@ -1607,6 +1607,17 @@
     "verdict": "INCONCLUSIVE",
     "note": "NO SETUP SELECTED. Pool 2,673 grid setups (t>2 in 2011-19 and 2020-23 on the six markets, positive 2017-21 on gold/silver/BTC). Against #1 on 2011-09..2023-12: zero meet overlap <= 30% AND monthly corr <= 0.30. Overlap: min 47%, median 98% - every long-only setup trades while #1 is in the same market; only two-way setups (J2, ~50% shorts) reach ~47-48%. Correlation: min 0.07, median 0.58; low correlation only with fixed-target exits (H4-H6 medians 0.23-0.29) which still overlap 98% in time. 89 setups have both <= 0.50 (all two-way J2 or D8 swing). Conclusion: the grid's winners on these markets are variants of #1; diversification here comes from markets, not from more grid setups."
    }
+  },
+  {
+   "id": "g27k_us_stocks",
+   "registered": "2026-10-04T03:36:27.704466+00:00",
+   "why": "User wants extra, independent income sources beyond the five markets. Exness offers no crypto besides BTC/ETH, but about 88 US-listed stocks (Standard account, 1:20). Single stocks trend and move a lot relative to cost, the profile where G27K #1 wins, and they need not move with gold, BTC, JP225 or USDJPY.",
+   "change": "G27K #1 unchanged on every stock of the Exness stock list (help centre article 17854435814428, 2026-09-25) with Dukascopy H1 bid data, 2017-01..2026-09, prices adjusted for splits detected as overnight jumps of 1/k (k integer 2-40) larger than 30%. Costs: round trip = max(2 bp, median Dukascopy spread over the last 6 months + 1 bp); swap 2 bp/night long, 1 bp short (assumed; confirm in MT5). Survivorship: today's list holds the survivors, so their drift is biased upward; the drift placebo (each stock's own drift kept, path shuffled) carries that bias too and is the main null. Stock bucket sizing fixed now: 0.25% per trade, at most 8 stock positions open (later signals skipped).",
+   "sweep_size": 1,
+   "criterion": "Works if all: (1) pooled mean net R > 0 with t > 2, positive in both halves (split 2022-01-01), positive on >= 60% of stocks; (2) pooled mean R above the pooled mean of each of 10 drift placebos (timing edge beyond each stock's own, survivor-biased drift). Then account: S5 (1%) + the stock bucket, brake 25% on the whole account, 2017-01..2026-09; adopted if MAR is higher than S5 alone over 2017-2026, neither half (split 2022-01-01) loses more than 10% of its MAR, MC 10y P(DD>50%) <= 5%; report monthly correlation with S5. Also reported: a blind yearly selection (trade a stock in year Y only if its G27K trades before Y have t > 1, n >= 15).",
+   "min_improvement": 0.0,
+   "test_period": "2017-01-01..2026-09-30",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
