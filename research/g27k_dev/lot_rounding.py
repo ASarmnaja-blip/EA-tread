@@ -33,7 +33,7 @@ def load_specs(path):
 def size(risk_money, risk_per_lot, spec, mode):
     """Lots the broker would actually accept, and whether the minimum lot forced more risk than intended."""
     want = risk_money / risk_per_lot
-    step, lo, hi = spec["vol_step"], spec["vol_min"], 200.0
+    step, lo, hi = spec["vol_step"], spec["vol_min"], spec.get("vol_max", 200.0)   # each symbol's own cap (JP225: 5,000 lots)
     if mode == "fractional":
         return want, False
     n = want / step

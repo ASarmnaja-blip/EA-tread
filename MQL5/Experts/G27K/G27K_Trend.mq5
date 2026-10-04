@@ -111,6 +111,7 @@ bool     g_brake = false;
 ulong    g_lastDeal = 0;
 datetime g_lastDealTime = 0;
 bool     g_dirty = false;
+double   g_seenBal = -1.0;          // balance at the last deal scan; a scan is needed only when it changes
 
 //+------------------------------------------------------------------+
 string PresetSymbols(const ENUM_MARKET_SET set)
@@ -376,6 +377,9 @@ int NewsBlocked(const datetime tc)
 //+------------------------------------------------------------------+
 void UpdateNav()
   {
+   double accNow = AccountInfoDouble(ACCOUNT_BALANCE);
+   if(accNow == g_seenBal)
+      return;                      // nothing closed, deposited or withdrawn since the last scan that was in sync
    datetime from = g_lastDealTime > 0 ? g_lastDealTime - 86400 : 0;
    if(!HistorySelect(from, TimeCurrent() + 86400))
       return;
@@ -392,41 +396,48 @@ void UpdateNav()
         }
      }
    int m = ArraySize(tk);
-   if(m == 0)
-      return;
-   ArraySort(tk);
-   for(int j = 0; j < m; j++)
+   if(m > 0)
      {
-      ulong t = tk[j];
-      long type = HistoryDealGetInteger(t, DEAL_TYPE);
-      double amt = HistoryDealGetDouble(t, DEAL_PROFIT) + HistoryDealGetDouble(t, DEAL_SWAP) +
-                   HistoryDealGetDouble(t, DEAL_COMMISSION) + HistoryDealGetDouble(t, DEAL_FEE);
-      if(type == DEAL_TYPE_CREDIT)
+      ArraySort(tk);
+      for(int j = 0; j < m; j++)
         {
-         // credit is not balance
-        }
-      else
-         if(type == DEAL_TYPE_BALANCE)
-            g_bal += amt;          // deposit or withdrawal: NAV per unit unchanged
+         ulong t = tk[j];
+         long type = HistoryDealGetInteger(t, DEAL_TYPE);
+         double amt = HistoryDealGetDouble(t, DEAL_PROFIT) + HistoryDealGetDouble(t, DEAL_SWAP) +
+                      HistoryDealGetDouble(t, DEAL_COMMISSION) + HistoryDealGetDouble(t, DEAL_FEE);
+         if(type == DEAL_TYPE_CREDIT)
+           {
+            // credit is not balance
+           }
          else
-            if(amt != 0.0)
-              {
-               if(g_bal > 0.0)
-                  g_nav *= (g_bal + amt) / g_bal;
-               g_bal += amt;
-               if(g_nav > g_peak)
-                  g_peak = g_nav;
-              }
-      g_lastDeal = t;
-      g_lastDealTime = (datetime)HistoryDealGetInteger(t, DEAL_TIME);
+            if(type == DEAL_TYPE_BALANCE)
+               g_bal += amt;       // deposit or withdrawal: NAV per unit unchanged
+            else
+               if(amt != 0.0)
+                 {
+                  if(g_bal > 0.0)
+                     g_nav *= (g_bal + amt) / g_bal;
+                  g_bal += amt;
+                  if(g_nav > g_peak)
+                     g_peak = g_nav;
+                 }
+         g_lastDeal = t;
+         g_lastDealTime = (datetime)HistoryDealGetInteger(t, DEAL_TIME);
+        }
+      g_dirty = true;
      }
-   double acc = AccountInfoDouble(ACCOUNT_BALANCE);
-   if(MathAbs(acc - g_bal) > 0.005 * MathMax(1.0, MathAbs(acc)))
-     {
-      LogSimple("RESYNC", "", "tracked " + D(g_bal, 2) + " account " + D(acc, 2));
-      g_bal = acc;
-     }
-   g_dirty = true;
+   double tol = 0.005 * MathMax(1.0, MathAbs(accNow));
+   if(MathAbs(accNow - g_bal) <= tol)
+      g_seenBal = accNow;          // in sync: skip scans until the balance moves again
+   else
+      if(m > 0)
+        {
+         LogSimple("RESYNC", "", "tracked " + D(g_bal, 2) + " account " + D(accNow, 2));
+         g_bal = accNow;
+         g_seenBal = accNow;
+         g_dirty = true;
+        }
+      // m == 0 and out of sync: the deal is not in the history yet; scan again next pass
   }
 
 //--- the research changes the brake state only when a trade is about to be sized
