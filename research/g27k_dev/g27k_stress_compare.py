@@ -34,7 +34,10 @@ def tstat(R):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
+    ap.add_argument("--markets", default=",".join(MKTS))
+    ap.add_argument("--per-market", action="store_true")
     a = ap.parse_args()
+    mkts = tuple(a.markets.split(","))
     P.setup(a.root)
     G, K, C = P._M["G"], P._M["K"], P._M["C"]
     sys.path.insert(0, str(pathlib.Path(a.root) / "research" / "grid768"))
@@ -43,7 +46,7 @@ def main():
     K.START = W.ts("2009-09-01")
     ext = K.externals()
     rows = []
-    for m in MKTS:
+    for m in mkts:
         h1 = MMS.load(m, G)
         Mk = K.prepare(m, h1, ext)
         X = G.features(G.frames(h1), m, "H4")
@@ -82,6 +85,16 @@ def main():
         "(j) x2 + 0.05R + 1h late": lateH1 - T.cost - 0.05,
     }
     res = {nm: dict(n=len(R), mean=float(np.mean(R)), t=tstat(R)) for nm, R in cases.items()}
+    if a.per_market:
+        mid = W.ts("2019-01-01")
+        for m in mkts:
+            k = T.mkt == m
+            yr = T.R[k].groupby(pd.to_datetime(T.t[k], unit="s").dt.year).mean()
+            print(f"  {m}: n {k.sum()}  base {T.R[k].mean():+.3f} t {tstat(T.R[k]):+.2f} | halves {T.R[k & (T.t < mid)].mean():+.3f}/{T.R[k & (T.t >= mid)].mean():+.3f} | "
+                  f"x2 {(T.R - T.cost)[k].mean():+.3f} t {tstat((T.R - T.cost)[k]):+.2f} | +0.05R {(T.R[k] - 0.05).mean():+.3f} | "
+                  f"stop 0.10 {(T.R - 0.10 * T.stop_exit)[k].mean():+.3f} | late 1h {lateH1[k].mean():+.3f} | (j) {(lateH1 - T.cost - 0.05)[k].mean():+.3f} "
+                  f"t {tstat((lateH1 - T.cost - 0.05)[k]):+.2f} | years + {int((yr > 0).sum())}/{len(yr)}")
+        return
     print(f"  G27K #1 on {len(MKTS)} markets, {len(T)} trades, stop exits {T.stop_exit.mean():.0%}, cost per trade {T.cost.mean():.3f}R")
     for nm, r in res.items():
         print(f"    {nm:26s} n {r['n']:5d}  R {r['mean']:+.3f}  t {r['t']:+.2f}")
