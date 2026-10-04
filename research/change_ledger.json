@@ -1732,6 +1732,17 @@
     "verdict": "INCONCLUSIVE",
     "note": "PASS by the pre-registered criterion for FED-EXIT and FED-BLOCK (both accounts, both halves, -0.10R, DD not higher); DOLLAR variants FAIL. Pick FED-EXIT: Standard 0.75% CAGR 23.4% -> 25.0%, DD 27.2% -> 25.8%, 2011-18 +2.2% -> +4.2%; Cent 18.2% -> 21.1%, DD 29.7% -> 24.8%. After a publication-lag fix (H.15 next business day 22:00 UTC) and pro-rata swap. Placebo (200 random day sets, same count/timing/action, Standard MAR): real 0.97 vs unchanged 0.86, placebo mean 0.72, 7% of placebos >= real (BLOCK 9%) - suggestive, not significant at 5%. Neighbours (z 1.5/2/2.5 x block 3/5/10 days): all 9 MAR 0.92-1.17 above 0.86. Caveat: the idea came from inspecting this data's drawdown episodes; ledger floor not met. Status: candidate for forward use, medium evidence."
    }
+  },
+  {
+   "id": "minute_reverse_and_constrained",
+   "registered": "2026-10-04T14:17:51.109142+00:00",
+   "why": "User: swap the discovery and validation periods of the M15/M30 search, then use all periods, and shrink the pattern space with what is already known. minute_cost_check showed the forward search's top-40 lost 0.19R gross out of sample (overfitting) while costs were 0.05R; the only gross edge left was trend continuation near highs (brk100, atr_ratio, htf agreement) and BTC momentum.",
+   "change": "Part A (reverse, same space as per_market_free_search_minute_tfs: gold, silver 2009-2026, BTC 2021-2026, M15/M30, five exits, singles/pairs/beam triples, same costs): discovery = 2018-01-01.. for metals and 2024-01-01.. for BTC, validation = the earlier years. Report top-10 per scope (XAUUSD, XAGUSD, BTCUSD, pooled) validation net and gross R. Part B (constrained family, fixed now): near-extreme = brk55>=-1 | brk100>=-1.25 | pos250>=0.9 (ATR units, direction-aware); volatility = none | atr_ratio>=1.25 | atr_ratio>=1.5; context = none | htf1_with | ema20_50>=0; direction = long only | both; exit = tp2 | t6 | ch20; TF M15/M30; scope XAUUSD/XAGUSD/BTCUSD/pooled -> 1,296 patterns, non-overlapping trades, same costs. Period A = before the split, B = after (BTC 2021-23 / 2024-26).",
+   "sweep_size": 9768876,
+   "criterion": "Part A is descriptive (does the reverse search also decay?). Part B: a pattern is a CANDIDATE if net R > 0 with t >= 2.0 and >= 100 trades in BOTH period A and period B. The family shows real structure only if the real candidate count exceeds every one of 5 drift placebos (same family on drift-placebo M1 histories). Only then, among candidates, the all-period choice is the one with the highest full-period net t, reported with its gross R, cost and per-market split; otherwise nothing is adopted.",
+   "min_improvement": 0.0,
+   "test_period": "2009-01-01..2026-09-30 (BTC from 2021-01-01), split 2018-01-01 (BTC 2024-01-01)",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
