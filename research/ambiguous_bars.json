@@ -1,0 +1,35 @@
+{
+ "created": "2026-09-14T17:49:17Z",
+ "symbol": "XAUUSD",
+ "window": [
+  "2019-01-01",
+  "2026-09-11"
+ ],
+ "signal": "momentum, random-timing control",
+ "cost": "zero",
+ "note": "G12 scores every ambiguous bar -1R; the true expectancy at a share p of stop-first is p*(-1)+(1-p)*(+1), so the overcharge is 2*(1-p) per ambiguous bar. Gold only - no other market in this repo has minute data, so applying this share elsewhere would be assumption rather than measurement.",
+ "by_stop_width": {
+  "1.0": {
+   "stop_first": 85,
+   "target_first": 31,
+   "unresolved": 17,
+   "resolved": 116,
+   "share": 0.7327586206896551,
+   "ci": [
+    0.652228305796986,
+    0.8132889355823243
+   ]
+  },
+  "2.0": {
+   "stop_first": 26,
+   "target_first": 10,
+   "unresolved": 8,
+   "resolved": 36,
+   "share": 0.7222222222222222,
+   "ci": [
+    0.5759071741975448,
+    0.8685372702468996
+   ]
+  }
+ }
+}

@@ -1,0 +1,81 @@
+{
+ "created": "2026-09-19T13:38:04Z",
+ "symbol": "XAUUSD",
+ "window": [
+  "2019-01-01",
+  "2026-09-11"
+ ],
+ "horizon": 3,
+ "k": 0.5,
+ "per_state": {
+  "dislocation 2.0 ATR": {
+   "ambiguous": 139,
+   "resolved": 130,
+   "unresolved": 9,
+   "stopped_share": 1.0,
+   "mean_pnl_spreads": -16.22752693239847,
+   "share_profitable": 0.0
+  },
+  "cheap + dislocation 1.5": {
+   "ambiguous": 61,
+   "resolved": 53,
+   "unresolved": 8,
+   "stopped_share": 1.0,
+   "mean_pnl_spreads": -25.804247283293737,
+   "share_profitable": 0.0
+  },
+  "every bar (baseline)": {
+   "ambiguous": 3441,
+   "resolved": 3121,
+   "unresolved": 320,
+   "stopped_share": 0.9987183595001602,
+   "mean_pnl_spreads": -14.902081965765428,
+   "share_profitable": 0.0
+  }
+ },
+ "bounds": [
+  {
+   "state": "dislocation 2.0 ATR",
+   "skip": 3.4636262755825786,
+   "resolved": -0.25852924191476,
+   "stop": -0.24415909662336546,
+   "ambiguous_share": 0.22937293729372937,
+   "measured_pnl": -16.22752693239847
+  },
+  {
+   "state": "cheap + dislocation 1.5",
+   "skip": 4.939120506742592,
+   "resolved": 1.464376391332177,
+   "stop": 1.4935143052350255,
+   "ambiguous_share": 0.1346578366445916,
+   "measured_pnl": -25.804247283293737
+  },
+  {
+   "state": "every bar (baseline)",
+   "skip": 0.25572693275892117,
+   "resolved": -0.950276596115202,
+   "stop": -0.8616535828346625,
+   "ambiguous_share": 0.08092852607069781,
+   "measured_pnl": -14.902081965765428
+  }
+ ],
+ "manifest": {
+  "git": {
+   "commit": "1154c9dae226e5f2542b641548a1f62b1f3e42c9",
+   "dirty": true,
+   "branch": "claude/order-position-choch-gab-im08db"
+  },
+  "config_hash": "67e06f91c1c79e59",
+  "config": {
+   "h": 3,
+   "k": 0.5
+  },
+  "data": {
+   "XAUUSD_H1_2003_2026.parquet": {
+    "sha256": "ae710b32d3326c2eb3c199d631dad6b81e12c8f766efb3c4c808283498dee2be",
+    "bytes": 9419126,
+    "mtime": "2026-09-12T11:38:54.185326+00:00"
+   }
+  }
+ }
+}

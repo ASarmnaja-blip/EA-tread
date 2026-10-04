@@ -1,0 +1,147 @@
+{
+ "XAUUSD": {
+  "frames_same_bars": true,
+  "h4_vs_h1_mismatches": 0,
+  "dlo_is_prior20_low": true,
+  "hi10_is_prior10_high": true,
+  "trades_report768": 396,
+  "trades_independent": 396,
+  "entries_only_in_one": 0,
+  "exit_time_mismatch": 0,
+  "max_abs_R_diff": 0.0,
+  "total_R_gross": [
+   188.30716241815088,
+   188.30716241815088
+  ],
+  "largest_h1_moves": [
+   [
+    "2026-01-29 15:00:00",
+    5.9
+   ],
+   [
+    "2009-03-18 18:00:00",
+    4.07
+   ],
+   [
+    "2013-10-17 07:00:00",
+    3.43
+   ]
+  ],
+  "gaps_over_4h": 1099,
+  "gaps_over_80h": 0
+ },
+ "XAGUSD": {
+  "frames_same_bars": true,
+  "h4_vs_h1_mismatches": 0,
+  "dlo_is_prior20_low": true,
+  "hi10_is_prior10_high": true,
+  "trades_report768": 396,
+  "trades_independent": 396,
+  "entries_only_in_one": 0,
+  "exit_time_mismatch": 0,
+  "max_abs_R_diff": 0.0,
+  "total_R_gross": [
+   127.54240101302338,
+   127.54240101302338
+  ],
+  "largest_h1_moves": [
+   [
+    "2026-02-05 02:00:00",
+    15.27
+   ],
+   [
+    "2011-05-01 22:00:00",
+    9.89
+   ],
+   [
+    "2026-01-30 17:00:00",
+    9.55
+   ]
+  ],
+  "gaps_over_4h": 1089,
+  "gaps_over_80h": 0
+ },
+ "BTCUSD": {
+  "frames_same_bars": true,
+  "h4_vs_h1_mismatches": 0,
+  "dlo_is_prior20_low": true,
+  "hi10_is_prior10_high": true,
+  "trades_report768": 300,
+  "trades_independent": 300,
+  "entries_only_in_one": 0,
+  "exit_time_mismatch": 0,
+  "max_abs_R_diff": 0.0,
+  "total_R_gross": [
+   235.853402125878,
+   235.853402125878
+  ],
+  "largest_h1_moves": [
+   [
+    "2020-03-12 10:00:00",
+    20.1
+   ],
+   [
+    "2020-03-12 23:00:00",
+    18.97
+   ],
+   [
+    "2020-03-13 02:00:00",
+    16.03
+   ]
+  ],
+  "gaps_over_4h": 11,
+  "gaps_over_80h": 0
+ },
+ "JP225": {
+  "frames_same_bars": true,
+  "h4_vs_h1_mismatches": 0,
+  "dlo_is_prior20_low": true,
+  "hi10_is_prior10_high": true,
+  "trades_report768": 347,
+  "trades_independent": 347,
+  "entries_only_in_one": 0,
+  "exit_time_mismatch": 0,
+  "max_abs_R_diff": 0.0,
+  "total_R_gross": [
+   109.84098816301852,
+   109.84098816301852
+  ],
+  "largest_h1_moves": [
+   [
+    "2025-04-09 17:00:00",
+    7.19
+   ],
+   [
+    "2016-06-24 02:00:00",
+    5.54
+   ],
+   [
+    "2024-08-05 07:00:00",
+    5.44
+   ]
+  ],
+  "gaps_over_4h": 1668,
+  "gaps_over_80h": 22
+ },
+ "clock_gold_vs_dukascopy": {
+  "Candle Lab 2015": {
+   "best_shift_hours": 0,
+   "mean_abs_diff": 0.038,
+   "at_zero": 0.038
+  },
+  "MT5 2023 Jan": {
+   "best_shift_hours": 0,
+   "mean_abs_diff": 0.054,
+   "at_zero": 0.054
+  },
+  "MT5 2023 Jul": {
+   "best_shift_hours": 0,
+   "mean_abs_diff": 0.056,
+   "at_zero": 0.056
+  }
+ },
+ "calendar_nfp_times": {
+  "12:30": 76,
+  "13:30": 38
+ }
+}

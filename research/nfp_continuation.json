@@ -1,0 +1,44 @@
+{
+ "created": "2026-09-19T16:20:47Z",
+ "n_events": 276,
+ "horizons": [
+  1,
+  4,
+  24
+ ],
+ "floor": 5.0,
+ "pooled": {
+  "1": {
+   "mean_edge": -0.1886368127913711,
+   "mean_sign": 0.49341149960376185,
+   "t": -0.9459236366943378,
+   "positive": 3,
+   "markets": 9
+  },
+  "4": {
+   "mean_edge": -1.2960147084011888,
+   "mean_sign": 0.5056870071742571,
+   "t": -1.7114366843000282,
+   "positive": 3,
+   "markets": 9
+  },
+  "24": {
+   "mean_edge": -1.7246405763808326,
+   "mean_sign": 0.4932726920064032,
+   "t": -2.3711745700449005,
+   "positive": 3,
+   "markets": 9
+  }
+ },
+ "viable": 0,
+ "manifest": {
+  "git": {
+   "commit": "43d3e65c0f191cc723ec48924bdb22f50f3c39df",
+   "dirty": true,
+   "branch": "claude/order-position-choch-gab-im08db"
+  },
+  "config_hash": "44136fa355b3678a",
+  "config": {},
+  "data": {}
+ }
+}

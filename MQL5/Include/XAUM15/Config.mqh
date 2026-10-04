@@ -161,7 +161,7 @@ input double InpORMinExpansionATR  = 0.8;   // Required expansion beyond OR
 
 
 //====================================================================
-// SETUP D - TREND ZONE  (the only hypothesis that survived testing)
+// SETUP D - TREND ZONE  (survived gold-only testing; FAILED cross-asset)
 //====================================================================
 // Evidence, from the 16-round research log on 15 years of XAUUSD
 // minute data (5,250,134 bars):
@@ -170,9 +170,40 @@ input double InpORMinExpansionATR  = 0.8;   // Required expansion beyond OR
 //   out-of-zone contrast (t=+9.33 long), and a market-drift-adjusted
 //   retest (t=+5.08 long, +2.65 short).
 //
-// NOT YET VALIDATED: the zone was found on the FULL gold sample, not a
-// held-out half, and cross-asset confirmation (silver, EURUSD) has not
-// been run. If it does not reproduce there, this is gold overfit.
+// VALIDATION HAS NOW BEEN RUN, AND IT FAILED.
+// The note that used to sit here said the zone was found on the FULL
+// gold sample with no held-out half, that cross-asset confirmation had
+// never been run, and that "if it does not reproduce there, this is
+// gold overfit." research/setup_d_crossasset.py ran it on nine markets
+// at H1, with the 30-hour time stop matched in wall-clock hours:
+//
+//   drift-adjusted skill positive on 0 of 9 markets, on BOTH sides.
+//   long  mean skill -0.1322 (across-market t -2.97)
+//   short mean skill -0.1226 (across-market t -3.51)
+//
+// Gold itself is in the failing set (H1 long E -0.0994, skill -0.1055).
+// Only USDJPY long showed positive raw E (+0.0557) and its skill was
+// -0.0535 - the market rose, counted twice. The implementation was
+// verified before the nine-market run: on gold M15 it reproduces
+// +0.1788R at zero cost against the documented +0.2312R (README's own
+// table costs that figure at the $0.26 terminal quote), and the same
+// book at real measured bid/ask is +0.0439R - so the shortfall is the
+// spread, not a coding error.
+//
+// Two separate problems, either one fatal on its own:
+//   1. The zone does not carry across assets. That is the condition
+//      this comment itself named for calling it gold overfit.
+//   2. The side this config trades is the wrong one. README's drift
+//      table shows longs in zone at skill -0.0494 (t -4.14) and shorts
+//      at +0.1092 (t +7.56) ON GOLD - yet InpTrendZoneLong=true and
+//      InpTrendZoneShort=false. The long edge is gold's uptrend being
+//      measured twice; the side with measured skill is switched off.
+//
+// The permutation test and the in-zone contrast above are not wrong,
+// they are just answering a narrower question than they appear to:
+// both compare the zone against gold's own history, where the drift is
+// already in both arms. Do not trade this on the strength of the
+// evidence block above without reading this one.
 //
 // Measured character: win rate ~23.8%, profit concentrated in a long
 // right tail, longest REAL losing streak 19 trades, theoretical

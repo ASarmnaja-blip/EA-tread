@@ -16,6 +16,62 @@ QuantConnect project and run through the backtest engine.
 | `qc_dobby_tuning_cell.py` | cell | Which parameters survive out-of-sample once the multiple-testing bar is applied? |
 | `qc_signal_census_cell.py` | cell | What do ALL signals do, including the ones the filters were throwing away? |
 | `qc_4part_filter_test.py` | cell | Does a volume-profile filter, a CHoCH+OB filter, or the pair of them rescue the system? |
+| `choch_fvg_three_setups.py` | script | Does CHoCH+FVG survive a better fill, a slower horizon, or a trend gate — and is the control it was first measured against sound? |
+| `dobby_setup01_sweep_chain.py` | script | Sweep → CHoCH → displacement → FVG, as one setup: does it fire often enough to trade, and does each stage earn its place? |
+| `cost_vs_exit_decomposition.py` | script | Is the spread really the barrier, or is it the exit design — or the entry? Splits expectancy into the three terms and measures each. |
+| `principles_backtest_gold.py` | script | If you stop forecasting and trade the exit and the sizing instead, what does that do on gold against buy and hold on the same drawdown budget? |
+| `fetch_m15_gold.py` | script | Where does six years of M15 gold come from when Yahoo caps it at 60 days, and does that source actually track gold? |
+| `m15_regime_search.py` | script | On six years of M15: does a trend/range regime filter carry information, and does anything survive a holdout fixed in advance? |
+| `portfolio_frequency_study.py` | script | At 1-5 trades a week across 27 futures, what do return, drawdown, Sharpe and MAR actually come to - and does the trend rule beat its own random control? |
+| `short_range_winrate_rr.py` | script | At a $3-$10 stop and target on gold, what win rate and R:R do you actually get, and what would you need? |
+| `wick_tip_tuner.py` | script | A resting limit at the tip of a wick, 306 configs tuned on 40 days with 20 held back: does it survive the holdout, and does it survive six years? |
+| `wick_tip_finetune.py` | script | A finer grid around the wick-tip winner - same tune/holdout split, explicit about being a refinement so the multiple-comparison bar is not silently reused. |
+| `breakeven_isolated.py` | script | Does moving the stop to break-even, by itself, on random information-free entries, create profit? |
+| `deep_research_signals.py` | script | Three signal families sourced from published research rather than gold's own chart - calendar seasonality, gold/silver ratio reversion, COT positioning extremes: does anything outside price action carry information? |
+| `intermarket_signals_60d.py` | script | VWAP reversion, dollar-index lead-lag, and a GVZ volatility-regime gate, scoped to the 60 real days Yahoo serves. |
+| `opening_range_setup_c.py` | script | The EA's own Setup C (opening-range expansion) has shipped since the start and was never tested - closes that gap. |
+| `vwap_dxy_confluence.py` | script | Round 2's two mildly-positive leads (VWAP fade, DXY lead-lag), combined: does requiring agreement remove noise, or just cut the sample? |
+| `multi_tf_setup_grid.py` | script | 11 entry families × params × 4 exits × 2 stops × M5/M15/M30/H1: is the best cell of a 631-cell search worth anything? |
+| `golden_area_ote.py` | script | From 13 manually-read NIFTY 50 clips: does a Fibonacci 62/70.5/79% "Golden Area" retracement zone entry (Premium/Discount, no extra filters) carry skill on gold — tested in both the fade and the continuation direction, since two readings of the clips disagree on which it is? |
+| `fetch_dukascopy.py` | script | Real XAUUSD M1 with separate BID and ASK straight from Dukascopy, back to 2003 - the real instrument, twenty years of minutes, and a MEASURED spread instead of the constant this repo has been assuming. |
+| `mega_search.py` | script | The unconstrained search: lookback, buffer, stop, target and hold all tuned, overlapping trades allowed, 31 filters, every timeframe - with a locked 2019-2026 holdout and an overlap-aware block bootstrap, because a search this size manufactures significance without them. |
+| `combinatorial_filter_search.py` | script | All singles, all pairs, all subsets up to ten filters - 67,338 combinations on 22.7 years - against the noise bar the search itself creates. Found what single-factor testing missed. |
+| `atr_contraction_yearly_recent.py` | script | Full year-by-year breakdown of the surviving setup (2004-2026) plus the last 3 and 6 months specifically, built fresh through today from the M1 cache. |
+| `atr_contraction_long_validation.py` | script | Stress-tests the one combination that cleared: is it beta, is it one era, is it a lucky slice - and what does it pay? |
+| `breakout_h1_dd_target.py` | script | Replicates the one setup an external workbook found promising (20-bar H1 breakout, range-width stop, 2R target), adds the matched control it never ran, tests it on 25 other markets, and sizes it against a 35% drawdown budget. |
+| `breakout_h1_long_history.py` | script | The same frozen breakout on six years of gold instead of two and a half: does the edge survive, which years paid for it, and does it beat simply owning gold at the same drawdown? |
+
+**Standalone scripts** (`smc_entry_test.py`, `universe_trend_test.py`,
+`gold_only_search.py`, `backtest_dobby_indicator.py`,
+`choch_fvg_three_setups.py`) fetch their own data and run under plain
+`python3`. They need only `numpy` and `pandas`.
+
+## choch_fvg_three_setups.py
+
+Three variations on the CHoCH + fair-value-gap entry, each aimed at one of the
+reasons this repo has recorded for intraday results dying: the fill (a resting
+limit at the far gap edge instead of the close), the horizon (daily bars
+instead of H1) and the bias (a daily Donchian-55 gate instead of a 4h EMA).
+
+It leads with a **calibration row** that re-measures the exact configuration
+`smc_entry_test.py` already reported, because a new number is worth nothing
+until the harness reproduces an old one. That row is where the run's most
+useful finding came from — see `docs/RESEARCH_FINDINGS.md`.
+
+## dobby_setup01_sweep_chain.py
+
+The four-stage chain — liquidity sweep, then CHoCH/MSS, then displacement, then
+a limit at the fair value gap — written out as one closed setup with the EA's
+own stage parameters, and measured on gold at M15/H1/D1 plus 27 futures.
+
+Two things it prints that a plain expectancy table would not:
+
+- a **funnel**, counting how many candidates survive each stage, so "no edge"
+  can be told apart from "no data". End to end the chain keeps 0.8% of sweeps.
+- an **ablation** at each stage depth with identical stops, exits and controls,
+  which asks whether each added condition contributes anything beyond cutting
+  the sample. Alongside each row is its **MDE** — the smallest true effect that
+  sample could detect. At full depth the measured skill is smaller than the MDE.
 
 ## qc_4part_filter_test.py
 

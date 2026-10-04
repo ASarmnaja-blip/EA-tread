@@ -13,10 +13,15 @@ simple one did. **[docs/RESEARCH_FINDINGS.md](docs/RESEARCH_FINDINGS.md)
 records what was tested, what died, and what survived** — read it before
 changing any default.
 
-> **Status: the trend zone is a working hypothesis, not a validated edge.**
-> It was found on the full gold sample rather than a held-out half, and
-> cross-asset confirmation (silver, EURUSD) has not been run. If it does not
-> reproduce there, it is gold overfit. No performance is promised.
+> **Status: the trend zone FAILED the cross-asset test this README used to
+> list as pending.** Nine markets at H1, 30-hour time stop matched in
+> wall-clock hours: drift-adjusted skill is positive on **0 of 9**, on both
+> sides (long mean −0.1322, across-market t −2.97; short −0.1226, t −3.51).
+> Gold itself is in the failing set. This README previously said "if it does
+> not reproduce there, it is gold overfit" — that is now the reading.
+> Run `research/setup_d_crossasset.py` to reproduce. No performance is
+> promised and the default-on setup should not be traded on the strength of
+> the gold-only evidence below.
 
 ---
 
@@ -85,7 +90,7 @@ statistics bucket. They never share a pooled score.
 
 | Setup | Default | Idea | Evidence |
 |---|---|---|---|
-| **D — Trend zone** | **on** | `(Close − SMA200)/ATR` in [1.08, 7.21] → long. Flat 1.8 ATR stop, **8R target**, 30 h time stop | permutation p = 0.0005; net E +0.2312R at 8R; **cross-asset pending**, and the long side is drift-dependent — see below |
+| **D — Trend zone** | **on** | `(Close − SMA200)/ATR` in [1.08, 7.21] → long. Flat 1.8 ATR stop, **8R target**, 30 h time stop | permutation p = 0.0005; net E +0.2312R at 8R (costed at $0.26) — but **cross-asset FAILED: drift-adjusted skill positive on 0 of 9 markets**, and the long side is the drift-negative one — see below |
 | A — AMD liquidity reversal | off | Asian range → sweep → close back inside → MSS → displacement → retest | **no edge at n = 43,353**; inversion test conclusive |
 | B — Volume profile continuation | off | Trend + VWAP + pullback into value → acceptance → structure → displacement | untested |
 | C — Opening range expansion | off | London/NY opening range → breakout with volume *and* ATR expansion → retest | untested |
@@ -187,9 +192,16 @@ overstates results.
 
 ## Known limitations
 
-1. **The trend zone is not yet validated.** Found on the full gold sample,
-   not a held-out half; cross-asset confirmation (silver, EURUSD) was run but
-   its verdict has not been read back. Until it is, treat this as a hypothesis.
+1. **The trend zone failed cross-asset validation.** It was found on the full
+   gold sample, not a held-out half. `research/setup_d_crossasset.py` ran the
+   confirmation on nine markets at H1: drift-adjusted skill positive on 0 of 9
+   on both sides. Only USDJPY long showed positive raw E (+0.0557) and its
+   skill was −0.0535 — the market rose, counted twice. The implementation was
+   verified first (gold M15 reproduces +0.1788R at zero cost vs the documented
+   +0.2312R, which the cost table below prices at the $0.26 quote), so this is
+   a real failure and not a coding artefact. Separately, the shipped config
+   trades **longs only** — the side the drift table below gives −0.0494 skill
+   (t −4.14) — while shorts, at +0.1092 (t +7.56), are switched off.
 2. **Capital adequacy is the binding constraint — and it is about volatility,
    not account currency.** A 1000 USC cent account is arithmetically identical
    to a $1,000 USD account ([proof](docs/ACCOUNT_SCALING.md)). What binds is
