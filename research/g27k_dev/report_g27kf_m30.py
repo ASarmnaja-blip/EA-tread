@@ -24,6 +24,7 @@ import fresh_search_l3 as L3
 import h4d1_pattern_search as P
 import multi_market_search as MMS
 import intraday_pattern_search as IP
+import m30_new_markets as NM
 import news_shock as NS
 import per_market_search as PMS
 import report_five as R5
@@ -47,7 +48,10 @@ SYS = {"A": ("Cent G27K-F", CENT, False), "B": ("Cent G27K-F + M30", CENT, True)
 VCONF = {"r075": (0.75, "normal"), "r1": (1.0, "normal"), "r1b": (1.0, "brake")}
 VERS = {"r075": "0.75%", "r1": "1%", "r1b": "1% + เบรก 25%"}
 HALF_OF = lambda ms, k: {m: k for m in ms}
-TH = {"XAUUSD": "ทอง", "XAGUSD": "เงิน", "BTCUSD": "BTC", "ETHUSD": "ETH", "XAUUSD_M30": "ทอง M30", "XAGUSD_M30": "เงิน M30", "BTCUSD_M30": "BTC M30"}
+TH = {"XAUUSD": "ทอง", "XAGUSD": "เงิน", "BTCUSD": "BTC", "ETHUSD": "ETH", "XAUUSD_M30": "ทอง M30", "XAGUSD_M30": "เงิน M30", "BTCUSD_M30": "BTC M30",
+      "ETHUSD_M30": "ETH M30", "USDJPY_M30": "USDJPY M30", "JP225_M30": "JP225 M30"}
+THS = {"XAUUSD": "ทอง", "XAGUSD": "เงิน", "BTCUSD": "BTC", "ETHUSD": "ETH", "USDJPY": "USDJPY", "JP225": "JP225"}
+BASE = lambda u: u[:-4]                      # "JP225_M30" -> "JP225"
 ACCT = {"JP225": "Standard เท่านั้น", "BTCUSD": "Cent (MT5) + Standard", "ETHUSD": "Cent (MT5) + Standard"}
 
 
@@ -64,9 +68,9 @@ def sized(rows, version, news, scale):
     return [dict(r, risk_frac=float(risk.get(j, 0.0)) * scale.get(r["mkt"], 1.0)) for j, r in enumerate(rows) if risk.get(j, 0.0) > 0]
 
 
-def sleeve_rows(C):
+def sleeve_rows(C, markets):
     """The registered M30 pick as report rows (one unit, no adds; MFE/MAE not tracked)."""
-    h1 = {m: PMS.load_m1(m) for m in PMS.MKTS}
+    h1 = {m: NM.load_m1(m) for m in markets}
     P._M["h1"] = h1
     P._M["frames_for"] = IP.frames_minute
     E, feats, cats = P.build(h1, "M30")
@@ -94,14 +98,19 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--sleeve", default="XAUUSD,XAGUSD,BTCUSD", help="sleeve markets")
+    ap.add_argument("--verdict", default="", help="html of the verdict line (default: the m30_sleeve_with_g27kf one)")
     a = ap.parse_args()
+    global SLEEVE
+    smk = a.sleeve.split(",")
+    SLEEVE = tuple(m + "_M30" for m in smk)
     t0 = time.time()
     P.setup(a.root)
     G, K, C = P._M["G"], P._M["K"], P._M["C"]
     sys.path.insert(0, str(pathlib.Path(a.root) / "research" / "grid768"))
     import report768 as RP
     C.SPECS.update(FM.specs(C))
-    sleeve = [r for r in sleeve_rows(C) if W.ts(START) <= r["t"] < W.ts(END)]
+    sleeve = [r for r in sleeve_rows(C, smk) if W.ts(START) <= r["t"] < W.ts(END)]
     print(f"  sleeve: {len(sleeve)} trades, R {np.mean([r['R'] for r in sleeve]):+.3f}", flush=True)
     allm = STD
     H1 = {m: (MMS.load(m, G) if m in MMS.MARKETS else L3.load(m, "2009-01-01", END)) for m in allm}
@@ -125,16 +134,17 @@ def main():
     n_fed = sum(1 for r in rows if r.get("fed_exit"))
     print(f"  Fed shocks {len(shocks)}, trades {len(raw)} -> {len(rows)} (blocked {len(raw) - len(rows)}, closed early {n_fed})", flush=True)
     port = {s: "P" + s for s in SYS}
-    RWF.UNIS.update({port[s]: list(ms) + (list(SLEEVE) if w30 else []) for s, (_, ms, w30) in SYS.items()}, **{m: [m] for m in allm + SLEEVE})
+    slv = {s: [u for u in SLEEVE if BASE(u) in ms] if w30 else [] for s, (_, ms, w30) in SYS.items()}     # JP225 M30 on Standard only
+    RWF.UNIS.update({port[s]: list(ms) + slv[s] for s, (_, ms, w30) in SYS.items()}, **{m: [m] for m in allm + SLEEVE})
     out, sized_rows, stress, mc, halves = {}, {}, {}, {}, {}
     for s, (label, ms, w30) in SYS.items():
-        rr = [r for r in rows if r["mkt"] in ms] + (sleeve if w30 else [])
+        rr = [r for r in rows if r["mkt"] in ms] + [r for r in sleeve if r["mkt"] in slv[s]]
         rr.sort(key=lambda r: (r["t"], r["mkt"]))
         for v, (k, ver) in VCONF.items():
-            scale = dict(HALF_OF(ms, k), **({m: K_SLEEVE for m in SLEEVE} if w30 else {}))
+            scale = dict(HALF_OF(ms, k), **{m: K_SLEEVE for m in slv[s]})
             vr = sized(rr, ver, news, scale)
             sized_rows[(s, v)] = vr
-            for u in [port[s], *ms, *(SLEEVE if w30 else ())]:
+            for u in [port[s], *ms, *slv[s]]:
                 ent = RWF.build_entry(f"{s}~{v}", u, vr, k / 100, None, RP, G)
                 if ent:
                     out[f"{s}~{v}_{u}"] = ent
@@ -206,7 +216,7 @@ def main():
         c1 = f"<td class='n {cl(h1)}'>{h1:+.2f}</td>" if np.isfinite(h1) else "<td class='n'>–</td>"
         perm.append(f"<tr><td>{TH[m]}</td><td class='n'>–</td><td class='n'>{len(R)}</td><td class='n'>–</td><td class='n'>–</td>"
                     f"<td class='n {cl(R.mean())}'>{R.mean():+.3f}</td><td class='n'>{tstat(R):.1f}</td>"
-                    f"{c1}<td class='n {cl(h2)}'>{h2:+.2f}</td><td>{ACCT.get(m[:6], 'Cent + Standard')}</td></tr>")
+                    f"{c1}<td class='n {cl(h2)}'>{h2:+.2f}</td><td>{ACCT.get(BASE(m), 'Cent + Standard')}</td></tr>")
     perm_t = ("<table class='cmp'><thead><tr><th>ตลาด</th><th class='n'>ไม้เดิม</th><th class='n'>ไม้ F</th><th class='n'>ปิดเพราะข่าว</th><th class='n'>R เดิม</th>"
               "<th class='n'>R F</th><th class='n'>t</th><th class='n'>2011–18</th><th class='n'>2019–26</th><th>บัญชี</th></tr></thead><tbody>" + "".join(perm) + "</tbody></table>"
               "<p class='muted' style='margin:8px 0 0;font-size:13px'>R = R ต่อไม้หลังต้นทุน · F = G27K-F · กฎ Fed ใช้กับทอง เงิน BTC ETH เท่านั้น</p>")
@@ -223,10 +233,10 @@ def main():
     sr = np.array([r["R"] for r in sleeve])
     summary = ("<ul class='cmp-sum'>"
                f"<li><b>ไม้ M30</b> = รูปแบบที่ผ่านการค้นแบบบีบให้แคบ: แท่ง M30 ปิดใกล้จุดสูง 55 แท่ง (ไม่เกิน 1 ATR) + ความผันผวน 14 แท่งสูงกว่า 100 แท่ง 1.5 เท่า + TF ใหญ่ไปทางเดียวกัน "
-               f"เทรดทั้งสองทาง ทำกำไรที่ 2R · ทอง เงิน BTC · {len(sleeve):,} ไม้ เฉลี่ย {sr.mean():+.3f}R · เปิดเป็นไม้แยก ความเสี่ยง 0.5% ต่อไม้</li>"
+               f"เทรดทั้งสองทาง ทำกำไรที่ 2R · {' '.join(THS[m] for m in smk)} · {len(sleeve):,} ไม้ เฉลี่ย {sr.mean():+.3f}R · เปิดเป็นไม้แยก ความเสี่ยง 0.5% ต่อไม้</li>"
                + "".join(f"<li><b>G27K-F {VERS[v]}</b>: " + " · ".join(f"{SYS[s][0]} {E[s + v]['cagr']:.1%} ต่อปี DD {eq(s + v):.0%}" for s in SYS) + "</li>" for v in VCONF) +
-               "<li><b>ผลการทดสอบที่ลงทะเบียนไว้: ยังไม่รับเข้าใช้</b> · ดีขึ้นทั้งสองบัญชีในสภาพปกติและทั้งสองช่วงเวลา แต่ Standard แย่ลงเมื่อทุกไม้แย่ลง 0.10R "
-               "เพราะไม้ M30 ได้ราว 0.14R ต่อไม้ ต้นทุนที่แย่ลงเพียง 0.10R กินไปเกือบหมด · ควร forward test เพื่อวัดต้นทุนจริงก่อน</li>"
+               + (a.verdict or "<li><b>ผลการทดสอบที่ลงทะเบียนไว้: ยังไม่รับเข้าใช้</b> · ดีขึ้นทั้งสองบัญชีในสภาพปกติและทั้งสองช่วงเวลา แต่ Standard แย่ลงเมื่อทุกไม้แย่ลง 0.10R "
+                  "เพราะไม้ M30 ได้ราว 0.14R ต่อไม้ ต้นทุนที่แย่ลงเพียง 0.10R กินไปเกือบหมด · ควร forward test เพื่อวัดต้นทุนจริงก่อน</li>") +
                "<li><b>G27K-F</b> = G27K #1 + กฎข่าว Fed · ทุกตลาดเสี่ยงเท่ากัน · ไม้ M30 ความเสี่ยง 0.5% ต่อไม้ทุกระดับ · เบรก 25% ใช้กับทั้งบัญชี</li></ul>")
     ckeys = list(SYS)
     pts = [dict(x=START, lab="เริ่ม " + START, **{s: float(W.DEPOSIT) for s in ckeys})]
@@ -258,7 +268,7 @@ def main():
               + (" · ไม้ M30 0.5%" if w30 else "") for v, (k, ver) in VCONF.items()}
         risk = rn["r1b"]
         m30r = ["ไม้ M30 (แยกจาก G27K-F): แท่ง M30 ปิดไม่เกิน 1 ATR จาก High/Low 55 แท่งในทิศที่เทรด + ATR14/ATR100 ≥ 1.5 + TF ใหญ่ไปทางเดียวกัน · "
-                "ซื้อหรือขายตามทิศนั้น · SL 2 × ATR20 (M30) · TP 2R · ทอง เงิน BTC · ความเสี่ยง 0.5% ต่อไม้"] if w30 else []
+                f"ซื้อหรือขายตามทิศนั้น · SL 2 × ATR20 (M30) · TP 2R · {' '.join(THS[BASE(u)] for u in slv[s])} · ความเสี่ยง 0.5% ต่อไม้"] if w30 else []
         info[s] = dict(label=f"{label}", tab=label, rules=g_rules + m30r + [f"ตลาด: {', '.join(ms)}"], notes=[f"<b>{acct}</b>", risk],
                        combo="C8/D3/E1/F1/G2/H2/I1/J1 + Fed", risk=0.01, adds=False, tf="H4", risk_note=risk, risk_notes=rn)
     wf = {s: dict(patterns=[], pat_note="", pat_empty="กฎตายตัว G27K #1 กฎเดียว", log=[], log_note="",

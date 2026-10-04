@@ -1782,6 +1782,17 @@
     "verdict": "INCONCLUSIVE",
     "note": "DO NOT ADOPT by the pre-registered criterion: passes on Cent 1%+brake (MAR 1.35 -> 1.44, halves -0.05/+3.68 -> +0.07/+3.99, -0.10R 0.54 -> 0.62, P(DD>50%) 1.1 -> 1.8%) but fails on Standard 1%+brake at condition 3 (-0.10R MAR 0.69 -> 0.62) though conditions 1, 2, 4 pass (MAR 1.50 -> 1.67, halves +0.12/+3.90 -> +0.34/+4.73, P(DD>50%) 1.8 -> 1.7%). Sleeve: 1,945 trades +0.137R; 35% open while a same-direction G27K-F trade is open; monthly R corr +0.13. Its edge (~0.14R) is small next to a 0.10R cost shock, so the sleeve is cost-fragile; DD rises 29 -> 34% at 0.5%. Fields: Standard MAR alone vs with sleeve."
    }
+  },
+  {
+   "id": "m30_sleeve_new_markets",
+   "registered": "2026-10-04T15:28:05.884692+00:00",
+   "why": "User: fetch ETH, USDJPY and JP225 for M30, build the G27K-F + M30 report with them, then test robustness. The M30 rule was chosen on gold, silver and BTC only, so these three markets are an out-of-sample market test of an unchanged rule.",
+   "change": "M30 sleeve rule unchanged (M30, brk55>=-1 ATR & atr_ratio>=1.5 & htf1_with, both directions, tp2, non-overlapping per market, same cost model) applied to ETHUSD (Binance ETHUSDT 1m from 2017-08), USDJPY (Dukascopy M1 from 2009) and JP225 (Dukascopy JPNIDXJPY M1 from the earliest year available, 2010 at most). Trades counted 2011-09-01..2026-09-30. Then G27K-F + sleeve at 0.5% per sleeve trade, Cent (sleeve markets on Cent: XAU, XAG, BTC, ETH, USDJPY) and Standard (+JP225), G27K-F at 0.75% / 1% / 1% + brake 25%. Robustness afterwards on the final sleeve: (a) every sleeve trade 0.05/0.10/0.15R worse and cost x2; (b) 18 neighbours: brk55 threshold -0.75/-1/-1.25 x atr_ratio 1.25/1.5/1.75 x with/without htf1_with; (c) entry one M30 bar later; (d) 5 drift placebos of every sleeve market's M1; (e) leave one market out; (f) share of positive years.",
+   "sweep_size": 21,
+   "criterion": "PART 1 (new markets out of sample): the three new markets pooled must have net R > 0 with t >= 2.0 AND pooled net R > 0 in 2011-09..2018-12 and in 2019-01..2026-09; if not, no new market is added. If pooled passes, a market is added only if its own net R > 0 over its history and in each half of its own history (split 2019-01-01 for USDJPY and JP225, 2022-03-01 for ETH). PART 2 (account): the extended sleeve is adopted only if, on BOTH Cent and Standard at G27K-F 1% + brake 25%, the four conditions of m30_sleeve_with_g27kf hold against G27K-F alone (full MAR higher; MAR higher in both halves; MAR higher with every trade 0.10R worse; Monte Carlo P(DD>50%) not more than 1 point higher); 0.75% and 1% reported. PART 3 (robustness of the final sleeve, pooled non-overlapping trades): ROBUST only if (b) >= 14 of 18 neighbours have net R > 0 with t >= 2; (c) delayed entry net R > 0; (d) real net t above all 5 placebos; (e) net R > 0 with every single market left out; and (a) net R still > 0 at 0.10R worse. (a) other levels and (f) are descriptive.",
+   "min_improvement": 0.0,
+   "test_period": "2011-09-01..2026-09-30 (ETH from 2017-08), halves split 2019-01-01",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
