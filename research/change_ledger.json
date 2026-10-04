@@ -1482,6 +1482,31 @@
     "verdict": "REJECTED",
     "note": "FAILS the registered criterion. Same bars, bid vs mid, FX only, old bid/ask caches (with month gaps, so n differs from the full-data validation): group A 2012-2019 bid +0.415 t 4.90 / mid +0.421 t 4.85; group A 2020-2023 bid +0.311 t 1.83 / mid +0.419 t 2.17; group B 2012-2023 bid +0.115 t 1.17 / mid +0.083 t 0.81. In group A the effect is not a bid-quote artifact, but A is the discovery group; on the independent group-B FX it does not replicate on either price (the full-data B pass t 2.42 came largely from non-FX markets and complete data). Per the registered rule: classified as not a candidate; stage 2 ends with no setup and the sealed 2024-2026 data stays unopened."
    }
+  },
+  {
+   "id": "regime_setups_down_side",
+   "registered": "2026-10-04T01:19:09.449313+00:00",
+   "why": "User: G27K #1 only earns in up-trends; on the same markets (XAUUSD, XAGUSD, BTCUSD, JP225, USDJPY, ETHUSD) find setups for down-trends and sideways markets. Earlier searches tried both directions but never conditioned on a regime fixed in advance; the grid's two-way option (J2) lost to long-only on gold.",
+   "change": "Regime from the D1 bar closed before the signal, past data only: UP = close > SMA200 and SMA200 rising over 20 days; DOWN = close < SMA200 and SMA200 falling over 20 days; SIDE = neither. Four setups, parameters fixed now: DN1 mirror of G27K #1 short in DOWN (H4 close < prior-10-bar low, entry next H4 open, stop 2 x ATR20(H4) walked on H1, exit at the next open after an H4 close > prior-20-bar high; no news filter); DN2 sell the rally in DOWN (D1 close > highest close of the prior 5 days, entry next D1 open, exit when the close is back below SMA5 or after 10 days, stop 2.5 x ATR20(D1)); SD1 range fade in SIDE on D1 (close outside SMA20 +- 2 sd, fade it, exit when the close crosses SMA20 or after 10 bars, stop 2.5 x ATR20); SD2 the same on H4. One position per market per setup, real broker cost and swap (ETH = BTC spec). Window 2011-09-01..2026-10-01 (ETH from 2017-08). Diagnostic only: G27K #1 mean R by regime.",
+   "sweep_size": 4,
+   "criterion": "Per setup, pooled over the 6 markets, PASS if all: (1) mean net R > 0 with t > 2; (2) positive in both halves (split 2019-01-01); (3) positive on >= 4 of 6 markets; (4) beats a matched random control (random entry days in the same regime, same direction, holding length and stop; real mean above 95% of 200 draws). A passing setup is then checked as a second EA setup: S5 (Standard) and S4U (Cent) + setup, brake 25%, MAR higher in both halves (split 2018-01-01). Failing any of (1)-(4) means it is not used.",
+   "min_improvement": 0.0,
+   "test_period": "2011-09-01..2026-10-01",
+   "result": {
+    "recorded": "2026-10-04T01:20:24.034971+00:00",
+    "baseline_er": 0.0,
+    "variant_er": 0.013,
+    "improvement": 0.013,
+    "t_stat": 0.15,
+    "n_baseline": 0,
+    "n_variant": 670,
+    "k_at_test": 20057417,
+    "floor_at_test": 8.009980084880592,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "ALL FOUR FAIL. Fields: DN1, the best. DN1 short breakout in DOWN: +0.013R t 0.15, halves +0.160/-0.122, 2/6 markets (BTC +0.406, ETH +0.222; JP225 -0.094, USDJPY -0.286, XAG -0.062, XAU -0.027), control p 0.175. DN2 sell the rally in DOWN: -0.046R t -2.25, 0/6. SD1 D1 range fade in SIDE: -0.137R t -3.12, 1/6. SD2 H4 range fade in SIDE: -0.068R t -3.43, 0/6. Portfolio (reported, not judged since none passed): S5 MAR 0.85 halves +0.12/+2.41; +DN1 0.81, +DN2 0.89 (+0.11/+2.60), +SD1 0.96 (+0.16/+2.23), +SD2 0.60. Diagnostic: G27K #1 already earns in every regime at entry: UP n 864 +0.374R t 3.37, SIDE n 436 +0.271R t 1.97, DOWN n 684 +0.316R t 2.76 - its 10-bar upside breakouts work inside down-trends too (rallies), so there is no idle regime to fill."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
