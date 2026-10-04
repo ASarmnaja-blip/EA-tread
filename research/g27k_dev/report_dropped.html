@@ -121,6 +121,15 @@ svg .zero { stroke: var(--muted); stroke-width: 1 }
     <p class="note">ปีขึ้นแรง = ปีที่ราคาขึ้นเกิน 15% · ต้นทุน/SL = spread + swap ต่อรอบเทียบกับระยะ SL (2×ATR20 H4) · 12 เดือนล่าสุด = ต.ค. 2025 – ก.ย. 2026</p>
   </section>
 
+  <section class="card" id="last6">
+    <h2>6 ปีล่าสุด: ตลาดที่ใช้ เทียบตลาดที่ตัด</h2>
+    <p class="note">ต.ค. 2020 – ก.ย. 2026 · เปิดบัญชีใหม่ $100,000 · เวอร์ชันเบรก 25% · ช่วงนี้ทองและคริปโตเป็นขาขึ้นแรง และเป็นช่วงที่ใช้เลือกกฎ G27K #1 ตัวเลขของ 6 ตลาดจึงดีเกินจริง</p>
+    <div class="scroll"><table class="tbl" id="acct6"></table></div>
+    <div class="legend"><span><i style="background:var(--kept)"></i>ตลาดที่ใช้อยู่</span><span><i style="background:var(--drop)"></i>ตลาดที่ตัดออก</span><span>รวม R ใน 6 ปี</span></div>
+    <div class="scroll"><svg id="bars6" role="img" aria-label="รวม R 6 ปีล่าสุดของแต่ละตลาด"></svg></div>
+    <p class="note" id="note6"></p>
+  </section>
+
   <section class="card">
     <h2>หลักฐานทางสถิติ</h2>
     <p class="note">ถดถอยกำไรเฉลี่ยต่อไม้รายปีของทุกตลาด (ถ่วงตามจำนวนไม้) กับสิ่งที่ตลาดเป็นในปีนั้น ค่า t คำนวณแบบสุ่มซ้ำทั้งตลาด (cluster bootstrap 1,000 รอบ)</p>
@@ -235,5 +244,28 @@ const cellCol = v => { for (const [t, c] of STEPS) if (v < t) return c; return "
   const mean = { move: "ขึ้นมากยิ่งได้มาก", er: "วิ่งทางเดียวยิ่งได้มาก", cost: "ต้นทุนสูงยิ่งเสีย", drop: "ยังแย่กว่าแม้คุมตัวแปรอื่น (มีอคติจากการเลือก)", const: "" };
   $("reg").innerHTML = "<tbody>" + ["move", "er", "cost", "drop"].map(k => { const r = D.reg[k];
     return `<tr><td>${nm[k]}</td><td class="n">${fmt(r.b, 2)}</td><td class="n">t ${fmt(r.t, 1)}</td><td class="sub">${mean[k]}</td></tr>`; }).join("") + "</tbody>";
+})();
+// last six years
+(() => {
+  const L6 = D.last6, c = v => v > 0 ? "pos" : v < 0 ? "neg" : "";
+  $("acct6").innerHTML = `<thead><tr><th class="l">พอร์ต</th><th>เงินสุดท้าย</th><th>ต่อปี</th><th>DD สูงสุด</th><th>MAR</th><th>ไม้</th>${[2021, 2022, 2023, 2024, 2025].map(y => `<th>${y}</th>`).join("")}</tr></thead><tbody>`
+    + Object.entries(L6.accounts).map(([k, a]) => `<tr class="${k.startsWith("6") ? "kept" : ""}"><td class="l">${k}</td><td class="n">$${Math.round(a.final * 100000).toLocaleString()}</td>
+      <td class="n ${c(a.cagr)}">${fmt(a.cagr * 100, 1)}%</td><td class="n">${(a.dd * 100).toFixed(1)}%</td><td class="n">${a.mar.toFixed(2)}</td><td class="n">${a.n.toLocaleString()}</td>
+      ${[2021, 2022, 2023, 2024, 2025].map(y => `<td class="n ${c(a.years[y])}">${fmt(a.years[y] * 100, 0)}%</td>`).join("")}</tr>`).join("") + "</tbody>";
+  const M = L6.markets, svg = $("bars6"), rowH = 17, L = 78, R = 56, T = 22, W = 900, H = T + M.length * rowH + 8;
+  const mx = Math.max(...M.map(m => Math.abs(m.s))), lo = -115, hi = 150, x = v => L + (v - lo) / (hi - lo) * (W - L - R);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.style.width = "100%"; svg.style.minWidth = "560px";
+  let s = "";
+  for (let v = -100; v <= 150; v += 25) s += `<line class="${v === 0 ? "zero" : "grid"}" x1="${x(v)}" x2="${x(v)}" y1="${T - 4}" y2="${H - 4}"/><text x="${x(v)}" y="${T - 8}" text-anchor="middle">${fmt(v, 0)}</text>`;
+  M.forEach((m, i) => { const y = T + i * rowH, x0 = x(0), x1 = x(m.s), a = Math.min(x0, x1), w = Math.max(1, Math.abs(x1 - x0));
+    s += `<text x="${L - 6}" y="${y + 12}" text-anchor="end" style="fill:var(--fg)">${m.m}</text>`;
+    s += `<rect x="${a}" y="${y + 3}" width="${w}" height="${rowH - 5}" rx="2" fill="var(${m.kept ? "--kept" : "--drop"})" data-i="${i}"/>`;
+    s += `<text class="val" x="${m.s >= 0 ? x1 + 5 : x1 - 5}" y="${y + 12}" text-anchor="${m.s >= 0 ? "start" : "end"}">${fmt(m.s, 0)}</text>`; });
+  svg.innerHTML = s;
+  svg.querySelectorAll("rect").forEach(r => { const m = M[r.dataset.i];
+    r.addEventListener("pointermove", e => showTip(e, `<b>${m.m}</b> · ${m.kept ? "ใช้อยู่" : "ตัดออก"}<br>รวม <b class="num">${fmt(m.s, 1)}R</b> · ${m.n} ไม้<br>R ต่อไม้ ${fmt(m.R, 3)} · t ${fmt(m.t, 1)}<br>ปีบวก ${m.pos}/${m.yrs}`));
+    r.addEventListener("pointerleave", hideTip); });
+  const g = L6.groups;
+  $("note6").textContent = `6 ตลาดที่ใช้: ${fmt(g.kept.R, 3)}R ต่อไม้ (t ${fmt(g.kept.t, 1)}) บวกครบ ${g.kept.pos_markets}/6 · 38 ตลาดที่ตัด: ${fmt(g.dropped.R, 3)}R ต่อไม้ (t ${fmt(g.dropped.t, 1)}) บวก ${g.dropped.pos_markets}/38 ตลาด ตัวที่บวกมากสุดได้แค่ +13R ใน 6 ปี`;
 })();
 </script>

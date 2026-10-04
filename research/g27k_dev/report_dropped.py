@@ -44,7 +44,11 @@ def main():
         rows.append(dict(m=p["mkt"], th=TH.get(p["mkt"], ""), grp=GROUP.get(p["mkt"], "ค่าเงิน"), kept=p["kept"], n=p["n"], R=round(p["R"], 3),
                          t=round(p["t"], 1), pos=p["pos"], yrs=p["years"], up=p["up_years"], upR=None if p["up_R"] != p["up_R"] else round(p["up_R"], 2),
                          l12=round(p["last12"], 1), cost=round(p["cost"], 3), drift=round(p["drift"], 3), cat=k, catTh=lab, y=panel.get(p["mkt"], {})))
-    data = dict(bins=d["bins"], reg=d["reg"], rows=rows)
+    l6 = json.loads((HERE / "dropped_last6y.json").read_text())
+    last6 = dict(accounts=l6["accounts"], groups=l6["groups"],
+                 markets=[dict(m=x["mkt"], kept=x["kept"], n=x["n"], R=round(x["R"], 3), t=round(x["t"], 1), s=round(x["sumR"], 1), pos=x["pos_years"],
+                               yrs=len(x["years"])) for x in l6["markets"]])
+    data = dict(bins=d["bins"], reg=d["reg"], rows=rows, last6=last6)
     html = (HERE / "report_dropped.html").read_text(encoding="utf-8").replace("/*DATA*/null", json.dumps(data, ensure_ascii=False))
     pathlib.Path(a.out).write_text(html, encoding="utf-8")
     print("written", a.out)
