@@ -10,8 +10,9 @@ from datetime import datetime, timezone
 import MetaTrader5 as mt5
 
 TERMINAL = r"C:\Program Files\MetaTrader 5\terminal64.exe"
-SL_PCT = {"XAUUSD": 0.010, "XAGUSD": 0.019, "BTCUSD": 0.031, "JP225": 0.014}      # handoff 3.1 step 3
-WANTED = ["XAUUSD", "XAGUSD", "BTCUSD", "JP225"]
+SL_PCT = {"XAUUSD": 0.010, "XAGUSD": 0.019, "BTCUSD": 0.031, "JP225": 0.014,      # handoff 3.1 step 3
+          "USDJPY": 0.006}   # USDJPY: provisional until its trade list exists; only used for the min-lot printout
+WANTED = ["XAUUSD", "XAGUSD", "BTCUSD", "JP225", "USDJPY"]
 TRADE_MODE = {0: "DEMO", 1: "CONTEST", 2: "REAL"}
 
 
@@ -73,7 +74,7 @@ def main():
         print(f"  MIN LOT ({s.volume_min:g}) RISKS {risk_min:,.2f} {a.currency} = {pct:.2%} of balance"
               f"  -> {'OK (<= 1 %)' if pct <= 0.01 else 'OVER the 1 % rule'} | balance needed for 1 %: {need:,.0f} {a.currency}")
         rows.append(dict(base=base, name=name, found=True, contract=s.trade_contract_size, tick_size=s.trade_tick_size,
-                         tick_value=s.trade_tick_value, vol_min=s.volume_min, vol_step=s.volume_step, spread_points=s.spread,
+                         tick_value=s.trade_tick_value, vol_min=s.volume_min, vol_step=s.volume_step, vol_max=s.volume_max, spread_points=s.spread,
                          swap_long=s.swap_long, swap_short=s.swap_short, swap_mode=s.swap_mode, rollover3=s.swap_rollover3days,
                          price=price, sl_dist=sl_dist, risk_per_lot=per_lot, risk_min_lot=risk_min, pct_of_balance=pct,
                          balance_for_1pct=need, trade_mode=s.trade_mode, digits=s.digits))
