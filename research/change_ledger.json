@@ -1707,6 +1707,17 @@
     "verdict": "REJECTED",
     "note": "FAIL. Cent: DD 29.7% -> 28.0% (only -1.7 pt), CAGR 18.2% -> 18.5%; Standard: DD 27.2% -> 28.2% (worse), CAGR 23.4% -> 22.7%; plain fixed risk at the same DD earns more on Standard (28.2%). The rule cuts risk after the drawdown has happened and keeps it cut through the recovery (39% of Cent trades at reduced risk, because 2013-2016 took years to recover). Per the criterion the monitor only reports; risk stays fixed at 0.75%. Recorded: Standard full-period CAGR base vs rule."
    }
+  },
+  {
+   "id": "g27k_fast_news_shock",
+   "registered": "2026-10-04T10:53:08.636507+00:00",
+   "why": "User: the risk rule must digest news very fast (the weekly drawdown rule reacted too late). Every drawdown episode coincided with hawkish Fed / strong dollar news; markets price such news within hours, so a price-based shock detector is the testable fast proxy for reading the news.",
+   "change": "Shock detectors: DOLLAR = DXY rebuilt hourly from Dukascopy H1 (EURUSD^-0.576 USDJPY^0.136 GBPUSD^-0.119 USDCAD^0.091 USDSEK^0.042 USDCHF^0.036), shock when its 24h log change >= 2 x the std of 24h changes over the trailing 250 days (known at that hour); FED = FRED DGS2 daily change >= 2 x trailing-250-day std, usable from 00:00 UTC two days after the date. Actions on XAUUSD XAGUSD BTCUSD ETHUSD only: BLOCK = skip G27K #1 entries for 5 days after a shock; BLOCK+EXIT = also close open trades in those markets at the next H1 open after the shock (R from that price minus the trade's spread cost). Variants: DOLLAR-BLOCK, DOLLAR-EXIT, FED-BLOCK, FED-EXIT. Account: brake 25%, 0.75% per trade, BTC/ETH 0.375%, 2011-09..2026-09, Cent 5 and Standard 6.",
+   "sweep_size": 4,
+   "criterion": "A variant is WORTH USING only if on BOTH Cent and Standard: (1) at the same full-period max balance DD, it earns more than plain fixed risk (brake on, risk scaled) over the full period AND in 2011-09..2018-12 AND in 2019-01..2026-09; (2) the same holds with every trade 0.10R worse (full period); (3) its max DD is not higher than the unchanged system's. If several pass, take the one with the higher Standard CAGR at equal DD in 2011-2018.",
+   "min_improvement": 0.0,
+   "test_period": "2011-09-01..2026-09-30",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
