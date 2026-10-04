@@ -1817,7 +1817,21 @@
    "criterion": "A and B are descriptive (does the H1 search decay forward and reverse; gross vs cost). C: candidate = net R > 0, t >= 2.0, n >= 100 in BOTH period A (before split) and B (after); the family shows structure only if the real candidate count exceeds every one of 5 drift placebos; then pick = candidate with the highest all-period net t; else nothing is adopted and D is not run. D, if run: new markets as m30_sleeve_new_markets part 1 (pooled new net > 0, t >= 2, positive in 2011-18 and 2019-26; a market added if positive overall and in each half of its own history; JP225 data from 2018 as there). Account: H1 sleeve at 0.5% per trade added to G27K-F + M30 5-market sleeve (0.5%) is adopted only if on BOTH Cent and Standard at G27K-F 1% + brake 25%: full MAR higher, MAR higher in 2011-09..2018-12 and 2019-01..2026-09, MAR higher with every trade (all books) 0.10R worse, Monte Carlo P(DD>50%) not more than 1 point higher, all against G27K-F + M30 without the H1 sleeve. Robustness: same five checks and thresholds as m30_sleeve_new_markets part 3.",
    "min_improvement": 0.0,
    "test_period": "2009-01-01..2026-09-30 (BTC from 2021-01-01), split 2018-01-01 (BTC 2024-01-01); account 2011-09-01..2026-09-30",
-   "result": null
+   "result": {
+    "recorded": "2026-10-04T16:45:36.484367+00:00",
+    "baseline_er": 0.0,
+    "variant_er": 0.155,
+    "improvement": 0.155,
+    "t_stat": 5.98,
+    "n_baseline": 0,
+    "n_variant": 2620,
+    "k_at_test": 41679284,
+    "floor_at_test": 8.20040466989819,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "A forward (4,925,760 patterns): top-40 disc net +0.276 -> val +0.004 (gross +0.044, cost 0.040); per-market tops decay, BTC worst (val -0.108). B reverse (4,939,820): top-40 disc +0.271 -> val +0.026; only pooled tops hold (7/10 val t>=2, all trend continuation near highs). C family PASS: 65 of 648 candidates vs 0,0,0,0,0 on drift placebos; pick H1 pooled pos250>=0.9 & atr_ratio>=1.25 & htf1_with, both, tp2: A n 760 +0.153 t 3.2, B n 890 +0.173 t 3.9, all +0.164 t 5.0. D new markets PASS: pooled new n 1374 +0.116 t 3.25 (2011-18 +0.056, 2019-26 +0.139); ETH +0.188 and USDJPY +0.097 added, JP225 +0.011 not. Final H1 sleeve 5 markets n 2620 +0.155 t 5.98, monthly R corr with M30 sleeve +0.52, with G27K-F +0.25. ACCOUNT: DO NOT ADOPT - vs G27K-F + M30 at 1% + brake conditions 1, 2, 4 pass (Cent MAR 1.95 -> 2.14, Std 2.03 -> 2.44; halves up; P(DD>50%) 0.7 -> 0.8 / 0.8 -> 0.7%) but condition 3 fails (-0.10R MAR Cent 0.84 -> 0.73, Std 0.86 -> 0.73); fails the same way at 0.75% and 1%. ROBUSTNESS of the H1 sleeve alone: ROBUST (-0.10R +0.055, -0.15R +0.005, cost x2 +0.114, 18/18 neighbours, one bar later +0.115, placebos t -3.69..+0.18, leave-one-out +0.139..+0.171, 88% positive years). Fields: H1 sleeve R vs 0."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
