@@ -1757,6 +1757,17 @@
     "verdict": "INCONCLUSIVE",
     "note": "PART B PASSES: 39 of 1,296 constrained patterns are candidates (net t>=2, n>=100 in both periods) vs 0,0,0,0,0 on 5 drift placebos. Candidates: 37 M30 (25 pooled, 12 BTC), 2 M15; all are trend continuation near the 55/100/250-bar extreme, mostly with atr_ratio>=1.5 and HTF agreement. All-period choice (highest full t): M30 pooled, brk55>=-1 & atr_ratio>=1.5 & htf1_with, both directions, tp2 exit: 2,081 trades net +0.139R t 5.21, gross +0.187, cost 0.047; A +0.187 (t 4.9) B +0.094 (t 2.5); per market all-period gold +0.111 (B t 1.3), silver +0.113 (B t 0.6), BTC +0.227 (t 3.9). The family was narrowed using knowledge from this same data (H4 trend result, minute_cost_check), so the placebo comparison is the main protection; ledger floor not met. Part A (reverse full search) runs separately, descriptive only."
    }
+  },
+  {
+   "id": "m30_sleeve_with_g27kf",
+   "registered": "2026-10-04T15:04:57.006494+00:00",
+   "why": "User: test the M30 trend-continuation pattern (minute_reverse_and_constrained pick) together with G27K-F at account level.",
+   "change": "M30 sleeve = the registered pick: M30, brk55>=-1 ATR & atr_ratio>=1.5 & htf1_with, both directions, tp2 exit, non-overlapping per market, on XAUUSD, XAGUSD (2009-) and BTCUSD (2021-), same cost model. Added as separate positions to G27K-F (G27K #1 + Fed-shock exit, all markets at equal risk) in one account, 2011-09-01..2026-09-30, Cent (5 markets) and Standard (6). G27K-F at locked risk 1% + brake 25% (main) and 0.75% (reported). Sleeve risk 0.5% per trade (main); 0.25% and 1% reported. The Fed rule is not applied to the sleeve.",
+   "sweep_size": 3,
+   "criterion": "Adopt the sleeve at 0.5% only if, on BOTH Cent and Standard with G27K-F at 1% + brake 25%: (1) full-period MAR (CAGR / balance DD) above G27K-F alone; (2) MAR above G27K-F alone in 2011-09..2018-12 AND in 2019-01..2026-09; (3) full-period MAR above G27K-F alone with every trade (both books) 0.10R worse; (4) Monte Carlo P(DD>50%) not above G27K-F alone + 1 percentage point. Overlap with G27K (share of sleeve trades opened while a same-direction G27K trade is open in that market) and monthly R correlation are reported.",
+   "min_improvement": 0.0,
+   "test_period": "2011-09-01..2026-09-30, halves split 2019-01-01",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
