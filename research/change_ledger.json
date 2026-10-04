@@ -1557,6 +1557,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "Fields: S5 brake MAR vs S5+H1#2. D1: L2 beats 5/10 drift placebos, L3 3/10 -> no candidate. H4 calibration of the same gate (diagnostic): beats 10/10, so the gate is passable. H1: L2 beats 9/10 but no setup's discovery t beats >= 8/10 placebo top-1 -> none; L3 beats 10/10 (real top-100 median 4.23 vs 2.18-2.87) -> 14 A + 46 B before the final window; gate 5 -> 3 finalists, all grade A, all positive in 2024-01..2026-09: H1#1 ch10 brk100>=-2.047 & since_brk>=26 (val 2020-23 +0.178R t 4.21 6/6, final +0.164R t 3.49, ~750 trades/yr, cost x2 +0.132); H1#2 tp2 brk100>=-1.117 & ema20_50<=0.6398 (val +0.144 t 4.00 6/6, final +0.065 t 1.58, ~360/yr, cost x2 +0.102); H1#3 tp2 brk100>=-2.047 & since_brk>=104 (val +0.164 t 3.58 5/6, final +0.051 t 0.96, ~215/yr, cost x2 +0.123). Combination, brake 25%, 2011-09..2026-09: S5 30.2%/DD 35.4%/MAR 0.85 halves +0.12/+2.41; +H1#2 59.5%/34.8%/1.71 (+0.73/+3.33, MC P(DD>50%) 3.4%) ADOPT; +H1#3 55.0%/34.0%/1.62 (0.7%) ADOPT; +H1#1 73.5%/43.5%/1.69 but MC 7.3% -> not adopted; all three 102%/47.7%, MC 11.2% -> not adopted. S4U: +H1#2 43.6%/34.1%/1.28 ADOPT, +H1#3 41.5%/33.5%/1.24 ADOPT. Monthly R corr with G27K: 0.37/0.18/0.11. Fixed before reporting: G27K base was loaded with the search's 2024 data cut (219 trades missing); cost-x2 helper doubled only fresh-market specs. Next: execution stress (slippage, rollover spread) and forward test."
    }
+  },
+  {
+   "id": "h1_family_execution_stress",
+   "registered": "2026-10-04T03:03:29.513714+00:00",
+   "why": "Before any report or EA work, the user asked to test whether the three H1 finalists of h1_d1_search survive real-world execution: they trade 200-750 times a year for +0.05..+0.18R a trade, so costs the model does not carry could erase them.",
+   "change": "Each H1 finalist on the six main markets, 2011-09..2026-09, under: (a) spread and swap x2; (b) spread and swap x3; (c) +0.05R and (d) +0.10R per trade (slippage/commission); (e) stop exits 0.10R and (f) 0.25R worse (stop exit = R <= -0.9); (g) entry one H1 bar late (the same market/direction row one bar later, its own ATR and stop); (h) no entries whose signal bar closes 20:00-23:59 UTC (rollover spreads); (i) without its best 5% of trades; (j) combined: x2 costs + 0.05R + one bar late. Also yearly mean R. Plan check: G27K #1 (S5, 1%) + all three at 0.33% each with the H1 streams under (j), brake 25%.",
+   "sweep_size": 3,
+   "criterion": "A finalist is execution-robust if mean net R stays > 0 with t > 2 under each of (a), (c), (e), (g), (h), and mean R > 0 under (j). (b), (d), (f), (i) are reported as severe cases. The plan passes if under (j) its MAR is still above G27K alone (0.85) with MC P(DD>50%) <= 5%. A finalist that is not execution-robust is dropped before any EA work.",
+   "min_improvement": 0.0,
+   "test_period": "2011-09-01..2026-09-30",
+   "result": {
+    "recorded": "2026-10-04T03:04:54.360196+00:00",
+    "baseline_er": 0.85,
+    "variant_er": 0.29,
+    "improvement": -0.56,
+    "t_stat": NaN,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 22112720,
+    "floor_at_test": 8.035624610004616,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "Fields: brake MAR of G27K alone vs G27K + all three at 0.33% with H1 streams under (j). Per finalist (2011-09..2026-09, 6 markets): H1#1 base +0.153R t 6.81; x2 +0.100 t 4.48; +0.05R +0.103 t 4.58; stop 0.10R +0.111; late +0.123 t 5.70; no 20-24 UTC +0.155; (j) +0.021 t 1.00; without best 5% -0.214; 15/16 years positive -> ROBUST by the rule. H1#2 base +0.120 t 5.95; x2 +0.073; +0.05R +0.070; stop 0.25R -0.003; late +0.082; (j) -0.014 -> NOT ROBUST (dropped). H1#3 base +0.152 t 5.82; x2 +0.105; +0.05R +0.102; late +0.103; (j) +0.007 t 0.26; 13/16 years -> ROBUST by the rule. PLAN FAILS: under (j), G27K + 3 x 0.33% = 14.3%/DD 48.8%/MAR 0.29, MC P(DD>50%) 23.1%; G27K + #1 and #3 x 0.33% = 16.5%/45.3%/MAR 0.37, MC 12.8%; G27K alone 30.2%/35.4%/0.85. The family survives each moderate cost alone, but the combined realistic-to-harsh case leaves ~0R per trade, and near-zero streams trading thousands of times make the account worse. Not for live trading; at most a demo forward test that measures the real per-trade cost."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
