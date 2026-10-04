@@ -1792,7 +1792,21 @@
    "criterion": "PART 1 (new markets out of sample): the three new markets pooled must have net R > 0 with t >= 2.0 AND pooled net R > 0 in 2011-09..2018-12 and in 2019-01..2026-09; if not, no new market is added. If pooled passes, a market is added only if its own net R > 0 over its history and in each half of its own history (split 2019-01-01 for USDJPY and JP225, 2022-03-01 for ETH). PART 2 (account): the extended sleeve is adopted only if, on BOTH Cent and Standard at G27K-F 1% + brake 25%, the four conditions of m30_sleeve_with_g27kf hold against G27K-F alone (full MAR higher; MAR higher in both halves; MAR higher with every trade 0.10R worse; Monte Carlo P(DD>50%) not more than 1 point higher); 0.75% and 1% reported. PART 3 (robustness of the final sleeve, pooled non-overlapping trades): ROBUST only if (b) >= 14 of 18 neighbours have net R > 0 with t >= 2; (c) delayed entry net R > 0; (d) real net t above all 5 placebos; (e) net R > 0 with every single market left out; and (a) net R still > 0 at 0.10R worse. (a) other levels and (f) are descriptive.",
    "min_improvement": 0.0,
    "test_period": "2011-09-01..2026-09-30 (ETH from 2017-08), halves split 2019-01-01",
-   "result": null
+   "result": {
+    "recorded": "2026-10-04T16:25:25.661612+00:00",
+    "baseline_er": 0.137,
+    "variant_er": 0.161,
+    "improvement": 0.023999999999999994,
+    "t_stat": 7.22,
+    "n_baseline": 1945,
+    "n_variant": 3153,
+    "k_at_test": 31909284,
+    "floor_at_test": 8.13134994246176,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "PART 1 PASS: new markets pooled n 1456 net +0.171R t 5.08, 2011-18 +0.199, 2019-26 +0.163. Added ETHUSD (n 671, +0.218, t 4.32, own halves +0.320/+0.149) and USDJPY (n 537, +0.176, t 3.21, halves +0.177/+0.175); JP225 not added (n 248, +0.035, t 0.44, own first half 2018 -0.277). Data: Dukascopy M1 was ~1 request/s through the proxy, so USDJPY and JP225 came from histdata.com M1 bid, clock aligned weekly to Dukascopy H1 (USDJPY yearly rank corr 0.99-1.00); JP225 years with aligned corr < 0.9 and all before them dropped, so JP225 starts 2018. PART 2 PASS (adopt extended sleeve): 1% + brake, F alone -> F + 5-market sleeve: Cent MAR 1.35 -> 1.95, halves -0.05/+3.68 -> +0.25/+4.89, -0.10R MAR 0.54 -> 0.84, P(DD>50%) 1.1 -> 0.7%; Standard MAR 1.50 -> 2.03, halves +0.12/+3.90 -> +0.55/+4.92, -0.10R 0.69 -> 0.86, P(DD>50%) 1.8 -> 0.8%; also passes at 0.75% and 1%. PART 3 ROBUST: 5-market sleeve n 3153 net +0.161 t 7.22; (a) -0.10R +0.061 (t 2.7), -0.15R +0.011, cost x2 +0.112; (b) 18/18 neighbours net>0 t>=2; (c) one bar later +0.127 t 5.85; (d) drift placebos t -3.15..-1.95; (e) leave-one-out +0.145..+0.181; (f) 88% positive years. Does not clear the cumulative floor t 8.13, hence INCONCLUSIVE by the ledger's global rule. Fields: sleeve R 3 markets vs 5 markets."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"

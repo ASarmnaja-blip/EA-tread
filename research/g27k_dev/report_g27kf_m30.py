@@ -94,12 +94,46 @@ def sleeve_rows(C, markets):
     return rows
 
 
+def robust_card(path):
+    """Robustness of the sleeve (m30_robust.json) as one card."""
+    if not path:
+        return ""
+    Rb = json.loads(pathlib.Path(path).read_text())
+    cl = lambda v: "pos" if v > 0 else "neg"
+    row = lambda lab, r, note="": (f"<tr><td>{lab}</td><td class='n'>{r['n']:,}</td><td class='n {cl(r['net'])}'>{r['net']:+.3f}</td>"
+                                    f"<td class='n'>{r['t']:+.1f}</td><td>{note}</td></tr>")
+    b, A = Rb["base"], Rb["a"]
+    nb = Rb["b"]["rows"]
+    rows = [row("กฎจริง", b),
+            row("ทุกไม้แย่ลง 0.05R", A["-0.05R"]), row("ทุกไม้แย่ลง 0.10R", A["-0.10R"], "เกณฑ์: ยังบวก"), row("ทุกไม้แย่ลง 0.15R", A["-0.15R"], "จุดเกือบเสมอตัว"),
+            row("ต้นทุนเป็น 2 เท่า", A["cost x2"], f"ต้นทุนกลางต่อไม้ {A['median cost R']:.3f}R"),
+            row("เข้าช้า 1 แท่ง M30", Rb["c"], "เกณฑ์: ยังบวก")]
+    rows += [row(f"ตัด {THS.get(m, m)} ออก", v) for m, v in Rb["e"].items()]
+    pl = Rb["d"]
+    rows.append(f"<tr><td>ราคาสุ่ม (drift placebo) 5 ชุด</td><td class='n'>~{int(np.mean([x['n'] for x in pl])):,}</td>"
+                f"<td class='n neg'>{min(x['net'] for x in pl):+.3f} ถึง {max(x['net'] for x in pl):+.3f}</td>"
+                f"<td class='n'>{min(x['t'] for x in pl):+.1f} ถึง {max(x['t'] for x in pl):+.1f}</td><td>เกณฑ์: t จริงสูงกว่าทุกชุด</td></tr>")
+    t = ("<table class='cmp'><thead><tr><th>การทดสอบ</th><th class='n'>ไม้</th><th class='n'>R ต่อไม้</th><th class='n'>t</th><th>หมายเหตุ</th></tr></thead><tbody>"
+         + "".join(rows) + "</tbody></table>")
+    nbt = ("<table class='cmp'><thead><tr><th>ใกล้จุดสูง 55 แท่ง</th><th>ATR14/ATR100</th><th>TF ใหญ่ทางเดียวกัน</th><th class='n'>ไม้</th><th class='n'>R ต่อไม้</th><th class='n'>t</th></tr></thead><tbody>"
+           + "".join(f"<tr><td>≥ {x['brk']:+.2f} ATR</td><td>≥ {x['atr']:.2f}</td><td>{'ใช่' if x['htf'] else 'ไม่ใช้'}</td><td class='n'>{x['n']:,}</td>"
+                     f"<td class='n {cl(x['net'])}'>{x['net']:+.3f}</td><td class='n'>{x['t']:+.1f}</td></tr>" for x in nb) + "</tbody></table>")
+    yrs = " · ".join(f"{y} <span class='{cl(v)}'>{v:+.2f}</span>" for y, v in Rb["f"]["years"].items())
+    ok = Rb["checks"]
+    head = (f"<p style='margin:0 0 10px'><b>ผล: {'ทนทาน ผ่านทุกข้อที่ลงทะเบียนไว้' if Rb['robust'] else 'ไม่ผ่าน ' + ', '.join(k for k, v in ok.items() if not v)}</b> · "
+            f"ไม้ M30 {len(Rb['markets'])} ตลาด รวม {b['n']:,} ไม้ 2011–2026 · ค่าข้างเคียง {Rb['b']['n_ok']} จาก {len(nb)} ชุดบวกและ t ≥ 2 (เกณฑ์ 14) · "
+            f"ปีที่เป็นบวก {Rb['f']['share_pos']:.0%}</p>")
+    return ('<section class="card"><h2>ความทนทานของไม้ M30</h2>' + head + '<div class="cmp-grid"><div class="tbl">' + t + '</div><div class="tbl">' + nbt +
+            "</div></div><p class='muted' style='margin:10px 0 0;font-size:13px'>R ต่อไม้รายปี: " + yrs + "</p></section>")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--sleeve", default="XAUUSD,XAGUSD,BTCUSD", help="sleeve markets")
     ap.add_argument("--verdict", default="", help="html of the verdict line (default: the m30_sleeve_with_g27kf one)")
+    ap.add_argument("--robust", default="", help="json from m30_robust.py to show as a card")
     a = ap.parse_args()
     global SLEEVE
     smk = a.sleeve.split(",")
@@ -234,7 +268,7 @@ def main():
     summary = ("<ul class='cmp-sum'>"
                f"<li><b>ไม้ M30</b> = รูปแบบที่ผ่านการค้นแบบบีบให้แคบ: แท่ง M30 ปิดใกล้จุดสูง 55 แท่ง (ไม่เกิน 1 ATR) + ความผันผวน 14 แท่งสูงกว่า 100 แท่ง 1.5 เท่า + TF ใหญ่ไปทางเดียวกัน "
                f"เทรดทั้งสองทาง ทำกำไรที่ 2R · {' '.join(THS[m] for m in smk)} · {len(sleeve):,} ไม้ เฉลี่ย {sr.mean():+.3f}R · เปิดเป็นไม้แยก ความเสี่ยง 0.5% ต่อไม้</li>"
-               + "".join(f"<li><b>G27K-F {VERS[v]}</b>: " + " · ".join(f"{SYS[s][0]} {E[s + v]['cagr']:.1%} ต่อปี DD {eq(s + v):.0%}" for s in SYS) + "</li>" for v in VCONF) +
+               + "".join(f"<li><b>G27K-F {VERS[v]}</b>: " + " · ".join(f"{SYS[s][0]} {E[s + v]['cagr']:.1%} ต่อปี DD {eq(s + v):.0%}" for s in SYS) + "</li>" for v in VCONF)
                + (a.verdict or "<li><b>ผลการทดสอบที่ลงทะเบียนไว้: ยังไม่รับเข้าใช้</b> · ดีขึ้นทั้งสองบัญชีในสภาพปกติและทั้งสองช่วงเวลา แต่ Standard แย่ลงเมื่อทุกไม้แย่ลง 0.10R "
                   "เพราะไม้ M30 ได้ราว 0.14R ต่อไม้ ต้นทุนที่แย่ลงเพียง 0.10R กินไปเกือบหมด · ควร forward test เพื่อวัดต้นทุนจริงก่อน</li>") +
                "<li><b>G27K-F</b> = G27K #1 + กฎข่าว Fed · ทุกตลาดเสี่ยงเท่ากัน · ไม้ M30 ความเสี่ยง 0.5% ต่อไม้ทุกระดับ · เบรก 25% ใช้กับทั้งบัญชี</li></ul>")
@@ -247,8 +281,9 @@ def main():
     legend = "".join(f'<span><i style="background:var(--c{i + 1})"></i>{SYS[s][0]}</span>' for i, s in enumerate(ckeys))
     css6 = ("<style>:root{--c5:#e87ba4;--c6:#008300}@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){--c5:#d55181;--c6:#008300}}"
             ":root[data-theme=\"dark\"]{--c5:#d55181;--c6:#008300}</style>")
-    cmp_html = (R5.CSS + css6 + '<section class="card"><h2>G27K-F + M30 · ความเสี่ยง 0.75% / 1% / 1% + เบรก 25% · ไม้ M30 0.5%</h2>' + summary +
+    cmp_html = (R5.CSS + css6 + f'<section class="card"><h2>G27K-F + M30 ({" ".join(THS[m] for m in smk)}) · ความเสี่ยง 0.75% / 1% / 1% + เบรก 25% · ไม้ M30 0.5%</h2>' + summary +
                 f'<div class="legend" style="margin-bottom:6px">{legend}<span class="muted">Balance สิ้นเดือน · สเกล log · กราฟนี้คือ G27K-F 1% + เบรก 25% (ระดับอื่นดูในตารางและแท็บด้านล่าง)</span></div><div id="cmpChart" class="chart"></div></section>'
+                + robust_card(a.robust) +
                 '<div class="cmp-grid"><section class="card"><h2>ไม้ M30 ช่วยแค่ไหน</h2><div class="tbl">' + fed_t + '</div></section>'
                 '<section class="card"><h2>คุณภาพรายตลาด (ต่อไม้ 2011–2026)</h2><div class="tbl">' + perm_t + '</div></section></div>'
                 '<section class="card"><h2>ตัวเลขเทียบกัน</h2><div class="tbl">' + table + '</div></section>'
@@ -290,9 +325,10 @@ def main():
     uni_th.update({m: f"{TH.get(m, m)} ({m}) ตลาดเดียว" for m in allm + SLEEVE})
     pbtn = "\n        ".join(f'<button role="tab" data-u="{port[s]}">พอร์ต {SYS[s][0]}</button>' for s in SYS)
     mbtn = "\n        ".join(f'<button role="tab" data-u="{m}">{TH.get(m, m)}</button>' for m in allm + SLEEVE if m not in ("XAUUSD", "XAGUSD", "BTCUSD"))
+    tl = "G27K-F + M30" + (f" {len(smk)} ตลาด" if len(smk) != 3 else "")
     rep = [
-        ("<title>รายงาน Walk-forward 10 ปี</title>", "<title>G27K-F + M30</title>"),
-        ("Strategy Tester · Walk-forward report", "Strategy Tester · G27K-F + M30"),
+        ("<title>รายงาน Walk-forward 10 ปี</title>", f"<title>{tl}</title>"),
+        ("Strategy Tester · Walk-forward report", f"Strategy Tester · {tl}"),
         ("รายงานผลทดสอบ Walk-forward · 10 ปี", "G27K-F + ไม้ M30 · Cent และ Standard · 15 ปี"),
         ("การตัดสินใจทุกครั้งใช้ข้อมูลก่อนเวลานั้นเท่านั้น", "ขนาดไม้คำนวณ ณ เวลาเข้าไม้"),
         ('<h2>บันทึกการตัดสินใจ</h2>', '<h2>หมายเหตุขนาดไม้</h2>'),
