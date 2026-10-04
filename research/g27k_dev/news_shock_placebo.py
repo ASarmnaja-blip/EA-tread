@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Placebo and neighbourhood checks for FED-EXIT / FED-BLOCK (news_shock.py).
 
-Placebo: 200 sets of random business days, as many as the real Fed shocks,
+Measure: MAR on the Standard account (scale-free). Placebo: 200 sets of random business days, as many as the real Fed shocks,
 same timing (22:00 UTC next business day) and same actions. If random days
 help as much, the gain is from trading less, not from the news. Neighbours:
 shock threshold 1.5/2.5 sigma and block 3/10 days (informational).
@@ -22,10 +22,9 @@ sys.path.insert(0, str(HERE.parent))
 import news_shock as NS
 
 def edge(rows, base, news):
-    """CAGR above plain fixed risk at the same max DD (full period, Standard)."""
+    """MAR (CAGR / max balance DD, full period, Standard): scale-free, so no same-DD search is needed."""
     f = NS.acct(rows, news)
-    k = NS.same_dd(base, news, f["dd"])
-    return f["cagr"] - NS.acct(base, news, k)["cagr"], f
+    return f["cagr"] / f["dd"], f
 
 
 def main():
@@ -51,14 +50,16 @@ def main():
         bdays = pd.bdate_range(NS.START, NS.END)
         rng = np.random.default_rng(11)
         pl = []
-        for _ in range(200):
+        for i_ in range(200):
             d = np.sort(rng.choice(len(bdays), len(real), replace=False))
             s = np.array([int((bdays[i] + pd.offsets.BDay(1)).tz_localize("UTC").timestamp()) + 22 * 3600 for i in d])
             pl.append(edge(NS.apply(rows, s, H1, ex), rows, news)[0])
+            if i_ % 50 == 49:
+                print(f'    {act} placebo {i_ + 1}/200', flush=True)
         pl = np.array(pl)
         res[act] = dict(edge=e_real, cagr=f["cagr"], dd=f["dd"], placebo_mean=float(pl.mean()), placebo_p95=float(np.quantile(pl, 0.95)),
                         p_value=float((pl >= e_real).mean()), trades_cut_short=n_exit)
-        print(f"  FED-{act}: edge vs same-DD plain {e_real:+.1%} | placebo mean {pl.mean():+.1%}, 95th pct {np.quantile(pl, 0.95):+.1%}, "
+        print(f"  FED-{act}: MAR {e_real:.2f} (unchanged {edge(rows, rows, news)[0]:.2f}) | placebo MAR mean {pl.mean():.2f}, 95th pct {np.quantile(pl, 0.95):.2f}, "
               f"share of placebos >= real {res[act]['p_value']:.1%}" + (f" | trades closed early {n_exit}" if n_exit else ""), flush=True)
     # neighbourhood
     nb = {}
@@ -73,7 +74,7 @@ def main():
             s = np.array(sorted(int(((t + pd.offsets.BDay(1)).tz_localize("UTC") + pd.Timedelta(hours=22)).timestamp()) for t in ch[ch >= z * sd].index))
             e, f = edge(NS.apply(rows, s, H1, True), rows, news)
             nb[f"z{z}_d{days}"] = dict(edge=e, cagr=f["cagr"], dd=f["dd"])
-            print(f"  EXIT z {z} block {days}d: edge {e:+.1%}  CAGR {f['cagr']:+.1%} DD {f['dd']:.1%}", flush=True)
+            print(f"  EXIT z {z} block {days}d: MAR {e:.2f}  CAGR {f['cagr']:+.1%} DD {f['dd']:.1%}", flush=True)
     NS.BLOCK_DAYS = 5
     (HERE / "news_shock_placebo.json").write_text(json.dumps(dict(standard=res, neighbours=nb), indent=1, default=float))
 
