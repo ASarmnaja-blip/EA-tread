@@ -1442,7 +1442,46 @@
    "criterion": "Funnel, all gates required: (1) discovery rank by pooled per-trade net R t on group A 2012-2019; (2) per layer, the real top-100 median t must beat the top-100 median of every one of 10 drift-placebo runs of the identical procedure, else the layer is declared empty and stops; (3) validation t > 2 on group A 2020-2023 AND on group B 2012-2023, positive on >= 60% of markets in each, still positive at cost x2 and swap x2, still positive without its best market; (4) >= 70% of parameter neighbours positive in discovery; (5) cluster survivors by trade-timing overlap, best per cluster, at most 3 finalists; (6) sealed 2024-2026 on A+B opened once: mean net R > 0; (7) adding it to S4U (Cent) or S5 (Standard) raises brake-25% MAR in both halves (split 2018-01-01). A finalist goes to forward test as a second EA setup; if none survives, the 28-market avenue is closed.",
    "min_improvement": 0.0,
    "test_period": "discovery 2012-2019 group A; validation 2020-2023 A and 2012-2023 B; sealed 2024-01..2026-09",
-   "result": null
+   "result": {
+    "recorded": "2026-10-04T00:52:00.627366+00:00",
+    "baseline_er": 0.0,
+    "variant_er": 0.0,
+    "improvement": 0.0,
+    "t_stat": NaN,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 20057413,
+    "floor_at_test": 8.009980032216378,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "NO SETUP FOUND. L1 (60 mechanism variants): all negative in discovery (best t -1.02, median -4.23), worse than every one of 10 drift placebos (medians -2.16..-3.96) -> empty. L2 (27,648 G27K grid setups, numba port checked equal on 864 runs): top-100 median disc t 0.63, beats only 7 of 10 placebos (medians -0.06..1.44) -> empty; 0.8% of setups positive in discovery. L3 (3.25M free-search patterns): top-100 median 3.85 beats all 10 placebos (2.31..2.66) -> gate 2 PASS; all top patterns are hour-23 fades; of the top 100 only one passed gates 3-4 (ret3<=-1.357 & body<=-0.6955 & hour23, tp2: A 2020-23 +0.304 t 2.09, B 2012-23 +0.131 t 2.42, cost x2 +0.217/+0.025), and it failed the pre-registered mid-price fidelity check (fresh_l3_survivor_midprice_check). Sealed 2024-01..2026-09 never opened. The 28-market avenue is closed."
+   }
+  },
+  {
+   "id": "fresh_l3_survivor_midprice_check",
+   "registered": "2026-10-04T00:50:53.456650+00:00",
+   "why": "Stage 2 (fresh_markets_search_v2) left one L3 survivor after gates 3-5: H1, tp2, ret3<=-1.357 & body<=-0.6955 & hour23 (buy after a sharp drop closing in the 23:00 UTC bar). Every top L3 pattern is an hour-23 fade, and the data is BID only: at the day rollover the spread widens (Dukascopy 2012-2023 FX: 21-22 UTC about 3x the median, 23 UTC about 1.7x), which pushes the bid down without the price moving. A signal built on that would not be tradable. Registered before the sealed 2024-2026 data is opened and before this check is run; it can only remove the candidate, never add one (a fidelity check).",
+   "change": "Rebuild the H1 events from MID prices ((bid+ask)/2, Dukascopy bid/ask caches) for the FX markets of groups A and B, on exactly the same bars as a BID-only rebuild from the same files, 2012-01..2023-12, same cost model. Run the survivor on both and compare: group A 2012-2019, group A 2020-2023, group B 2012-2023. Non-FX markets have no ask series and are reported on bid only.",
+   "sweep_size": 1,
+   "criterion": "The survivor stays a candidate only if on MID prices it is still positive with t > 2 on group-B FX 2012-2023 AND positive on group-A FX 2020-2023, and its mid-price mean R is at least half of its bid-price mean R on the same bars. Otherwise it is classified as a bid-quote rollover artifact and stage 2 ends with no setup; the sealed data is then not opened.",
+   "min_improvement": 0.0,
+   "test_period": "2012-01..2023-12, FX markets of groups A and B",
+   "result": {
+    "recorded": "2026-10-04T00:52:00.220474+00:00",
+    "baseline_er": 0.115,
+    "variant_er": 0.083,
+    "improvement": -0.032,
+    "t_stat": 0.81,
+    "n_baseline": 319,
+    "n_variant": 301,
+    "k_at_test": 20057413,
+    "floor_at_test": 8.009980032216378,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "FAILS the registered criterion. Same bars, bid vs mid, FX only, old bid/ask caches (with month gaps, so n differs from the full-data validation): group A 2012-2019 bid +0.415 t 4.90 / mid +0.421 t 4.85; group A 2020-2023 bid +0.311 t 1.83 / mid +0.419 t 2.17; group B 2012-2023 bid +0.115 t 1.17 / mid +0.083 t 0.81. In group A the effect is not a bid-quote artifact, but A is the discovery group; on the independent group-B FX it does not replicate on either price (the full-data B pass t 2.42 came largely from non-FX markets and complete data). Per the registered rule: classified as not a candidate; stage 2 ends with no setup and the sealed 2024-2026 data stays unopened."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
