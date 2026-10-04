@@ -1617,7 +1617,21 @@
    "criterion": "Works if all: (1) pooled mean net R > 0 with t > 2, positive in both halves (split 2022-01-01), positive on >= 60% of stocks; (2) pooled mean R above the pooled mean of each of 10 drift placebos (timing edge beyond each stock's own, survivor-biased drift). Then account: S5 (1%) + the stock bucket, brake 25% on the whole account, 2017-01..2026-09; adopted if MAR is higher than S5 alone over 2017-2026, neither half (split 2022-01-01) loses more than 10% of its MAR, MC 10y P(DD>50%) <= 5%; report monthly correlation with S5. Also reported: a blind yearly selection (trade a stock in year Y only if its G27K trades before Y have t > 1, n >= 15).",
    "min_improvement": 0.0,
    "test_period": "2017-01-01..2026-09-30",
-   "result": null
+   "result": {
+    "recorded": "2026-10-04T05:16:21.671330+00:00",
+    "baseline_er": 0.0,
+    "variant_er": 0.0,
+    "improvement": 0.0,
+    "t_stat": NaN,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 22140369,
+    "floor_at_test": 8.035952594702525,
+    "clears_margin": true,
+    "clears_floor": false,
+    "verdict": "INCONCLUSIVE",
+    "note": "WITHDRAWN BEFORE ANY RUN: the user cancelled the stock test because Exness offers stocks only on Standard accounts, not on Standard Cent. Fetch stopped at 23 of 90 tickers (19 with data under .cache_duka/STK_*_H1BID.parquet, kept on request; ABBV, BEKE, BILI, CHTR had no Dukascopy data). No backtest was run and no result was seen under this id."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
