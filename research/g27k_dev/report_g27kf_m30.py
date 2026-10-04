@@ -202,10 +202,11 @@ def main():
                     f"<td class='n {cl(h1)}'>{h1:+.2f}</td><td class='n {cl(h2)}'>{h2:+.2f}</td><td>{ACCT.get(m, 'Cent + Standard')}</td></tr>")
     for m in SLEEVE:
         R = np.array([r["R"] for r in sleeve if r["mkt"] == m]); t = np.array([r["t"] for r in sleeve if r["mkt"] == m])
-        h1, h2 = R[t < mid].mean(), R[t >= mid].mean()
+        h1, h2 = (R[t < mid].mean() if (t < mid).any() else np.nan), R[t >= mid].mean()
+        c1 = f"<td class='n {cl(h1)}'>{h1:+.2f}</td>" if np.isfinite(h1) else "<td class='n'>–</td>"
         perm.append(f"<tr><td>{TH[m]}</td><td class='n'>–</td><td class='n'>{len(R)}</td><td class='n'>–</td><td class='n'>–</td>"
                     f"<td class='n {cl(R.mean())}'>{R.mean():+.3f}</td><td class='n'>{tstat(R):.1f}</td>"
-                    f"<td class='n {cl(h1)}'>{h1:+.2f}</td><td class='n {cl(h2)}'>{h2:+.2f}</td><td>{ACCT.get(m[:6], 'Cent + Standard')}</td></tr>")
+                    f"{c1}<td class='n {cl(h2)}'>{h2:+.2f}</td><td>{ACCT.get(m[:6], 'Cent + Standard')}</td></tr>")
     perm_t = ("<table class='cmp'><thead><tr><th>ตลาด</th><th class='n'>ไม้เดิม</th><th class='n'>ไม้ F</th><th class='n'>ปิดเพราะข่าว</th><th class='n'>R เดิม</th>"
               "<th class='n'>R F</th><th class='n'>t</th><th class='n'>2011–18</th><th class='n'>2019–26</th><th>บัญชี</th></tr></thead><tbody>" + "".join(perm) + "</tbody></table>"
               "<p class='muted' style='margin:8px 0 0;font-size:13px'>R = R ต่อไม้หลังต้นทุน · F = G27K-F · กฎ Fed ใช้กับทอง เงิน BTC ETH เท่านั้น</p>")
