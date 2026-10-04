@@ -1507,6 +1507,17 @@
     "verdict": "INCONCLUSIVE",
     "note": "ALL FOUR FAIL. Fields: DN1, the best. DN1 short breakout in DOWN: +0.013R t 0.15, halves +0.160/-0.122, 2/6 markets (BTC +0.406, ETH +0.222; JP225 -0.094, USDJPY -0.286, XAG -0.062, XAU -0.027), control p 0.175. DN2 sell the rally in DOWN: -0.046R t -2.25, 0/6. SD1 D1 range fade in SIDE: -0.137R t -3.12, 1/6. SD2 H4 range fade in SIDE: -0.068R t -3.43, 0/6. Portfolio (reported, not judged since none passed): S5 MAR 0.85 halves +0.12/+2.41; +DN1 0.81, +DN2 0.89 (+0.11/+2.60), +SD1 0.96 (+0.16/+2.23), +SD2 0.60. Diagnostic: G27K #1 already earns in every regime at entry: UP n 864 +0.374R t 3.37, SIDE n 436 +0.271R t 1.97, DOWN n 684 +0.316R t 2.76 - its 10-bar upside breakouts work inside down-trends too (rallies), so there is no idle regime to fill."
    }
+  },
+  {
+   "id": "regime_setups_other_markets",
+   "registered": "2026-10-04T01:34:40.516913+00:00",
+   "why": "User asks for evidence that down-trend and sideways setups do not suit the other markets either. Earlier evidence is indirect (stage-2 L1 families on 14 markets, FX Bollinger fade, September reversion work); the exact four regime setups of regime_setups_down_side were never run on the other markets.",
+   "change": "The four setups of regime_setups_down_side (DN1, DN2, SD1, SD2), code and parameters unchanged, on the 38 other markets: the 11 original markets not in the six (XCUUSD, USOIL, US500, USTEC, DE30, EURUSD, AUDUSD, USDCHF, USDCNH, USDMXN, USDZAR) and the 27 fresh markets other than ETHUSD. Window 2011-09-01..2023-12-31 (the fresh markets' sealed 2024-2026 stays unread). Costs: broker spec for the 11, stage-1 assumed costs for the 27. 100 control draws. Diagnostic: G27K #1 mean R by regime on the same markets.",
+   "sweep_size": 4,
+   "criterion": "Per setup, pooled over the 38 markets: works if mean net R > 0 with t > 2, positive in both halves (split 2018-01-01), positive on more than half of the markets, and the real mean above 95% of 100 matched random-control draws. Also reported per market group (FX, indices, commodities).",
+   "min_improvement": 0.0,
+   "test_period": "2011-09-01..2023-12-31",
+   "result": null
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"

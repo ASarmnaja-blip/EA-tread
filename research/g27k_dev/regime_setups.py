@@ -136,15 +136,25 @@ def tstat(x):
 
 
 def main():
+    global MKTS, START, MID, END, NDRAW
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
+    ap.add_argument("--other", action="store_true", help="the 38 other markets, 2011-09..2023-12, no portfolio step")
     a = ap.parse_args()
+    if a.other:
+        MKTS = tuple(m for m in MMS.MARKETS if m not in MKTS) + tuple(m for m in FM.NEW if m != "ETHUSD")
+        START, MID, END, NDRAW = "2011-09-01", "2018-01-01", "2024-01-01", 100
     P.setup(a.root)
     G, K, C = P._M["G"], P._M["K"], P._M["C"]
     sys.path.insert(0, str(pathlib.Path(a.root) / "research" / "grid768"))
     import report768 as RP
     C.SPECS["ETHUSD"] = dict(C.SPECS["BTCUSD"])
-    H1 = {m: MMS.load(m, G) for m in MKTS}
+    if a.other:
+        import fresh_search_l3 as L3
+        C.SPECS.update({m: s for m, s in FM.specs(C).items() if m != "ETHUSD"})
+        H1 = {m: (MMS.load(m, G) if m in MMS.MARKETS else L3.load(m, "2009-01-01", END)) for m in MKTS}
+    else:
+        H1 = {m: MMS.load(m, G) for m in MKTS}
     bars = {(m, tf): L1.bars(H1[m], tf) for m in MKTS for tf in ("H4", "D1")}
     t0, t1, tm = W.ts(START), W.ts(END), W.ts(MID)
     rng = np.random.default_rng(5)
@@ -189,13 +199,23 @@ def main():
         r = dict(n=len(T), mean=float(T.R.mean()), t=tstat(T.R), mean_h1=float(h1.R.mean()), mean_h2=float(h2.R.mean()),
                  markets_pos=int((bym["mean"] > 0).sum()), by_market={k: dict(n=int(x["count"]), mean=float(x["mean"])) for k, x in bym.iterrows()},
                  control_mean=float(np.nanmean(cm)), control_p=float(np.nanmean(cm >= T.R.mean())))
-        r["checks"] = dict(t=r["mean"] > 0 and r["t"] > 2, halves=r["mean_h1"] > 0 and r["mean_h2"] > 0, markets=r["markets_pos"] >= 4,
+        r["checks"] = dict(t=r["mean"] > 0 and r["t"] > 2, halves=r["mean_h1"] > 0 and r["mean_h2"] > 0,
+                           markets=r["markets_pos"] >= 4 if not a.other else r["markets_pos"] > len(bym) / 2,
                            control=r["control_p"] <= 0.05)
         r["pass"] = all(r["checks"].values())
         res["setups"][name] = r
         print(f"  {name}: n {r['n']:4d}  {r['mean']:+.3f}R  t {r['t']:+.2f}  halves {r['mean_h1']:+.3f}/{r['mean_h2']:+.3f}  "
-              f"markets+ {r['markets_pos']}/6  control {r['control_mean']:+.3f} p {r['control_p']:.3f}  -> {'PASS' if r['pass'] else 'FAIL'}", flush=True)
-        print("      " + "  ".join(f"{k} {x['mean']:+.3f}({x['n']})" for k, x in r["by_market"].items()))
+              f"markets+ {r['markets_pos']}/{len(bym)}  control {r['control_mean']:+.3f} p {r['control_p']:.3f}  -> {'PASS' if r['pass'] else 'FAIL'}", flush=True)
+        if a.other:
+            grp = lambda m: "FX" if (len(m) == 6 and m[:3].isalpha() and m not in ("USOIL", "UKOIL", "XCUUSD", "XPTUSD", "XPDUSD", "XNGUSD")) else ("IDX" if m in ("US500", "USTEC", "DE30", "UK100", "FRA40", "AUS200", "HK50", "STOXX50") else "COM")
+            G_ = T.assign(g=T.mkt.map(grp)).groupby("g").R.agg(["count", "mean"])
+            r["by_group"] = {k: dict(n=int(x["count"]), mean=float(x["mean"])) for k, x in G_.iterrows()}
+            print("      groups: " + "  ".join(f"{k} {x['mean']:+.3f} (n {x['n']})" for k, x in r["by_group"].items()))
+        else:
+            print("      " + "  ".join(f"{k} {x['mean']:+.3f}({x['n']})" for k, x in r["by_market"].items()))
+    if a.other:
+        (HERE / "regime_setups_other.json").write_text(json.dumps(res, indent=1, default=float))
+        return
     # portfolio check for passing setups (and reported for all)
     news = W.news_times(a.root)
     base = g[["mkt", "t", "tx", "R", "vp", "sc"]]
