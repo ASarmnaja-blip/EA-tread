@@ -1682,6 +1682,31 @@
     "verdict": "INCONCLUSIVE",
     "note": "NONE ADDS VALUE by the pre-registered criterion. Every overlay (incl. the current brake) beats plain fixed risk at the same max DD over the full period and 2019-2026 and under -0.10R, but loses to it in 2011-2018 on Cent and Standard (e.g. Standard E brake+equity filter: 24.8% CAGR DD 23.9% vs plain x0.60 20.1%; 2011-18 +1.2% vs +3.7%). Recorded figures: Standard full-period CAGR, plain same-DD vs overlay E. The 25% brake stays as a safety rule; a lower fixed risk is the proven way to cut DD."
    }
+  },
+  {
+   "id": "g27k_monitor_rule",
+   "registered": "2026-10-04T10:19:25.560412+00:00",
+   "why": "User: monitor heavy news and cut risk only when results start to go bad. The weekly monitor (monitor_weekly.py) implements that rule; the user asked to backtest it before relying on it.",
+   "change": "Base 0.75% per trade, BTC/ETH 0.375%, EA brake 25% stays. Each Monday 00:00 UTC the account drawdown from its peak sets the state for the next week: >=25% DEFENCE x0.5 (0.375%), >=20% REDUCE x0.667 (0.5%), back to NORMAL x1 once DD < 10%; 12-20% is WATCH (no change). G27K #1 trades of report_final6, 2011-09..2026-09, Cent 5 and Standard 6.",
+   "sweep_size": 1,
+   "criterion": "The rule is WORTH USING only if, on both Cent and Standard, against plain 0.75% with the brake: (1) max DD lower by at least 2 percentage points; and (2) at the same max DD, plain fixed risk scaled down (with the brake) earns no more than the rule over the full period, 2011-09..2018-12 and 2019-01..2026-09; and (3) the same holds with every trade 0.10R worse (full period). Otherwise the monitor only reports and the risk stays fixed.",
+   "min_improvement": 0.0,
+   "test_period": "2011-09-01..2026-09-30",
+   "result": {
+    "recorded": "2026-10-04T10:20:06.179075+00:00",
+    "baseline_er": 0.234,
+    "variant_er": 0.227,
+    "improvement": -0.007000000000000006,
+    "t_stat": NaN,
+    "n_baseline": 0,
+    "n_variant": 0,
+    "k_at_test": 22140380,
+    "floor_at_test": 8.035952724715575,
+    "clears_margin": false,
+    "clears_floor": false,
+    "verdict": "REJECTED",
+    "note": "FAIL. Cent: DD 29.7% -> 28.0% (only -1.7 pt), CAGR 18.2% -> 18.5%; Standard: DD 27.2% -> 28.2% (worse), CAGR 23.4% -> 22.7%; plain fixed risk at the same DD earns more on Standard (28.2%). The rule cuts risk after the drawdown has happened and keeps it cut through the recovery (39% of Cent trades at reduced risk, because 2013-2016 took years to recover). Per the criterion the monitor only reports; risk stays fixed at 0.75%. Recorded: Standard full-period CAGR base vs rule."
+   }
   }
  ],
  "created": "2026-09-14T00:06:54.669470+00:00"
