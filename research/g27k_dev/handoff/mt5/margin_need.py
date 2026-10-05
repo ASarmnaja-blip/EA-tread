@@ -118,7 +118,8 @@ def main():
         T[c] = pd.to_datetime(T[c])
     T = T[T.market.isin(SPEC)].copy()
     f = T.market.map(lambda m: (CENT_BP[m] + 1.0) / MODEL_BP[m])
-    T["R_new"] = T.R_gross - T.R_spread * f - T.R_swap            # real Cent spread plus the model's 1 bp allowance
+    T["R_new"] = T.R - T.R_spread * (f - 1)                      # real Cent spread plus the model's 1 bp allowance; adjusts the
+                                                                  # published R (R_gross is stale on Fed-rule exits, fixed 2026-10-05)
     T = T.sort_values("entry_time_utc").reset_index(drop=True)
     risk_of = lambda b: 0.01 if b == "F" else 0.005
 

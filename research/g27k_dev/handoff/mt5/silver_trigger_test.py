@@ -11,7 +11,11 @@ MT5 bar prices are bids; ask = bid + spread x point, using each M1 bar's recorde
 before the target, as the research engine does. All MT5 range requests use UTC-aware datetimes (a naive datetime is read as
 local time and shifts the window by the UTC offset).
 
-Usage: python silver_trigger_test.py [--markets XAGUSD,XAUUSD]
+--spread-bp X replaces each minute's recorded spread with X bp of its mid price (the mid itself unchanged), to ask what the
+trigger costs at another account's spread, e.g. the Cent account's 4.6 bp on silver. With it the mt5 run enters at mid +/- half
+that spread instead of the EA's fill, and also reports the flat charge a model would deduct for that spread plus 1 bp.
+
+Usage: python silver_trigger_test.py [--markets XAGUSD,XAUUSD] [--spread-bp 4.6]
 """
 from __future__ import annotations
 
@@ -30,10 +34,14 @@ HOLD = 30
 utc = lambda ts: ts.to_pydatetime().replace(tzinfo=timezone.utc)
 
 
-def replay(m1, entry_px, d, risk, t_exit_open, mode, pt):
+def replay(m1, entry_px, d, risk, t_exit_open, mode, pt, spread_bp=None):
     """Walk M1 bars from the entry minute to the time-exit bar; returns (exit price in the trade's own terms, reason, gross R)."""
     bid_o, bid_h, bid_l = m1["open"], m1["high"], m1["low"]
     spr = m1["spread"] * pt
+    if spread_bp is not None:                      # same mid, another spread
+        mid_o, mid_h, mid_l = bid_o + spr / 2, bid_h + spr / 2, bid_l + spr / 2
+        spr = mid_o * spread_bp / 1e4
+        bid_o, bid_h, bid_l = mid_o - spr / 2, mid_h - spr / 2, mid_l - spr / 2
     if mode == "mid":
         o, h, l = bid_o + spr / 2, bid_h + spr / 2, bid_l + spr / 2
         trig_o, trig_h, trig_l = o, h, l
@@ -64,6 +72,7 @@ def replay(m1, entry_px, d, risk, t_exit_open, mode, pt):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--markets", default="XAGUSD,XAUUSD")
+    ap.add_argument("--spread-bp", type=float, default=None)
     a = ap.parse_args()
     X, _, _ = C.load_ea(str(C.COMMON / "tester_g27k_m30_log.csv"))
     E = pd.read_csv(C.HANDOFF / "trades_M30.csv.gz")
@@ -95,11 +104,23 @@ def main():
             spr0 = float(m1["spread"][0]) * pt
             mid0 = m1["open"][0] + spr0 / 2
             res_mid = replay(m1, mid0, d, risk, t_exit_open, "mid", pt)
-            res_mt5 = replay(m1, r.fill, d, risk, t_exit_open, "mt5", pt)
+            if a.spread_bp is None:
+                res_mt5 = replay(m1, r.fill, d, risk, t_exit_open, "mt5", pt)
+            else:
+                res_mt5 = replay(m1, mid0 + d * mid0 * a.spread_bp / 1e4 / 2, d, risk, t_exit_open, "mt5", pt, a.spread_bp)
             rows.append(dict(R_research=r.R_gross, R_ea=r.r_gross_ea, R_mid=res_mid[2], R_mt5=res_mt5[2],
-                             why_research=r.reason, why_ea=r.exit_reason, why_mid=res_mid[1], why_mt5=res_mt5[1]))
+                             why_research=r.reason, why_ea=r.exit_reason, why_mid=res_mid[1], why_mt5=res_mt5[1],
+                             flat=(a.spread_bp or 0) / 1e4 * mid0 / risk, flat1=((a.spread_bp or 0) + 1) / 1e4 * mid0 / risk))
         T = pd.DataFrame(rows)
         print(f"== {m}: {len(T)} matched trades replayed on the broker's M1 bars")
+        if a.spread_bp is not None:
+            cost = T.R_mid.mean() - T.R_mt5.mean()
+            print(f"   at a {a.spread_bp:g} bp spread: mid-trigger gross {T.R_mid.mean():+.3f} | bid/ask-trigger {T.R_mt5.mean():+.3f} | "
+                  f"real cost of the spread {cost:+.4f}R per trade vs a flat charge of {T.flat.mean():.4f}R ({cost / T.flat.mean():.2f}x) "
+                  f"or {T.flat1.mean():.4f}R with +1 bp (shortfall {cost - T.flat1.mean():+.4f}R)")
+            print("   " + pd.crosstab(T.why_mid, T.why_mt5).to_string().replace(chr(10), chr(10) + "   "))
+            print()
+            continue
         print(f"   check - the mt5 replay reproduces the EA: exit reason agrees on {(T.why_mt5 == T.why_ea).mean():.0%},"
               f" gross R {T.R_mt5.mean():+.3f} vs EA {T.R_ea.mean():+.3f}")
         print(f"   gross R per trade:  research {T.R_research.mean():+.3f} | mid trigger {T.R_mid.mean():+.3f}"

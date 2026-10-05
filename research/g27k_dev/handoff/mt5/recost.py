@@ -21,6 +21,9 @@ import pathlib
 import numpy as np
 import pandas as pd
 
+import cent4_capital as K
+import cent4_costs as CC
+
 HERE = pathlib.Path(__file__).resolve().parent
 HANDOFF = HERE.parent
 MODEL_BP = {"XAUUSD": 2.0, "XAGUSD": 3.641, "BTCUSD": 2.0, "ETHUSD": 2.0, "USDJPY": 2.0, "JP225": 2.0}
@@ -49,7 +52,9 @@ def recost(T, scenario):
         add = 1.0 if scenario.endswith("+1bp") else 0.0
         f = T.market.map(lambda m: (CENT_BP[m] + add) / MODEL_BP[m] if m in CENT_BP else 1.0)
     T["R_spread_new"] = T.R_spread * f
-    T["R_new"] = T.R_gross - T.R_spread_new - T.R_swap
+    # adjust the published R by the change in spread; rebuilding it from R_gross is wrong for the G27K-F trades closed early by the
+    # Fed rule, whose R_gross / R_spread / R_swap columns belong to the original exit (fixed 2026-10-05)
+    T["R_new"] = T.R - (T.R_spread_new - T.R_spread)
     return T
 
 
@@ -122,12 +127,13 @@ def main():
             if cname == "M30" and dname not in ("all five", "no ETH", "no ETH, no XAG"):
                 continue
             for s in scenarios:
-                tr = []
-                for b in books:
-                    T = recost(B[b][B[b].market.isin(mkts)], s)
-                    tr += list(zip(T.entry_time_utc, T.exit_time_utc, T.R_new, T.book))
-                r = account(tr, risk, a.start)
-                if r is None:
+                # the account simulator checked against the research matrix to the fourth decimal (cent4_capital.account);
+                # the local account() above differs slightly in how it dates the start, so it is no longer used for these tables
+                X = pd.concat([recost(B[b][B[b].market.isin(mkts)], s) for b in books], ignore_index=True)
+                X["t"], X["tx"] = CC.ts(X.entry_time_utc), CC.ts(X.exit_time_utc)
+                X = X.sort_values(["t", "market", "book"], kind="mergesort").reset_index(drop=True)
+                r, _, _ = K.account(X, "R_new", start=a.start, brake=True)
+                if not r["n"]:
                     continue
                 print(f"  {cname:12s} {dname:26s} {s:9s} {r['cagr']:>6.1%} {r['dd']:>6.1%} {r['mar']:>6.2f} {r['final']:>14,.0f}")
             print()
