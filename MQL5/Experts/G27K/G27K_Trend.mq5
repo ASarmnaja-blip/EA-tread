@@ -1,8 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                                   G27K_Trend.mq5 |
-//|  G27K #1 trend system. One instance trades every market in the   |
-//|  set from a single chart, so the 25 % brake sees the whole       |
-//|  account.                                                        |
+//|  G27K-F: the G27K #1 trend system with the Fed rule. One instance |
+//|  trades every market in the set from a single chart.              |
 //|                                                                  |
 //|  Rules: docs/HANDOFF_G27K_FINAL.md section 1, matched to the     |
 //|  research engine (g27k.prepare, report768.sim_paths):            |
@@ -15,17 +14,28 @@
 //|     of the previous 20 bars, at the next bar's first tick        |
 //|   - one trade per market; the bar in which a trade ended cannot  |
 //|     be the next signal bar                                       |
-//|   - 1 % of balance per trade, 0.5 % while the NAV drawdown brake |
-//|     is on (on at >= 25 %, off at <= 12.5 %, evaluated at entries)|
+//|   - InpRiskPct (1 %) of balance per trade; with InpBrake on, half |
+//|     while the NAV drawdown brake is on (on at >= 25 %, off at     |
+//|     <= 12.5 %, evaluated at entries). The operator runs it off.   |
 //|   - lots rounded to the nearest step and floored at the broker   |
 //|     minimum (ledger g27k_lot_rounding_nearest,                   |
 //|     g27k_min_lot_floor_in_brake)                                 |
+//|  Fed rule (G27K-F; research/g27k_dev/news_shock.py fed_shocks,   |
+//|  apply), gold, silver, BTC and ETH only:                         |
+//|   - a day on which the US 2-year yield (FRED DGS2) rises by at    |
+//|     least 2 SD of the previous 250 daily changes acts at 22:00 UTC|
+//|     of the next US federal business day                          |
+//|   - an open trade entered before that time closes at the first   |
+//|     tick of the hour after it; no entry for 5 days after it      |
+//|   - the research drops those trades from the G27K #1 list, so the|
+//|     market stays taken until the dropped or cut trade would have |
+//|     ended: the EA follows it as a shadow and enters nothing then  |
 //|  Real-money accounts: no orders unless InpAllowRealAccount=true. |
 //+------------------------------------------------------------------+
 #property copyright   "EA-tread"
-#property version     "1.00"
-#property description "G27K #1: H4 10-bar breakout, long only, 2xATR20 stop, 20-bar channel exit,"
-#property description "USD HIGH news filter, 1% risk with a 25% NAV brake. One instance per account."
+#property version     "1.10"
+#property description "G27K-F: H4 10-bar breakout, long only, 2xATR20 stop, 20-bar channel exit, USD HIGH news filter,"
+#property description "Fed 2-year-yield rule, risk per trade InpRiskPct, optional 25% NAV brake. One instance per account."
 
 #include <Trade/Trade.mqh>
 
@@ -35,13 +45,19 @@
 #define ATR_BARS      20
 #define STOP_ATR      2.0
 #define NEWS_HOURS    8
-#define RISK_PCT      1.0
 #define BRAKE_ON_DD   0.25
 #define BRAKE_OFF_DD  0.125
 #define BRAKE_MULT    0.5
 #define RULE_TF       PERIOD_H4
 #define SETUP_NAME    "G27K#1"
 #define COPY_BARS     64         // enough to re-check up to ~40 bars missed while the EA was offline
+//--- Fed rule (news_shock.fed_shocks / news_shock.apply)
+#define FED_SD_MULT    2.0       // a daily rise of at least 2 SD ...
+#define FED_SD_WIN     250       // ... of the previous 250 daily changes (pandas rolling(250).std().shift(1))
+#define FED_SD_MINP    120       // pandas min_periods
+#define FED_PUB_HOUR   22        // usable from 22:00 UTC of the next US federal business day
+#define FED_BLOCK_DAYS 5         // no entry for 5 days after that time
+#define FED_HIT        "XAUUSD,XAGUSD,BTCUSD,ETHUSD"
 
 enum ENUM_MARKET_SET
   {
@@ -51,7 +67,17 @@ enum ENUM_MARKET_SET
    SET_USD4_USDJPY  = 3,  // Standard: XAUUSD XAGUSD BTCUSD USDJPY
    SET_USD4_JP225   = 4,  // Standard: XAUUSD XAGUSD BTCUSD JP225 (handoff original)
    SET_USD5         = 5,  // Standard: XAUUSD XAGUSD BTCUSD JP225 USDJPY
-   SET_CUSTOM       = 6   // InpCustomSymbols
+   SET_CUSTOM       = 6,  // InpCustomSymbols
+   SET_CENT4_ETH    = 7,  // Cent: XAUUSDc XAGUSDc BTCUSDc ETHUSDc (G27K-F without USDJPY)
+   SET_USD4_ETH     = 8   // Standard/demo: XAUUSD XAGUSD BTCUSD ETHUSD (mirrors SET_CENT4_ETH at 100x the balance)
+  };
+
+enum ENUM_FED_SOURCE
+  {
+   FED_AUTO = 0,  // live: download from FRED and keep a copy in the file; tester: the file
+   FED_WEB  = 1,  // download from FRED (allow the URL in Tools > Options > Expert Advisors)
+   FED_FILE = 2,  // InpFedFile in Common\Files (FRED DGS2 csv: observation_date,DGS2)
+   FED_OFF  = 3   // diagnostics only - this is G27K #1, not G27K-F
   };
 
 enum ENUM_NEWS_SOURCE
@@ -62,11 +88,17 @@ enum ENUM_NEWS_SOURCE
    NEWS_OFF  = 3   // diagnostics only - this changes the rule
   };
 
-input ENUM_MARKET_SET  InpMarketSet        = SET_CENT3;
+input ENUM_MARKET_SET  InpMarketSet        = SET_USD4_ETH;
 input string           InpCustomSymbols    = "";                        // comma list, used with SET_CUSTOM
+input int              InpH4StartHour      = 22;     // H4 bars built from H1 from this UTC hour: 22 (22/02/06/10/14/18) as every research report; 0 = 00/04/08/..
+input double           InpRiskPct          = 1.0;    // % of balance per trade
+input bool             InpBrake            = false;  // true: half risk while the NAV drawdown is >= 25 % (until <= 12.5 %)
 input long             InpMagic            = 27027001;
 input ENUM_NEWS_SOURCE InpNewsSource       = NEWS_AUTO;
 input string           InpNewsFile         = "g27k_news_usd_high.txt";  // Common\Files, one "YYYY.MM.DD HH:MM" UTC per line
+input ENUM_FED_SOURCE  InpFedSource        = FED_AUTO;
+input string           InpFedFile          = "g27k_DGS2.csv";           // Common\Files, FRED DGS2 csv
+input string           InpFedUrl           = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS2";
 input int              InpMaxEntryDelayMin = 60;     // skip an entry if trading in the new bar began longer ago (EA was offline)
 input bool             InpAllowRealAccount = false;  // false: on a real-money account signals are logged and no orders are sent
 input string           InpStateFile        = "g27k_state.txt";
@@ -81,12 +113,22 @@ struct SymState
    datetime          lastExitBar;  // open time of the H4 bar in which this market's last trade ended
    ulong             pos;          // our open position ticket, 0 = flat
    bool              pendingExit;  // channel exit decided but the close failed; retried every pass
+   bool              pendingFed;   // the pending exit is the Fed rule's
+   datetime          waitTick;     // the close met a closed market: retry only after a tick newer than this
+   bool              entryWait;    // the entry met a closed market: the same bar is checked again at the next tick
+   datetime          waitBar;      // the bar whose entry wait was logged (one log line per bar)
+   bool              sessions;     // the symbol publishes trading sessions (false: treat it as always open)
    double            entry;        // fill price
    double            stop;
    double            atr;          // ATR20 at the signal bar
    double            lots;
    double            risk;         // money at risk at entry
    datetime          entryTime;
+   datetime          entryBar;     // open time of the H4 bar the position was entered in (the research's trade time)
+   bool              fed;          // the Fed rule covers this market
+   bool              shadow;       // a trade the Fed rule dropped or cut is still running in the research: no entries
+   datetime          shEntryBar;   // its entry bar
+   double            shStop;       // its stop
   };
 
 struct LogRow
@@ -112,6 +154,12 @@ ulong    g_lastDeal = 0;
 datetime g_lastDealTime = 0;
 bool     g_dirty = false;
 double   g_seenBal = -1.0;          // balance at the last deal scan; a scan is needed only when it changes
+//--- Fed rule
+datetime g_fedPub[];                // times the rule acts (UTC), ascending
+datetime g_fedLastObs = 0;          // newest DGS2 observation date loaded
+bool     g_fedOn = false, g_fedWeb = false, g_fedFile = false;
+datetime g_fedNextFetch = 0;
+int      g_fedStaleDay = -1;
 
 //+------------------------------------------------------------------+
 string PresetSymbols(const ENUM_MARKET_SET set)
@@ -124,6 +172,8 @@ string PresetSymbols(const ENUM_MARKET_SET set)
       case SET_USD4_USDJPY:  return "XAUUSD,XAGUSD,BTCUSD,USDJPY";
       case SET_USD4_JP225:   return "XAUUSD,XAGUSD,BTCUSD,JP225";
       case SET_USD5:         return "XAUUSD,XAGUSD,BTCUSD,JP225,USDJPY";
+      case SET_CENT4_ETH:    return "XAUUSDc,XAGUSDc,BTCUSDc,ETHUSDc";
+      case SET_USD4_ETH:     return "XAUUSD,XAGUSD,BTCUSD,ETHUSD";
       default:               return InpCustomSymbols;
      }
   }
@@ -253,6 +303,10 @@ bool LoadState()
          else if(f == "lots")      g_s[i].lots = StringToDouble(v);
          else if(f == "risk")      g_s[i].risk = StringToDouble(v);
          else if(f == "entrytime") g_s[i].entryTime = (datetime)StringToInteger(v);
+         else if(f == "entrybar")  g_s[i].entryBar = (datetime)StringToInteger(v);
+         else if(f == "shadow")    g_s[i].shadow = (v == "1");
+         else if(f == "shentrybar") g_s[i].shEntryBar = (datetime)StringToInteger(v);
+         else if(f == "shstop")    g_s[i].shStop = StringToDouble(v);
         }
      }
    FileClose(h);
@@ -292,6 +346,10 @@ void SaveState()
       FileWriteString(h, p + "lots=" + D(g_s[i].lots, 2) + "\r\n");
       FileWriteString(h, p + "risk=" + D(g_s[i].risk, 2) + "\r\n");
       FileWriteString(h, p + "entrytime=" + IntegerToString((long)g_s[i].entryTime) + "\r\n");
+      FileWriteString(h, p + "entrybar=" + IntegerToString((long)g_s[i].entryBar) + "\r\n");
+      FileWriteString(h, p + "shadow=" + (g_s[i].shadow ? "1" : "0") + "\r\n");
+      FileWriteString(h, p + "shentrybar=" + IntegerToString((long)g_s[i].shEntryBar) + "\r\n");
+      FileWriteString(h, p + "shstop=" + D(g_s[i].shStop, g_s[i].digits) + "\r\n");
      }
    FileClose(h);
    if(!FileMove(tmp, 0, InpStateFile, FILE_REWRITE))
@@ -370,6 +428,318 @@ int NewsBlocked(const datetime tc)
       return 0;
      }
    return 0;
+  }
+
+//+------------------------------------------------------------------+
+//| Fed rule: US federal business days (pandas USFederalHolidayCalendar) |
+//+------------------------------------------------------------------+
+datetime MkDate(const int y, const int m, const int d)
+  {
+   MqlDateTime t;
+   ZeroMemory(t);
+   t.year = y; t.mon = m; t.day = d;
+   return StructToTime(t);
+  }
+
+int Dow(const datetime d)                          // 0 = Sunday
+  {
+   MqlDateTime t;
+   TimeToStruct(d, t);
+   return t.day_of_week;
+  }
+
+datetime DayStart(const datetime t) { return t - (t % 86400); }
+
+datetime NearestWorkday(const datetime d)          // Saturday -> Friday, Sunday -> Monday
+  {
+   int w = Dow(d);
+   return w == 6 ? d - 86400 : (w == 0 ? d + 86400 : d);
+  }
+
+datetime NthWeekday(const int y, const int m, const int d, const int wd, const int n)   // n-th weekday wd on or after y-m-d
+  {
+   datetime x = MkDate(y, m, d);
+   while(Dow(x) != wd)
+      x += 86400;
+   return x + (n - 1) * 7 * 86400;
+  }
+
+datetime LastWeekdayOnOrBefore(const int y, const int m, const int d, const int wd)
+  {
+   datetime x = MkDate(y, m, d);
+   while(Dow(x) != wd)
+      x -= 86400;
+   return x;
+  }
+
+bool UsHoliday(const datetime day)
+  {
+   MqlDateTime t;
+   TimeToStruct(day, t);
+   int y = t.year;
+   datetime d = MkDate(y, t.mon, t.day);
+   if(d == NearestWorkday(MkDate(y, 1, 1)) || d == NearestWorkday(MkDate(y + 1, 1, 1)))   // 1 Jan can be observed on 31 Dec
+      return true;
+   if(y >= 1986 && d == NthWeekday(y, 1, 1, 1, 3))   return true;    // Martin Luther King Jr. Day
+   if(d == NthWeekday(y, 2, 1, 1, 3))                return true;    // Washington's Birthday
+   if(d == LastWeekdayOnOrBefore(y, 5, 31, 1))       return true;    // Memorial Day
+   if(d >= MkDate(2021, 6, 18) && d == NearestWorkday(MkDate(y, 6, 19))) return true;   // Juneteenth
+   if(d == NearestWorkday(MkDate(y, 7, 4)))          return true;    // Independence Day
+   if(d == NthWeekday(y, 9, 1, 1, 1))                return true;    // Labor Day
+   if(d == NthWeekday(y, 10, 1, 1, 2))               return true;    // Columbus Day
+   if(d == NearestWorkday(MkDate(y, 11, 11)))        return true;    // Veterans Day
+   if(d == NthWeekday(y, 11, 1, 4, 4))               return true;    // Thanksgiving
+   if(d == NearestWorkday(MkDate(y, 12, 25)))        return true;    // Christmas
+   return false;
+  }
+
+bool UsBusinessDay(const datetime d) { int w = Dow(d); return w != 0 && w != 6 && !UsHoliday(d); }
+
+datetime NextUsBusinessDay(const datetime day)
+  {
+   datetime x = DayStart(day) + 86400;
+   while(!UsBusinessDay(x))
+      x += 86400;
+   return x;
+  }
+
+datetime PrevUsBusinessDay(const datetime day)
+  {
+   datetime x = DayStart(day) - 86400;
+   while(!UsBusinessDay(x))
+      x -= 86400;
+   return x;
+  }
+
+//+------------------------------------------------------------------+
+//| Fed rule: data                                                   |
+//+------------------------------------------------------------------+
+bool IsNumber(const string s)
+  {
+   int digits = 0;
+   for(int i = 0; i < StringLen(s); i++)
+     {
+      ushort c = StringGetCharacter(s, i);
+      if(c >= '0' && c <= '9')
+         digits++;
+      else
+         if(c != '.' && c != '-' && c != '+')
+            return false;
+     }
+   return digits > 0;
+  }
+
+//--- FRED csv lines ("YYYY-MM-DD,value", missing values empty or ".") -> the times the rule acts, exactly as fed_shocks():
+//--- change = value - previous value over the observed days; sd = sample SD of the previous 250 changes (at least 120);
+//--- a rise of at least 2 sd acts at 22:00 UTC of the next US federal business day
+bool FedParse(string &lines[], const int n, datetime &pub[], datetime &lastObs, string &why)
+  {
+   datetime dt[];
+   double   v[];
+   ArrayResize(dt, n);
+   ArrayResize(v, n);
+   int m = 0;
+   for(int i = 0; i < n; i++)
+     {
+      string s = lines[i];
+      StringTrimLeft(s);
+      StringTrimRight(s);
+      if(StringLen(s) < 12 || StringGetCharacter(s, 10) != ',')
+         continue;                                  // header or blank
+      string ds = StringSubstr(s, 0, 10), vs = StringSubstr(s, 11);
+      if(!IsNumber(vs))
+         continue;                                  // missing value
+      StringReplace(ds, "-", ".");
+      datetime d = StringToTime(ds);
+      if(d <= 0 || (m > 0 && d <= dt[m - 1]))
+         continue;
+      dt[m] = d;
+      v[m] = StringToDouble(vs);
+      m++;
+     }
+   if(m < FED_SD_MINP + 2)
+     {
+      why = "only " + IntegerToString(m) + " observations";
+      return false;
+     }
+   ArrayResize(pub, 0, 512);
+   for(int i = 2; i < m; i++)
+     {
+      int lo = MathMax(1, i - FED_SD_WIN), cnt = i - lo;
+      if(cnt < FED_SD_MINP)
+         continue;
+      double mean = 0.0;
+      for(int j = lo; j < i; j++)
+         mean += v[j] - v[j - 1];
+      mean /= cnt;
+      double ss = 0.0;
+      for(int j = lo; j < i; j++)
+        {
+         double e = (v[j] - v[j - 1]) - mean;
+         ss += e * e;
+        }
+      double sd = MathSqrt(ss / (cnt - 1));
+      if(v[i] - v[i - 1] >= FED_SD_MULT * sd)
+        {
+         int k = ArraySize(pub);
+         ArrayResize(pub, k + 1, 512);
+         pub[k] = NextUsBusinessDay(dt[i]) + FED_PUB_HOUR * 3600;
+        }
+     }
+   lastObs = dt[m - 1];
+   return true;
+  }
+
+bool FedInstall(string &lines[], const int n, string &why)
+  {
+   datetime pub[];
+   datetime last = 0;
+   if(!FedParse(lines, n, pub, last, why))
+      return false;
+   ArrayFree(g_fedPub);
+   ArrayCopy(g_fedPub, pub);
+   g_fedLastObs = last;
+   return true;
+  }
+
+bool FedLoadFile(string &why)
+  {
+   int h = FileOpen(InpFedFile, FILE_READ | FILE_TXT | FILE_ANSI | FILE_COMMON | FILE_SHARE_READ);
+   if(h == INVALID_HANDLE)
+     {
+      why = InpFedFile + " not found in Common\\Files";
+      return false;
+     }
+   string lines[];
+   ArrayResize(lines, 0, 16384);
+   int n = 0;
+   while(!FileIsEnding(h))
+     {
+      ArrayResize(lines, n + 1, 16384);
+      lines[n++] = FileReadString(h);
+     }
+   FileClose(h);
+   return FedInstall(lines, n, why);
+  }
+
+bool FedFetchWeb(string &why)
+  {
+   char body[], res[];
+   string head;
+   ResetLastError();
+   int code = WebRequest("GET", InpFedUrl, "", 20000, body, res, head);
+   if(code != 200)
+     {
+      int err = GetLastError();
+      why = code == -1 ? "WebRequest error " + IntegerToString(err) +
+            (err == 4014 ? " - add https://fred.stlouisfed.org in Tools > Options > Expert Advisors" : "")
+            : "HTTP " + IntegerToString(code);
+      return false;
+     }
+   string lines[];
+   int n = StringSplit(CharArrayToString(res, 0, WHOLE_ARRAY, CP_UTF8), '\n', lines);
+   if(!FedInstall(lines, n, why))
+      return false;
+   int h = FileOpen(InpFedFile, FILE_WRITE | FILE_TXT | FILE_ANSI | FILE_COMMON);   // a copy for when the next download fails
+   if(h != INVALID_HANDLE)
+     {
+      for(int i = 0; i < n; i++)
+        {
+         string s = lines[i];
+         StringTrimRight(s);
+         if(s != "")
+            FileWriteString(h, s + "\r\n");
+        }
+      FileClose(h);
+     }
+   return true;
+  }
+
+string FedSummary()
+  {
+   int n = ArraySize(g_fedPub);
+   datetime now = g_tester ? TimeCurrent() : TimeGMT();
+   int k = n - 1;
+   while(k >= 0 && g_fedPub[k] > now)
+      k--;
+   return IntegerToString(n) + " rule times; newest observation " + TimeToString(g_fedLastObs, TIME_DATE) +
+          (k >= 0 ? "; latest rule time " + T(g_fedPub[k]) : "") + (k + 1 < n ? "; next " + T(g_fedPub[k + 1]) : "");
+  }
+
+//--- live: download at fixed times around the 22:00 UTC decision, warn once a day when the data is behind
+void FedMaintain()
+  {
+   if(!g_fedOn || g_tester || !g_fedWeb)
+      return;
+   datetime now = TimeGMT();
+   if(now >= g_fedNextFetch)
+     {
+      string why;
+      if(FedFetchWeb(why))
+        {
+         LogSimple("FED_DATA", "", "download: " + FedSummary());
+         int slots[] = {7 * 60 + 35, 19 * 60 + 35, 20 * 60 + 35, 21 * 60 + 5, 21 * 60 + 35, 21 * 60 + 55, 22 * 60 + 35, 23 * 60 + 35};
+         datetime d0 = DayStart(now), nxt = d0 + 86400 + slots[0] * 60;
+         for(int k = 0; k < ArraySize(slots); k++)
+            if(d0 + slots[k] * 60 > now)
+              {
+               nxt = d0 + slots[k] * 60;
+               break;
+              }
+         g_fedNextFetch = nxt;
+        }
+      else
+        {
+         LogSimple("FED_FAIL", "", why + "; using the data loaded earlier (" + FedSummary() + "); retry in 10 min");
+         g_fedNextFetch = now + 600;
+        }
+     }
+   datetime d0 = DayStart(now);
+   MqlDateTime t;
+   TimeToStruct(now, t);
+   if(UsBusinessDay(d0) && t.hour == 23 && t.min >= 40 && g_fedStaleDay != t.day_of_year && g_fedLastObs < PrevUsBusinessDay(d0))
+     {
+      g_fedStaleDay = t.day_of_year;
+      LogSimple("FED_STALE", "", "newest DGS2 observation " + TimeToString(g_fedLastObs, TIME_DATE) + " is older than " +
+                TimeToString(PrevUsBusinessDay(d0), TIME_DATE) + " - the Fed rule may act late");
+     }
+  }
+
+//+------------------------------------------------------------------+
+//| Fed rule: use                                                    |
+//+------------------------------------------------------------------+
+bool FedCovers(const string sym)
+  {
+   string base = StringLen(sym) > 6 ? StringSubstr(sym, 0, 6) : sym;   // XAUUSDc -> XAUUSD
+   return StringFind(FED_HIT, base) >= 0;
+  }
+
+int FedIndexAtOrBefore(const datetime t)            // last rule time <= t, -1 if none
+  {
+   int lo = 0, hi = ArraySize(g_fedPub);
+   while(lo < hi)
+     {
+      int mid = (lo + hi) / 2;
+      if(g_fedPub[mid] <= t)
+         lo = mid + 1;
+      else
+         hi = mid;
+     }
+   return lo - 1;
+  }
+
+//--- the rule time that blocks an entry at t (the research's trade time: the entry bar's open), 0 if none
+datetime FedBlock(const datetime t)
+  {
+   int k = FedIndexAtOrBefore(t);
+   return (k >= 0 && t - g_fedPub[k] < FED_BLOCK_DAYS * 86400) ? g_fedPub[k] : 0;
+  }
+
+//--- the first rule time after a trade entered at t, 0 if none
+datetime FedFirstAfter(const datetime t)
+  {
+   int k = FedIndexAtOrBefore(t) + 1;
+   return k < ArraySize(g_fedPub) ? g_fedPub[k] : 0;
   }
 
 //+------------------------------------------------------------------+
@@ -525,9 +895,103 @@ ulong FindPosition(const string sym)
 
 void ClearTrade(const int i)
   {
-   g_s[i].pos = 0; g_s[i].pendingExit = false; g_s[i].entry = 0.0; g_s[i].stop = 0.0; g_s[i].atr = 0.0;
-   g_s[i].lots = 0.0; g_s[i].risk = 0.0; g_s[i].entryTime = 0;
+   g_s[i].pos = 0; g_s[i].pendingExit = false; g_s[i].pendingFed = false; g_s[i].waitTick = 0;
+   g_s[i].entry = 0.0; g_s[i].stop = 0.0; g_s[i].atr = 0.0;
+   g_s[i].lots = 0.0; g_s[i].risk = 0.0; g_s[i].entryTime = 0; g_s[i].entryBar = 0;
    g_dirty = true;
+  }
+
+//+------------------------------------------------------------------+
+//| H4 bars as the research builds them (g768.frames): H1 bars grouped |
+//| by (time - start hour) // 4 h; a bar's time is its FIRST H1 bar's  |
+//| time (a metals bar starting 22:00 opens at 23:00), its open that   |
+//| bar's open, its close the last H1 close                            |
+//+------------------------------------------------------------------+
+long KeyOf(const datetime t) { return ((long)t - (long)InpH4StartHour * 3600) / 14400; }
+
+//--- the newest `want` complete-or-current H4 bars, newest first (index 0 = the bar in progress); returns how many
+int BuildBars(const string sym, MqlRates &r[], const int want)
+  {
+   MqlRates h[];
+   ArraySetAsSeries(h, true);
+   int got = CopyRates(sym, PERIOD_H1, 0, want * 4 + 12, h);
+   if(got <= 0)
+      return 0;
+   ArrayResize(r, 0, want + 1);
+   int n = 0;
+   long cur = 0;
+   bool full = false;                               // stopped at a newer group's end, so every kept group is complete
+   for(int k = 0; k < got; k++)                     // newest H1 bar first
+     {
+      long key = KeyOf(h[k].time);
+      if(n == 0 || key != cur)
+        {
+         if(n >= want)
+           {
+            full = true;
+            break;
+           }
+         ArrayResize(r, n + 1, want + 1);
+         r[n] = h[k];                                // the newest H1 bar of the group sets the close
+         cur = key;
+         n++;
+        }
+      else
+        {
+         r[n - 1].time = h[k].time;                  // an older H1 bar of the same group: becomes the first bar
+         r[n - 1].open = h[k].open;
+         r[n - 1].high = MathMax(r[n - 1].high, h[k].high);
+         r[n - 1].low = MathMin(r[n - 1].low, h[k].low);
+         r[n - 1].tick_volume += h[k].tick_volume;
+        }
+     }
+   if(!full && n > 0)
+      n--;                                          // the H1 history ran out: the oldest group may be cut short
+   ArrayResize(r, n);
+   return n;
+  }
+
+//+------------------------------------------------------------------+
+//| trading sessions: no order is sent while the symbol's session is |
+//| closed (quotes can tick through the metals' daily break)          |
+//+------------------------------------------------------------------+
+bool HasSessions(const string sym)
+  {
+   datetime from, to;
+   for(int dw = 0; dw < 7; dw++)
+      if(SymbolInfoSessionTrade(sym, (ENUM_DAY_OF_WEEK)dw, 0, from, to))
+         return true;
+   return false;
+  }
+
+bool InTradeSession(const string sym, const datetime t)
+  {
+   MqlDateTime d;
+   TimeToStruct(t, d);
+   long secs = (long)t % 86400;
+   for(int k = 0; k < 16; k++)
+     {
+      datetime from, to;
+      if(!SymbolInfoSessionTrade(sym, (ENUM_DAY_OF_WEEK)d.day_of_week, k, from, to))
+         break;
+      long f = (long)from % 86400, e = (long)to;   // `to` is seconds from midnight, 86400 for 24:00
+      if(e > 86400)
+         e %= 86400;
+      if(secs >= f && secs < e)
+         return true;
+     }
+   return false;
+  }
+
+bool TradeOpen(const int i) { return !g_s[i].sessions || InTradeSession(g_s[i].name, TimeCurrent()); }
+
+datetime BarOf(const string sym, const datetime t)  // time of the H4 bar (its first H1 bar) that contains t
+  {
+   datetime start = (datetime)(KeyOf(t) * 14400 + (long)InpH4StartHour * 3600);
+   MqlRates h[];
+   if(CopyRates(sym, PERIOD_H1, start, start + 14399, h) > 0)
+      return h[0].time;
+   return start;
   }
 
 void AdoptPosition(const int i)
@@ -544,6 +1008,8 @@ void AdoptPosition(const int i)
       g_s[i].lots = PositionGetDouble(POSITION_VOLUME);
    if(g_s[i].entryTime == 0)
       g_s[i].entryTime = (datetime)PositionGetInteger(POSITION_TIME);
+   if(g_s[i].entryBar == 0)
+      g_s[i].entryBar = BarOf(g_s[i].name, g_s[i].entryTime);
    g_dirty = true;
   }
 
@@ -605,8 +1071,7 @@ void CheckClosed(const int i)
    if(!ExitDetails(t, xt, xp, money, reason))
       return;                      // history not synced yet; next pass
    string sym = g_s[i].name;
-   int sh = iBarShift(sym, RULE_TF, xt, false);
-   datetime xb = sh >= 0 ? iTime(sym, RULE_TF, sh) : xt - (xt % PeriodSeconds(RULE_TF));
+   datetime xb = BarOf(sym, xt);
    if(xb > g_s[i].lastExitBar)
       g_s[i].lastExitBar = xb;
    string ev = reason == DEAL_REASON_SL ? "EXIT_STOP" : (reason == DEAL_REASON_SO ? "EXIT_STOPOUT" : "EXIT_OTHER");
@@ -620,21 +1085,28 @@ void TryClose(const int i, const string why)
    if(t == 0 || !PositionSelectByTicket(t))
      {
       g_s[i].pendingExit = false;
+      g_s[i].pendingFed = false;
       return;
      }
    string sym = g_s[i].name;
-   if(!g_trade.PositionClose(t))
+   bool fed = g_s[i].pendingFed;
+   bool open = TradeOpen(i);
+   bool sent = open && g_trade.PositionClose(t);
+   uint rc = open ? g_trade.ResultRetcode() : (uint)TRADE_RETCODE_MARKET_CLOSED;
+   if(!sent || (rc != TRADE_RETCODE_DONE && rc != TRADE_RETCODE_DONE_PARTIAL && rc != TRADE_RETCODE_PLACED))
      {
-      LogSimple("EXIT_FAIL", sym, why + "; retcode " + IntegerToString((long)g_trade.ResultRetcode()) + " " + g_trade.ResultRetcodeDescription());
+      if(rc == TRADE_RETCODE_MARKET_CLOSED)
+        {
+         //--- e.g. a Fed rule time on a Friday night: close at the first tick after the reopen, as the research does
+         if(g_s[i].waitTick == 0)
+            LogSimple("EXIT_WAIT", sym, why + "; market closed - closing at the first tick after it reopens");
+         g_s[i].waitTick = (datetime)SymbolInfoInteger(sym, SYMBOL_TIME);
+         return;
+        }
+      LogSimple("EXIT_FAIL", sym, why + "; retcode " + IntegerToString((long)rc) + " " + g_trade.ResultRetcodeDescription());
       return;                      // pendingExit stays set; retried next pass
      }
-   uint rc = g_trade.ResultRetcode();
-   if(rc != TRADE_RETCODE_DONE && rc != TRADE_RETCODE_DONE_PARTIAL && rc != TRADE_RETCODE_PLACED)
-     {
-      LogSimple("EXIT_FAIL", sym, why + "; retcode " + IntegerToString((long)rc));
-      return;
-     }
-   datetime xb = iTime(sym, RULE_TF, 0);
+   datetime xb = BarOf(sym, TimeCurrent());
    if(xb > g_s[i].lastExitBar)
       g_s[i].lastExitBar = xb;
    datetime xt; double xp, money; long reason;
@@ -642,8 +1114,66 @@ void TryClose(const int i, const string why)
      {
       xt = TimeCurrent(); xp = g_trade.ResultPrice(); money = 0.0;
      }
-   LogExit(i, "EXIT_CHANNEL", xt, xp, money, why);
+   datetime eb = g_s[i].entryBar;
+   double stop = g_s[i].stop;
+   LogExit(i, fed ? "EXIT_FED" : "EXIT_CHANNEL", xt, xp, money, why);
    ClearTrade(i);
+   if(fed)
+     {
+      //--- the research only shortens this trade: until its own stop or channel exit the market stays taken
+      g_s[i].shadow = true; g_s[i].shEntryBar = eb; g_s[i].shStop = stop;
+      g_dirty = true;
+     }
+  }
+
+//--- the Fed rule: an open trade entered before a rule time closes at the first tick of the hour after it
+void CheckFedExit(const int i)
+  {
+   if(!g_fedOn || !g_s[i].fed || g_s[i].pos == 0 || g_s[i].pendingExit)
+      return;
+   datetime eb = g_s[i].entryBar > 0 ? g_s[i].entryBar : g_s[i].entryTime;
+   datetime s = FedFirstAfter(eb);
+   if(s == 0 || TimeCurrent() < s + 3600 || !PositionSelectByTicket(g_s[i].pos))
+      return;
+   g_s[i].pendingExit = true;
+   g_s[i].pendingFed = true;
+   TryClose(i, "Fed rule time " + T(s) + " (2-year yield rise of 2 SD); closed in the hour after it");
+  }
+
+//--- a trade the Fed rule dropped or cut: follow it to its own stop or channel exit, then free the market
+void CheckShadow(const int i, const MqlRates &r[], const int unchecked)
+  {
+   int dg = g_s[i].digits;
+   for(int k = unchecked; k >= 1; k--)
+     {
+      if(r[k].time < g_s[i].shEntryBar)
+         continue;
+      string why = "";
+      datetime xb = 0;
+      if(r[k].low <= g_s[i].shStop)
+        {
+         xb = r[k].time;                          // the stop was hit inside bar k
+         why = "stop " + D(g_s[i].shStop, dg) + " hit in bar " + T(r[k].time);
+        }
+      else
+        {
+         double lo = LowestLow(r, k + 1, EXIT_BARS);
+         if(r[k].close < lo)
+           {
+            xb = r[k - 1].time;                   // channel exit decided on bar k, taken at the next bar's open
+            why = "close " + D(r[k].close, dg) + " < low20 " + D(lo, dg) + " on bar " + T(r[k].time);
+           }
+        }
+      if(xb > 0)
+        {
+         g_s[i].shadow = false;
+         if(xb > g_s[i].lastExitBar)
+            g_s[i].lastExitBar = xb;
+         LogSimple("SHADOW_END", g_s[i].name, "the research's trade from bar " + T(g_s[i].shEntryBar) + " ends: " + why + "; exit bar " + T(xb));
+         g_dirty = true;
+         return;
+        }
+     }
   }
 
 //--- holding: exit if any completed bar not yet checked closed below its 20-bar low (normally only bar 1)
@@ -685,6 +1215,12 @@ void CheckEntry(const int i, const MqlRates &r[], const int unchecked)
    ResetRow(x);
    x.sym = sym; x.sigBar = T(r[1].time); x.sigClose = D(r[1].close, dg); x.hi10 = D(hi, dg); x.atr = D(atr, dg + 2);
    x.lo20 = D(LowestLow(r, 2, EXIT_BARS), dg);
+   if(g_s[i].shadow)
+     {
+      x.ev = "SKIP_SHADOW"; x.note = "the research's trade from bar " + T(g_s[i].shEntryBar) + " (dropped or cut by the Fed rule) is still running";
+      WriteRow(x);
+      return;
+     }
    if(r[1].time <= g_s[i].lastExitBar)
      {
       x.ev = "SKIP_REENTRY"; x.note = "signal bar is not after the exit bar " + T(g_s[i].lastExitBar);
@@ -698,6 +1234,20 @@ void CheckEntry(const int i, const MqlRates &r[], const int unchecked)
       x.ev = "SKIP_NEWS"; x.note = "USD HIGH event within " + IntegerToString(NEWS_HOURS) + " h after " + T(tc);
       WriteRow(x);
       return;
+     }
+   if(g_fedOn && g_s[i].fed)
+     {
+      datetime fb = FedBlock(r[0].time);       // the research's trade time is the entry bar's open
+      if(fb > 0)
+        {
+         x.ev = "SKIP_FED";
+         x.note = "Fed rule time " + T(fb) + ": no entry for " + IntegerToString(FED_BLOCK_DAYS) +
+                  " days; the research's trade is followed as a shadow until its own exit";
+         WriteRow(x);
+         g_s[i].shadow = true; g_s[i].shEntryBar = r[0].time; g_s[i].shStop = r[0].open - STOP_ATR * atr;
+         g_dirty = true;
+         return;
+        }
      }
    datetime first = FirstTickInBar(sym, r[0].time);
    long delay = (long)(TimeCurrent() - first);
@@ -714,10 +1264,11 @@ void CheckEntry(const int i, const MqlRates &r[], const int unchecked)
       WriteRow(x);
       return;
      }
-   EvaluateBrake();
-   double mult = g_brake ? BRAKE_MULT : 1.0;
+   if(InpBrake)
+      EvaluateBrake();
+   double mult = (InpBrake && g_brake) ? BRAKE_MULT : 1.0;
    double bal = AccountInfoDouble(ACCOUNT_BALANCE);
-   double riskMoney = bal * RISK_PCT / 100.0 * mult;
+   double riskMoney = bal * InpRiskPct / 100.0 * mult;
    double bid = SymbolInfoDouble(sym, SYMBOL_BID), ask = SymbolInfoDouble(sym, SYMBOL_ASK);
    double stop = NormalizeDouble(bid - STOP_ATR * atr, dg);
    x.brake = g_brake ? "on" : "off"; x.ndd = D(1.0 - g_nav / g_peak, 4); x.bal = D(bal, 2);
@@ -749,16 +1300,26 @@ void CheckEntry(const int i, const MqlRates &r[], const int unchecked)
       return;
      }
    g_trade.SetTypeFillingBySymbol(sym);
-   if(!g_trade.Buy(lots, sym, 0.0, stop, 0.0, SETUP_NAME))
+   bool open = TradeOpen(i);
+   bool sent = open && g_trade.Buy(lots, sym, 0.0, stop, 0.0, SETUP_NAME);
+   uint rc = open ? g_trade.ResultRetcode() : (uint)TRADE_RETCODE_MARKET_CLOSED;
+   if(!sent || (rc != TRADE_RETCODE_DONE && rc != TRADE_RETCODE_DONE_PARTIAL && rc != TRADE_RETCODE_PLACED))
      {
-      x.ev = "ENTRY_FAIL"; x.note = "retcode " + IntegerToString((long)g_trade.ResultRetcode()) + " " + g_trade.ResultRetcodeDescription();
-      WriteRow(x);
-      return;
-     }
-   uint rc = g_trade.ResultRetcode();
-   if(rc != TRADE_RETCODE_DONE && rc != TRADE_RETCODE_DONE_PARTIAL && rc != TRADE_RETCODE_PLACED)
-     {
-      x.ev = "ENTRY_FAIL"; x.note = "retcode " + IntegerToString((long)rc);
+      if(rc == TRADE_RETCODE_MARKET_CLOSED)
+        {
+         //--- the bar has opened but the market has not (metals' daily break): the research enters at its next price, so retry
+         //--- once the session opens, while the entry is still within InpMaxEntryDelayMin; ProcessSymbol keeps the bar open for it
+         if(g_s[i].waitBar != r[0].time)
+           {
+            x.ev = "ENTRY_WAIT"; x.note = "market closed - entering when it opens if within " + IntegerToString(InpMaxEntryDelayMin) + " min of the bar's first tick";
+            WriteRow(x);
+            g_s[i].waitBar = r[0].time;
+           }
+         g_s[i].entryWait = true;
+         g_s[i].waitTick = (datetime)SymbolInfoInteger(sym, SYMBOL_TIME);
+         return;
+        }
+      x.ev = "ENTRY_FAIL"; x.note = "retcode " + IntegerToString((long)rc) + " " + g_trade.ResultRetcodeDescription();
       WriteRow(x);
       return;
      }
@@ -774,7 +1335,7 @@ void CheckEntry(const int i, const MqlRates &r[], const int unchecked)
    if(fill <= 0.0)
       fill = ask;
    g_s[i].pos = pos; g_s[i].entry = fill; g_s[i].stop = stop; g_s[i].atr = atr; g_s[i].lots = lots; g_s[i].risk = realRisk;
-   g_s[i].entryTime = TimeCurrent();
+   g_s[i].entryTime = TimeCurrent(); g_s[i].entryBar = r[0].time;
    g_dirty = true;
    x.ev = "ENTRY"; x.fill = D(fill, dg); x.slip = D(fill - ask, dg);
    x.note = "bar open " + D(r[0].open, dg) + "; risk " + D(realRisk, 2) + " of target " + D(riskMoney, 2);
@@ -790,16 +1351,25 @@ void ProcessSymbol(const int i)
    CheckClosed(i);
    if(g_s[i].pos == 0)
       AdoptPosition(i);            // an async fill, or a restart
-   if(g_s[i].pendingExit)
+   if(g_s[i].pendingExit && (g_s[i].waitTick == 0 || (TradeOpen(i) && (datetime)SymbolInfoInteger(sym, SYMBOL_TIME) > g_s[i].waitTick)))
       TryClose(i, "retry");
-   datetime t0 = iTime(sym, RULE_TF, 0);
-   if(t0 == 0 || t0 <= g_s[i].lastBar)
-      return;
+   CheckFedExit(i);
+   datetime h0 = iTime(sym, PERIOD_H1, 0);
+   if(g_s[i].entryWait)
+     {
+      if(g_s[i].pos != 0 || (TradeOpen(i) && (datetime)SymbolInfoInteger(sym, SYMBOL_TIME) > g_s[i].waitTick))
+         g_s[i].entryWait = false;  // a new tick: run the bar again (the entry is retried or skipped as late)
+      else
+         return;                   // the market is still closed
+     }
+   else
+      if(h0 == 0 || (g_s[i].lastBar > 0 && KeyOf(h0) <= KeyOf(g_s[i].lastBar)))
+         return;                   // still the same H4 bar
    MqlRates r[];
-   ArraySetAsSeries(r, true);
-   int got = CopyRates(sym, RULE_TF, 0, COPY_BARS, r);
-   if(got < EXIT_BARS + 3 || r[0].time != t0)
+   int got = BuildBars(sym, r, COPY_BARS);
+   if(got < EXIT_BARS + 3 || KeyOf(r[0].time) != KeyOf(h0))
       return;                      // history not ready; retried next pass
+   datetime t0 = r[0].time;
    //--- completed bars not checked yet: normally 1, more if the EA was offline
    int unchecked = 1;
    if(g_s[i].lastBar > 0)
@@ -808,7 +1378,13 @@ void ProcessSymbol(const int i)
    if(g_s[i].pos != 0)
       CheckChannelExit(i, r, unchecked);
    else
+     {
+      if(g_s[i].shadow)
+         CheckShadow(i, r, unchecked);
       CheckEntry(i, r, unchecked);
+      if(g_s[i].entryWait)
+         return;                   // keep this bar open for the retry
+     }
    g_s[i].lastBar = t0;
    g_dirty = true;
   }
@@ -835,8 +1411,15 @@ int OnInit()
       int k = ArraySize(g_s);
       ArrayResize(g_s, k + 1);
       g_s[k].name = sym; g_s[k].digits = (int)SymbolInfoInteger(sym, SYMBOL_DIGITS);
-      g_s[k].lastBar = 0; g_s[k].lastExitBar = 0; g_s[k].pos = 0; g_s[k].pendingExit = false;
+      g_s[k].lastBar = 0; g_s[k].lastExitBar = 0; g_s[k].pos = 0; g_s[k].pendingExit = false; g_s[k].pendingFed = false; g_s[k].waitTick = 0;
+      g_s[k].entryWait = false; g_s[k].waitBar = 0; g_s[k].sessions = HasSessions(sym);
       g_s[k].entry = 0.0; g_s[k].stop = 0.0; g_s[k].atr = 0.0; g_s[k].lots = 0.0; g_s[k].risk = 0.0; g_s[k].entryTime = 0;
+      g_s[k].entryBar = 0; g_s[k].fed = FedCovers(sym); g_s[k].shadow = false; g_s[k].shEntryBar = 0; g_s[k].shStop = 0.0;
+     }
+   if(InpRiskPct <= 0.0 || InpRiskPct > 5.0)
+     {
+      Print("G27K: InpRiskPct out of range");
+      return INIT_PARAMETERS_INCORRECT;
      }
    if(ArraySize(g_s) == 0)
      {
@@ -858,6 +1441,44 @@ int OnInit()
      }
    if(InpNewsSource == NEWS_OFF)
       Print("G27K: news filter OFF - this is not the research rule");
+   g_fedOn   = InpFedSource != FED_OFF;
+   g_fedWeb  = InpFedSource == FED_WEB  || (InpFedSource == FED_AUTO && !g_tester);
+   g_fedFile = InpFedSource == FED_FILE || (InpFedSource == FED_AUTO && g_tester);
+   if(g_fedOn)
+     {
+      string why = "", why2 = "";
+      bool ok = false;
+      if(g_fedWeb && !g_tester)
+        {
+         ok = FedFetchWeb(why);
+         if(!ok && FedLoadFile(why2))
+           {
+            ok = true;
+            PrintFormat("G27K: Fed data download failed (%s); using the saved copy %s", why, InpFedFile);
+           }
+         g_fedNextFetch = TimeGMT() + (ok ? 1800 : 600);
+        }
+      else
+         ok = FedLoadFile(why);
+      if(!ok)
+        {
+         Alert("G27K: no data for the Fed rule (" + why + ") - G27K-F cannot run. Allow https://fred.stlouisfed.org in "
+               "Tools > Options > Expert Advisors, or put the FRED DGS2 csv in Common\\Files\\" + InpFedFile);
+         return INIT_FAILED;
+        }
+      if(g_tester)
+        {
+         int h = FileOpen("tester_g27k_fed_times.txt", FILE_WRITE | FILE_TXT | FILE_ANSI | FILE_COMMON);
+         if(h != INVALID_HANDLE)
+           {
+            for(int k = 0; k < ArraySize(g_fedPub); k++)
+               FileWriteString(h, TimeToString(g_fedPub[k], TIME_DATE | TIME_MINUTES) + "\r\n");
+            FileClose(h);
+           }
+        }
+     }
+   else
+      Print("G27K: Fed rule OFF - this is G27K #1, not G27K-F");
    if(g_tester)
       FileDelete(LogName(), FILE_COMMON);
    if(g_tester || !LoadState())
@@ -871,7 +1492,9 @@ int OnInit()
       list += (i > 0 ? " " : "") + g_s[i].name;
    LogSimple("START", "", "markets " + list + "; account " + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + " " +
              AccountInfoString(ACCOUNT_SERVER) + " " + AccountInfoString(ACCOUNT_CURRENCY) + "; orders " + (g_canTrade ? "on" : "off") +
-             "; news " + (g_useApi ? "calendar" : (g_useFile ? "file" : "off")));
+             "; risk " + D(InpRiskPct, 2) + "%; brake " + (InpBrake ? "on" : "off") +
+             "; news " + (g_useApi ? "calendar" : (g_useFile ? "file" : "off")) +
+             "; Fed rule " + (g_fedOn ? (g_fedWeb ? "download: " : "file: ") + FedSummary() : "OFF"));
    EventSetTimer(g_tester ? 60 : MathMax(1, InpTimerSec));
    return INIT_SUCCEEDED;
   }
@@ -885,6 +1508,7 @@ void OnDeinit(const int reason)
 
 void OnTimer()
   {
+   FedMaintain();
    UpdateNav();
    for(int i = 0; i < ArraySize(g_s); i++)
       ProcessSymbol(i);
