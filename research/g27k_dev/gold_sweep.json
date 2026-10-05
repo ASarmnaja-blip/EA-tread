@@ -1,0 +1,238 @@
+{
+ "M30": {
+  "n": 710,
+  "win": 0.4591549295774648,
+  "R": 0.11908115015070375,
+  "maxR": 5.68474427036126,
+  "minR": -3.2778049964613523,
+  "max_losing_streak": 8,
+  "risks": {
+   "0.10": {
+    "lives": 784,
+    "p_blow_7d": 0.0,
+    "p_blow_30d": 0.0,
+    "p_blow_1y": 0.0,
+    "survived_to_end": 493,
+    "median_days": Infinity,
+    "withdrawn_median": 1.632394730469266,
+    "withdrawn_mean": 1.6325959926374458,
+    "withdrawn_best": 3.6215134540126463,
+    "best_trade_pct": 0.568474427036126,
+    "restart": {
+     "deposited": 2.0,
+     "withdrawn": 6.285038715299208,
+     "net": 5.1007699129547985,
+     "blowups": 1
+    }
+   },
+   "0.20": {
+    "lives": 784,
+    "p_blow_7d": 0.0,
+    "p_blow_30d": 0.0,
+    "p_blow_1y": 0.13010204081632654,
+    "survived_to_end": 260,
+    "median_days": 799.2572916666667,
+    "withdrawn_median": 1.2926801520582922,
+    "withdrawn_mean": 1.5454992741287945,
+    "withdrawn_best": 4.694340205710932,
+    "best_trade_pct": 1.136948854072252,
+    "restart": {
+     "deposited": 7.0,
+     "withdrawn": 14.222607676985223,
+     "net": 7.744424704394818,
+     "blowups": 6
+    }
+   },
+   "0.30": {
+    "lives": 784,
+    "p_blow_7d": 0.0012755102040816326,
+    "p_blow_30d": 0.00510204081632653,
+    "p_blow_1y": 0.6823979591836735,
+    "survived_to_end": 140,
+    "median_days": 254.98090277777777,
+    "withdrawn_median": 1.0790937677274501,
+    "withdrawn_mean": 1.3834606992757248,
+    "withdrawn_best": 5.779053740758151,
+    "best_trade_pct": 1.7054232811083778,
+    "restart": {
+     "deposited": 17.0,
+     "withdrawn": 27.82236978045472,
+     "net": 11.078156897754909,
+     "blowups": 16
+    }
+   },
+   "0.50": {
+    "lives": 784,
+    "p_blow_7d": 0.002551020408163265,
+    "p_blow_30d": 0.08035714285714286,
+    "p_blow_1y": 0.9209183673469388,
+    "survived_to_end": 22,
+    "median_days": 84.81805555555556,
+    "withdrawn_median": 0.972739408057572,
+    "withdrawn_mean": 1.324453665987417,
+    "withdrawn_best": 7.661409344481886,
+    "best_trade_pct": 2.84237213518063,
+    "restart": {
+     "deposited": 49.0,
+     "withdrawn": 68.29098150171873,
+     "net": 19.455401873156426,
+     "blowups": 48
+    }
+   },
+   "0.75": {
+    "lives": 784,
+    "p_blow_7d": 0.04081632653061224,
+    "p_blow_30d": 0.41581632653061223,
+    "p_blow_1y": 0.9846938775510204,
+    "survived_to_end": 12,
+    "median_days": 35.63263888888889,
+    "withdrawn_median": 0.422060827736761,
+    "withdrawn_mean": 1.2781752502314552,
+    "withdrawn_best": 10.219867789931154,
+    "best_trade_pct": 4.263558202770945,
+    "restart": {
+     "deposited": 119.0,
+     "withdrawn": 153.95986733723305,
+     "net": 35.11056046008849,
+     "blowups": 118
+    }
+   },
+   "1.00": {
+    "lives": 784,
+    "p_blow_7d": 0.28316326530612246,
+    "p_blow_30d": 0.7602040816326531,
+    "p_blow_1y": 1.0,
+    "survived_to_end": 0,
+    "median_days": 14.079166666666666,
+    "withdrawn_median": 0.30018858985453123,
+    "withdrawn_mean": 1.4993055785605556,
+    "withdrawn_best": 13.614148535585805,
+    "best_trade_pct": 5.68474427036126,
+    "restart": {
+     "deposited": 274.0,
+     "withdrawn": 369.32119401940326,
+     "net": 96.32119401940326,
+     "blowups": 273
+    }
+   }
+  }
+ },
+ "M15": {
+  "n": 1630,
+  "win": 0.4349693251533742,
+  "R": 0.05146175504055486,
+  "maxR": 7.025193911574668,
+  "minR": -4.4174364431972934,
+  "max_losing_streak": 10,
+  "risks": {
+   "0.10": {
+    "lives": 783,
+    "p_blow_7d": 0.0,
+    "p_blow_30d": 0.0,
+    "p_blow_1y": 0.17624521072796934,
+    "survived_to_end": 282,
+    "median_days": 884.8201388888889,
+    "withdrawn_median": 1.3701289837538941,
+    "withdrawn_mean": 1.4944984690465897,
+    "withdrawn_best": 4.144485310761192,
+    "best_trade_pct": 0.7025193911574669,
+    "restart": {
+     "deposited": 6.0,
+     "withdrawn": 10.051250172031606,
+     "net": 4.4467154647323826,
+     "blowups": 5
+    }
+   },
+   "0.20": {
+    "lives": 783,
+    "p_blow_7d": 0.0,
+    "p_blow_30d": 0.006385696040868455,
+    "p_blow_1y": 0.768837803320562,
+    "survived_to_end": 11,
+    "median_days": 205.79097222222222,
+    "withdrawn_median": 0.7966286003078651,
+    "withdrawn_mean": 1.2150150207347807,
+    "withdrawn_best": 6.098584844528551,
+    "best_trade_pct": 1.4050387823149337,
+    "restart": {
+     "deposited": 25.0,
+     "withdrawn": 34.91923071105711,
+     "net": 10.814019353237319,
+     "blowups": 24
+    }
+   },
+   "0.30": {
+    "lives": 783,
+    "p_blow_7d": 0.002554278416347382,
+    "p_blow_30d": 0.07151979565772669,
+    "p_blow_1y": 0.9910600255427842,
+    "survived_to_end": 7,
+    "median_days": 81.11111111111111,
+    "withdrawn_median": 0.675898567151527,
+    "withdrawn_mean": 1.204951937514834,
+    "withdrawn_best": 7.320410134725593,
+    "best_trade_pct": 2.1075581734724005,
+    "restart": {
+     "deposited": 51.0,
+     "withdrawn": 57.986916003830224,
+     "net": 7.252419054923117,
+     "blowups": 50
+    }
+   },
+   "0.50": {
+    "lives": 783,
+    "p_blow_7d": 0.0280970625798212,
+    "p_blow_30d": 0.44699872286079184,
+    "p_blow_1y": 0.9948914431673053,
+    "survived_to_end": 4,
+    "median_days": 31.832638888888887,
+    "withdrawn_median": 0.583679532437416,
+    "withdrawn_mean": 1.1730325517619498,
+    "withdrawn_best": 6.758582119113147,
+    "best_trade_pct": 3.512596955787334,
+    "restart": {
+     "deposited": 132.0,
+     "withdrawn": 145.53184047288426,
+     "net": 14.268812078334776,
+     "blowups": 131
+    }
+   },
+   "0.75": {
+    "lives": 783,
+    "p_blow_7d": 0.21583652618135377,
+    "p_blow_30d": 0.8454661558109834,
+    "p_blow_1y": 0.9961685823754789,
+    "survived_to_end": 3,
+    "median_days": 14.395833333333334,
+    "withdrawn_median": 0.280762690355304,
+    "withdrawn_mean": 1.115460029740811,
+    "withdrawn_best": 8.82250444907828,
+    "best_trade_pct": 5.268895433681001,
+    "restart": {
+     "deposited": 311.0,
+     "withdrawn": 345.2437164970128,
+     "net": 34.60621073021529,
+     "blowups": 310
+    }
+   },
+   "1.00": {
+    "lives": 783,
+    "p_blow_7d": 0.5670498084291188,
+    "p_blow_30d": 0.9719029374201787,
+    "p_blow_1y": 0.9961685823754789,
+    "survived_to_end": 3,
+    "median_days": 4.555555555555555,
+    "withdrawn_median": 0.0,
+    "withdrawn_mean": 1.2240405230015412,
+    "withdrawn_best": 11.709298851656529,
+    "best_trade_pct": 7.025193911574668,
+    "restart": {
+     "deposited": 672.0,
+     "withdrawn": 809.4919395190866,
+     "net": 137.96588272998764,
+     "blowups": 671
+    }
+   }
+  }
+ }
+}
