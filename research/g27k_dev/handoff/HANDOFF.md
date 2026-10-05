@@ -1,0 +1,204 @@
+# HANDOFF — G27K-F · M30 · H1 (5 ต.ค. 2026)
+
+จุดเข้าเดียวสำหรับ session ที่รับงานต่อ อ่านไฟล์นี้ก่อนแตะอะไร
+
+```
+branch   claude/order-position-choch-gab-im08db   (ทุกอย่างในไฟล์นี้ commit และ push แล้ว)
+โฟลเดอร์ research/g27k_dev/handoff/
+ช่วงข้อมูล 2011-09-01 – 2026-09-30 (15 ปี)
+```
+
+| ไฟล์ | เนื้อหา |
+|---|---|
+| `HANDOFF.md` | ไฟล์นี้: นิยามระบบ สถานะ วิธีสร้างซ้ำ ข้อควรระวัง |
+| `RESULTS.md` | ผลทั้ง 84 แบบในตาราง (7 ชุดไม้ × 2 บัญชี × 3 ระดับ × ไม่ DCA/DCA) |
+| `MT5_TASKS.md` | งานสำหรับ session ที่ต่อ MT5 บนเครื่องผู้ใช้ (Demo) |
+| `trades_F.csv.gz` `trades_M30.csv.gz` `trades_H1.csv.gz` | ทุกไม้ของแต่ละชุด |
+| `matrix.csv.gz` | ผลทุกแบบในรูปข้อมูล |
+| `monthly.csv.gz` | มูลค่าสิ้นเดือนของทุกแบบ |
+
+ไฟล์ข้อมูลเป็น `csv.gz` อ่านด้วย pandas ได้เลย (`pd.read_csv(path)`) ไม่ต้องใช้ pyarrow
+
+---
+
+## 1. สรุปสั้น
+
+- **ระบบที่แนะนำ: G27K-F 1% + เบรก 25% + ไม้ M30 (0.5% ต่อไม้)**
+  - Cent 56.7% ต่อปี Equity DD 31.7% · Standard 66.3% ต่อปี DD 33.3% (เริ่ม $100,000)
+  - DCA $100,000/เดือน: Cent $7.26B (IRR 70.6%) · Standard $10.98B (IRR 76.0%)
+- **ไม้ H1 ยังไม่รับใช้:** ผ่านการค้นและความทนทาน แต่ระดับบัญชีแย่ลงเมื่อต้นทุนแย่ลง 0.10R เพราะเป็นหลักการเดียวกับ M30 (สหสัมพันธ์รายเดือน +0.52)
+- **ไม้ M30 หรือ H1 ใช้เดี่ยวๆ เปราะต่อต้นทุนมาก:** MAR เมื่อทุกไม้แย่ลง 0.10R เหลือ 0.15–0.29 ใช้เป็นส่วนเสริมของ G27K-F เท่านั้น
+- **ตัวเลขทั้งหมดเป็นเพดานบน:** กฎเลือกจากข้อมูลชุดเดียวกัน ทั้งโครงการทดสอบราว 32 ล้านสมมติฐาน ยังไม่มีอะไรผ่านเกณฑ์รวม t > 8.2 ของ ledger
+- **ความเสี่ยงหลักคือต้นทุนจริงของไม้ M30:** ได้เปรียบราว +0.16R ต่อไม้ ถ้าแย่กว่าโมเดล 0.15R จะเหลือเกือบศูนย์
+
+## 2. รายงาน (artifact บน claude.ai)
+
+| รายงาน | ลิงก์ |
+|---|---|
+| **หน้ารวม (ตารางทุกแบบ + ลิงก์)** | https://claude.ai/artifact/TQ3tZjLHbYHGgGQJTRumQw |
+| G27K-F | https://claude.ai/artifact/EPXhTeqc4ZRZcAsekYtkYV |
+| M30 | https://claude.ai/artifact/EwBjJCd4mPaohWmWx7rFn9 |
+| H1 | https://claude.ai/artifact/QUoiy55RHNpKBsTXHdS7wM |
+| G27K-F + M30 | https://claude.ai/artifact/MDNZVJuxNd6dHohPnobNYe |
+| G27K-F + H1 | https://claude.ai/artifact/5Z8ufdZbmAS5TGA3rghhrD |
+| M30 + H1 | https://claude.ai/artifact/LsMB1ecD2EnwL2LHpth6Qk |
+| G27K-F + M30 + H1 | https://claude.ai/artifact/1511ha2N3qb5fy714rNRNU |
+
+ทุกรายงานใช้ layout แบบ G27K: ปุ่มเลือกบัญชี (Cent/Standard) × ระดับความเสี่ยง × แท็บรายตลาด และมีการ์ด DCA ด้านบน
+รายงานเหล่านี้เป็น private ของผู้ใช้ session อื่นเปิดลิงก์ได้เฉพาะเมื่อผู้ใช้แชร์ ข้อมูลเดียวกันอยู่ในไฟล์ของโฟลเดอร์นี้แล้ว
+
+## 3. นิยามระบบ (ตรงกับโค้ด)
+
+### 3.1 G27K-F (ชุด F)
+- **G27K #1** combo `C8/D3/E1/F1/G2/H2/I1/J1` บน H4 (ขอบแท่ง 00 UTC):
+  - **เข้า:** แท่ง H4 ปิดเหนือ High สูงสุด 10 แท่งก่อนหน้า ซื้ออย่างเดียว เข้าที่ราคาเปิดแท่งถัดไป
+  - **ข่าว:** ไม่เข้าถ้ามีข่าว USD ระดับ HIGH ภายใน 8 ชั่วโมงหลังเข้า (ปฏิทินมีตั้งแต่ปี 2022)
+  - **SL:** 2 × ATR20 (ค่าเฉลี่ยธรรมดาของ TR รวมแท่งสัญญาณ) ไม่ขยับ
+  - **ออก:** แท่ง H4 ปิดต่ำกว่า Low ต่ำสุด 20 แท่ง · ตลาดละ 1 ไม้
+- **กฎข่าว Fed** (`news_shock.fed_shocks`, `news_shock.apply`):
+  - **สัญญาณ:** FRED DGS2 เปลี่ยนรายวัน ≥ 2 × SD ของการเปลี่ยน 250 วันก่อนหน้า
+  - **ใช้ได้เมื่อ:** 22:00 UTC ของวันทำการถัดไป ข้ามวันหยุดราชการสหรัฐ (แก้ 5 ต.ค.)
+  - **ผล:** ปิดไม้ทอง เงิน BTC ETH ที่ราคาเปิดชั่วโมงถัดไป และไม่เข้าไม้ใหม่ในตลาดเหล่านี้ 5 วัน
+  - **จำนวน:** 130 ครั้งในช่วงทดสอบ
+- **ตลาด:** Cent = XAU XAG BTC ETH USDJPY · Standard = + JP225 · ทุกตลาดเสี่ยงเท่ากัน
+
+### 3.2 ไม้ M30 (ledger `m30_sleeve_new_markets`, รับใช้)
+- **TF:** M30 สร้างจาก M1 · TF ใหญ่ = D1 (ใช้เฉพาะแท่งที่ปิดแล้ว)
+- **เข้า:** ปิดไม่เกิน 1 ATR14 จาก High (ซื้อ) / Low (ขาย) 55 แท่งก่อนหน้า + ATR14/mean(ATR14,100) ≥ 1.5 + D1 ไปทางเดียวกัน (D1 ปิดเหนือ/ใต้ จุดกลาง High-Low 55 วัน)
+  - เทรดทั้งสองทาง เข้าราคาเปิดแท่งถัดไป
+- **SL/TP:** SL 2 × ATR20 (M30) · TP 2R
+- **ออกตามเวลา:** ถ้าครบ 30 แท่งยังไม่ชน SL/TP ปิดที่ราคาเปิดแท่งที่ 31 (EA ต้องมีกฎนี้)
+- **การเดินราคา:** เดิน SL/TP บน M1 · ถ้าโดนทั้งคู่ในนาทีเดียวนับ SL
+- **ตลาด:** XAU XAG (Dukascopy M1) · BTC (Binance 1m จาก 2021) · ETH (Binance 1m จาก 2017-08) · USDJPY (histdata M1) · ตลาดละ 1 ไม้
+- **ผล:** 3,153 ไม้ +0.161R ต่อไม้ (t 7.2)
+
+### 3.3 ไม้ H1 (ledger `h1_search_mirror_m30`, ยังไม่รับใช้)
+- **เหมือน M30 ยกเว้น:** TF = H1 · เงื่อนไขเข้าเปลี่ยนเป็น ราคาอยู่ในช่วงบน 10% ของ 250 แท่ง (`pos250 ≥ 0.9` ตามทิศ) + ATR14/ATR100 ≥ 1.25 + D1 ทางเดียวกัน
+- **ออก:** TP 2R หรือครบ 30 แท่ง
+- **ผล:** 2,620 ไม้ +0.155R ต่อไม้ (t 6.0)
+
+### 3.4 ขนาดไม้และบัญชี (`suite.simulate`)
+- **ความเสี่ยงต่อไม้:** % ของ balance ตอนเข้าไม้ · ไม่มีเพดานไม้เปิดซ้อน
+- **ระดับ:** 0.75% / 1% / 1% + เบรก 25%
+  - **เบรก:** ความเสี่ยงลดครึ่งเมื่อ DD ของ NAV ≥ 25% และกลับเต็มเมื่อ ≤ 12.5%
+- **ในชุดที่มี G27K-F:** ระดับคือความเสี่ยงของ G27K-F ส่วนไม้ M30/H1 เสี่ยง 0.5% ต่อไม้ทุกระดับ
+- **ในชุดที่ไม่มี G27K-F:** ระดับคือความเสี่ยงของทุกไม้ (Cent = Standard เพราะไม้แยกไม่เทรด JP225)
+- **ไม่ DCA:** เริ่ม $100,000
+- **DCA:** เริ่ม 0 เติม $100,000 ทุกวันที่ 1 ของเดือน 181 ครั้ง
+  - IRR คิดตามจังหวะเงินที่ใส่
+  - DD หน่วยลงทุน = DD ของ NAV ที่การเติมเงินไม่บัง
+  - มูลค่ารายเดือนนับเฉพาะไม้ที่ปิดแล้ว
+
+### 3.5 ต้นทุน
+- **ต่อรอบ:** spread + 1 bp (ขั้นต่ำ 2 bp ของราคา)
+- **swap:** bp ต่อคืนตามสเปก Exness (`data/bundle/broker_specs.json` + `fresh_markets.specs`)
+  - ETH ใช้สเปก BTC
+  - JP225 swap = 0 ในสเปก ซึ่งน่าจะต่ำกว่าความจริง
+- **ต้นทุนเฉลี่ยต่อไม้ในหน่วย R:** G27K-F 0.005–0.036 · M30 0.012–0.087 (USDJPY สูงสุด) · H1 0.008–0.066
+
+## 4. คอลัมน์ของไฟล์
+
+**trades_\*.csv.gz** (หนึ่งแถวต่อไม้)
+
+| คอลัมน์ | ความหมาย |
+|---|---|
+| `book` | F / M30 / H1 |
+| `market` | ตลาด |
+| `direction` | 1 = ซื้อ, −1 = ขาย |
+| `entry_time_utc` `exit_time_utc` | เวลาเข้าและออก (UTC) |
+| `entry_price` `exit_price` | ราคาเข้าและออก |
+| `stop_distance` `stop_pct` | ระยะ SL เป็นราคาและเป็น % ของราคา |
+| `R` | หลังต้นทุน |
+| `R_gross` `R_spread` `R_swap` | ก่อนต้นทุน และต้นทุนแยกส่วน |
+| `fed_exit` | ถูกปิดก่อนเพราะกฎ Fed |
+
+**matrix.csv.gz** (84 แถว)
+
+| คอลัมน์ | ความหมาย |
+|---|---|
+| `combo` | F, M30, H1, F_M30, F_H1, M30_H1, F_M30_H1 |
+| `books` `account` `level` | ชื่อชุด บัญชี ระดับความเสี่ยง |
+| `f_risk` `sleeve_risk` | ความเสี่ยงของ G27K-F และของไม้แยก |
+| `dca` | no / yes |
+| `start_balance` `deposited` `final` | เงินเริ่ม เงินที่ใส่รวม เงินสุดท้าย |
+| `cagr` | ต่อปี (ไม่ DCA) |
+| `irr` | IRR (DCA) |
+| `equity_dd` `balance_dd` | DD ของ equity และ balance |
+| `mar` `mar_2011_17` `mar_2018_26` | MAR ทั้งช่วงและสองครึ่ง |
+| `worst_year` `trades` | ปีแย่สุด จำนวนไม้ |
+| `p_dd50` | โอกาส DD เกิน 50% จาก Monte Carlo |
+| `stress_cagr` `stress_mar` `stress_p_dd50` | เมื่อทุกไม้แย่ลง 0.10R |
+| `unit_dd` `gap_below_deposits` `gap_at` | DCA: DD หน่วยลงทุน ช่วงที่ต่ำกว่าเงินที่ใส่มากสุด และเมื่อไร |
+
+**monthly.csv.gz:** `combo, account, level, dca, month, value`
+
+## 5. สถานะใน ledger (`research/change_ledger.json`)
+
+| id | ผล |
+|---|---|
+| `g27k_fast_news_shock` | กฎ Fed ผ่าน → G27K-F |
+| `minute_reverse_and_constrained` | ค้น M15/M30 แบบบีบให้แคบผ่าน 39 จาก 1,296 รูปแบบ ขณะที่ราคาสุ่มได้ 0 ทุกชุด → เลือกรูปแบบ M30 |
+| `m30_sleeve_with_g27kf` | ไม้ M30 3 ตลาด ไม่ผ่าน (Standard แย่ลงเมื่อต้นทุนแย่ลง 0.10R) |
+| `m30_sleeve_new_markets` | **ผ่าน**: รับ ETH และ USDJPY (ไม่รับ JP225) · ระดับบัญชีผ่าน · ความทนทานผ่านทุกข้อ |
+| `h1_search_mirror_m30` | ค้น H1 ผ่าน (65 จาก 648 รูปแบบ ราคาสุ่มได้ 0) · ตลาดใหม่ผ่าน · ทนทาน · **ระดับบัญชีไม่ผ่านข้อต้นทุน** |
+
+กติกา: เปลี่ยนกฎหรือจูนค่า ต้องลงทะเบียนใน ledger ก่อนรัน (`python3 research/change_ledger.py register ...`) และห้ามแก้เกณฑ์หลังเห็นผล
+
+## 6. ผลการตรวจ (`audit_g27kf_m30_h1.py` / `.json`)
+
+- **เครื่องคำนวณถูกต้อง:** สร้างไม้ M30/H1 ซ้ำจาก M1 ดิบด้วยโค้ดแยก ตรงกับ engine 39/40 ไม้ (อีกไม้ต่างแค่ timestamp 1 นาที)
+- **ไม่พบการมองเห็นอนาคต:** High/Low ย้อนหลังไม่รวมแท่งปัจจุบัน TF ใหญ่ใช้เฉพาะแท่งที่ปิดแล้ว เข้าราคาเปิดแท่งถัดไป
+- **แก้แล้ว:**
+  - กฎ Fed เคยใช้ข้อมูลเร็วไป 1 วันใน 8/192 ครั้งที่ตรงวันหยุดสหรัฐ (ผลเปลี่ยนไม่ถึง 0.1 จุด)
+  - รายงานเคยไม่ได้เขียนกฎออกเมื่อครบ 30 แท่ง
+- **ความเสี่ยงที่ไม่ใช่ bug:**
+  - ไม้ซ้อนกัน: 1,072 ครั้งที่ 3 ชุดถือตลาดเดียวกันทางเดียวกัน
+  - ความเสี่ยงเปิดรวมสูงสุด 15–16% และขนาดไม้รวมสูงสุด 27 เท่าของ balance
+  - กำไร 37–43% มาจาก 3 ปีล่าสุด
+  - 1% ของไม้ G27K-F ที่ดีที่สุดให้ 57% ของ R
+
+## 7. สร้างซ้ำ
+
+```bash
+# 1) ข้อมูล H1/H4, FRED, ปฏิทินข่าว, สเปกโบรก (อยู่บน GitHub แล้ว)
+git fetch origin data-snapshot-2026-10-03
+git worktree add ../snap2 origin/data-snapshot-2026-10-03          # ใช้เป็น --root
+
+# 2) ข้อมูล M1 (ไม่อยู่ใน git: research/.cache_duka ราว 730 MB)
+python3 -c "import sys; sys.path.insert(0,'research'); import fetch_dukascopy as DK; [DK.load('2009-01-01','2026-10-01',symbol=s) for s in ('XAUUSD','XAGUSD')]"   # ช้ามากผ่าน proxy
+python3 research/g27k_dev/m30_fetch_new.py --only btc           # Binance BTCUSDT 1m จาก 2021-01
+python3 research/g27k_dev/m30_fetch_new.py --only eth           # Binance ETHUSDT 1m จาก 2017-08
+python3 research/g27k_dev/m30_fetch_new.py --histdata           # USDJPY, JP225 จาก histdata + เทียบเวลากับ Dukascopy H1
+
+# 3) ไม้แยก (เขียน research/.cache_wf/m30_sleeve6.pkl, h1_sleeve6.pkl)
+python3 research/g27k_dev/m30_new_markets.py --root ../snap2
+python3 research/g27k_dev/h1_mirror.py --root ../snap2 --part main          # ค้น H1 (ไม่จำเป็นถ้ามี h1_mirror_real.json)
+python3 research/g27k_dev/h1_sleeve.py --root ../snap2 --part newmkt
+
+# 4) รายงานและชุดส่งต่อ
+python3 research/g27k_dev/report_combo.py --root ../snap2 --outdir <dir>   # 7 รายงาน + trades/matrix/monthly
+python3 research/g27k_dev/handoff_index.py --out <dir>/index.html          # หน้ารวม + RESULTS.md
+python3 research/g27k_dev/audit_g27kf_m30_h1.py --root ../snap2             # การตรวจ
+```
+
+ถ้าไม่มี M1 ก็ยังคำนวณบัญชีใหม่จาก `trades_*.csv.gz` ได้ (R, เวลาเข้า-ออก, ตลาดครบ) ด้วย `suite.simulate` หรือโค้ดของตัวเอง
+
+## 8. ข้อควรระวังและงานค้าง
+
+1. **ETHUSDc บนบัญชี Cent:**
+   - เอกสารของ session MT5 (`docs/G27K_EA_STATUS_2026-10-03.md` บน branch `claude/g27k-lot-rounding`) บอกว่า Cent ไม่มี ETH
+   - แต่ภาพหน้าจอ Quotes จากแอปของผู้ใช้วันที่ 5 ต.ค. มี ETHUSDc
+   - ต้องตรวจว่าเทรดได้จริง (ดู MT5_TASKS.md) ถ้าไม่ได้ ผล Cent ทุกชุดต้องตัด ETH (`report_combo.py` ใช้ `RG.CENT` แก้ได้จุดเดียว หรือ `report_g27kf.py --cent`)
+2. **BTCUSDc ไม่มีเลเวอเรจ:**
+   - margin เต็มมูลค่าไม้ ไม้ BTC ของ G27K-F ที่ 1% ใช้ margin ราว 33% ของพอร์ต และไม้ M30 BTC ที่ 0.5% ใช้ราว 43%
+   - ถ้าเปิดซ้อนกันอาจเกิน balance ได้ แต่ simulator ยังไม่คิด margin ผล Cent ของชุดที่มีไม้แยกจึงต้องทำ simulation ที่คิด margin ต่อ
+3. **ต้นทุนจริง:** spread ในภาพ Cent (ตอนตลาดปิด) ของเงิน (5.0 bp) และ ETH (3.7 bp) สูงกว่าโมเดล (3.6 และ 2 bp) ต้องวัดช่วงตลาดเปิด
+   - session MT5 พบว่าต้นทุนใน Strategy Tester ของ G27K สูงกว่าโมเดล (−43.7R เทียบ −27.1R ช่วง 2023–26)
+4. **บัญชีจริงของผู้ใช้:** Standard Cent 10,000 USC ($100) + $100 ต่อเดือน (ตามเอกสาร branch `claude/g27k-lot-rounding`)
+   - lot ขั้นต่ำทำให้ความเสี่ยงจริงต่อไม้สูงกว่าที่ตั้ง
+   - งานเดิม `capital_need.py` และ `capital_stat.py` ประเมินทุนขั้นต่ำ Cent ราว $200
+5. **EA:** มีเฉพาะ G27K (`MQL5/Experts/G27K/G27K_Trend.mq5` บน branch `claude/g27k-lot-rounding`)
+   - ยังไม่มีกฎ Fed
+   - ยังไม่มีไม้ M30
+6. **ข้อมูล M1 ไม่อยู่ใน git:** ต้องโหลดใหม่ตามข้อ 7 ถ้าต้องการให้ push เป็น data branch ต้องแบ่งไฟล์ BTC/ETH ให้เล็กกว่า 100 MB ก่อน
+7. **ไม่ใช่คำแนะนำการลงทุน:** ผลทั้งหมดเป็นการจำลองย้อนหลัง

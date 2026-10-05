@@ -144,6 +144,9 @@ def run_combo(name, D, a, matrix, monthly):
             for u in [port[s], *gms[s], *slv[s]]:
                 ent = RWF.build_entry(f"{s}~{v}", u, vr, k / 100, None, RP, G)
                 if ent:
+                    for c_ in ("corr_p_mfe", "corr_p_mae", "corr_mfe_mae"):       # sleeves keep no MFE/MAE: show 0, not a broken tile
+                        if c_ in ent and not np.isfinite(ent[c_] if ent[c_] is not None else np.nan):
+                            ent[c_] = 0.0
                     out[f"{s}~{v}_{u}"] = ent
             for extra in (0.0, 0.10):
                 st, eq, _ = SU.simulate(RG.frame(rr, scale, extra), ver, START, END, news=news)

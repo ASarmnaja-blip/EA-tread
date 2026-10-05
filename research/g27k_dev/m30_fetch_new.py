@@ -17,7 +17,9 @@ the current year), timestamps New York local time with daylight saving (checked 
 Dukascopy minutes; histdata's own note says EST without DST), stored as
 .cache_duka/<SYM>_histdata_M1.parquet.
 
-Usage: python3 research/g27k_dev/m30_fetch_new.py [--only eth|usdjpy|jp225] [--histdata]
+BTC (Binance BTCUSDT 1m from 2021-01, the file per_market_search reads): --only btc
+
+Usage: python3 research/g27k_dev/m30_fetch_new.py [--only eth|btc|usdjpy|jp225] [--histdata]
 """
 import argparse
 import io
@@ -41,8 +43,9 @@ END = "2026-10-01"
 DK.POINTS.setdefault("JPNIDXJPY", 1000.0)     # same divisor fetch_universe uses for the JP225 H1 bid
 
 
-def eth():
-    p = CACHE / "ETHUSD_binance_M1.parquet"
+def eth(sym="ETHUSD", pair="ETHUSDT", first="2017-08"):
+    """Binance spot 1m klines; also used for BTC (pair BTCUSDT, from 2021-01, as per_market_search reads it)."""
+    p = CACHE / f"{sym}_binance_M1.parquet"
 
     def zipcsv(u):
         raw = urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"}), timeout=180).read()
@@ -52,23 +55,23 @@ def eth():
     def month(per):
         for k in range(4):
             try:
-                return zipcsv(f"https://data.binance.vision/data/spot/monthly/klines/ETHUSDT/1m/ETHUSDT-1m-{per.year}-{per.month:02d}.zip")
+                return zipcsv(f"https://data.binance.vision/data/spot/monthly/klines/{pair}/1m/{pair}-1m-{per.year}-{per.month:02d}.zip")
             except urllib.error.HTTPError as e:
                 if e.code != 404:
                     continue
                 out = []
                 for d in pd.date_range(per.start_time, per.end_time.normalize(), freq="D"):
                     try:
-                        out.append(zipcsv(f"https://data.binance.vision/data/spot/daily/klines/ETHUSDT/1m/ETHUSDT-1m-{d:%Y-%m-%d}.zip"))
+                        out.append(zipcsv(f"https://data.binance.vision/data/spot/daily/klines/{pair}/1m/{pair}-1m-{d:%Y-%m-%d}.zip"))
                     except urllib.error.HTTPError:
                         pass
                 return pd.concat(out, ignore_index=True) if out else None
             except Exception:
                 continue
-        raise RuntimeError(f"ETH {per} failed")
+        raise RuntimeError(f"{sym} {per} failed")
 
     with ThreadPoolExecutor(4) as ex:
-        parts = [x for x in ex.map(month, pd.period_range("2017-08", "2026-09", freq="M")) if x is not None]
+        parts = [x for x in ex.map(month, pd.period_range(first, "2026-09", freq="M")) if x is not None]
     df = pd.concat(parts, ignore_index=True)
     ts = df[0].astype(np.int64).to_numpy()
     ts = np.where(ts > 10 ** 14, ts // 1000, ts)                  # Binance moved to microseconds in 2025
@@ -77,7 +80,7 @@ def eth():
                        index=pd.to_datetime(ts, unit="ms", utc=True)).sort_index()
     out = out[~out.index.duplicated()]
     out.to_parquet(p)
-    print(f"  ETHUSD: {len(out):,} minutes {out.index[0]}..{out.index[-1]}", flush=True)
+    print(f"  {sym}: {len(out):,} minutes {out.index[0]}..{out.index[-1]}", flush=True)
 
 
 def duka(sym, y0):
@@ -180,7 +183,7 @@ def align(sym):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--only", choices=("eth", "usdjpy", "jp225"))
+    ap.add_argument("--only", choices=("eth", "btc", "usdjpy", "jp225"))
     ap.add_argument("--histdata", action="store_true")
     ap.add_argument("--align-only", action="store_true")
     a = ap.parse_args()
@@ -193,6 +196,9 @@ def main():
             histdata(sym)
             align(sym)
         print("FETCH_DONE", flush=True)
+        return
+    if a.only == "btc":
+        eth("BTCUSD", "BTCUSDT", "2021-01")
         return
     if a.only in (None, "eth"):
         eth()
