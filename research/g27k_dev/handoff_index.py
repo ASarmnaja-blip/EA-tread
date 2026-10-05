@@ -15,7 +15,7 @@ LINKS = {"F": "https://claude.ai/artifact/EPXhTeqc4ZRZcAsekYtkYV", "M30": "https
          "H1": "https://claude.ai/artifact/QUoiy55RHNpKBsTXHdS7wM", "F_M30": "https://claude.ai/artifact/MDNZVJuxNd6dHohPnobNYe",
          "F_H1": "https://claude.ai/artifact/5Z8ufdZbmAS5TGA3rghhrD", "M30_H1": "https://claude.ai/artifact/LsMB1ecD2EnwL2LHpth6Qk",
          "F_M30_H1": "https://claude.ai/artifact/1511ha2N3qb5fy714rNRNU"}
-STATUS = {"F": "ใช้", "M30": "ใช้", "H1": "ยังไม่ใช้"}
+STATUS = {"F": "ใช้", "M30": "ใช้", "H1": "ผ่านเฉียด"}
 ORDER = list(LINKS)
 
 
