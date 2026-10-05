@@ -94,6 +94,14 @@ branch   claude/order-position-choch-gab-im08db   (ทุกอย่างใ�
 - **swap:** bp ต่อคืนตามสเปก Exness (`data/bundle/broker_specs.json` + `fresh_markets.specs`)
   - ETH ใช้สเปก BTC
   - JP225 swap = 0 ในสเปก ซึ่งน่าจะต่ำกว่าความจริง
+  - **bp คงที่ทุกปีเป็นสมมติฐาน** (Exness คิดเป็นจุดต่อ lot และปรับตามดอกเบี้ย) ช่วงผลตาม `swap_sensitivity.py`:
+    - A ที่รายงาน
+    - B จุดคงที่ (ขอบล่าง แบบที่ Strategy Tester คิด)
+    - C โลหะตามดอกเบี้ย US 2 ปี
+    - D โลหะตามดอกเบี้ย + crypto จุดคงที่ (ตัวกลาง)
+    - Std F+M30 1%+เบรก: A 66.3% · B 43.3% · C 69.8% · D 60.1% ต่อปี
+    - ไม้ M30/H1 แทบไม่ขึ้นกับ swap
+    - รายละเอียดใน `REPLY_FROM_RESEARCH.md` ข้อ 3
 - **ต้นทุนเฉลี่ยต่อไม้ในหน่วย R:** G27K-F 0.005–0.036 · M30 0.012–0.087 (USDJPY สูงสุด) · H1 0.008–0.066
 
 ## 4. คอลัมน์ของไฟล์
@@ -185,20 +193,25 @@ python3 research/g27k_dev/audit_g27kf_m30_h1.py --root ../snap2             # �
 
 ## 8. ข้อควรระวังและงานค้าง
 
-1. **ETHUSDc บนบัญชี Cent:**
-   - เอกสารของ session MT5 (`docs/G27K_EA_STATUS_2026-10-03.md` บน branch `claude/g27k-lot-rounding`) บอกว่า Cent ไม่มี ETH
-   - แต่ภาพหน้าจอ Quotes จากแอปของผู้ใช้วันที่ 5 ต.ค. มี ETHUSDc
-   - ต้องตรวจว่าเทรดได้จริง (ดู MT5_TASKS.md) ถ้าไม่ได้ ผล Cent ทุกชุดต้องตัด ETH (`report_combo.py` ใช้ `RG.CENT` แก้ได้จุดเดียว หรือ `report_g27kf.py --cent`)
-2. **BTCUSDc ไม่มีเลเวอเรจ:**
-   - margin เต็มมูลค่าไม้ ไม้ BTC ของ G27K-F ที่ 1% ใช้ margin ราว 33% ของพอร์ต และไม้ M30 BTC ที่ 0.5% ใช้ราว 43%
-   - ถ้าเปิดซ้อนกันอาจเกิน balance ได้ แต่ simulator ยังไม่คิด margin ผล Cent ของชุดที่มีไม้แยกจึงต้องทำ simulation ที่คิด margin ต่อ
-3. **ต้นทุนจริง:** spread ในภาพ Cent (ตอนตลาดปิด) ของเงิน (5.0 bp) และ ETH (3.7 bp) สูงกว่าโมเดล (3.6 และ 2 bp) ต้องวัดช่วงตลาดเปิด
-   - session MT5 พบว่าต้นทุนใน Strategy Tester ของ G27K สูงกว่าโมเดล (−43.7R เทียบ −27.1R ช่วง 2023–26)
-4. **บัญชีจริงของผู้ใช้:** Standard Cent 10,000 USC ($100) + $100 ต่อเดือน (ตามเอกสาร branch `claude/g27k-lot-rounding`)
-   - lot ขั้นต่ำทำให้ความเสี่ยงจริงต่อไม้สูงกว่าที่ตั้ง
-   - งานเดิม `capital_need.py` และ `capital_stat.py` ประเมินทุนขั้นต่ำ Cent ราว $200
-5. **EA:** มีเฉพาะ G27K (`MQL5/Experts/G27K/G27K_Trend.mq5` บน branch `claude/g27k-lot-rounding`)
-   - ยังไม่มีกฎ Fed
-   - ยังไม่มีไม้ M30
+ผลจาก session MT5 (branch `claude/mt5-handoff-tasks`, `research/g27k_dev/handoff/mt5/`) และคำตอบ (`REPLY_FROM_RESEARCH.md`):
+
+1. **ETHUSDc เทรดได้จริงบน Cent** (lot ต่ำสุด 0.10) · JP225 ไม่มีใน Cent · ผล Cent ทุกชุดจึงใช้ XAU XAG BTC ETH USDJPY ถูกแล้ว
+2. **margin ไม่ใช่ปัญหา** (แก้จากฉบับแรกที่บอกว่า BTCUSDc ไม่มีเลเวอเรจ)
+   - BTC/ETH ได้ 1:400 จริง
+   - margin สูงสุดเมื่อไม้ทุกชุดเปิดซ้อนกัน 1.38% ของทุน (`mt5/margin_need.py`)
+3. **ต้นทุนจริง:**
+   - spread จริงของ Cent (bp): XAU 0.58 · XAG 4.60 · BTC 1.28 · ETH 4.03 · USDJPY 0.64 ต่ำกว่าโมเดลทุกตลาด
+   - swap ดูข้อ 3.5 (ความไม่แน่นอนหลักของ G27K-F)
+   - EA ไม้ M30 ใน Strategy Tester 2023–26: net R บนไม้ที่จับคู่ได้ +0.190 เทียบวิจัย +0.207
+4. **บัญชีจริงของผู้ใช้:** Standard Cent 10,000 USC ($100) + $100 ต่อเดือน
+   - lot ต่ำสุดของ USDJPYc เท่ากับเสี่ยง 10.1% บน 10,000 USC
+   - ทุนขั้นต่ำถ้ารวม USDJPY (มีเบรก) $2,022 · ถ้าไม่รวม $154
+5. **EA:**
+   - G27K: `MQL5/Experts/G27K/G27K_Trend.mq5` (branch `claude/g27k-lot-rounding`) ยังไม่มีกฎ Fed
+   - ไม้ M30: `MQL5/Experts/G27K/G27K_M30.mq5` (branch `claude/mt5-handoff-tasks`)
+     - BTC ตรงกับงานวิจัยทศนิยมสามตำแหน่ง
+     - ทองและเงินไม่ตรง
+       - ทอง: cache M1 ของ Dukascopy ขาด 464 วันทำการ (กำลังเติมและสร้างใหม่)
+       - เงิน: ข้อมูลครบ น่าจะเป็นเพราะแหล่งราคาต่างกัน
 6. **ข้อมูล M1 ไม่อยู่ใน git:** ต้องโหลดใหม่ตามข้อ 7 ถ้าต้องการให้ push เป็น data branch ต้องแบ่งไฟล์ BTC/ETH ให้เล็กกว่า 100 MB ก่อน
 7. **ไม่ใช่คำแนะนำการลงทุน:** ผลทั้งหมดเป็นการจำลองย้อนหลัง

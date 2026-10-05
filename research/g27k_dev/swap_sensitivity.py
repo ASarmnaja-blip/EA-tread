@@ -5,7 +5,7 @@ The research charges swap as a fixed fraction of the position per night
 (bp per night, taken from today's Exness swap points at today's price, see
 research/bundle/broker_specs.py) in every year. Exness charges swap in
 points per lot, which it resets from interest rates and price, so neither
-"today's bp" nor "today's points" is history. Three cases on the hand-off
+"today's bp" nor "today's points" is history. Four cases on the hand-off
 trades (handoff/trades_*.csv.gz):
 
   A  as published: today's bp in every year
@@ -17,6 +17,8 @@ trades (handoff/trades_*.csv.gz):
      margin m solved from today's swap (per year = bp * 365);
      crypto, USDJPY and JP225 as A (crypto swap is a broker rate, not a
      rate differential; USDJPY long is 0 today and JP225 0)
+  D  C for metals, B for crypto (crypto swap as today's points, as the
+     tester charges it); the middle case
 
 Accounts: G27K-F, G27K-F + M30 and G27K-F + M30 + H1 at 1% + brake (sleeves
 0.5%), Cent and Standard, 2011-09..2026-09, same simulator as the reports.
@@ -40,6 +42,7 @@ import walkforward_controller as W
 
 START, END = "2011-09-01", "2026-10-01"
 METALS = ("XAUUSD", "XAGUSD")
+CRYPTO = ("BTCUSD", "ETHUSD")
 COMBOS = {"F": ("F",), "F_M30": ("F", "M30"), "F_M30_H1": ("F", "M30", "H1")}
 
 
@@ -66,9 +69,13 @@ def recost(T, now, y, case):
     for b, x in T.items():
         x = x.copy()
         f = np.ones(len(x))
+        pts = x.market.map(now).to_numpy() / x.entry_price.to_numpy()
         if case == "B":
-            f = x.market.map(now).to_numpy() / x.entry_price.to_numpy()
-        elif case == "C":
+            f = pts
+        elif case in ("C", "D"):
+            if case == "D":
+                k = x.market.isin(CRYPTO).to_numpy()
+                f[k] = pts[k]
             ys = ((y.index - pd.Timestamp("1970-01-01", tz="UTC")) // pd.Timedelta("1s")).to_numpy(np.int64)
             j = np.searchsorted(ys, x.t.to_numpy(), side="right") - 1          # last published yield at or before the entry
             yt = np.where(j >= 0, y.to_numpy()[np.maximum(j, 0)], np.nan)
@@ -112,7 +119,7 @@ def main():
         print(f"  {m}: swap long today {C.SPECS[m]['swap_long_bp']:.3f} bp/night = {per_year:.2%}/yr, US 2y today {y_today:.2%} -> broker margin {MARGIN[m]:.2%}/yr", flush=True)
     news = NS.W.news_times(a.root)
     res = {}
-    for case in ("A", "B", "C"):
+    for case in ("A", "B", "C", "D"):
         TT = recost(T, now, y, case)
         res[case] = {"R_per_trade": {b: float(TT[b].R.mean()) for b in TT}}
         print(f"  case {case}: R per trade " + "  ".join(f"{b} {TT[b].R.mean():+.3f}" for b in TT), flush=True)
