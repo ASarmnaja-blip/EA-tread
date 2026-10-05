@@ -408,12 +408,26 @@ void TryClose(const int i, const string why)
    ClearTrade(i);
   }
 
-//--- the research holds bars e..e+29 and exits at the open of bar e+30
-void CheckTimeExit(const int i, const MqlRates &r[])
+//--- the research holds bars e..e+29 and exits at the open of bar e+30. It counts BARS, so the entry bar has to be found in the
+//--- series: dividing elapsed time by the bar length counts clock slots instead, and a market that closes has fewer bars than slots.
+void CheckTimeExit(const int i, const MqlRates &r[], const int got)
   {
    if(!PositionSelectByTicket(g_s[i].pos) || g_s[i].entryBar <= 0)
       return;
-   int held = (int)((r[0].time - g_s[i].entryBar) / PeriodSeconds(RULE_TF));
+   int held = -1;
+   for(int k = 0; k < got; k++)
+      if(r[k].time == g_s[i].entryBar)
+        {
+         held = k;                                  // r[0] is the current bar, so k bars have passed since entry
+         break;
+        }
+   if(held < 0)
+     {
+      if(r[got - 1].time > g_s[i].entryBar)         // entry bar older than the window: far past the limit
+         held = HOLD_BARS;
+      else
+         return;                                    // history not ready yet
+     }
    if(held >= HOLD_BARS)
      {
       g_s[i].pendingExit = true;
@@ -560,7 +574,7 @@ void ProcessSymbol(const int i)
    if(got < EXT_BARS + ATR_SLOW + ATR_FAST + 3 || r[0].time != t0)
       return;
    if(g_s[i].pos != 0)
-      CheckTimeExit(i, r);
+      CheckTimeExit(i, r, got);
    else
       CheckEntry(i, r);
    g_s[i].lastBar = t0;
