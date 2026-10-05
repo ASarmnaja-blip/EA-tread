@@ -126,6 +126,14 @@ void LogHeader()
    FileClose(h);
   }
 
+//--- the note is the last field and free text, so no comma may survive in it
+string Clean(const string s)
+  {
+   string out = s;
+   StringReplace(out, ",", ";");
+   return out;
+  }
+
 void Row(const string ev, const string sym, const string dir, const string sigbar, const string close, const string ext,
          const string brk, const string atr14, const string ratio, const string atr20, const string htf, const string lots,
          const string entry, const string stop, const string tp, const string bid, const string ask, const string fill,
@@ -140,7 +148,7 @@ void Row(const string ev, const string sym, const string dir, const string sigba
                    close + "," + ext + "," + brk + "," + atr14 + "," + ratio + "," + atr20 + "," + htf + "," +
                    D(AccountInfoDouble(ACCOUNT_BALANCE), 2) + "," + riskpct + "," + lots + "," + entry + "," + stop + "," + tp + "," +
                    bid + "," + ask + "," + fill + "," + slip + "," + xp + "," + bars + "," + r + "," + money + "," + delay + "," +
-                   margin + "," + note + "\r\n");
+                   margin + "," + Clean(note) + "\r\n");
    FileClose(h);
   }
 
@@ -409,7 +417,7 @@ void CheckTimeExit(const int i, const MqlRates &r[])
    if(held >= HOLD_BARS)
      {
       g_s[i].pendingExit = true;
-      TryClose(i, "held " + IntegerToString(held) + " bars, the research closes at the open of bar " + IntegerToString(HOLD_BARS));
+      TryClose(i, "held " + IntegerToString(held) + " bars; the research closes at the open of bar " + IntegerToString(HOLD_BARS));
      }
   }
 
