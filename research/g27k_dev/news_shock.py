@@ -13,6 +13,7 @@ import sys
 
 import numpy as np
 import pandas as pd
+from pandas.tseries.holiday import USFederalHolidayCalendar
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -55,8 +56,10 @@ def fed_shocks(root):
     ch = v.diff()
     sd = ch.rolling(250, min_periods=120).std().shift(1)
     days = ch[ch >= 2 * sd].index
-    # H.15 posts day d's yields at ~16:15 ET on the next business day; usable from 22:00 UTC that day (no weekend/holiday look-ahead)
-    pub = [(t + pd.offsets.BDay(1)).tz_localize("UTC") + pd.Timedelta(hours=22) for t in days]
+    # H.15 posts day d's yields at ~16:15 ET on the next business day; usable from 22:00 UTC that day. US federal holidays are
+    # skipped too (a plain BDay put 8 of 192 publications on a holiday, one day before the data existed)
+    nb = pd.offsets.CustomBusinessDay(calendar=USFederalHolidayCalendar())
+    pub = [(t + nb).tz_localize("UTC") + pd.Timedelta(hours=22) for t in days]
     return np.array(sorted(int(x.timestamp()) for x in pub))
 
 

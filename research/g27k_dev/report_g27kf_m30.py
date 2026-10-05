@@ -306,10 +306,10 @@ def main():
         nd = NEAR_TH[hspec["near"]].format(1 - hspec["thr"] if hspec["near"] == "pos250" else -hspec["thr"])
         h1_desc = (f"แท่ง H1 {nd} ในทิศที่เทรด" + (f" + ATR14/ATR100 ≥ {hspec['vol']:g}" if hspec["vol"] is not None else "")
                    + {"htf1_with": " + TF ใหญ่ (D1) ไปทางเดียวกัน", "ema20_50>=0": " + EMA20 อยู่ฝั่งเดียวกับ EMA50", "-": ""}[hspec["ctx"]]
-                   + (" · เทรดทั้งสองทาง" if hspec["dir"] == "both" else " · ซื้ออย่างเดียว") + {"tp2": " · ทำกำไรที่ 2R", "t6": " · ปิดเมื่อครบ 6 แท่ง", "ch20": " · ออกตาม channel 20"}[hspec["exit"]])
+                   + (" · เทรดทั้งสองทาง" if hspec["dir"] == "both" else " · ซื้ออย่างเดียว") + {"tp2": " · ทำกำไรที่ 2R หรือปิดเมื่อครบ 30 แท่ง", "t6": " · ปิดเมื่อครบ 6 แท่ง", "ch20": " · ออกตาม channel 20"}[hspec["exit"]])
     summary = ("<ul class='cmp-sum'>"
                f"<li><b>ไม้ M30</b> = รูปแบบที่ผ่านการค้นแบบบีบให้แคบ: แท่ง M30 ปิดใกล้จุดสูง 55 แท่ง (ไม่เกิน 1 ATR) + ความผันผวน 14 แท่งสูงกว่า 100 แท่ง 1.5 เท่า + TF ใหญ่ไปทางเดียวกัน "
-               f"เทรดทั้งสองทาง ทำกำไรที่ 2R · {' '.join(THS[m] for m in smk)} · {len(sr):,} ไม้ เฉลี่ย {sr.mean():+.3f}R · เปิดเป็นไม้แยก ความเสี่ยง 0.5% ต่อไม้</li>"
+               f"เทรดทั้งสองทาง ทำกำไรที่ 2R หรือปิดเมื่อครบ 30 แท่ง · {' '.join(THS[m] for m in smk)} · {len(sr):,} ไม้ เฉลี่ย {sr.mean():+.3f}R · เปิดเป็นไม้แยก ความเสี่ยง 0.5% ต่อไม้</li>"
                + (f"<li><b>ไม้ H1</b> = ค้นด้วยขั้นตอนเดียวกับ M30: {h1_desc} · {' '.join(THS[m] for m in hmk)} · {len(hr):,} ไม้ เฉลี่ย {hr.mean():+.3f}R · ไม้แยกอีกชุด ความเสี่ยง 0.5% ต่อไม้</li>" if hmk else "")
                + "".join(f"<li><b>G27K-F {VERS[v]}</b>: " + " · ".join(f"{SYS[s][0]} {E[s + v]['cagr']:.1%} ต่อปี DD {eq(s + v):.0%}" for s in SYS) + "</li>" for v in VCONF)
                + (a.verdict or "<li><b>ผลการทดสอบที่ลงทะเบียนไว้: ยังไม่รับเข้าใช้</b> · ดีขึ้นทั้งสองบัญชีในสภาพปกติและทั้งสองช่วงเวลา แต่ Standard แย่ลงเมื่อทุกไม้แย่ลง 0.10R "
@@ -346,7 +346,7 @@ def main():
               + "".join(f" · ไม้ {b} 0.5%" for b in bk) for v, (k, ver) in VCONF.items()}
         risk = rn["r1b"]
         m30r = ["ไม้ M30 (แยกจาก G27K-F): แท่ง M30 ปิดไม่เกิน 1 ATR จาก High/Low 55 แท่งในทิศที่เทรด + ATR14/ATR100 ≥ 1.5 + TF ใหญ่ไปทางเดียวกัน · "
-                f"ซื้อหรือขายตามทิศนั้น · SL 2 × ATR20 (M30) · TP 2R · {' '.join(THS[BASE(u)] for u in slv[s] if BOOK(u) == 'M30')} · ความเสี่ยง 0.5% ต่อไม้"] if "M30" in bk else []
+                f"ซื้อหรือขายตามทิศนั้น · SL 2 × ATR20 (M30) · TP 2R · ถ้าครบ 30 แท่งยังไม่ชน SL/TP ปิดที่ราคาเปิดแท่งถัดไป · {' '.join(THS[BASE(u)] for u in slv[s] if BOOK(u) == 'M30')} · ความเสี่ยง 0.5% ต่อไม้"] if "M30" in bk else []
         if "H1" in bk:
             m30r.append(f"ไม้ H1 (แยกจาก G27K-F และ M30): {h1_desc} · SL 2 × ATR20 (H1) · {' '.join(THS[BASE(u)] for u in slv[s] if BOOK(u) == 'H1')} · ความเสี่ยง 0.5% ต่อไม้")
         info[s] = dict(label=f"{label}", tab=label, rules=g_rules + m30r + [f"ตลาด: {', '.join(ms)}"], notes=[f"<b>{acct}</b>", risk],
