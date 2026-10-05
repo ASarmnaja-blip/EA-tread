@@ -7,7 +7,7 @@
 //|     high-low range of the 250 bars before it                      |
 //|   - ATR14 / mean(ATR14, 100) >= 1.25, D1 agrees                   |
 //|   - stop 2 x ATR20, target 2R, time exit at the open of bar e+30  |
-//|   - 0.5 % of balance per trade                                    |
+//|   - 1 % of balance per trade (InpRiskPct; the research ran 0.5 %)  |
 //+------------------------------------------------------------------+
 #property copyright   "EA-tread"
 #property version     "1.10"

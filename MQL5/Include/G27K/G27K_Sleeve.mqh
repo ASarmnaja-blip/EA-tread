@@ -23,7 +23,7 @@
 //|   - time exit: hold bars e..e+29, close at the open of bar e+30    |
 //|   - one position per market, and a signal bar must come after the  |
 //|     bar in which the last trade ended (no_overlap: s > exit bar)   |
-//|   - InpRiskPct (0.5 %) of balance per trade, never reduced         |
+//|   - InpRiskPct (1 %, the research ran 0.5 %) of balance per trade  |
 //|  Real-money accounts: no orders unless InpAllowRealAccount=true.   |
 //+------------------------------------------------------------------+
 #include <Trade/Trade.mqh>
@@ -49,7 +49,7 @@ enum ENUM_MARKET_SET
 
 input ENUM_MARKET_SET InpMarketSet        = SET_STD4;
 input string          InpCustomSymbols    = "";
-input double          InpRiskPct          = 0.5;    // % of balance per trade
+input double          InpRiskPct          = 1.0;    // % of balance per trade (operator 2026-10-05: 1 %; the research ran 0.5 %)
 input long            InpMagic            = DEF_MAGIC;
 input int             InpMaxEntryDelayMin = DEF_DELAY;  // skip an entry if the new bar began longer ago (EA was offline)
 input bool            InpAllowRealAccount = false;  // false: on a real-money account signals are logged, no orders
@@ -745,7 +745,9 @@ int OnInit()
       list += (i > 0 ? " " : "") + g_s[i].name;
    LogSimple("START", "", "book " + BOOK_NAME + "; markets " + list + "; risk " + D(InpRiskPct, 2) + "%; account " +
              IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + " " + AccountInfoString(ACCOUNT_SERVER) + " " +
-             AccountInfoString(ACCOUNT_CURRENCY) + "; orders " + (g_canTrade ? "on" : "off"));
+             AccountInfoString(ACCOUNT_CURRENCY) + "; orders " + (g_canTrade ? "on" : "off") +
+             "; algo trading: terminal " + (TerminalInfoInteger(TERMINAL_TRADE_ALLOWED) ? "on" : "OFF") +
+             ", this EA " + (MQLInfoInteger(MQL_TRADE_ALLOWED) ? "on" : "OFF"));
    EventSetTimer(g_tester ? 30 : MathMax(1, InpTimerSec));
    return INIT_SUCCEEDED;
   }

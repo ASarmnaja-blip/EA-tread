@@ -6,7 +6,7 @@
 //|     of the 55 bars before it                                      |
 //|   - ATR14 / mean(ATR14, 100) >= 1.5, D1 agrees                    |
 //|   - stop 2 x ATR20, target 2R, time exit at the open of bar e+30  |
-//|   - 0.5 % of balance per trade                                    |
+//|   - 1 % of balance per trade (InpRiskPct; the research ran 0.5 %)  |
 //|  1.10: a signal bar must come after the bar the last trade ended  |
 //|  in (the research's no_overlap); long and short each get their own|
 //|  D1 check.                                                        |

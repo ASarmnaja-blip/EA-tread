@@ -1494,7 +1494,9 @@ int OnInit()
              AccountInfoString(ACCOUNT_SERVER) + " " + AccountInfoString(ACCOUNT_CURRENCY) + "; orders " + (g_canTrade ? "on" : "off") +
              "; risk " + D(InpRiskPct, 2) + "%; brake " + (InpBrake ? "on" : "off") +
              "; news " + (g_useApi ? "calendar" : (g_useFile ? "file" : "off")) +
-             "; Fed rule " + (g_fedOn ? (g_fedWeb ? "download: " : "file: ") + FedSummary() : "OFF"));
+             "; Fed rule " + (g_fedOn ? (g_fedWeb ? "download: " : "file: ") + FedSummary() : "OFF") +
+             "; H4 bars from " + IntegerToString(InpH4StartHour) + ":00 UTC; algo trading: terminal " +
+             (TerminalInfoInteger(TERMINAL_TRADE_ALLOWED) ? "on" : "OFF") + ", this EA " + (MQLInfoInteger(MQL_TRADE_ALLOWED) ? "on" : "OFF"));
    EventSetTimer(g_tester ? 60 : MathMax(1, InpTimerSec));
    return INIT_SUCCEEDED;
   }
