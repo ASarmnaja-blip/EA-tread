@@ -1,0 +1,340 @@
+{
+ "created": "2026-09-19T14:43:31Z",
+ "git": {
+  "commit": "09ebfc1c8907fc05b9cb84e327d9fe264c936fbd",
+  "dirty": true,
+  "branch": "claude/order-position-choch-gab-im08db"
+ },
+ "data": {
+  "AUDCAD_H1_2012_2026.parquet": {
+   "sha256": "2fc1918a67f49c9e093f95f2f1adb6cb03b2e34143c2e0875eb2126e6316d6e2",
+   "bytes": 4192060,
+   "mtime": "2026-09-14T17:41:41.497640+00:00"
+  },
+  "AUDJPY_H1_2012_2026.parquet": {
+   "sha256": "22df1bcffd4704a11eb6dfc8f05aa310a9485c7141d15ea7c494507e01993241",
+   "bytes": 3980770,
+   "mtime": "2026-09-14T15:53:28.741254+00:00"
+  },
+  "AUDNZD_H1_2012_2026.parquet": {
+   "sha256": "0f864ed7b21ce68d55afbc8a4931c33557386a153337cf01b4169cba6bab52f8",
+   "bytes": 3162230,
+   "mtime": "2026-09-14T17:31:18.569603+00:00"
+  },
+  "AUDUSD_H1_2003_2026.parquet": {
+   "sha256": "240dd03bd5471fd236f7e0f50f369838140f20ccfc3c2307bcc083592e35e7fd",
+   "bytes": 6614434,
+   "mtime": "2026-09-13T12:54:33.816206+00:00"
+  },
+  "CADJPY_H1_2012_2026.parquet": {
+   "sha256": "8dd640b11735e2791c04a360aa45b96671b2d6d542fe4cae07b37257a59c77fe",
+   "bytes": 4064938,
+   "mtime": "2026-09-14T16:17:02.037338+00:00"
+  },
+  "CHFJPY_H1_2012_2026.parquet": {
+   "sha256": "5c24c29a1d55cd217e20e9fb5104e4905c08730cf1032b9364bf1a0fac31b22d",
+   "bytes": 4740922,
+   "mtime": "2026-09-14T16:05:06.157295+00:00"
+  },
+  "EURAUD_H1_2012_2026.parquet": {
+   "sha256": "ef5f147d6c5263fc9f791414f064cd77aabdc362c56566862f0f0b1ac60f978d",
+   "bytes": 5442475,
+   "mtime": "2026-09-14T17:04:35.161508+00:00"
+  },
+  "EURCAD_H1_2012_2026.parquet": {
+   "sha256": "cd1a088cd2960edf948c6994e12417a1bdda0a921968244c8d2cfb20f66ab96c",
+   "bytes": 4427571,
+   "mtime": "2026-09-14T17:17:11.049553+00:00"
+  },
+  "EURCHF_H1_2012_2026.parquet": {
+   "sha256": "3d51fdc39d85c7c729a5b2aeec863b02cf1f546f448e654c7b9d0de23b30299c",
+   "bytes": 4178220,
+   "mtime": "2026-09-14T16:54:54.661473+00:00"
+  },
+  "EURGBP_H1_2012_2026.parquet": {
+   "sha256": "76c48e41e879543c65efc8d1c7e6cb1b72a1656bf64a268aa01ace88aa87d2ca",
+   "bytes": 3519320,
+   "mtime": "2026-09-14T16:41:16.529425+00:00"
+  },
+  "EURJPY_H1_2012_2026.parquet": {
+   "sha256": "ccd967aa888028d97a3d9a681d64518ecfd76d74cdf1e26f21bda9d9eec3b5ef",
+   "bytes": 4028268,
+   "mtime": "2026-09-14T15:31:05.261174+00:00"
+  },
+  "EURJPY_H1_2019_2019.parquet": {
+   "sha256": "4f56fe78c9d089d0156dcf7dec33c287d085a326fd785f2c79cd2078067b878e",
+   "bytes": 366412,
+   "mtime": "2026-09-14T15:16:10.289121+00:00"
+  },
+  "EURUSD_H1_2003_2026.parquet": {
+   "sha256": "3c77446c21a6f721a6573ee273b9c2b2512ae564af796acad0991bb4a40496e5",
+   "bytes": 7277380,
+   "mtime": "2026-09-13T12:01:35.988187+00:00"
+  },
+  "GBPAUD_H1_2012_2026.parquet": {
+   "sha256": "b070ba3ba7d125500cb89bf7a6e58e4561ce52e545d4bc296000ec6cce4a0305",
+   "bytes": 5289252,
+   "mtime": "2026-09-14T18:03:36.509718+00:00"
+  },
+  "GBPCHF_H1_2012_2026.parquet": {
+   "sha256": "e359cf0dd2d085c98b2921317d77a89ed49895eda03655f609f287f6e028d0c3",
+   "bytes": 5142479,
+   "mtime": "2026-09-14T17:50:08.517670+00:00"
+  },
+  "GBPJPY_H1_2012_2026.parquet": {
+   "sha256": "d26579e08a234ff412000a1308fb0d18b618be3f0c7c55b98b01174b34e85bf9",
+   "bytes": 4936617,
+   "mtime": "2026-09-14T15:43:16.981218+00:00"
+  },
+  "GBPUSD_H1_2003_2026.parquet": {
+   "sha256": "1866bfa7d9450944447823b31f007d0160fa0be83ff6010bcaaaf9b3ff21f745",
+   "bytes": 7559567,
+   "mtime": "2026-09-13T12:19:17.832193+00:00"
+  },
+  "NZDJPY_H1_2012_2026.parquet": {
+   "sha256": "b7f2eb546cede8ed58d3e6c52f5f65bd317addf0dbe723ab3a2048ec083825ce",
+   "bytes": 4187448,
+   "mtime": "2026-09-14T16:28:43.093380+00:00"
+  },
+  "NZDUSD_H1_2003_2026.parquet": {
+   "sha256": "aa33ba9d2b5eaa856acd168224318183e725fb41e8a1519b43597a7af2ec085e",
+   "bytes": 6189965,
+   "mtime": "2026-09-13T16:18:22.344281+00:00"
+  },
+  "USDCAD_H1_2003_2026.parquet": {
+   "sha256": "b7c89d032b1b9fac27a89110879c82f6bb1a083fd8179587057afb1c064e4f84",
+   "bytes": 6702097,
+   "mtime": "2026-09-13T16:00:17.360274+00:00"
+  },
+  "USDCHF_H1_2003_2026.parquet": {
+   "sha256": "7e3b7c1afbd26e110a332d5c920995b7e1ed553a35b2668d2ebdb318a561ea9a",
+   "bytes": 6942513,
+   "mtime": "2026-09-13T13:12:10.680212+00:00"
+  },
+  "USDJPY_H1_2003_2026.parquet": {
+   "sha256": "432ebeba1bf63e5d498ed5635cfc1d3de5b48855f771c940e5913c5ee4a25120",
+   "bytes": 6480684,
+   "mtime": "2026-09-13T12:35:44.760199+00:00"
+  },
+  "USDSEK_H1_2003_2026.parquet": {
+   "sha256": "a5b05158da9af9abaa50618e1792e04947e5273f01e6eda6bfa7134d1d24bbbd",
+   "bytes": 10977507,
+   "mtime": "2026-09-13T16:52:28.936293+00:00"
+  },
+  "XAGUSD_H1_2003_2026.parquet": {
+   "sha256": "b2d6e6d9a0256b6c9d78795fdc69b930700d5cb4581234a383348c7796662643",
+   "bytes": 5081235,
+   "mtime": "2026-09-13T11:42:42.240180+00:00"
+  },
+  "XAUUSD_H1_2003_2026.parquet": {
+   "sha256": "ae710b32d3326c2eb3c199d631dad6b81e12c8f766efb3c4c808283498dee2be",
+   "bytes": 9419126,
+   "mtime": "2026-09-12T11:38:54.185326+00:00"
+  }
+ },
+ "checks": [
+  {
+   "stage": "engineering_audit",
+   "path": "blocking",
+   "ok": true,
+   "expected": 1,
+   "got": 1,
+   "tol": 0
+  },
+  {
+   "stage": "engineering_audit",
+   "path": "checks.13.passed",
+   "ok": true,
+   "expected": true,
+   "got": true,
+   "tol": 0
+  },
+  {
+   "stage": "weekend_contamination",
+   "path": "per_market.0.flat_share",
+   "ok": true,
+   "expected": 0.3088,
+   "got": 0.31009869066495555,
+   "tol": 0.002
+  },
+  {
+   "stage": "weekend_contamination",
+   "path": "gold_after.gate_rejection.Mon",
+   "ok": true,
+   "expected": 0.535,
+   "got": 0.5354726464334042,
+   "tol": 0.01
+  },
+  {
+   "stage": "hierarchy_restate",
+   "path": "worst_geometry_gap",
+   "ok": true,
+   "expected": 0.0,
+   "got": 3.783597138235633e-13,
+   "tol": 1e-09
+  },
+  {
+   "stage": "direction_target",
+   "path": "cleared",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "reversal_mechanism",
+   "path": "add_over_fade.t",
+   "ok": true,
+   "expected": 5.96,
+   "got": 5.962743883231988,
+   "tol": 0.5
+  },
+  {
+   "stage": "reversal_mechanism",
+   "path": "lag_retained",
+   "ok": true,
+   "expected": 0.58,
+   "got": 0.5800085179353651,
+   "tol": 0.05
+  },
+  {
+   "stage": "timeframe_ratio",
+   "path": "economics.slope",
+   "ok": true,
+   "expected": 0.233,
+   "got": 0.2333428657208412,
+   "tol": 0.02
+  },
+  {
+   "stage": "intraday_window",
+   "path": "viable",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "fresh_market_batch",
+   "path": "beat_cost",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "expanded_discovery",
+   "path": "unconditional_path.1.p",
+   "ok": true,
+   "expected": 0.5008,
+   "got": 0.5008241808682503,
+   "tol": 0.003
+  },
+  {
+   "stage": "expanded_discovery",
+   "path": "unconditional_path.1.breakeven",
+   "ok": true,
+   "expected": 0.5289,
+   "got": 0.5288989927239318,
+   "tol": 0.003
+  },
+  {
+   "stage": "straddle_validation",
+   "path": "survives",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "straddle_intrabar",
+   "path": "per_state.dislocation 2.0 ATR.stopped_share",
+   "ok": true,
+   "expected": 1.0,
+   "got": 1.0,
+   "tol": 1e-09
+  },
+  {
+   "stage": "straddle_intrabar",
+   "path": "per_state.dislocation 2.0 ATR.share_profitable",
+   "ok": true,
+   "expected": 0.0,
+   "got": 0.0,
+   "tol": 1e-09
+  },
+  {
+   "stage": "passive_execution",
+   "path": "viable",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "cheap_corner",
+   "path": "viable",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "financing_closure",
+   "path": "closed",
+   "ok": true,
+   "expected": true,
+   "got": true,
+   "tol": 0
+  },
+  {
+   "stage": "reversal_anatomy",
+   "path": "regression.beta_atr",
+   "ok": true,
+   "expected": 0.986,
+   "got": 0.9855420143435426,
+   "tol": 0.03
+  },
+  {
+   "stage": "reversal_anatomy",
+   "path": "regression.beta_spread",
+   "ok": true,
+   "expected": -0.103,
+   "got": -0.10295165823015545,
+   "tol": 0.03
+  },
+  {
+   "stage": "back_catalogue",
+   "path": "clear",
+   "ok": true,
+   "expected": 0,
+   "got": 0,
+   "tol": 0
+  },
+  {
+   "stage": "back_catalogue",
+   "path": "rank_corr_R_vs_edge",
+   "ok": true,
+   "expected": -0.05,
+   "got": -0.04825014947459375,
+   "tol": 0.1
+  },
+  {
+   "stage": "failure_distribution",
+   "path": "distribution.0.code",
+   "ok": true,
+   "expected": "COST_DOMINATED",
+   "got": "COST_DOMINATED",
+   "tol": 0
+  },
+  {
+   "stage": "failure_distribution",
+   "path": "hypotheses",
+   "ok": true,
+   "expected": 127,
+   "got": 127,
+   "tol": 0
+  }
+ ],
+ "reran": [],
+ "passed": 25,
+ "total": 25
+}

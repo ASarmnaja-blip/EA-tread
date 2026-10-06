@@ -1,0 +1,271 @@
+<title>ตลาดที่ถูกตัด</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (max 980px) — answer first, then the evidence chart, the market × year heatmap, the per-market table, the statistics. */
+:root {
+  --bg: #f4f6f8; --surface: #fcfcfb; --fg: #14181d; --muted: #5a626b; --line: #dbe0e5; --soft: #e9edf1;
+  --kept: #2a78d6; --drop: #eb6834;
+  --pos1: #d4e3f6; --pos2: #9cc2ee; --pos3: #5591dc; --pos4: #2463b4;
+  --neg1: #f7d9d2; --neg2: #eda797; --neg3: #da6650; --neg4: #a83a28; --mid: #f0efec;
+  --on-strong: #ffffff; --on-soft: #14181d;
+  --f-display: "Bai Jamjuree", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans Thai", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111316; --surface: #1a1c1f; --fg: #eef0f3; --muted: #a2a9b1; --line: #2d3238; --soft: #23272c;
+  --kept: #3987e5; --drop: #d95926;
+  --pos1: #22364d; --pos2: #2c5a8d; --pos3: #3c7fcf; --pos4: #7db1ef;
+  --neg1: #46292a; --neg2: #7d3a2e; --neg3: #b8513d; --neg4: #ec8f79; --mid: #383835;
+  --on-strong: #0f1114; --on-soft: #eef0f3; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #111316; --surface: #1a1c1f; --fg: #eef0f3; --muted: #a2a9b1; --line: #2d3238; --soft: #23272c;
+  --kept: #3987e5; --drop: #d95926;
+  --pos1: #22364d; --pos2: #2c5a8d; --pos3: #3c7fcf; --pos4: #7db1ef;
+  --neg1: #46292a; --neg2: #7d3a2e; --neg3: #b8513d; --neg4: #ec8f79; --mid: #383835;
+  --on-strong: #0f1114; --on-soft: #eef0f3; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.65 }
+.wrap { max-width: 980px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 56px; display: grid; gap: 22px }
+h1, h2 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.25 }
+h1 { font-size: clamp(26px, 4vw, 34px); font-weight: 700 }
+h2 { font-size: 20px; font-weight: 600 }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600 }
+.lede { max-width: 68ch; color: var(--muted); margin: 6px 0 0 }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: grid; gap: 12px; min-width: 0 }
+.answer { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none }
+.answer li { display: grid; grid-template-columns: 112px 1fr; gap: 12px; align-items: baseline }
+.answer b.k { font-family: var(--f-display); font-weight: 600 }
+.note { font-size: 13px; color: var(--muted); max-width: 75ch; margin: 0 }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); align-items: center }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px }
+.scroll { overflow-x: auto }
+svg text { fill: var(--muted); font-family: var(--f-body); font-size: 12px }
+svg .val { fill: var(--fg); font-family: var(--f-mono); font-size: 11.5px }
+svg .grid { stroke: var(--line); stroke-width: 1 }
+svg .zero { stroke: var(--muted); stroke-width: 1 }
+.hm { border-collapse: separate; border-spacing: 2px; font-size: 11.5px; font-family: var(--f-mono) }
+.hm th { font-family: var(--f-body); font-weight: 500; color: var(--muted); font-size: 12px; padding: 2px 4px; white-space: nowrap }
+.hm th.m { text-align: left; color: var(--fg); position: sticky; left: 0; background: var(--surface); z-index: 1 }
+.hm td { width: 40px; min-width: 40px; height: 24px; text-align: center; border-radius: 3px; cursor: default }
+.hm td.na { background: transparent }
+.hm tr.sep th, .hm tr.sep td { padding-top: 10px }
+.hm tr.gap td { height: 6px }
+.hm td:focus-visible, .hm td:hover { outline: 2px solid var(--fg); outline-offset: -1px }
+.tbl { border-collapse: collapse; width: 100%; font-size: 13.5px }
+.tbl th, .tbl td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap }
+.tbl th { color: var(--muted); font-weight: 500; font-size: 12.5px; vertical-align: bottom }
+.tbl th:first-child, .tbl td:first-child, .tbl td.l, .tbl th.l { text-align: left }
+.tbl td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums }
+.tbl tr.kept td { background: var(--soft) }
+.pos { color: var(--pos4) } .neg { color: var(--neg4) }
+.chip { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface) }
+.chip.keep { border-color: var(--kept); color: var(--kept) }
+.chip.weak { border-color: var(--pos3) }
+.sub { color: var(--muted); font-size: 12px }
+.filters { display: flex; flex-wrap: wrap; gap: 6px }
+.filters button { font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer }
+.filters button[aria-pressed="true"] { background: var(--fg); color: var(--surface); border-color: var(--fg) }
+.filters button:focus-visible { outline: 2px solid var(--kept); outline-offset: 2px }
+.cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px }
+.cats div { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 4px; min-width: 0 }
+.cats b { font-family: var(--f-display); font-weight: 600 }
+.cats span { font-size: 13px; color: var(--muted) }
+.stat { border-collapse: collapse; font-size: 14px }
+.stat td { padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line) }
+.stat td.n { text-align: right; font-family: var(--f-mono) }
+#tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; box-shadow: 0 6px 20px rgba(0,0,0,.14); z-index: 10; max-width: 260px; line-height: 1.5 }
+@media (max-width: 560px) { .answer li { grid-template-columns: 1fr; gap: 2px } .card { padding: 14px } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">G27K #1 · 44 ตลาด · ม.ค. 2012 – ก.ย. 2026 · หลังหักต้นทุน</div>
+    <h1>ตลาดที่ถูกตัด กลับมาเป็นบวกได้ไหม</h1>
+    <p class="lede">เราตัด 38 ตลาดออก เหลือ 6 ตลาด หน้านี้ดูว่าตลาดที่ตัดออกแพ้เพราะอะไร ราคาไม่วิ่ง หรือวิ่งแต่ไม่เป็นเทรนด์ หรือต้นทุนกิน และมีโอกาสกลับมาบวกได้แค่ไหน</p>
+  </header>
+
+  <section class="card">
+    <h2>คำตอบสั้น</h2>
+    <ul class="answer">
+      <li><b class="k">กลับมาบวกได้</b><span>เมื่อตลาดนั้นขึ้นแรงทั้งปี ตลาดที่ตัดออกก็ทำกำไรได้จริง ปีที่ราคาขึ้น 15–30% ได้ <span class="num">+0.33R</span> ต่อไม้ (t 4.7) ปีที่ขึ้นเกิน 30% ได้ <span class="num">+0.41R</span> (t 3.2)</span></li>
+      <li><b class="k">แต่เกิดไม่บ่อย</b><span id="ansFreq"></span></li>
+      <li><b class="k">ราคาวิ่งไม่พอ?</b><span>ส่วนหนึ่งใช่ แต่ไม่ใช่ความผันผวน ตลาดที่ตัดออกส่วนใหญ่ไม่มีทิศทางระยะยาว (ค่าเงินคู่หลักแทบไม่เคยขึ้นเกิน 15% ในปีเดียว) บางตลาดต้นทุนกินส่วนใหญ่ของ SL และดัชนีหุ้นขึ้นจริงแต่ขึ้นแบบสลับย่อ G27K ได้น้อย</span></li>
+      <li><b class="k">เปิดปิดตามปีไม่ได้</b><span>ไม่มีใครรู้ล่วงหน้าว่าปีไหนตลาดจะขึ้นแรง การทดลองเลือกตลาดรายปีจากผลปีก่อน (ทดสอบไปแล้วก่อนหน้า) ได้ 15.3% ต่อปี DD 38.7% แย่กว่าใช้ชุดเดิม</span></li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>กำไรต่อไม้ แยกตามว่าปีนั้นราคาเคลื่อนไหวแค่ไหน</h2>
+    <p class="note">ทุกไม้ของ G27K #1 จัดกลุ่มตามการเปลี่ยนแปลงของราคาในปีที่เปิดไม้ ตลาดที่ใช้อยู่ 6 ตัว เทียบกับ 38 ตลาดที่ตัดออก</p>
+    <div class="legend"><span><i style="background:var(--kept)"></i>ตลาดที่ใช้อยู่ (6)</span><span><i style="background:var(--drop)"></i>ตลาดที่ตัดออก (38)</span><span>R ต่อไม้หลังต้นทุน</span></div>
+    <div class="scroll"><svg id="bars" role="img" aria-label="R ต่อไม้ตามการเปลี่ยนแปลงราคารายปี"></svg></div>
+    <p class="note" id="barNote"></p>
+  </section>
+
+  <section class="card">
+    <h2>กำไรรายปีของแต่ละตลาด (รวม R ต่อปี)</h2>
+    <div class="legend" id="hmLegend"></div>
+    <div class="filters" role="group" aria-label="กลุ่มตลาด" id="hmFilter"></div>
+    <div class="scroll"><table class="hm" id="hm"></table></div>
+    <p class="note">แต่ละช่องคือผลรวม R ของปีนั้น (1R = เงินที่เสี่ยงต่อไม้) ชี้ที่ช่องเพื่อดูจำนวนไม้และราคาปีนั้นขึ้นลงเท่าไร ปี 2026 นับถึง ก.ย. · แพลทินัมและพัลลาเดียมมีข้อมูลตั้งแต่ปี 2021</p>
+  </section>
+
+  <section class="card">
+    <h2>ทำไมแต่ละตลาดถูกตัด</h2>
+    <div class="cats" id="cats"></div>
+    <div class="scroll"><table class="tbl" id="tbl"></table></div>
+    <p class="note">ปีขึ้นแรง = ปีที่ราคาขึ้นเกิน 15% · ต้นทุน/SL = spread + swap ต่อรอบเทียบกับระยะ SL (2×ATR20 H4) · 12 เดือนล่าสุด = ต.ค. 2025 – ก.ย. 2026</p>
+  </section>
+
+  <section class="card" id="last6">
+    <h2>6 ปีล่าสุด: ตลาดที่ใช้ เทียบตลาดที่ตัด</h2>
+    <p class="note">ต.ค. 2020 – ก.ย. 2026 · เปิดบัญชีใหม่ $100,000 · เวอร์ชันเบรก 25% · ช่วงนี้ทองและคริปโตเป็นขาขึ้นแรง และเป็นช่วงที่ใช้เลือกกฎ G27K #1 ตัวเลขของ 6 ตลาดจึงดีเกินจริง</p>
+    <div class="scroll"><table class="tbl" id="acct6"></table></div>
+    <div class="legend"><span><i style="background:var(--kept)"></i>ตลาดที่ใช้อยู่</span><span><i style="background:var(--drop)"></i>ตลาดที่ตัดออก</span><span>รวม R ใน 6 ปี</span></div>
+    <div class="scroll"><svg id="bars6" role="img" aria-label="รวม R 6 ปีล่าสุดของแต่ละตลาด"></svg></div>
+    <p class="note" id="note6"></p>
+  </section>
+
+  <section class="card">
+    <h2>หลักฐานทางสถิติ</h2>
+    <p class="note">ถดถอยกำไรเฉลี่ยต่อไม้รายปีของทุกตลาด (ถ่วงตามจำนวนไม้) กับสิ่งที่ตลาดเป็นในปีนั้น ค่า t คำนวณแบบสุ่มซ้ำทั้งตลาด (cluster bootstrap 1,000 รอบ)</p>
+    <div class="scroll"><table class="stat" id="reg"></table></div>
+    <p class="note">ตัวแปรตลาดที่ตัดออกติดลบ −0.29R แม้คุมการขึ้นลง ความเป็นเทรนด์ และต้นทุนแล้ว ตัวเลขนี้มีอคติในตัว เพราะเราเลือก 6 ตลาดจากผลของมันเอง จึงไม่ใช่หลักฐานว่าตลาดที่ตัดออกแย่โดยธรรมชาติ หลักฐานที่แข็งกว่าคือตัวแปร 3 ตัวแรก ซึ่งชี้ไปทางเดียวกันในทุกตลาด</p>
+  </section>
+  <p class="note">สร้างจาก research/g27k_dev/dropped_markets.py และ report_dropped.py · ข้อมูล Dukascopy H1 และ Binance · ต้นทุนตามสเปกโบรก (ตลาดใหม่บางตัวใช้ swap สมมติ)</p>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const D = /*DATA*/null;
+const $ = id => document.getElementById(id);
+const fmt = (v, d = 2) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d);
+const tip = $("tip");
+function showTip(e, html) { tip.innerHTML = html; tip.hidden = false; const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14; if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14; if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x + "px"; tip.style.top = y + "px"; }
+const hideTip = () => { tip.hidden = true; };
+
+// answer: how often dropped markets have a strong up year
+(() => { const b = D.bins, my = k => b.slice(4).reduce((s, x) => s + x[k].my, 0), all = k => b.reduce((s, x) => s + x[k].my, 0);
+  const d1 = my("dropped"), d0 = all("dropped"), k1 = my("kept"), k0 = all("kept");
+  $("ansFreq").innerHTML = `ตลาดที่ตัดออกมีปีขึ้นเกิน 15% แค่ <span class="num">${d1}</span> จาก <span class="num">${d0}</span> ปี-ตลาด (${Math.round(100 * d1 / d0)}%) ส่วนตลาดที่ใช้อยู่มี <span class="num">${k1}</span> จาก <span class="num">${k0}</span> (${Math.round(100 * k1 / k0)}%) ปีที่ทรงตัวหรือลง ตลาดที่ตัดออกเสียเฉลี่ย −0.19R ถึง −0.39R ต่อไม้ ซึ่งมีมากกว่าปีขึ้นแรงหลายเท่า`;
+})();
+
+// grouped bars
+(() => {
+  const svg = $("bars"), W = 900, H = 320, L = 52, R = 12, T = 16, B = 46;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.style.width = "100%"; svg.style.minWidth = "620px";
+  const lo = -0.5, hi = 1.25, y = v => T + (hi - v) / (hi - lo) * (H - T - B);
+  let s = "";
+  for (let v = -0.5; v <= 1.25 + 1e-9; v += 0.25) s += `<line class="${Math.abs(v) < 1e-9 ? "zero" : "grid"}" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${fmt(v, 2)}</text>`;
+  const n = D.bins.length, gw = (W - L - R) / n, bw = Math.min(30, gw * 0.3);
+  const bar = (x, v, cls) => { const y0 = y(0), y1 = y(v), top = Math.min(y0, y1), h = Math.max(1, Math.abs(y1 - y0)), r = Math.min(4, h, bw / 2);
+    // rounded on the data end only
+    return v >= 0 ? `M${x},${y0} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - r} Q${x + bw},${top} ${x + bw},${top + r} V${y0} Z`
+                  : `M${x},${y0} V${top + h - r} Q${x},${top + h} ${x + r},${top + h} H${x + bw - r} Q${x + bw},${top + h} ${x + bw},${top + h - r} V${y0} Z`; };
+  D.bins.forEach((b, i) => {
+    const cx = L + gw * i + gw / 2;
+    [["kept", -bw - 1, "var(--kept)"], ["dropped", 1, "var(--drop)"]].forEach(([k, dx, col]) => {
+      const v = b[k].R, x = cx + dx;
+      s += `<path d="${bar(x, v)}" fill="${col}" data-i="${i}" data-k="${k}" tabindex="0" style="cursor:default"/>`;
+      s += `<text class="val" x="${x + bw / 2}" y="${v >= 0 ? y(v) - 5 : y(v) + 14}" text-anchor="middle">${fmt(v, 2)}</text>`;
+    });
+    s += `<text x="${cx}" y="${H - B + 18}" text-anchor="middle">${b.bin}</text>`;
+  });
+  s += `<text x="${L + (W - L - R) / 2}" y="${H - 6}" text-anchor="middle">ราคาของตลาดนั้นในปีนั้น</text>`;
+  svg.innerHTML = s;
+  svg.querySelectorAll("path").forEach(p => { const b = D.bins[p.dataset.i], x = b[p.dataset.k];
+    const h = e => showTip(e, `<b>${b.bin}</b> · ${p.dataset.k === "kept" ? "ตลาดที่ใช้อยู่" : "ตลาดที่ตัดออก"}<br>R ต่อไม้ <b class="num">${fmt(x.R, 3)}</b> · t ${fmt(x.t, 1)}<br>${x.n.toLocaleString()} ไม้ · ${x.my} ปี-ตลาด`);
+    p.addEventListener("pointermove", h); p.addEventListener("pointerleave", hideTip);
+    p.addEventListener("focus", () => { const r = p.getBoundingClientRect(); h({ clientX: r.right, clientY: r.top }); }); p.addEventListener("blur", hideTip); });
+  const dr = D.bins.map(b => b.dropped);
+  $("barNote").textContent = `ตลาดที่ตัดออก: ลงแรง ${fmt(dr[0].R)}R (t ${fmt(dr[0].t, 1)}) · ทรงตัว ${fmt(dr[2].R)}R (t ${fmt(dr[2].t, 1)}) · ขึ้น 15–30% ${fmt(dr[4].R)}R (t ${fmt(dr[4].t, 1)}). กลไกเดียวกับตลาดที่ใช้อยู่ คือได้เมื่อขึ้นแรง เสียเมื่อทรงตัวหรือลง ต่างกันที่ตลาดที่ใช้อยู่เสียน้อยกว่ามากในปีที่ไม่ขึ้น`;
+})();
+
+// heatmap
+const STEPS = [[-20, "neg4"], [-10, "neg3"], [-4, "neg2"], [-1, "neg1"], [1, "mid"], [4, "pos1"], [10, "pos2"], [20, "pos3"], [Infinity, "pos4"]];
+const cellCol = v => { for (const [t, c] of STEPS) if (v < t) return c; return "pos4"; };
+(() => {
+  const leg = [["neg4", "≤ −20R"], ["neg3", "−20 ถึง −10"], ["neg2", "−10 ถึง −4"], ["neg1", "−4 ถึง −1"], ["mid", "±1"], ["pos1", "1 ถึง 4"], ["pos2", "4 ถึง 10"], ["pos3", "10 ถึง 20"], ["pos4", "≥ 20R"]];
+  $("hmLegend").innerHTML = leg.map(([c, t]) => `<span><i style="background:var(--${c})"></i>${t}</span>`).join("");
+  const groups = ["ทั้งหมด", "ค่าเงิน", "ดัชนีหุ้น", "สินค้าโภคภัณฑ์", "คริปโต"];
+  let G = "ทั้งหมด";
+  try { const s = localStorage.getItem("dropGroup"); if (groups.includes(s)) G = s; } catch (e) {}
+  const years = []; for (let y = 2012; y <= 2026; y++) years.push(y);
+  function render() {
+    $("hmFilter").innerHTML = groups.map(g => `<button type="button" aria-pressed="${g === G}" data-g="${g}">${g}</button>`).join("");
+    const rows = D.rows.filter(r => G === "ทั้งหมด" || r.grp === G);
+    let h = `<thead><tr><th class="m">ตลาด</th>${years.map(y => `<th>${String(y).slice(2)}</th>`).join("")}<th>รวม</th></tr></thead><tbody>`;
+    let sep = false;
+    rows.forEach((r, i) => {
+      if (!r.kept && !sep && i > 0) { h += `<tr class="gap"><td colspan="${years.length + 2}"></td></tr>`; sep = true; }
+      if (!r.kept && i === 0) sep = true;
+      const tot = Object.values(r.y).reduce((s, x) => s + x.s, 0);
+      h += `<tr><th class="m">${r.m}${r.kept ? " ●" : ""}</th>` + years.map(y => { const c = r.y[y];
+        if (!c) return `<td class="na"></td>`;
+        const col = cellCol(c.s), strong = /4|3/.test(col);
+        return `<td tabindex="0" data-m="${r.m}" data-y="${y}" style="background:var(--${col});color:var(${strong ? "--on-strong" : "--on-soft"})">${Math.round(c.s)}</td>`; }).join("")
+        + `<th class="num ${tot >= 0 ? "pos" : "neg"}">${fmt(tot, 0)}</th></tr>`;
+    });
+    $("hm").innerHTML = h + "</tbody>";
+    $("hm").querySelectorAll("td[data-m]").forEach(td => { const r = D.rows.find(x => x.m === td.dataset.m), c = r.y[td.dataset.y];
+      const f = e => showTip(e, `<b>${r.m}</b> ${r.th ? "(" + r.th + ") " : ""}· ${td.dataset.y}<br>รวม <b class="num">${fmt(c.s, 1)}R</b> จาก ${c.n} ไม้<br>ราคาทั้งปี ${fmt((Math.exp(c.mv) - 1) * 100, 0)}% · efficiency ${c.er.toFixed(3)}`);
+      td.addEventListener("pointermove", f); td.addEventListener("pointerleave", hideTip);
+      td.addEventListener("focus", () => { const b = td.getBoundingClientRect(); f({ clientX: b.right, clientY: b.top }); }); td.addEventListener("blur", hideTip); });
+  }
+  $("hmFilter").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; G = b.dataset.g; try { localStorage.setItem("dropGroup", G); } catch (x) {} render(); });
+  render();
+})();
+
+// categories and table
+(() => {
+  const CAT = { keep: ["ใช้อยู่", "6 ตลาดใน G27K ปัจจุบัน"], weak: ["บวกแต่อ่อน", "กำไรรวมบวก แต่ t ต่ำกว่า 2 และไม่ผ่านการตรวจคุณภาพ"],
+    cost: ["ต้นทุนกิน", "spread + swap กินเกิน 5.5% ของระยะ SL ทุกไม้"], flat: ["ไม่เคยขึ้นแรง", "15 ปีไม่มีปีไหนขึ้นเกิน 15% ราคาวนในกรอบ"],
+    chop: ["ขึ้นแต่ไม่เป็นเทรนด์", "มีปีขึ้นแรง แต่ G27K ได้น้อยแม้ในปีนั้น ขึ้นแบบสลับย่อ"], rare: ["ได้แค่ปีขึ้นแรง", "ปีขึ้นแรงได้ดี แต่เกิดน้อย ปีอื่นเสียมากกว่า"] };
+  const cnt = {}; D.rows.forEach(r => cnt[r.cat] = (cnt[r.cat] || 0) + 1);
+  $("cats").innerHTML = Object.entries(CAT).filter(([k]) => k !== "keep" && cnt[k]).map(([k, [t, s]]) =>
+    `<div><b>${t} · ${cnt[k]} ตลาด</b><span>${s}</span><span class="num">${D.rows.filter(r => r.cat === k).map(r => r.m).join(" ")}</span></div>`).join("");
+  const c = v => v > 0 ? "pos" : v < 0 ? "neg" : "";
+  $("tbl").innerHTML = `<thead><tr><th class="l">ตลาด</th><th class="l">กลุ่ม</th><th>ไม้</th><th>R/ไม้</th><th>t</th><th>ปีบวก</th><th>ปีขึ้นแรง</th><th>R/ไม้<br>ในปีขึ้นแรง</th><th>12 เดือน<br>ล่าสุด</th><th>ต้นทุน/SL</th><th class="l">สาเหตุ</th></tr></thead><tbody>`
+    + D.rows.map(r => `<tr class="${r.kept ? "kept" : ""}"><td><b>${r.m}</b>${r.th ? ` <span class="sub">${r.th}</span>` : ""}</td><td class="l sub">${r.grp}</td>
+      <td class="n">${r.n}</td><td class="n ${c(r.R)}">${fmt(r.R, 3)}</td><td class="n">${fmt(r.t, 1)}</td><td class="n">${r.pos}/${r.yrs}</td><td class="n">${r.up}</td>
+      <td class="n ${r.upR == null ? "" : c(r.upR)}">${r.upR == null ? "–" : fmt(r.upR, 2)}</td><td class="n ${c(r.l12)}">${fmt(r.l12, 1)}R</td>
+      <td class="n">${(r.cost * 100).toFixed(1)}%</td><td class="l"><span class="chip ${r.cat}">${r.catTh}</span></td></tr>`).join("") + "</tbody>";
+})();
+
+// regression
+(() => {
+  const nm = { move: "ราคาขึ้นลงทั้งปี (log)", er: "ความเป็นเทรนด์ (efficiency 20 วัน)", cost: "ต้นทุน / SL", drop: "เป็นตลาดที่ตัดออก", const: "ค่าคงที่" };
+  const mean = { move: "ขึ้นมากยิ่งได้มาก", er: "วิ่งทางเดียวยิ่งได้มาก", cost: "ต้นทุนสูงยิ่งเสีย", drop: "ยังแย่กว่าแม้คุมตัวแปรอื่น (มีอคติจากการเลือก)", const: "" };
+  $("reg").innerHTML = "<tbody>" + ["move", "er", "cost", "drop"].map(k => { const r = D.reg[k];
+    return `<tr><td>${nm[k]}</td><td class="n">${fmt(r.b, 2)}</td><td class="n">t ${fmt(r.t, 1)}</td><td class="sub">${mean[k]}</td></tr>`; }).join("") + "</tbody>";
+})();
+// last six years
+(() => {
+  const L6 = D.last6, c = v => v > 0 ? "pos" : v < 0 ? "neg" : "";
+  $("acct6").innerHTML = `<thead><tr><th class="l">พอร์ต</th><th>เงินสุดท้าย</th><th>ต่อปี</th><th>DD สูงสุด</th><th>MAR</th><th>ไม้</th>${[2021, 2022, 2023, 2024, 2025].map(y => `<th>${y}</th>`).join("")}</tr></thead><tbody>`
+    + Object.entries(L6.accounts).map(([k, a]) => `<tr class="${k.startsWith("6") ? "kept" : ""}"><td class="l">${k}</td><td class="n">$${Math.round(a.final * 100000).toLocaleString()}</td>
+      <td class="n ${c(a.cagr)}">${fmt(a.cagr * 100, 1)}%</td><td class="n">${(a.dd * 100).toFixed(1)}%</td><td class="n">${a.mar.toFixed(2)}</td><td class="n">${a.n.toLocaleString()}</td>
+      ${[2021, 2022, 2023, 2024, 2025].map(y => `<td class="n ${c(a.years[y])}">${fmt(a.years[y] * 100, 0)}%</td>`).join("")}</tr>`).join("") + "</tbody>";
+  const M = L6.markets, svg = $("bars6"), rowH = 17, L = 78, R = 56, T = 22, W = 900, H = T + M.length * rowH + 8;
+  const mx = Math.max(...M.map(m => Math.abs(m.s))), lo = -115, hi = 150, x = v => L + (v - lo) / (hi - lo) * (W - L - R);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.style.width = "100%"; svg.style.minWidth = "560px";
+  let s = "";
+  for (let v = -100; v <= 150; v += 25) s += `<line class="${v === 0 ? "zero" : "grid"}" x1="${x(v)}" x2="${x(v)}" y1="${T - 4}" y2="${H - 4}"/><text x="${x(v)}" y="${T - 8}" text-anchor="middle">${fmt(v, 0)}</text>`;
+  M.forEach((m, i) => { const y = T + i * rowH, x0 = x(0), x1 = x(m.s), a = Math.min(x0, x1), w = Math.max(1, Math.abs(x1 - x0));
+    s += `<text x="${L - 6}" y="${y + 12}" text-anchor="end" style="fill:var(--fg)">${m.m}</text>`;
+    s += `<rect x="${a}" y="${y + 3}" width="${w}" height="${rowH - 5}" rx="2" fill="var(${m.kept ? "--kept" : "--drop"})" data-i="${i}"/>`;
+    s += `<text class="val" x="${m.s >= 0 ? x1 + 5 : x1 - 5}" y="${y + 12}" text-anchor="${m.s >= 0 ? "start" : "end"}">${fmt(m.s, 0)}</text>`; });
+  svg.innerHTML = s;
+  svg.querySelectorAll("rect").forEach(r => { const m = M[r.dataset.i];
+    r.addEventListener("pointermove", e => showTip(e, `<b>${m.m}</b> · ${m.kept ? "ใช้อยู่" : "ตัดออก"}<br>รวม <b class="num">${fmt(m.s, 1)}R</b> · ${m.n} ไม้<br>R ต่อไม้ ${fmt(m.R, 3)} · t ${fmt(m.t, 1)}<br>ปีบวก ${m.pos}/${m.yrs}`));
+    r.addEventListener("pointerleave", hideTip); });
+  const g = L6.groups;
+  $("note6").textContent = `6 ตลาดที่ใช้: ${fmt(g.kept.R, 3)}R ต่อไม้ (t ${fmt(g.kept.t, 1)}) บวกครบ ${g.kept.pos_markets}/6 · 38 ตลาดที่ตัด: ${fmt(g.dropped.R, 3)}R ต่อไม้ (t ${fmt(g.dropped.t, 1)}) บวก ${g.dropped.pos_markets}/38 ตลาด ตัวที่บวกมากสุดได้แค่ +13R ใน 6 ปี`;
+})();
+</script>

@@ -1,0 +1,142 @@
+{
+ "created": "2026-09-19T13:23:39Z",
+ "symbol": "USDSEK",
+ "horizon": 3,
+ "cost": 1.105,
+ "unconditional": {
+  "n": 126392,
+  "edge": 0.074843933320999,
+  "t": 3.566537144575458,
+  "edge_mean_ratio": 0.11536453449828374,
+  "t_mean_ratio": 2.4285282122319654,
+  "sign_rate": 0.5153411608329641,
+  "net": -1.030156066679001,
+  "mean_move": 0.0003908853804038235,
+  "mean_spread": 0.005222672874865498,
+  "median_spread_atr": 0.20011528427664071,
+  "top_year_share": 0.12275217876163383,
+  "years_positive": 23,
+  "years": 23
+ },
+ "candidates": [
+  {
+   "candidate": "expand-quiet-cheap/1.5",
+   "panel": 2.631,
+   "n": 264,
+   "edge": -0.08699300699299675,
+   "t": -0.05482614476028695,
+   "skill_c7": 0.30453357285424487,
+   "beats_unconditional": false,
+   "beats_cost": false,
+   "top_year_share": 1.0,
+   "years_positive": 11,
+   "years": 19
+  },
+  {
+   "candidate": "expand-quiet-cheap/1.8",
+   "n": 118,
+   "edge": null
+  },
+  {
+   "candidate": "expand-quiet-cheap/1.2",
+   "panel": 2.212,
+   "n": 565,
+   "edge": -0.23428944161215948,
+   "t": -0.22940372361680758,
+   "skill_c7": -0.14430875991839365,
+   "beats_unconditional": false,
+   "beats_cost": false,
+   "top_year_share": 1.0,
+   "years_positive": 10,
+   "years": 19
+  },
+  {
+   "candidate": "expand-after-quiet/1.5-0.4",
+   "panel": 1.574,
+   "n": 155,
+   "edge": 0.36328476470136056,
+   "t": 0.9902922217515133,
+   "skill_c7": 0.2982647174568429,
+   "beats_unconditional": true,
+   "beats_cost": false,
+   "top_year_share": 0.2893855177644001,
+   "years_positive": 14,
+   "years": 22
+  },
+  {
+   "candidate": "expand-after-quiet/1.2-0.4",
+   "panel": 1.1,
+   "n": 381,
+   "edge": 0.2051777870706397,
+   "t": 0.8813619314419,
+   "skill_c7": 0.35051775063717705,
+   "beats_unconditional": true,
+   "beats_cost": false,
+   "top_year_share": 0.35534860194737977,
+   "years_positive": 14,
+   "years": 23
+  },
+  {
+   "candidate": "expand-after-quiet/1.8-0.6",
+   "panel": 0.934,
+   "n": 392,
+   "edge": 0.28949975322568844,
+   "t": 0.923996189060041,
+   "skill_c7": 0.08281389648694784,
+   "beats_unconditional": true,
+   "beats_cost": false,
+   "top_year_share": 0.22853280889435626,
+   "years_positive": 15,
+   "years": 22
+  },
+  {
+   "candidate": "expand-after-quiet/2.2-0.6",
+   "panel": 0.924,
+   "n": 168,
+   "edge": 0.20661696256400117,
+   "t": 0.4470837192247396,
+   "skill_c7": -0.009595466497877264,
+   "beats_unconditional": true,
+   "beats_cost": false,
+   "top_year_share": 0.5907234949816084,
+   "years_positive": 13,
+   "years": 21
+  },
+  {
+   "candidate": "exhaustion/follow",
+   "panel": 0.751,
+   "n": 493,
+   "edge": -0.14268577541731822,
+   "t": -0.20637695364925454,
+   "skill_c7": -0.11868818540217003,
+   "beats_unconditional": false,
+   "beats_cost": false,
+   "top_year_share": 1.0,
+   "years_positive": 11,
+   "years": 23
+  }
+ ],
+ "beat_unconditional": 4,
+ "beat_cost": 0,
+ "mean_edge": 0.08580157764845935,
+ "verdict": "SCATTERED - indistinguishable from the unconditional fade",
+ "manifest": {
+  "git": {
+   "commit": "70a568bc3c2b25b39c489a2d7fb1996e595ff27b",
+   "dirty": true,
+   "branch": "claude/order-position-choch-gab-im08db"
+  },
+  "config_hash": "fcd210dfe544ceb9",
+  "config": {
+   "horizon": 3,
+   "seed": 17
+  },
+  "data": {
+   "USDSEK_H1_2003_2026.parquet": {
+    "sha256": "a5b05158da9af9abaa50618e1792e04947e5273f01e6eda6bfa7134d1d24bbbd",
+    "bytes": 10977507,
+    "mtime": "2026-09-13T16:52:28.936293+00:00"
+   }
+  }
+ }
+}

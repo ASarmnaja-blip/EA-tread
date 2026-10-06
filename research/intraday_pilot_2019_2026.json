@@ -1,0 +1,8283 @@
+{
+ "start": "2019-01-01",
+ "split": "2023-01-01",
+ "spread_usd": 0.26,
+ "real": {
+  "label": "real",
+  "patterns": 3183180,
+  "top": [
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     268,
+     314,
+     332
+    ],
+    "n_disc": 80,
+    "R_disc": 0.48412446547739113,
+    "t_disc": 2.975176009851034,
+    "n_val": 116,
+    "R_val": 0.13919346881581762,
+    "t_val": 1.0516955476741643,
+    "totR_val": 16.146442382634845,
+    "totR_val_XAUUSD": 16.146442382634845,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 80,
+    "R_disc_nov": 0.48412446547739113,
+    "names": [
+     "c_ema200>=8.959",
+     "atr_ratio>=1.067",
+     "squeeze>=0.5"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     322,
+     566
+    ],
+    "n_disc": 109,
+    "R_disc": 0.3923586851649942,
+    "t_disc": 2.9037230119088524,
+    "n_val": 90,
+    "R_val": 0.021938293923354547,
+    "t_val": 0.16102995138836032,
+    "totR_val": 1.9744464531019092,
+    "totR_val_XAUUSD": 1.9744464531019092,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 109,
+    "R_disc_nov": 0.3923586851649941,
+    "names": [
+     "ret30>=3.814",
+     "atr_ratio>=1.717",
+     "since_brk_opp>=55"
+    ]
+   },
+   {
+    "tf": "M15",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     182,
+     544,
+     611
+    ],
+    "n_disc": 192,
+    "R_disc": 0.2519520208866104,
+    "t_disc": 2.8550149997151806,
+    "n_val": 203,
+    "R_val": 0.011021156449211547,
+    "t_val": 0.12945605034030214,
+    "totR_val": 2.237294759189944,
+    "totR_val_XAUUSD": 2.237294759189944,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 192,
+    "R_disc_nov": 0.25195202088661045,
+    "names": [
+     "ret10>=-0.9964",
+     "since_brk_opp<=6",
+     "hour14"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     268,
+     314,
+     326
+    ],
+    "n_disc": 95,
+    "R_disc": 0.41563357828776887,
+    "t_disc": 2.8397266706178077,
+    "n_val": 136,
+    "R_val": 0.07383475699869434,
+    "t_val": 0.5989389821959826,
+    "totR_val": 10.04152695182243,
+    "totR_val_XAUUSD": 10.04152695182243,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 95,
+    "R_disc_nov": 0.4156335782877688,
+    "names": [
+     "c_ema200>=8.959",
+     "atr_ratio>=1.067",
+     "squeeze>=0.1991"
+    ]
+   },
+   {
+    "tf": "M15",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     24,
+     544,
+     611
+    ],
+    "n_disc": 183,
+    "R_disc": 0.25750579929126144,
+    "t_disc": 2.8386297329762202,
+    "n_val": 179,
+    "R_val": -0.04152312473113377,
+    "t_val": -0.46209917194883326,
+    "totR_val": -7.432639326872946,
+    "totR_val_XAUUSD": -7.432639326872946,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 183,
+    "R_disc_nov": 0.25750579929126133,
+    "names": [
+     "brk10>=-1.824",
+     "since_brk_opp<=6",
+     "hour14"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     268,
+     314,
+     330
+    ],
+    "n_disc": 86,
+    "R_disc": 0.4247006537428575,
+    "t_disc": 2.7601951290564557,
+    "n_val": 121,
+    "R_val": 0.11254631385272446,
+    "t_val": 0.8584132454776782,
+    "totR_val": 13.61810397617966,
+    "totR_val_XAUUSD": 13.61810397617966,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 86,
+    "R_disc_nov": 0.42470065374285737,
+    "names": [
+     "c_ema200>=8.959",
+     "atr_ratio>=1.067",
+     "squeeze>=0.4"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     106,
+     505,
+     607
+    ],
+    "n_disc": 212,
+    "R_disc": 0.22832353372677297,
+    "t_disc": 2.7145925677980394,
+    "n_val": 228,
+    "R_val": -0.13916792279443954,
+    "t_val": -2.5550576087430144,
+    "totR_val": -31.730286397132215,
+    "totR_val_XAUUSD": -31.730286397132215,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 212,
+    "R_disc_nov": 0.22832353372677305,
+    "names": [
+     "pos20>=0.9272",
+     "h1_opp_when>=0.05085",
+     "wday3"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     106,
+     507,
+     607
+    ],
+    "n_disc": 178,
+    "R_disc": 0.2561764411122056,
+    "t_disc": 2.6610226655420672,
+    "n_val": 196,
+    "R_val": -0.1405210652056232,
+    "t_val": -2.4061072437053914,
+    "totR_val": -27.54212878030215,
+    "totR_val_XAUUSD": -27.54212878030215,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 178,
+    "R_disc_nov": 0.2561764411122058,
+    "names": [
+     "pos20>=0.9272",
+     "h1_opp_when>=0.1356",
+     "wday3"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     138,
+     263,
+     321
+    ],
+    "n_disc": 325,
+    "R_disc": 0.350004592131571,
+    "t_disc": 2.652672369051054,
+    "n_val": 340,
+    "R_val": 0.0930382398868758,
+    "t_val": 1.122831355358807,
+    "totR_val": 31.633001561537775,
+    "totR_val_XAUUSD": 31.633001561537775,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 325,
+    "R_disc_nov": 0.3500045921315708,
+    "names": [
+     "pos250>=0.9065",
+     "c_ema200<=5.301",
+     "squeeze>=0.1972"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     138,
+     204,
+     263
+    ],
+    "n_disc": 348,
+    "R_disc": 0.34304527016441483,
+    "t_disc": 2.640591501256848,
+    "n_val": 373,
+    "R_val": 0.1281014356875875,
+    "t_val": 1.4489475386532737,
+    "totR_val": 47.78183551147014,
+    "totR_val_XAUUSD": 47.78183551147014,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 348,
+    "R_disc_nov": 0.34304527016441483,
+    "names": [
+     "pos250>=0.9065",
+     "ret30>=0.9998",
+     "c_ema200<=5.301"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     284,
+     320
+    ],
+    "n_disc": 241,
+    "R_disc": 0.24789257098290654,
+    "t_disc": 2.6252280165875184,
+    "n_val": 245,
+    "R_val": 0.005557056196014093,
+    "t_val": 0.06638729903857432,
+    "totR_val": 1.3614787680234528,
+    "totR_val_XAUUSD": 1.3614787680234528,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 241,
+    "R_disc_nov": 0.2478925709829063,
+    "names": [
+     "ret30>=3.814",
+     "c_ema50>=2.499",
+     "atr_ratio>=1.464"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     250,
+     300,
+     305
+    ],
+    "n_disc": 83,
+    "R_disc": 0.2707324547845991,
+    "t_disc": 2.6098750747565744,
+    "n_val": 91,
+    "R_val": 0.06208652114818629,
+    "t_val": 0.7433904324140305,
+    "totR_val": 5.6498734244849524,
+    "totR_val_XAUUSD": 5.6498734244849524,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 83,
+    "R_disc_nov": 0.2707324547845992,
+    "names": [
+     "ema20_50>=2.309",
+     "atr_pct>=0.7",
+     "atr_pct<=0.916"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     268,
+     314,
+     328
+    ],
+    "n_disc": 90,
+    "R_disc": 0.3912860351799972,
+    "t_disc": 2.5977919278101043,
+    "n_val": 131,
+    "R_val": 0.12020202701567914,
+    "t_val": 0.954082390054229,
+    "totR_val": 15.746465539053968,
+    "totR_val_XAUUSD": 15.746465539053968,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 90,
+    "R_disc_nov": 0.39128603517999716,
+    "names": [
+     "c_ema200>=8.959",
+     "atr_ratio>=1.067",
+     "squeeze>=0.3"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     108,
+     451,
+     617
+    ],
+    "n_disc": 154,
+    "R_disc": 0.3223716263955149,
+    "t_disc": 2.582999327543604,
+    "n_val": 154,
+    "R_val": 0.05902626437262577,
+    "t_val": 0.5141189146672204,
+    "totR_val": 9.09004471338437,
+    "totR_val_XAUUSD": 9.09004471338437,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 154,
+    "R_disc_nov": 0.32237162639551487,
+    "names": [
+     "pos55>=0.0898",
+     "wick_against<=0.03833",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     138,
+     515,
+     593
+    ],
+    "n_disc": 147,
+    "R_disc": 0.30300338899092605,
+    "t_disc": 2.561195160541438,
+    "n_val": 155,
+    "R_val": 0.02904430466843583,
+    "t_val": 0.31112004736632903,
+    "totR_val": 4.501867223607554,
+    "totR_val_XAUUSD": 4.501867223607554,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 147,
+    "R_disc_nov": 0.30300338899092605,
+    "names": [
+     "pos250>=0.9065",
+     "fail_with>=2",
+     "hour13"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     248,
+     322,
+     566
+    ],
+    "n_disc": 110,
+    "R_disc": 0.3459092725813235,
+    "t_disc": 2.55898529180948,
+    "n_val": 110,
+    "R_val": -0.13787481129898085,
+    "t_val": -1.1648255917082113,
+    "totR_val": -15.166229242887892,
+    "totR_val_XAUUSD": -15.166229242887892,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 110,
+    "R_disc_nov": 0.34590927258132353,
+    "names": [
+     "ema20_50>=1.268",
+     "atr_ratio>=1.717",
+     "since_brk_opp>=55"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     106,
+     509,
+     607
+    ],
+    "n_disc": 145,
+    "R_disc": 0.28412511838596294,
+    "t_disc": 2.5471848969895734,
+    "n_val": 155,
+    "R_val": -0.14522571026388184,
+    "t_val": -2.384114979498045,
+    "totR_val": -22.509985090901687,
+    "totR_val_XAUUSD": -22.509985090901687,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 145,
+    "R_disc_nov": 0.28412511838596316,
+    "names": [
+     "pos20>=0.9272",
+     "h1_opp_when>=0.2712",
+     "wday3"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     451,
+     557,
+     617
+    ],
+    "n_disc": 143,
+    "R_disc": 0.29433103919265574,
+    "t_disc": 2.5401886645687908,
+    "n_val": 143,
+    "R_val": 0.053457289051837685,
+    "t_val": 0.4388181241394006,
+    "totR_val": 7.644392334412789,
+    "totR_val_XAUUSD": 7.644392334412789,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 143,
+    "R_disc_nov": 0.2943310391926557,
+    "names": [
+     "wick_against<=0.03833",
+     "since_brk<=179",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     322,
+     570
+    ],
+    "n_disc": 84,
+    "R_disc": 0.40157176146346596,
+    "t_disc": 2.5376575667251515,
+    "n_val": 70,
+    "R_val": 0.035477103968992896,
+    "t_val": 0.2294231384687045,
+    "totR_val": 2.4833972778295026,
+    "totR_val_XAUUSD": 2.4833972778295026,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 84,
+    "R_disc_nov": 0.4015717614634659,
+    "names": [
+     "ret30>=3.814",
+     "atr_ratio>=1.717",
+     "since_brk_opp>=96"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     322,
+     622
+    ],
+    "n_disc": 84,
+    "R_disc": 0.47654200965270116,
+    "t_disc": 2.5303588398512646,
+    "n_val": 80,
+    "R_val": 0.03528086449966972,
+    "t_val": 0.24436791096135257,
+    "totR_val": 2.8224691599735774,
+    "totR_val_XAUUSD": 2.8224691599735774,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 84,
+    "R_disc_nov": 0.4765420096527012,
+    "names": [
+     "ret30>=3.814",
+     "atr_ratio>=1.717",
+     "long"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     193,
+     284,
+     320
+    ],
+    "n_disc": 106,
+    "R_disc": 0.3140537113046959,
+    "t_disc": 2.515878264834132,
+    "n_val": 92,
+    "R_val": -0.06284719014691313,
+    "t_val": -0.48401237830617244,
+    "totR_val": -5.781941493516008,
+    "totR_val_XAUUSD": -5.781941493516008,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 106,
+    "R_disc_nov": 0.31405371130469595,
+    "names": [
+     "ret10<=1.019",
+     "c_ema50>=2.499",
+     "atr_ratio>=1.464"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     136,
+     324,
+     593
+    ],
+    "n_disc": 227,
+    "R_disc": 0.28889005496288367,
+    "t_disc": 2.5139058234810547,
+    "n_val": 235,
+    "R_val": 0.11977943572989787,
+    "t_val": 1.246061205959119,
+    "totR_val": 28.148167396526,
+    "totR_val_XAUUSD": 28.148167396526,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 227,
+    "R_disc_nov": 0.2888900549628836,
+    "names": [
+     "pos250>=0.8175",
+     "squeeze<=0.3005",
+     "hour13"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     432,
+     451,
+     617
+    ],
+    "n_disc": 150,
+    "R_disc": 0.31662736944106307,
+    "t_disc": 2.5095758745688346,
+    "n_val": 157,
+    "R_val": 0.002641883966443398,
+    "t_val": 0.023386264614827647,
+    "totR_val": 0.4147757827316134,
+    "totR_val_XAUUSD": 0.4147757827316134,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 150,
+    "R_disc_nov": 0.31662736944106307,
+    "names": [
+     "wick_with>=0.03833",
+     "wick_against<=0.03833",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     142,
+     247,
+     282
+    ],
+    "n_disc": 133,
+    "R_disc": 0.2509619921095995,
+    "t_disc": 2.4952339055029875,
+    "n_val": 148,
+    "R_val": 0.14519583713112258,
+    "t_val": 1.3914462286534537,
+    "totR_val": 21.488983895406143,
+    "totR_val_XAUUSD": 21.488983895406143,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 133,
+    "R_disc_nov": 0.2509619921095996,
+    "names": [
+     "pos250>=0.9015",
+     "ema20_50<=0.7345",
+     "c_ema50>=1.464"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     56,
+     451,
+     617
+    ],
+    "n_disc": 145,
+    "R_disc": 0.3222635152667821,
+    "t_disc": 2.4897770761390237,
+    "n_val": 157,
+    "R_val": 0.024912720572570938,
+    "t_val": 0.22003971616544976,
+    "totR_val": 3.9112971298936374,
+    "totR_val_XAUUSD": 3.9112971298936374,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 145,
+    "R_disc_nov": 0.322263515266782,
+    "names": [
+     "brk55>=-9.982",
+     "wick_against<=0.03833",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "M15",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     264,
+     365,
+     587
+    ],
+    "n_disc": 199,
+    "R_disc": 0.2433041550615672,
+    "t_disc": 2.4861083350273674,
+    "n_val": 246,
+    "R_val": -0.07547797126970317,
+    "t_val": -0.8889831811386166,
+    "totR_val": -18.567580932346978,
+    "totR_val_XAUUSD": -18.567580932346978,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 199,
+    "R_disc_nov": 0.24330415506156722,
+    "names": [
+     "c_ema200>=5.576",
+     "bar_rng>=0.8986",
+     "hour13"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     308,
+     451,
+     617
+    ],
+    "n_disc": 157,
+    "R_disc": 0.30056208556668185,
+    "t_disc": 2.461708367068036,
+    "n_val": 162,
+    "R_val": 0.008831380072618807,
+    "t_val": 0.07983980041771002,
+    "totR_val": 1.4306835717642468,
+    "totR_val_XAUUSD": 1.4306835717642468,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 157,
+    "R_disc_nov": 0.30056208556668185,
+    "names": [
+     "atr_ratio>=0.6042",
+     "wick_against<=0.03833",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     250,
+     300,
+     418
+    ],
+    "n_disc": 82,
+    "R_disc": 0.25856632623869996,
+    "t_disc": 2.4516732340490526,
+    "n_val": 78,
+    "R_val": 0.06066073087711175,
+    "t_val": 0.5090738642907607,
+    "totR_val": 4.731537008414716,
+    "totR_val_XAUUSD": 4.731537008414716,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 82,
+    "R_disc_nov": 0.2585663262386999,
+    "names": [
+     "ema20_50>=2.309",
+     "atr_pct>=0.7",
+     "clpos>=0.2925"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     96,
+     581
+    ],
+    "n_disc": 751,
+    "R_disc": 0.48125708387746274,
+    "t_disc": 2.450219149209212,
+    "n_val": 848,
+    "R_val": 0.2257213352228934,
+    "t_val": 1.2441713861314423,
+    "totR_val": 191.4116922690136,
+    "totR_val_XAUUSD": 191.4116922690136,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 752,
+    "R_disc_nov": 0.48044281887970436,
+    "names": [
+     "pos20>=0.6147",
+     "htf_pos>=0.8068"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     138,
+     352,
+     392
+    ],
+    "n_disc": 257,
+    "R_disc": 0.19129804131119404,
+    "t_disc": 2.449916609197558,
+    "n_val": 261,
+    "R_val": -0.007689734065760956,
+    "t_val": -0.13597394700574067,
+    "totR_val": -2.0070205911636094,
+    "totR_val_XAUUSD": -2.0070205911636094,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 257,
+    "R_disc_nov": 0.19129804131119407,
+    "names": [
+     "pos250>=0.9065",
+     "vr<=1.832",
+     "body<=-0.6981"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     138,
+     263,
+     278
+    ],
+    "n_disc": 342,
+    "R_disc": 0.32245736997833185,
+    "t_disc": 2.444008059404868,
+    "n_val": 348,
+    "R_val": 0.133961331664652,
+    "t_val": 1.5263866473954388,
+    "totR_val": 46.618543419298895,
+    "totR_val_XAUUSD": 46.618543419298895,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 342,
+    "R_disc_nov": 0.32245736997833185,
+    "names": [
+     "pos250>=0.9065",
+     "c_ema200<=5.301",
+     "c_ema50>=1.506"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     136,
+     593,
+     609
+    ],
+    "n_disc": 156,
+    "R_disc": 0.328543903510109,
+    "t_disc": 2.438085100689731,
+    "n_val": 145,
+    "R_val": 0.09653184126461734,
+    "t_val": 0.9196925073573331,
+    "totR_val": 13.997116983369514,
+    "totR_val_XAUUSD": 13.997116983369514,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 156,
+    "R_disc_nov": 0.3285439035101089,
+    "names": [
+     "pos250>=0.8175",
+     "hour13",
+     "htf2_against"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     322,
+     568
+    ],
+    "n_disc": 94,
+    "R_disc": 0.3664053569546178,
+    "t_disc": 2.4353751098178393,
+    "n_val": 77,
+    "R_val": 0.004580543368979892,
+    "t_val": 0.031305882459292465,
+    "totR_val": 0.35270183941145167,
+    "totR_val_XAUUSD": 0.35270183941145167,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 94,
+    "R_disc_nov": 0.3664053569546177,
+    "names": [
+     "ret30>=3.814",
+     "atr_ratio>=1.717",
+     "since_brk_opp>=73"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     74,
+     451,
+     617
+    ],
+    "n_disc": 150,
+    "R_disc": 0.31016934441367194,
+    "t_disc": 2.4347356458579426,
+    "n_val": 155,
+    "R_val": -0.01618340955363615,
+    "t_val": -0.142169791490274,
+    "totR_val": -2.5084284808136035,
+    "totR_val_XAUUSD": -2.5084284808136035,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 150,
+    "R_disc_nov": 0.31016934441367194,
+    "names": [
+     "brk100>=-14.12",
+     "wick_against<=0.03833",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     250,
+     300,
+     612
+    ],
+    "n_disc": 84,
+    "R_disc": 0.25464531531821,
+    "t_disc": 2.422336673712273,
+    "n_val": 88,
+    "R_val": 0.11073671895921709,
+    "t_val": 1.0439922062893903,
+    "totR_val": 9.744831268411104,
+    "totR_val_XAUUSD": 9.744831268411104,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 84,
+    "R_disc_nov": 0.25464531531820994,
+    "names": [
+     "ema20_50>=2.309",
+     "atr_pct>=0.7",
+     "htf1_with"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     250,
+     300,
+     432
+    ],
+    "n_disc": 85,
+    "R_disc": 0.2624779945037145,
+    "t_disc": 2.4160583499329324,
+    "n_val": 82,
+    "R_val": 0.1006887906477582,
+    "t_val": 0.8382826816395691,
+    "totR_val": 8.256480833116171,
+    "totR_val_XAUUSD": 8.256480833116171,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 85,
+    "R_disc_nov": 0.2624779945037145,
+    "names": [
+     "ema20_50>=2.309",
+     "atr_pct>=0.7",
+     "wick_with>=0.03833"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     216,
+     451,
+     617
+    ],
+    "n_disc": 154,
+    "R_disc": 0.3002412692949289,
+    "t_disc": 2.413609964575964,
+    "n_val": 158,
+    "R_val": 0.011089979430439595,
+    "t_val": 0.09786832076018569,
+    "totR_val": 1.752216750009456,
+    "totR_val_XAUUSD": 1.752216750009456,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 154,
+    "R_disc_nov": 0.3002412692949289,
+    "names": [
+     "ret100>=-14",
+     "wick_against<=0.03833",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     284,
+     320,
+     622
+    ],
+    "n_disc": 166,
+    "R_disc": 0.2994895344232158,
+    "t_disc": 2.4077263157887767,
+    "n_val": 180,
+    "R_val": 0.04708772568302438,
+    "t_val": 0.4777674724711682,
+    "totR_val": 8.475790622944388,
+    "totR_val_XAUUSD": 8.475790622944388,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 167,
+    "R_disc_nov": 0.3010851215563211,
+    "names": [
+     "c_ema50>=2.499",
+     "atr_ratio>=1.464",
+     "long"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     451,
+     558,
+     617
+    ],
+    "n_disc": 147,
+    "R_disc": 0.30907953976499697,
+    "t_disc": 2.4018551273481816,
+    "n_val": 151,
+    "R_val": 0.05577110284682672,
+    "t_val": 0.4711361242705199,
+    "totR_val": 8.421436529870835,
+    "totR_val_XAUUSD": 8.421436529870835,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 147,
+    "R_disc_nov": 0.309079539764997,
+    "names": [
+     "wick_against<=0.03833",
+     "since_brk_opp>=6",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     292,
+     451,
+     617
+    ],
+    "n_disc": 146,
+    "R_disc": 0.2984598211358287,
+    "t_disc": 2.399713784805961,
+    "n_val": 145,
+    "R_val": -0.012830847145267159,
+    "t_val": -0.11008589201099277,
+    "totR_val": -1.860472836063738,
+    "totR_val_XAUUSD": -1.860472836063738,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 146,
+    "R_disc_nov": 0.29845982113582864,
+    "names": [
+     "atr_pct>=0.296",
+     "wick_against<=0.03833",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     58,
+     237,
+     618
+    ],
+    "n_disc": 154,
+    "R_disc": 0.3688049920556652,
+    "t_disc": 2.393019755439017,
+    "n_val": 277,
+    "R_val": -0.0893834113597157,
+    "t_val": -1.6132121822717276,
+    "totR_val": -24.759204946641248,
+    "totR_val_XAUUSD": -24.759204946641248,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 154,
+    "R_disc_nov": 0.368804992055665,
+    "names": [
+     "brk55>=-7.087",
+     "ema20_50<=-1.268",
+     "htf2_against"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     228,
+     320,
+     622
+    ],
+    "n_disc": 220,
+    "R_disc": 0.2543080181568859,
+    "t_disc": 2.391806274499382,
+    "n_val": 274,
+    "R_val": 0.041615014479857645,
+    "t_val": 0.5253676367296143,
+    "totR_val": 11.402513967480996,
+    "totR_val_XAUUSD": 11.402513967480996,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 220,
+    "R_disc_nov": 0.25430801815688586,
+    "names": [
+     "ret100>=4.09",
+     "atr_ratio>=1.464",
+     "long"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     299,
+     405,
+     617
+    ],
+    "n_disc": 243,
+    "R_disc": 0.18108246094159033,
+    "t_disc": 2.389023625438322,
+    "n_val": 313,
+    "R_val": -0.05693402261717013,
+    "t_val": -0.9118122961329869,
+    "totR_val": -17.82034907917425,
+    "totR_val_XAUUSD": -17.82034907917425,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 243,
+    "R_disc_nov": 0.1810824609415903,
+    "names": [
+     "atr_pct<=0.804",
+     "body>=0.525",
+     "hour14"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     250,
+     298,
+     348
+    ],
+    "n_disc": 105,
+    "R_disc": 0.22385607913728342,
+    "t_disc": 2.3771017373092285,
+    "n_val": 105,
+    "R_val": -0.07663463755277088,
+    "t_val": -0.9294589507270925,
+    "totR_val": -8.046636943040943,
+    "totR_val_XAUUSD": -8.046636943040943,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 105,
+    "R_disc_nov": 0.2238560791372834,
+    "names": [
+     "ema20_50>=2.309",
+     "atr_pct>=0.592",
+     "vr>=0.6467"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     451,
+     488,
+     617
+    ],
+    "n_disc": 148,
+    "R_disc": 0.30003791302948757,
+    "t_disc": 2.3705386721260058,
+    "n_val": 152,
+    "R_val": 0.0001110938826702417,
+    "t_val": 0.000980609529971728,
+    "totR_val": 0.016886270165876738,
+    "totR_val_XAUUSD": 0.016886270165876738,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 148,
+    "R_disc_nov": 0.3000379130294876,
+    "names": [
+     "wick_against<=0.03833",
+     "h1_ext_when>=0.05085",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     142,
+     247,
+     588
+    ],
+    "n_disc": 150,
+    "R_disc": 0.2270845627415845,
+    "t_disc": 2.370174358599909,
+    "n_val": 151,
+    "R_val": 0.18527439128877668,
+    "t_val": 1.7948217869044707,
+    "totR_val": 27.97643308460528,
+    "totR_val_XAUUSD": 27.97643308460528,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 150,
+    "R_disc_nov": 0.22708456274158456,
+    "names": [
+     "pos250>=0.9015",
+     "ema20_50<=0.7345",
+     "htf_pos>=0.7087"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     127,
+     353,
+     517
+    ],
+    "n_disc": 124,
+    "R_disc": 0.280089625447884,
+    "t_disc": 2.3681000363180154,
+    "n_val": 105,
+    "R_val": 0.10528507988532668,
+    "t_val": 0.9211231559277301,
+    "totR_val": 11.0549333879593,
+    "totR_val_XAUUSD": 11.0549333879593,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 124,
+    "R_disc_nov": 0.2800896254478838,
+    "names": [
+     "pos250<=0.2824",
+     "vr>=2.439",
+     "fail_with>=3"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     142,
+     247,
+     522
+    ],
+    "n_disc": 117,
+    "R_disc": 0.23580076435712322,
+    "t_disc": 2.3658260139485447,
+    "n_val": 130,
+    "R_val": 0.08951393837533271,
+    "t_val": 1.1225403523710047,
+    "totR_val": 11.636811988793252,
+    "totR_val_XAUUSD": 11.636811988793252,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 117,
+    "R_disc_nov": 0.23580076435712316,
+    "names": [
+     "pos250>=0.9015",
+     "ema20_50<=0.7345",
+     "fail_with>=1"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     268,
+     314,
+     324
+    ],
+    "n_disc": 100,
+    "R_disc": 0.3368869149928618,
+    "t_disc": 2.3597012943711695,
+    "n_val": 142,
+    "R_val": 0.06145502125881676,
+    "t_val": 0.5093750497482102,
+    "totR_val": 8.72661301875198,
+    "totR_val_XAUUSD": 8.72661301875198,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 100,
+    "R_disc_nov": 0.33688691499286166,
+    "names": [
+     "c_ema200>=8.959",
+     "atr_ratio>=1.067",
+     "squeeze>=0.09664"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     250,
+     298,
+     305
+    ],
+    "n_disc": 124,
+    "R_disc": 0.19093498287177896,
+    "t_disc": 2.3544067085110636,
+    "n_val": 131,
+    "R_val": 0.04756852132841416,
+    "t_val": 0.6271618569837673,
+    "totR_val": 6.231476294022255,
+    "totR_val_XAUUSD": 6.231476294022255,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 124,
+    "R_disc_nov": 0.190934982871779,
+    "names": [
+     "ema20_50>=2.309",
+     "atr_pct>=0.592",
+     "atr_pct<=0.916"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     250,
+     300,
+     488
+    ],
+    "n_disc": 85,
+    "R_disc": 0.25124897669171165,
+    "t_disc": 2.3474246728948125,
+    "n_val": 79,
+    "R_val": 0.11274497524077798,
+    "t_val": 0.9456071343420027,
+    "totR_val": 8.90685304402146,
+    "totR_val_XAUUSD": 8.90685304402146,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 85,
+    "R_disc_nov": 0.25124897669171165,
+    "names": [
+     "ema20_50>=2.309",
+     "atr_pct>=0.7",
+     "h1_ext_when>=0.05085"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     322
+    ],
+    "n_disc": 162,
+    "R_disc": 0.2840042304525631,
+    "t_disc": 2.340617440252721,
+    "n_val": 139,
+    "R_val": 0.01495493113673647,
+    "t_val": 0.14171073324383124,
+    "totR_val": 2.0787354280063695,
+    "totR_val_XAUUSD": 2.0787354280063695,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 162,
+    "R_disc_nov": 0.28400423045256307,
+    "names": [
+     "ret30>=3.814",
+     "atr_ratio>=1.717"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     451,
+     617
+    ],
+    "n_disc": 159,
+    "R_disc": 0.2835274093347649,
+    "t_disc": 2.3402829635987983,
+    "n_val": 164,
+    "R_val": 0.01945572763578767,
+    "t_val": 0.17550594711259046,
+    "totR_val": 3.190739332269178,
+    "totR_val_XAUUSD": 3.190739332269178,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 159,
+    "R_disc_nov": 0.28352740933476495,
+    "names": [
+     "wick_against<=0.03833",
+     "hour12"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     86,
+     322,
+     336
+    ],
+    "n_disc": 111,
+    "R_disc": 0.2934281822255509,
+    "t_disc": 2.339099789226056,
+    "n_val": 78,
+    "R_val": 0.10245723499564166,
+    "t_val": 0.750636935122072,
+    "totR_val": 7.99166432966005,
+    "totR_val_XAUUSD": 7.99166432966005,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 111,
+    "R_disc_nov": 0.293428182225551,
+    "names": [
+     "brk100>=-2.252",
+     "atr_ratio>=1.717",
+     "squeeze>=0.7067"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     299,
+     517,
+     588
+    ],
+    "n_disc": 213,
+    "R_disc": 0.20305046681152997,
+    "t_disc": 2.33430139943851,
+    "n_val": 254,
+    "R_val": 0.04152423981475296,
+    "t_val": 0.5227771268765607,
+    "totR_val": 10.547156912947251,
+    "totR_val_XAUUSD": 10.547156912947251,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 213,
+    "R_disc_nov": 0.20305046681152988,
+    "names": [
+     "atr_pct<=0.804",
+     "fail_with>=3",
+     "wday4"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     136,
+     322,
+     593
+    ],
+    "n_disc": 170,
+    "R_disc": 0.32858232656666364,
+    "t_disc": 2.3162065274510066,
+    "n_val": 179,
+    "R_val": 0.09118770644052554,
+    "t_val": 0.8079239122025086,
+    "totR_val": 16.32259945285407,
+    "totR_val_XAUUSD": 16.32259945285407,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 170,
+    "R_disc_nov": 0.32858232656666353,
+    "names": [
+     "pos250>=0.8175",
+     "squeeze<=0.1972",
+     "hour13"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     196,
+     509,
+     607
+    ],
+    "n_disc": 147,
+    "R_disc": 0.1975689291719545,
+    "t_disc": 2.314469218447233,
+    "n_val": 165,
+    "R_val": -0.055243489874098835,
+    "t_val": -0.8752998638929627,
+    "totR_val": -9.115175829226308,
+    "totR_val_XAUUSD": -9.115175829226308,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 147,
+    "R_disc_nov": 0.19756892917195454,
+    "names": [
+     "ret10>=2.781",
+     "h1_opp_when>=0.2712",
+     "wday3"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     228,
+     302
+    ],
+    "n_disc": 195,
+    "R_disc": 0.2188809211968704,
+    "t_disc": 2.3118826348047468,
+    "n_val": 229,
+    "R_val": 0.15454723938131115,
+    "t_val": 1.7508401135092844,
+    "totR_val": 35.39131781832025,
+    "totR_val_XAUUSD": 35.39131781832025,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 196,
+    "R_disc_nov": 0.21711897420438372,
+    "names": [
+     "ret30>=3.814",
+     "ret100>=4.09",
+     "atr_pct>=0.808"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     195,
+     248,
+     304
+    ],
+    "n_disc": 91,
+    "R_disc": 0.3191159452410746,
+    "t_disc": 2.3116971109666125,
+    "n_val": 116,
+    "R_val": -0.12314154225966106,
+    "t_val": -1.1043825141121733,
+    "totR_val": -14.284418902120683,
+    "totR_val_XAUUSD": -14.284418902120683,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 91,
+    "R_disc_nov": 0.31911594524107467,
+    "names": [
+     "ret10<=1.719",
+     "ema20_50>=1.268",
+     "atr_pct>=0.916"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "ch20",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     322,
+     564
+    ],
+    "n_disc": 82,
+    "R_disc": 0.6080418973677878,
+    "t_disc": 2.3055542581106567,
+    "n_val": 81,
+    "R_val": 0.2128430324296635,
+    "t_val": 0.9450617126421514,
+    "totR_val": 17.24028562680274,
+    "totR_val_XAUUSD": 17.24028562680274,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 82,
+    "R_disc_nov": 0.6080418973677878,
+    "names": [
+     "ret30>=3.814",
+     "atr_ratio>=1.717",
+     "since_brk_opp>=40"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     535,
+     581,
+     618
+    ],
+    "n_disc": 145,
+    "R_disc": 0.5131243899871896,
+    "t_disc": 2.3020572146355005,
+    "n_val": 172,
+    "R_val": 0.11373051749810464,
+    "t_val": 0.6987720207137834,
+    "totR_val": 19.561649009674,
+    "totR_val_XAUUSD": 19.561649009674,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 145,
+    "R_disc_nov": 0.5131243899871893,
+    "names": [
+     "since_brk>=26",
+     "htf_pos>=0.8068",
+     "wday1"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     250,
+     298,
+     346
+    ],
+    "n_disc": 115,
+    "R_disc": 0.20927468306541377,
+    "t_disc": 2.297446457420802,
+    "n_val": 117,
+    "R_val": -0.007658327754000656,
+    "t_val": -0.08482002028805599,
+    "totR_val": -0.8960243472180767,
+    "totR_val_XAUUSD": -0.8960243472180767,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 115,
+    "R_disc_nov": 0.20927468306541375,
+    "names": [
+     "ema20_50>=2.309",
+     "atr_pct>=0.592",
+     "vr>=0.4023"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     100,
+     581
+    ],
+    "n_disc": 614,
+    "R_disc": 0.5099756936745962,
+    "t_disc": 2.2903926966064683,
+    "n_val": 704,
+    "R_val": 0.31653782869454133,
+    "t_val": 1.529644698944835,
+    "totR_val": 222.84263140095712,
+    "totR_val_XAUUSD": 222.84263140095712,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 615,
+    "R_disc_nov": 0.5089333426370155,
+    "names": [
+     "pos20>=0.818",
+     "htf_pos>=0.8068"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     519,
+     581,
+     593
+    ],
+    "n_disc": 202,
+    "R_disc": 0.2378625523901218,
+    "t_disc": 2.29025416314517,
+    "n_val": 245,
+    "R_val": -0.028148165050922973,
+    "t_val": -0.3554086430370512,
+    "totR_val": -6.896300437476128,
+    "totR_val_XAUUSD": -6.896300437476128,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 202,
+    "R_disc_nov": 0.23786255239012183,
+    "names": [
+     "fail_against<=0",
+     "htf_pos>=0.8068",
+     "hour13"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     320
+    ],
+    "n_disc": 275,
+    "R_disc": 0.19791043455806034,
+    "t_disc": 2.289155923758261,
+    "n_val": 288,
+    "R_val": 0.05227734169288473,
+    "t_val": 0.6800662900772838,
+    "totR_val": 15.055874407550801,
+    "totR_val_XAUUSD": 15.055874407550801,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 276,
+    "R_disc_nov": 0.2012612638453886,
+    "names": [
+     "ret30>=3.814",
+     "atr_ratio>=1.464"
+    ]
+   },
+   {
+    "tf": "M15",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     180,
+     544,
+     611
+    ],
+    "n_disc": 263,
+    "R_disc": 0.17160792027102742,
+    "t_disc": 2.2870108957837854,
+    "n_val": 263,
+    "R_val": 0.02612477355152721,
+    "t_val": 0.35541712789226654,
+    "totR_val": 6.870815444051656,
+    "totR_val_XAUUSD": 6.870815444051656,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 263,
+    "R_disc_nov": 0.17160792027102748,
+    "names": [
+     "ret10>=-1.625",
+     "since_brk_opp<=6",
+     "hour14"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     138,
+     202,
+     263
+    ],
+    "n_disc": 376,
+    "R_disc": 0.2781104334693555,
+    "t_disc": 2.2822625798509315,
+    "n_val": 403,
+    "R_val": 0.12866621711290124,
+    "t_val": 1.4787887732971963,
+    "totR_val": 51.8524854964992,
+    "totR_val_XAUUSD": 51.8524854964992,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 376,
+    "R_disc_nov": 0.2781104334693555,
+    "names": [
+     "pos250>=0.9065",
+     "ret30>=0",
+     "c_ema200<=5.301"
+    ]
+   },
+   {
+    "tf": "M15",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     8,
+     544,
+     611
+    ],
+    "n_disc": 198,
+    "R_disc": 0.19111879833025971,
+    "t_disc": 2.274403269368953,
+    "n_val": 193,
+    "R_val": -0.03176586886399489,
+    "t_val": -0.3862583171389841,
+    "totR_val": -6.130812690751014,
+    "totR_val_XAUUSD": -6.130812690751014,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 198,
+    "R_disc_nov": 0.19111879833025971,
+    "names": [
+     "brk5>=-1.001",
+     "since_brk_opp<=6",
+     "hour14"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     175,
+     405,
+     617
+    ],
+    "n_disc": 337,
+    "R_disc": 0.12921144319995537,
+    "t_disc": 2.2724903430756664,
+    "n_val": 317,
+    "R_val": -0.09894120868149348,
+    "t_val": -1.914337356055901,
+    "totR_val": -31.364363152033434,
+    "totR_val_XAUUSD": -31.364363152033434,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 337,
+    "R_disc_nov": 0.12921144319995537,
+    "names": [
+     "ret3<=1.386",
+     "body>=0.525",
+     "hour14"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     242,
+     296,
+     611
+    ],
+    "n_disc": 143,
+    "R_disc": 0.2663260681132137,
+    "t_disc": 2.2685063009909787,
+    "n_val": 140,
+    "R_val": -0.1365240059369287,
+    "t_val": -1.7662916342117223,
+    "totR_val": -19.11336083117002,
+    "totR_val_XAUUSD": -19.11336083117002,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 143,
+    "R_disc_nov": 0.26632606811321347,
+    "names": [
+     "ema20_50>=0.7531",
+     "atr_pct>=0.708",
+     "hour11"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     320,
+     584
+    ],
+    "n_disc": 242,
+    "R_disc": 0.2120507697276747,
+    "t_disc": 2.267240308112959,
+    "n_val": 235,
+    "R_val": -0.0021081291786790137,
+    "t_val": -0.0248163950444248,
+    "totR_val": -0.49541035698956826,
+    "totR_val_XAUUSD": -0.49541035698956826,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 243,
+    "R_disc_nov": 0.2157984592261643,
+    "names": [
+     "ret30>=3.814",
+     "atr_ratio>=1.464",
+     "htf_pos>=0.5"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     405,
+     445,
+     617
+    ],
+    "n_disc": 437,
+    "R_disc": 0.11501674019582338,
+    "t_disc": 2.2659152061692853,
+    "n_val": 440,
+    "R_val": -0.005911467773970463,
+    "t_val": -0.1196227059443752,
+    "totR_val": -2.6010458205470037,
+    "totR_val_XAUUSD": -2.6010458205470037,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 437,
+    "R_disc_nov": 0.11501674019582336,
+    "names": [
+     "body>=0.525",
+     "wick_against>=0.0323",
+     "hour14"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     257,
+     405,
+     617
+    ],
+    "n_disc": 237,
+    "R_disc": 0.15764879081178376,
+    "t_disc": 2.2585461209695605,
+    "n_val": 241,
+    "R_val": -0.06247992859291144,
+    "t_val": -0.9786689266542278,
+    "totR_val": -15.057662790891657,
+    "totR_val_XAUUSD": -15.057662790891657,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 237,
+    "R_disc_nov": 0.15764879081178368,
+    "names": [
+     "c_ema200<=0",
+     "body>=0.525",
+     "hour14"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     204,
+     296,
+     593
+    ],
+    "n_disc": 458,
+    "R_disc": 0.1439023201854071,
+    "t_disc": 2.2483030161418274,
+    "n_val": 381,
+    "R_val": 0.01310822886963219,
+    "t_val": 0.21220737868614195,
+    "totR_val": 4.994235199329864,
+    "totR_val_XAUUSD": 4.994235199329864,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 458,
+    "R_disc_nov": 0.14390232018540705,
+    "names": [
+     "ret30>=0.9998",
+     "atr_pct>=0.708",
+     "hour13"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     173,
+     581,
+     593
+    ],
+    "n_disc": 272,
+    "R_disc": 0.22837919856154787,
+    "t_disc": 2.2434393549665153,
+    "n_val": 312,
+    "R_val": -0.07047243261346918,
+    "t_val": -1.0096502232917943,
+    "totR_val": -21.987398975402385,
+    "totR_val_XAUUSD": -21.987398975402385,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 272,
+    "R_disc_nov": 0.22837919856154773,
+    "names": [
+     "ret3<=0.7982",
+     "htf_pos>=0.8068",
+     "hour13"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     142,
+     247,
+     366
+    ],
+    "n_disc": 152,
+    "R_disc": 0.22261828331462996,
+    "t_disc": 2.241911197681506,
+    "n_val": 169,
+    "R_val": 0.13760726651922997,
+    "t_val": 1.4384169491196062,
+    "totR_val": 23.255628041749866,
+    "totR_val_XAUUSD": 23.255628041749866,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 152,
+    "R_disc_nov": 0.2226182833146299,
+    "names": [
+     "pos250>=0.9015",
+     "ema20_50<=0.7345",
+     "bar_rng>=0.7262"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "ch10",
+    "scope": "XAUUSD",
+    "conds": [
+     276,
+     294,
+     598
+    ],
+    "n_disc": 333,
+    "R_disc": 0.2874845614353026,
+    "t_disc": 2.240317725979878,
+    "n_val": 348,
+    "R_val": 0.06838713919595066,
+    "t_val": 0.7422856652412594,
+    "totR_val": 23.79872444019083,
+    "totR_val_XAUUSD": 23.79872444019083,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 333,
+    "R_disc_nov": 0.28748456143530254,
+    "names": [
+     "c_ema50>=0.7096",
+     "atr_pct>=0.616",
+     "wday3"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     284,
+     320,
+     334
+    ],
+    "n_disc": 205,
+    "R_disc": 0.22976306987384773,
+    "t_disc": 2.2295775363961314,
+    "n_val": 183,
+    "R_val": -0.029528575469225733,
+    "t_val": -0.32289691711524154,
+    "totR_val": -5.403729310868309,
+    "totR_val_XAUUSD": -5.403729310868309,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 205,
+    "R_disc_nov": 0.22976306987384765,
+    "names": [
+     "c_ema50>=2.499",
+     "atr_ratio>=1.464",
+     "squeeze>=0.6044"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     28,
+     513,
+     581
+    ],
+    "n_disc": 574,
+    "R_disc": 0.24255781730191808,
+    "t_disc": 2.222008860297559,
+    "n_val": 673,
+    "R_val": 0.08668512920484404,
+    "t_val": 1.0721201889485952,
+    "totR_val": 58.33909195486004,
+    "totR_val_XAUUSD": 58.33909195486004,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 575,
+    "R_disc_nov": 0.24190802945541567,
+    "names": [
+     "brk10>=-1.164",
+     "fail_with>=1",
+     "htf_pos>=0.8068"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "ch10",
+    "scope": "XAUUSD",
+    "conds": [
+     274,
+     294,
+     598
+    ],
+    "n_disc": 364,
+    "R_disc": 0.26705133175183937,
+    "t_disc": 2.2158899685436166,
+    "n_val": 400,
+    "R_val": -0.011581607396917538,
+    "t_val": -0.14200094415819278,
+    "totR_val": -4.632642958767015,
+    "totR_val_XAUUSD": -4.632642958767015,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 364,
+    "R_disc_nov": 0.26705133175183926,
+    "names": [
+     "c_ema50>=0",
+     "atr_pct>=0.616",
+     "wday3"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "ch10",
+    "scope": "XAUUSD",
+    "conds": [
+     46,
+     294,
+     598
+    ],
+    "n_disc": 367,
+    "R_disc": 0.25627927498760295,
+    "t_disc": 2.213333073462415,
+    "n_val": 348,
+    "R_val": 0.030903063993952266,
+    "t_val": 0.33913842510422354,
+    "totR_val": 10.754266269895389,
+    "totR_val_XAUUSD": 10.754266269895389,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 367,
+    "R_disc_nov": 0.2562792749876028,
+    "names": [
+     "brk20>=-1.798",
+     "atr_pct>=0.616",
+     "wday3"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     286,
+     302
+    ],
+    "n_disc": 127,
+    "R_disc": 0.2597559735312707,
+    "t_disc": 2.2035554091510803,
+    "n_val": 112,
+    "R_val": 0.12549581023685016,
+    "t_val": 0.9736108158227316,
+    "totR_val": 14.055530746527218,
+    "totR_val_XAUUSD": 14.055530746527218,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 127,
+    "R_disc_nov": 0.25975597353127056,
+    "names": [
+     "c_ema50>=4.335",
+     "atr_pct>=0.808"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     142,
+     247,
+     436
+    ],
+    "n_disc": 135,
+    "R_disc": 0.21515445137920278,
+    "t_disc": 2.195012134184715,
+    "n_val": 152,
+    "R_val": 0.08029334645951279,
+    "t_val": 0.831553107903436,
+    "totR_val": 12.204588661845944,
+    "totR_val_XAUUSD": 12.204588661845944,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 135,
+    "R_disc_nov": 0.21515445137920272,
+    "names": [
+     "pos250>=0.9015",
+     "ema20_50<=0.7345",
+     "wick_with>=0.1349"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     60,
+     74,
+     237
+    ],
+    "n_disc": 98,
+    "R_disc": 0.2416917266852423,
+    "t_disc": 2.194377171024133,
+    "n_val": 114,
+    "R_val": -0.10533372340045186,
+    "t_val": -1.3706348645941315,
+    "totR_val": -12.008044467651512,
+    "totR_val_XAUUSD": -12.008044467651512,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 98,
+    "R_disc_nov": 0.24169172668524228,
+    "names": [
+     "brk55>=-5.478",
+     "brk100>=-14.12",
+     "ema20_50<=-1.268"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     212,
+     302,
+     570
+    ],
+    "n_disc": 119,
+    "R_disc": 0.265583318636395,
+    "t_disc": 2.19145449958107,
+    "n_val": 159,
+    "R_val": 0.10369741782120812,
+    "t_val": 0.9614018392963289,
+    "totR_val": 16.48788943357209,
+    "totR_val_XAUUSD": 16.48788943357209,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 119,
+    "R_disc_nov": 0.26558331863639495,
+    "names": [
+     "ret30>=3.814",
+     "atr_pct>=0.808",
+     "since_brk_opp>=96"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     284,
+     320
+    ],
+    "n_disc": 304,
+    "R_disc": 0.18487182625299212,
+    "t_disc": 2.1788300337348874,
+    "n_val": 309,
+    "R_val": -0.05120703458854083,
+    "t_val": -0.6867103648497954,
+    "totR_val": -15.822973687859118,
+    "totR_val_XAUUSD": -15.822973687859118,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 305,
+    "R_disc_nov": 0.18612127136577505,
+    "names": [
+     "c_ema50>=2.499",
+     "atr_ratio>=1.464"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     136,
+     191,
+     593
+    ],
+    "n_disc": 256,
+    "R_disc": 0.21234566377748515,
+    "t_disc": 2.1738259502539683,
+    "n_val": 289,
+    "R_val": 0.03907066308174862,
+    "t_val": 0.4856877995633891,
+    "totR_val": 11.29142163062535,
+    "totR_val_XAUUSD": 11.29142163062535,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 256,
+    "R_disc_nov": 0.21234566377748504,
+    "names": [
+     "pos250>=0.8175",
+     "ret10<=1.661",
+     "hour13"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     250,
+     298,
+     612
+    ],
+    "n_disc": 117,
+    "R_disc": 0.18065397775770622,
+    "t_disc": 2.171470426312694,
+    "n_val": 123,
+    "R_val": 0.08946155967501283,
+    "t_val": 1.0083070561838239,
+    "totR_val": 11.003771840026578,
+    "totR_val_XAUUSD": 11.003771840026578,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 117,
+    "R_disc_nov": 0.18065397775770625,
+    "names": [
+     "ema20_50>=2.309",
+     "atr_pct>=0.592",
+     "htf1_with"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     68,
+     322,
+     336
+    ],
+    "n_disc": 104,
+    "R_disc": 0.28239700004346546,
+    "t_disc": 2.1689832919991625,
+    "n_val": 74,
+    "R_val": 0.05338552616299062,
+    "t_val": 0.38456841172393025,
+    "totR_val": 3.9505289360613056,
+    "totR_val_XAUUSD": 3.9505289360613056,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 104,
+    "R_disc_nov": 0.2823970000434656,
+    "names": [
+     "brk55>=-1.657",
+     "atr_ratio>=1.717",
+     "squeeze>=0.7067"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "tp2",
+    "scope": "XAUUSD",
+    "conds": [
+     4,
+     322,
+     590
+    ],
+    "n_disc": 185,
+    "R_disc": 0.21793448444469252,
+    "t_disc": 2.168070823415813,
+    "n_val": 160,
+    "R_val": 0.019560152008607622,
+    "t_val": 0.18871290347273897,
+    "totR_val": 3.1296243213772197,
+    "totR_val_XAUUSD": 3.1296243213772197,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 185,
+    "R_disc_nov": 0.2179344844446925,
+    "names": [
+     "brk5>=-1.591",
+     "atr_ratio>=1.717",
+     "htf_pos>=0.8068"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "ch20",
+    "scope": "XAUUSD",
+    "conds": [
+     96,
+     322,
+     560
+    ],
+    "n_disc": 222,
+    "R_disc": 0.33689671071034605,
+    "t_disc": 2.159424540395835,
+    "n_val": 209,
+    "R_val": 0.12900768557730932,
+    "t_val": 0.9487040491860137,
+    "totR_val": 26.962606285657646,
+    "totR_val_XAUUSD": 26.962606285657646,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 223,
+    "R_disc_nov": 0.3517142890241239,
+    "names": [
+     "pos20>=0.3853",
+     "atr_ratio>=1.717",
+     "since_brk_opp>=15"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     138,
+     288,
+     392
+    ],
+    "n_disc": 267,
+    "R_disc": 0.1781009544990562,
+    "t_disc": 2.1588944987836336,
+    "n_val": 271,
+    "R_val": -0.0279086114216666,
+    "t_val": -0.508392076489092,
+    "totR_val": -7.563233695271649,
+    "totR_val_XAUUSD": -7.563233695271649,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 267,
+    "R_disc_nov": 0.17810095449905636,
+    "names": [
+     "pos250>=0.9065",
+     "atr_pct>=0.308",
+     "body<=-0.6981"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     346,
+     581,
+     611
+    ],
+    "n_disc": 187,
+    "R_disc": 0.21932066279676501,
+    "t_disc": 2.157081535381303,
+    "n_val": 319,
+    "R_val": -0.06130985068590287,
+    "t_val": -0.9381221643212279,
+    "totR_val": -19.557842368803016,
+    "totR_val_XAUUSD": -19.557842368803016,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 187,
+    "R_disc_nov": 0.2193206627967651,
+    "names": [
+     "vr<=0.9776",
+     "htf_pos>=0.8068",
+     "hour11"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     197,
+     250,
+     298
+    ],
+    "n_disc": 120,
+    "R_disc": 0.16774532602749387,
+    "t_disc": 2.1555679175788702,
+    "n_val": 118,
+    "R_val": 0.07995098694335892,
+    "t_val": 0.9203858571188737,
+    "totR_val": 9.434216459316353,
+    "totR_val_XAUUSD": 9.434216459316353,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 120,
+    "R_disc_nov": 0.16774532602749387,
+    "names": [
+     "ret10<=2.781",
+     "ema20_50>=2.309",
+     "atr_pct>=0.592"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     138,
+     240,
+     263
+    ],
+    "n_disc": 359,
+    "R_disc": 0.27728209905560375,
+    "t_disc": 2.155546588492497,
+    "n_val": 371,
+    "R_val": 0.10852887863168753,
+    "t_val": 1.2206250508478425,
+    "totR_val": 40.264213972356075,
+    "totR_val_XAUUSD": 40.264213972356075,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 359,
+    "R_disc_nov": 0.27728209905560364,
+    "names": [
+     "pos250>=0.9065",
+     "ema20_50>=0.3431",
+     "c_ema200<=5.301"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     138,
+     263,
+     276
+    ],
+    "n_disc": 380,
+    "R_disc": 0.26005517158139296,
+    "t_disc": 2.1518915992211616,
+    "n_val": 403,
+    "R_val": 0.13102088581130286,
+    "t_val": 1.5054770780846836,
+    "totR_val": 52.80141698195505,
+    "totR_val_XAUUSD": 52.80141698195505,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 380,
+    "R_disc_nov": 0.260055171581393,
+    "names": [
+     "pos250>=0.9065",
+     "c_ema200<=5.301",
+     "c_ema50>=0.7096"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "chand",
+    "scope": "XAUUSD",
+    "conds": [
+     195,
+     248,
+     304
+    ],
+    "n_disc": 80,
+    "R_disc": 0.5229049013003906,
+    "t_disc": 2.1425034161791587,
+    "n_val": 102,
+    "R_val": 0.053136502538636526,
+    "t_val": 0.36407357575042765,
+    "totR_val": 5.419923258940925,
+    "totR_val_XAUUSD": 5.419923258940925,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 80,
+    "R_disc_nov": 0.5229049013003904,
+    "names": [
+     "ret10<=1.719",
+     "ema20_50>=1.268",
+     "atr_pct>=0.916"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     138,
+     208,
+     392
+    ],
+    "n_disc": 161,
+    "R_disc": 0.22057177443554082,
+    "t_disc": 2.138305451030731,
+    "n_val": 170,
+    "R_val": -0.009646763139640904,
+    "t_val": -0.13592280750966385,
+    "totR_val": -1.6399497337389537,
+    "totR_val_XAUUSD": -1.6399497337389537,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 161,
+    "R_disc_nov": 0.22057177443554088,
+    "names": [
+     "pos250>=0.9065",
+     "ret30>=3.5",
+     "body<=-0.6981"
+    ]
+   },
+   {
+    "tf": "H1",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     142,
+     247,
+     368
+    ],
+    "n_disc": 143,
+    "R_disc": 0.21696561579379625,
+    "t_disc": 2.1361063953709496,
+    "n_val": 160,
+    "R_val": 0.14547653071264433,
+    "t_val": 1.4525083059610921,
+    "totR_val": 23.276244914023092,
+    "totR_val_XAUUSD": 23.276244914023092,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 143,
+    "R_disc_nov": 0.21696561579379622,
+    "names": [
+     "pos250>=0.9015",
+     "ema20_50<=0.7345",
+     "bar_rng>=0.8828"
+    ]
+   },
+   {
+    "tf": "M30",
+    "exit": "t6",
+    "scope": "XAUUSD",
+    "conds": [
+     493,
+     593,
+     614
+    ],
+    "n_disc": 189,
+    "R_disc": 0.22376743403812005,
+    "t_disc": 2.1334939013173857,
+    "n_val": 208,
+    "R_val": -0.03727163659242671,
+    "t_val": -0.4200475059176829,
+    "totR_val": -7.752500411224755,
+    "totR_val_XAUUSD": -7.752500411224755,
+    "totR_val_XAGUSD": 0.0,
+    "totR_val_BTCUSD": 0.0,
+    "n_disc_nov": 189,
+    "R_disc_nov": 0.2237674340381201,
+    "names": [
+     "h1_ext_when>=0.9655",
+     "hour13",
+     "long"
+    ]
+   }
+  ],
+  "top1_val": 0.13919346881581762,
+  "median_top_val": 0.037273883525370755,
+  "best_disc_t": 2.975176009851034
+ },
+ "placebos": [
+  {
+   "label": "drift0",
+   "patterns": 3137525,
+   "top1_val": 0.06365927628276837,
+   "median_top_val": 0.06502508106956599,
+   "best_disc_t": 10.757909248774313,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      526,
+      612
+     ],
+     "n_disc": 171,
+     "R_disc": 0.03315393674490849,
+     "t_disc": 10.757909248774313,
+     "n_val": 170,
+     "R_val": 0.06365927628276837,
+     "t_val": 31.971417207404386,
+     "totR_val": 10.822076968070622,
+     "totR_val_XAUUSD": 10.822076968070622,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 171,
+     "R_disc_nov": 0.0331539367449085,
+     "names": [
+      "ret3<=0.614",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      289,
+      526
+     ],
+     "n_disc": 142,
+     "R_disc": 0.04106518408246559,
+     "t_disc": 3.188154694876407,
+     "n_val": 142,
+     "R_val": 0.072223495094553,
+     "t_val": 2.813776358581731,
+     "totR_val": 10.255736303426527,
+     "totR_val_XAUUSD": 10.255736303426527,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 142,
+     "R_disc_nov": 0.041065184082465615,
+     "names": [
+      "ret3<=0.614",
+      "atr_pct<=0.052",
+      "run_with>=6"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      155,
+      289,
+      526
+     ],
+     "n_disc": 142,
+     "R_disc": 0.04106518408246559,
+     "t_disc": 3.188154694876407,
+     "n_val": 142,
+     "R_val": 0.072223495094553,
+     "t_val": 2.813776358581731,
+     "totR_val": 10.255736303426527,
+     "totR_val_XAUUSD": 10.255736303426527,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 142,
+     "R_disc_nov": 0.041065184082465615,
+     "names": [
+      "ret1<=0.1209",
+      "atr_pct<=0.052",
+      "run_with>=6"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      526,
+      585
+     ],
+     "n_disc": 154,
+     "R_disc": 0.12414761564113985,
+     "t_disc": 3.0924129988593494,
+     "n_val": 144,
+     "R_val": 0.11781659531127889,
+     "t_val": 2.668823070918983,
+     "totR_val": 16.96558972482416,
+     "totR_val_XAUUSD": 16.96558972482416,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 154,
+     "R_disc_nov": 0.12414761564113992,
+     "names": [
+      "ret3<=0.614",
+      "run_with>=6",
+      "wday4"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      126,
+      219,
+      599
+     ],
+     "n_disc": 112,
+     "R_disc": 0.3909634681707253,
+     "t_disc": 2.9226735628562475,
+     "n_val": 109,
+     "R_val": -0.006482296717262193,
+     "t_val": -0.04884997523765764,
+     "totR_val": -0.706570342181579,
+     "totR_val_XAUUSD": -0.706570342181579,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 112,
+     "R_disc_nov": 0.3909634681707252,
+     "names": [
+      "pos250>=0.08165",
+      "ret100<=-7.401",
+      "wday3"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      219,
+      302
+     ],
+     "n_disc": 141,
+     "R_disc": 0.31267746971173854,
+     "t_disc": 2.905817218064567,
+     "n_val": 217,
+     "R_val": -0.2620804609398099,
+     "t_val": -3.3238107122557783,
+     "totR_val": -56.871460023938745,
+     "totR_val_XAUUSD": -56.871460023938745,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 142,
+     "R_disc_nov": 0.3089053221477116,
+     "names": [
+      "ret100<=-7.401",
+      "atr_pct>=0.808"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "ch10",
+     "scope": "XAUUSD",
+     "conds": [
+      577,
+      597,
+      599
+     ],
+     "n_disc": 170,
+     "R_disc": 0.3783641306379235,
+     "t_disc": 2.8927122036991384,
+     "n_val": 175,
+     "R_val": 0.3160465169341173,
+     "t_val": 2.2874470589133655,
+     "totR_val": 55.30814046347053,
+     "totR_val_XAUUSD": 55.30814046347053,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.37836413063792335,
+     "names": [
+      "htf_pos<=0.5",
+      "htf2_with",
+      "wday3"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "chand",
+     "scope": "XAUUSD",
+     "conds": [
+      257,
+      597,
+      599
+     ],
+     "n_disc": 95,
+     "R_disc": 0.6041775681039779,
+     "t_disc": 2.8812297225255024,
+     "n_val": 110,
+     "R_val": 0.30485444886306,
+     "t_val": 1.7299670055282506,
+     "totR_val": 33.5339893749366,
+     "totR_val_XAUUSD": 33.5339893749366,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 95,
+     "R_disc_nov": 0.6041775681039777,
+     "names": [
+      "c_ema200<=-3.224",
+      "htf2_with",
+      "wday3"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      219,
+      568,
+      599
+     ],
+     "n_disc": 109,
+     "R_disc": 0.39691517000034526,
+     "t_disc": 2.8631359554176834,
+     "n_val": 114,
+     "R_val": 0.04467560180693363,
+     "t_val": 0.3412435684015025,
+     "totR_val": 5.0930186059904345,
+     "totR_val_XAUUSD": 5.0930186059904345,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 109,
+     "R_disc_nov": 0.39691517000034515,
+     "names": [
+      "ret100<=-7.401",
+      "htf_pos>=0.07071",
+      "wday3"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "ch10",
+     "scope": "XAUUSD",
+     "conds": [
+      257,
+      597,
+      599
+     ],
+     "n_disc": 123,
+     "R_disc": 0.46588996129370647,
+     "t_disc": 2.845009960207152,
+     "n_val": 133,
+     "R_val": 0.4201493290097506,
+     "t_val": 2.3487189440470893,
+     "totR_val": 55.87986075829683,
+     "totR_val_XAUUSD": 55.87986075829683,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 123,
+     "R_disc_nov": 0.4658899612937064,
+     "names": [
+      "c_ema200<=-3.224",
+      "htf2_with",
+      "wday3"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift1",
+   "patterns": 3140745,
+   "top1_val": 0.008057297288139252,
+   "median_top_val": -0.06251609715456326,
+   "best_disc_t": 3.657207573774042,
+   "top": [
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      385,
+      444,
+      615
+     ],
+     "n_disc": 156,
+     "R_disc": 0.28251424519445834,
+     "t_disc": 3.657207573774042,
+     "n_val": 134,
+     "R_val": 0.008057297288139252,
+     "t_val": 0.10303773775059112,
+     "totR_val": 1.0796778366106596,
+     "totR_val_XAUUSD": 1.0796778366106596,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 156,
+     "R_disc_nov": 0.28251424519445867,
+     "names": [
+      "h1_big>=0.3298",
+      "wick_with>=0.5392",
+      "hour15"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "chand",
+     "scope": "XAUUSD",
+     "conds": [
+      181,
+      302,
+      365
+     ],
+     "n_disc": 102,
+     "R_disc": 0.5494829829783991,
+     "t_disc": 3.2542103678995713,
+     "n_val": 112,
+     "R_val": -0.10638984422550624,
+     "t_val": -0.7117446155199085,
+     "totR_val": -11.915662553256698,
+     "totR_val_XAUUSD": -11.915662553256698,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 102,
+     "R_disc_nov": 0.5494829829783987,
+     "names": [
+      "ret10<=-3.592",
+      "atr_pct>=0.808",
+      "bar_rng<=0.6325"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "chand",
+     "scope": "XAUUSD",
+     "conds": [
+      181,
+      302,
+      355
+     ],
+     "n_disc": 123,
+     "R_disc": 0.5059792939055732,
+     "t_disc": 3.238178525179273,
+     "n_val": 155,
+     "R_val": -0.10740572487062756,
+     "t_val": -0.9687781039296587,
+     "totR_val": -16.647887354947272,
+     "totR_val_XAUUSD": -16.647887354947272,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 123,
+     "R_disc_nov": 0.5059792939055732,
+     "names": [
+      "ret10<=-3.592",
+      "atr_pct>=0.808",
+      "vr<=1.419"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "chand",
+     "scope": "XAUUSD",
+     "conds": [
+      19,
+      300,
+      355
+     ],
+     "n_disc": 142,
+     "R_disc": 0.43314348563240046,
+     "t_disc": 3.2166408990753124,
+     "n_val": 179,
+     "R_val": -0.19569646160443704,
+     "t_val": -1.946497383628558,
+     "totR_val": -35.02966662719423,
+     "totR_val_XAUUSD": -35.02966662719423,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 142,
+     "R_disc_nov": 0.4331434856324006,
+     "names": [
+      "brk10<=-4.576",
+      "atr_pct>=0.7",
+      "vr<=1.419"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      444,
+      552,
+      615
+     ],
+     "n_disc": 175,
+     "R_disc": 0.23564034764118344,
+     "t_disc": 3.1726222654867757,
+     "n_val": 171,
+     "R_val": 0.04747280898172671,
+     "t_val": 0.678078367606922,
+     "totR_val": 8.117850335875268,
+     "totR_val_XAUUSD": 8.117850335875268,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 175,
+     "R_disc_nov": 0.23564034764118366,
+     "names": [
+      "wick_with>=0.5392",
+      "since_brk_opp>=12",
+      "hour15"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      229,
+      444,
+      615
+     ],
+     "n_disc": 179,
+     "R_disc": 0.22170619415184337,
+     "t_disc": 3.1017137932368914,
+     "n_val": 161,
+     "R_val": 0.0012789784971572733,
+     "t_val": 0.019003403789555146,
+     "totR_val": 0.205915538042321,
+     "totR_val_XAUUSD": 0.205915538042321,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 179,
+     "R_disc_nov": 0.22170619415184342,
+     "names": [
+      "ret100<=4.397",
+      "wick_with>=0.5392",
+      "hour15"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      238,
+      444,
+      615
+     ],
+     "n_disc": 180,
+     "R_disc": 0.21185635071322448,
+     "t_disc": 3.042086779216071,
+     "n_val": 166,
+     "R_val": -0.008002904865187477,
+     "t_val": -0.1116324523256809,
+     "totR_val": -1.3284822076211213,
+     "totR_val_XAUUSD": -1.3284822076211213,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 180,
+     "R_disc_nov": 0.2118563507132247,
+     "names": [
+      "ema20_50>=-0.7975",
+      "wick_with>=0.5392",
+      "hour15"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      383,
+      444,
+      615
+     ],
+     "n_disc": 188,
+     "R_disc": 0.21426046115368888,
+     "t_disc": 3.0282287238435397,
+     "n_val": 164,
+     "R_val": -0.002072342152444142,
+     "t_val": -0.02945568384560211,
+     "totR_val": -0.3398641130008393,
+     "totR_val_XAUUSD": -0.3398641130008393,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 188,
+     "R_disc_nov": 0.21426046115368913,
+     "names": [
+      "h1_big>=0.2929",
+      "wick_with>=0.5392",
+      "hour15"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      444,
+      554,
+      615
+     ],
+     "n_disc": 154,
+     "R_disc": 0.217129713997839,
+     "t_disc": 3.0099659701536203,
+     "n_val": 148,
+     "R_val": 0.006973484648373893,
+     "t_val": 0.0902479036486939,
+     "totR_val": 1.0320757279593362,
+     "totR_val_XAUUSD": 1.0320757279593362,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 154,
+     "R_disc_nov": 0.21712971399783915,
+     "names": [
+      "wick_with>=0.5392",
+      "since_brk_opp>=22",
+      "hour15"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "chand",
+     "scope": "XAUUSD",
+     "conds": [
+      19,
+      300,
+      365
+     ],
+     "n_disc": 116,
+     "R_disc": 0.4682593542700206,
+     "t_disc": 3.007622444676355,
+     "n_val": 133,
+     "R_val": -0.13780844194307443,
+     "t_val": -1.0833326174171436,
+     "totR_val": -18.328522778428898,
+     "totR_val_XAUUSD": -18.328522778428898,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 116,
+     "R_disc_nov": 0.4682593542700206,
+     "names": [
+      "brk10<=-4.576",
+      "atr_pct>=0.7",
+      "bar_rng<=0.6325"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift2",
+   "patterns": 3137525,
+   "top1_val": 0.08205351738443296,
+   "median_top_val": 0.06437367393231389,
+   "best_disc_t": 26.719479965807132,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      409,
+      612
+     ],
+     "n_disc": 184,
+     "R_disc": 0.06950278376852412,
+     "t_disc": 26.719479965807132,
+     "n_val": 178,
+     "R_val": 0.08205351738443296,
+     "t_val": 31.425613568173176,
+     "totR_val": 14.605526094429067,
+     "totR_val_XAUUSD": 14.605526094429067,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 184,
+     "R_disc_nov": 0.06950278376852408,
+     "names": [
+      "bar_rng<=0.3437",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      427,
+      612
+     ],
+     "n_disc": 183,
+     "R_disc": 0.06981217729714963,
+     "t_disc": 26.60253891017854,
+     "n_val": 177,
+     "R_val": 0.08276915736846752,
+     "t_val": 31.8344643753814,
+     "totR_val": 14.65014085421875,
+     "totR_val_XAUUSD": 14.65014085421875,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 183,
+     "R_disc_nov": 0.06981217729714963,
+     "names": [
+      "bar_rng<=0.3437",
+      "clpos>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      177,
+      409,
+      612
+     ],
+     "n_disc": 181,
+     "R_disc": 0.06982279113867777,
+     "t_disc": 26.4870024571689,
+     "n_val": 173,
+     "R_val": 0.08239236164476985,
+     "t_val": 30.83008486503309,
+     "totR_val": 14.253878564545182,
+     "totR_val_XAUUSD": 14.253878564545182,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 181,
+     "R_disc_nov": 0.06982279113867775,
+     "names": [
+      "ret3<=1.136",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      612
+     ],
+     "n_disc": 171,
+     "R_disc": 0.07062838661893384,
+     "t_disc": 26.21354865426343,
+     "n_val": 172,
+     "R_val": 0.08100855357076002,
+     "t_val": 32.05521250780666,
+     "totR_val": 13.933471214170723,
+     "totR_val_XAUUSD": 13.933471214170723,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 171,
+     "R_disc_nov": 0.07062838661893385,
+     "names": [
+      "bar_rng<=0.3437",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      612
+     ],
+     "n_disc": 170,
+     "R_disc": 0.07082171486933755,
+     "t_disc": 26.19866403264608,
+     "n_val": 170,
+     "R_val": 0.09189666791168559,
+     "t_val": 8.066878314443827,
+     "totR_val": 15.62243354498655,
+     "totR_val_XAUUSD": 15.62243354498655,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.07082171486933755,
+     "names": [
+      "ret3<=0.2568",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      464,
+      612
+     ],
+     "n_disc": 180,
+     "R_disc": 0.06913812804504153,
+     "t_disc": 26.058906442054873,
+     "n_val": 178,
+     "R_val": 0.08162633229483628,
+     "t_val": 32.20483509850641,
+     "totR_val": 14.529487148480857,
+     "totR_val_XAUUSD": 14.529487148480857,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 180,
+     "R_disc_nov": 0.06913812804504153,
+     "names": [
+      "bar_rng<=0.3437",
+      "h1_share<=0.2333",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      464,
+      599
+     ],
+     "n_disc": 178,
+     "R_disc": 0.09149439559399328,
+     "t_disc": 25.980288606732618,
+     "n_val": 177,
+     "R_val": 0.10893803276328945,
+     "t_val": 30.58636258210492,
+     "totR_val": 19.28203179910223,
+     "totR_val_XAUUSD": 19.28203179910223,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.09149439559399321,
+     "names": [
+      "bar_rng<=0.3437",
+      "h1_share<=0.2333",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      195,
+      409,
+      612
+     ],
+     "n_disc": 173,
+     "R_disc": 0.07095082425030355,
+     "t_disc": 25.948628863731933,
+     "n_val": 162,
+     "R_val": 0.08355600563486185,
+     "t_val": 31.026591928705884,
+     "totR_val": 13.536072912847619,
+     "totR_val_XAUUSD": 13.536072912847619,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 173,
+     "R_disc_nov": 0.07095082425030354,
+     "names": [
+      "ret10<=2.302",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      409,
+      599
+     ],
+     "n_disc": 178,
+     "R_disc": 0.09131824922240989,
+     "t_disc": 25.871920752637838,
+     "n_val": 176,
+     "R_val": 0.10971410246353494,
+     "t_val": 30.713742358199795,
+     "totR_val": 19.30968203358215,
+     "totR_val_XAUUSD": 19.30968203358215,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.09131824922240982,
+     "names": [
+      "bar_rng<=0.3437",
+      "body>=1",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      599
+     ],
+     "n_disc": 165,
+     "R_disc": 0.09299988391609572,
+     "t_disc": 25.795289791008724,
+     "n_val": 171,
+     "R_val": 0.10899521166236993,
+     "t_val": 29.990624698873813,
+     "totR_val": 18.638181194265258,
+     "totR_val_XAUUSD": 18.638181194265258,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 165,
+     "R_disc_nov": 0.09299988391609568,
+     "names": [
+      "bar_rng<=0.3437",
+      "run_with>=6",
+      "hour02"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift3",
+   "patterns": 3137525,
+   "top1_val": 0.04699921000435228,
+   "median_top_val": 0.04703815948000224,
+   "best_disc_t": 27.922672286772418,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      409,
+      612
+     ],
+     "n_disc": 180,
+     "R_disc": 0.037574266145724344,
+     "t_disc": 27.922672286772418,
+     "n_val": 173,
+     "R_val": 0.04699921000435228,
+     "t_val": 29.508852185002056,
+     "totR_val": 8.130863330752945,
+     "totR_val_XAUUSD": 8.130863330752945,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 180,
+     "R_disc_nov": 0.03757426614572434,
+     "names": [
+      "ret3<=0.6139",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      409,
+      612
+     ],
+     "n_disc": 179,
+     "R_disc": 0.03765887703842439,
+     "t_disc": 27.882649845979856,
+     "n_val": 171,
+     "R_val": 0.047077108955652196,
+     "t_val": 29.23304675369795,
+     "totR_val": 8.050185631416525,
+     "totR_val_XAUUSD": 8.050185631416525,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 179,
+     "R_disc_nov": 0.03765887703842439,
+     "names": [
+      "ret3<=0.2622",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      409,
+      599
+     ],
+     "n_disc": 177,
+     "R_disc": 0.049641156870045104,
+     "t_disc": 25.913864332712183,
+     "n_val": 176,
+     "R_val": 0.06199895088889126,
+     "t_val": 28.043276840329423,
+     "totR_val": 10.911815356444862,
+     "totR_val_XAUUSD": 10.911815356444862,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 177,
+     "R_disc_nov": 0.049641156870045125,
+     "names": [
+      "ret3<=0.6139",
+      "body>=1",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      409,
+      599
+     ],
+     "n_disc": 177,
+     "R_disc": 0.049641156870045104,
+     "t_disc": 25.913864332712183,
+     "n_val": 176,
+     "R_val": 0.06199895088889126,
+     "t_val": 28.043276840329423,
+     "totR_val": 10.911815356444862,
+     "totR_val_XAUUSD": 10.911815356444862,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 177,
+     "R_disc_nov": 0.049641156870045125,
+     "names": [
+      "ret3<=0.2622",
+      "body>=1",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      409,
+      588
+     ],
+     "n_disc": 143,
+     "R_disc": 0.05992908338989762,
+     "t_disc": 22.448632283749365,
+     "n_val": 147,
+     "R_val": 0.07363748018428277,
+     "t_val": 28.019096957649168,
+     "totR_val": 10.824709587089568,
+     "totR_val_XAUUSD": 10.824709587089568,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 143,
+     "R_disc_nov": 0.059929083389897615,
+     "names": [
+      "ret3<=0.2622",
+      "body>=1",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      409,
+      588
+     ],
+     "n_disc": 179,
+     "R_disc": 0.05871386171575037,
+     "t_disc": 7.781464780232618,
+     "n_val": 172,
+     "R_val": 0.08219098942345054,
+     "t_val": 26.72986291291393,
+     "totR_val": 14.136850180833495,
+     "totR_val_XAUUSD": 14.136850180833495,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 179,
+     "R_disc_nov": 0.05871386171575032,
+     "names": [
+      "ret3<=0.6139",
+      "body>=1",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      289,
+      409
+     ],
+     "n_disc": 143,
+     "R_disc": 0.05899402075832942,
+     "t_disc": 3.3553914917030534,
+     "n_val": 147,
+     "R_val": 0.04356162700632041,
+     "t_val": 0.6667752895740072,
+     "totR_val": 6.4035591699291,
+     "totR_val_XAUUSD": 6.4035591699291,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 143,
+     "R_disc_nov": 0.058994020758329435,
+     "names": [
+      "ret3<=0.6139",
+      "atr_pct<=0.056",
+      "body>=1"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      289,
+      409
+     ],
+     "n_disc": 143,
+     "R_disc": 0.05899402075832942,
+     "t_disc": 3.3553914917030534,
+     "n_val": 147,
+     "R_val": 0.04356162700632041,
+     "t_val": 0.6667752895740072,
+     "totR_val": 6.4035591699291,
+     "totR_val_XAUUSD": 6.4035591699291,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 143,
+     "R_disc_nov": 0.058994020758329435,
+     "names": [
+      "ret3<=0.2622",
+      "atr_pct<=0.056",
+      "body>=1"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "chand",
+     "scope": "XAUUSD",
+     "conds": [
+      196,
+      556,
+      589
+     ],
+     "n_disc": 82,
+     "R_disc": 0.452904079603863,
+     "t_disc": 2.9232059953818426,
+     "n_val": 78,
+     "R_val": 0.2450862425402201,
+     "t_val": 0.9547068992122457,
+     "totR_val": 19.116726918137168,
+     "totR_val_XAUUSD": 19.116726918137168,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 82,
+     "R_disc_nov": 0.45290407960386303,
+     "names": [
+      "ret10>=3.664",
+      "since_brk_opp>=34",
+      "wday4"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      247,
+      322,
+      537
+     ],
+     "n_disc": 199,
+     "R_disc": 0.2978801612538836,
+     "t_disc": 2.882808292657506,
+     "n_val": 177,
+     "R_val": -0.10169150769150143,
+     "t_val": -1.1174226368027245,
+     "totR_val": -17.999396861395752,
+     "totR_val_XAUUSD": -17.999396861395752,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 199,
+     "R_disc_nov": 0.2978801612538836,
+     "names": [
+      "ema20_50<=0.799",
+      "atr_ratio>=1.681",
+      "since_brk<=22"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift4",
+   "patterns": 3137525,
+   "top1_val": 0.07456664095272272,
+   "median_top_val": 0.09328162047755552,
+   "best_disc_t": 30.95311603459907,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      155,
+      407,
+      612
+     ],
+     "n_disc": 184,
+     "R_disc": 0.060348609365665995,
+     "t_disc": 30.95311603459907,
+     "n_val": 179,
+     "R_val": 0.07456664095272272,
+     "t_val": 31.150184756180614,
+     "totR_val": 13.347428730537366,
+     "totR_val_XAUUSD": 13.347428730537366,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 184,
+     "R_disc_nov": 0.06034860936566602,
+     "names": [
+      "ret1<=0.1191",
+      "body>=0.7003",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      464,
+      612
+     ],
+     "n_disc": 182,
+     "R_disc": 0.06052981664350652,
+     "t_disc": 30.74692491509104,
+     "n_val": 179,
+     "R_val": 0.0748579516182633,
+     "t_val": 31.27273553668687,
+     "totR_val": 13.399573339669129,
+     "totR_val_XAUUSD": 13.399573339669129,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 182,
+     "R_disc_nov": 0.060529816643506554,
+     "names": [
+      "bar_rng<=0.3389",
+      "h1_share<=0.2333",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      612
+     ],
+     "n_disc": 170,
+     "R_disc": 0.0621116469149201,
+     "t_disc": 30.739541085978466,
+     "n_val": 170,
+     "R_val": 0.07543882505315144,
+     "t_val": 30.20301094436591,
+     "totR_val": 12.824600259035744,
+     "totR_val_XAUUSD": 12.824600259035744,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.0621116469149201,
+     "names": [
+      "ret3<=0.2545",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      409,
+      612
+     ],
+     "n_disc": 180,
+     "R_disc": 0.06193000038206258,
+     "t_disc": 30.510957266688656,
+     "n_val": 173,
+     "R_val": 0.07618232046937182,
+     "t_val": 30.120659536475056,
+     "totR_val": 13.179541441201325,
+     "totR_val_XAUUSD": 13.179541441201325,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 180,
+     "R_disc_nov": 0.06193000038206262,
+     "names": [
+      "ret3<=0.6075",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      157,
+      409,
+      612
+     ],
+     "n_disc": 184,
+     "R_disc": 0.06133697226880804,
+     "t_disc": 30.47565926087897,
+     "n_val": 179,
+     "R_val": 0.07572854105751567,
+     "t_val": 30.865644202880063,
+     "totR_val": 13.555408849295304,
+     "totR_val_XAUUSD": 13.555408849295304,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 184,
+     "R_disc_nov": 0.06133697226880807,
+     "names": [
+      "ret1<=0.3293",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      155,
+      409,
+      612
+     ],
+     "n_disc": 184,
+     "R_disc": 0.06133697226880804,
+     "t_disc": 30.47565926087897,
+     "n_val": 179,
+     "R_val": 0.07572854105751567,
+     "t_val": 30.865644202880063,
+     "totR_val": 13.555408849295304,
+     "totR_val_XAUUSD": 13.555408849295304,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 184,
+     "R_disc_nov": 0.06133697226880807,
+     "names": [
+      "ret1<=0.1191",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      197,
+      409,
+      612
+     ],
+     "n_disc": 181,
+     "R_disc": 0.061773321863281556,
+     "t_disc": 30.233619677717684,
+     "n_val": 173,
+     "R_val": 0.07619641276762142,
+     "t_val": 30.06282006194657,
+     "totR_val": 13.181979408798504,
+     "totR_val_XAUUSD": 13.181979408798504,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 181,
+     "R_disc_nov": 0.061773321863281584,
+     "names": [
+      "ret10<=4.124",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      195,
+      409,
+      612
+     ],
+     "n_disc": 175,
+     "R_disc": 0.06258931270707585,
+     "t_disc": 30.011423158776662,
+     "n_val": 161,
+     "R_val": 0.07682087097857214,
+     "t_val": 28.629743145352258,
+     "totR_val": 12.368160227550115,
+     "totR_val_XAUUSD": 12.368160227550115,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 175,
+     "R_disc_nov": 0.06258931270707589,
+     "names": [
+      "ret10<=2.261",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      599
+     ],
+     "n_disc": 163,
+     "R_disc": 0.08287732781704304,
+     "t_disc": 29.34792982152592,
+     "n_val": 169,
+     "R_val": 0.09315229763427048,
+     "t_val": 12.403862877935001,
+     "totR_val": 15.74273830019171,
+     "totR_val_XAUUSD": 15.74273830019171,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 163,
+     "R_disc_nov": 0.08287732781704307,
+     "names": [
+      "ret3<=0.2545",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      599
+     ],
+     "n_disc": 165,
+     "R_disc": 0.0826001450229096,
+     "t_disc": 29.228364887978962,
+     "n_val": 170,
+     "R_val": 0.10127454554669438,
+     "t_val": 29.262975828638513,
+     "totR_val": 17.216672742938044,
+     "totR_val_XAUUSD": 17.216672742938044,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 165,
+     "R_disc_nov": 0.08260014502290963,
+     "names": [
+      "bar_rng<=0.3389",
+      "run_with>=6",
+      "hour02"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift5",
+   "patterns": 3137525,
+   "top1_val": -0.0003430662816393632,
+   "median_top_val": -0.05781227645523425,
+   "best_disc_t": 11.718150753843986,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      612
+     ],
+     "n_disc": 169,
+     "R_disc": 0.020672511413100215,
+     "t_disc": 11.718150753843986,
+     "n_val": 170,
+     "R_val": -0.0003430662816393632,
+     "t_val": -0.2288426027737272,
+     "totR_val": -0.05832126787869174,
+     "totR_val_XAUUSD": -0.05832126787869174,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 169,
+     "R_disc_nov": 0.02067251141310022,
+     "names": [
+      "ret3<=0.2573",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      612
+     ],
+     "n_disc": 170,
+     "R_disc": 0.02109773266695234,
+     "t_disc": 11.69140193784941,
+     "n_val": 170,
+     "R_val": -0.0003430662816393632,
+     "t_val": -0.2288426027737272,
+     "totR_val": -0.05832126787869174,
+     "totR_val_XAUUSD": -0.05832126787869174,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.021097732666952345,
+     "names": [
+      "bar_rng<=0.341",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      599
+     ],
+     "n_disc": 164,
+     "R_disc": 0.02618158100097038,
+     "t_disc": 11.17469471350176,
+     "n_val": 167,
+     "R_val": -0.0003806632038567176,
+     "t_val": -0.18492569933600586,
+     "totR_val": -0.06357075504407184,
+     "totR_val_XAUUSD": -0.06357075504407184,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 164,
+     "R_disc_nov": 0.0261815810009704,
+     "names": [
+      "ret3<=0.2573",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      599
+     ],
+     "n_disc": 165,
+     "R_disc": 0.026759840415413103,
+     "t_disc": 11.152654350273798,
+     "n_val": 169,
+     "R_val": -0.0005260580286152675,
+     "t_val": -0.25766224172839003,
+     "totR_val": -0.0889038068359802,
+     "totR_val_XAUUSD": -0.0889038068359802,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 165,
+     "R_disc_nov": 0.026759840415413117,
+     "names": [
+      "bar_rng<=0.341",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      588
+     ],
+     "n_disc": 178,
+     "R_disc": 0.034923599471324646,
+     "t_disc": 11.007516866927753,
+     "n_val": 175,
+     "R_val": -0.001883144505250906,
+     "t_val": -0.700878254062916,
+     "totR_val": -0.32955028841890854,
+     "totR_val_XAUUSD": -0.32955028841890854,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.034923599471324646,
+     "names": [
+      "bar_rng<=0.341",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      588
+     ],
+     "n_disc": 178,
+     "R_disc": 0.03482323624000612,
+     "t_disc": 10.983583099725385,
+     "n_val": 176,
+     "R_val": -0.007845199164556775,
+     "t_val": -1.1927696363674336,
+     "totR_val": -1.3807550529619925,
+     "totR_val_XAUUSD": -1.3807550529619925,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.03482323624000613,
+     "names": [
+      "brk5>=-0.0309",
+      "bar_rng<=0.341",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      599
+     ],
+     "n_disc": 169,
+     "R_disc": 0.02591437617369809,
+     "t_disc": 10.696712367887663,
+     "n_val": 172,
+     "R_val": -0.0018768185061959868,
+     "t_val": -0.7949377942096227,
+     "totR_val": -0.3228127830657097,
+     "totR_val_XAUUSD": -0.3228127830657097,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 169,
+     "R_disc_nov": 0.025914376173698114,
+     "names": [
+      "brk5>=-0.0309",
+      "bar_rng<=0.341",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      191,
+      526,
+      599
+     ],
+     "n_disc": 143,
+     "R_disc": 0.024879020152388322,
+     "t_disc": 10.359936064500896,
+     "n_val": 147,
+     "R_val": 0.0008739490073399999,
+     "t_val": 0.3922810980698601,
+     "totR_val": 0.12847050407897997,
+     "totR_val_XAUUSD": 0.12847050407897997,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 143,
+     "R_disc_nov": 0.024879020152388326,
+     "names": [
+      "ret10<=0.6344",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      588
+     ],
+     "n_disc": 132,
+     "R_disc": 0.028464668478312204,
+     "t_disc": 8.983951074240228,
+     "n_val": 147,
+     "R_val": 0.0036419864395144147,
+     "t_val": 1.3448088473433009,
+     "totR_val": 0.5353720066086189,
+     "totR_val_XAUUSD": 0.5353720066086189,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 132,
+     "R_disc_nov": 0.02846466847831219,
+     "names": [
+      "ret3<=0.2573",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      184,
+      304,
+      523
+     ],
+     "n_disc": 232,
+     "R_disc": 0.25452697049295087,
+     "t_disc": 2.9301504248123074,
+     "n_val": 223,
+     "R_val": -0.046097347365609664,
+     "t_val": -0.5736314512333708,
+     "totR_val": -10.279708462530955,
+     "totR_val_XAUUSD": -10.279708462530955,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 232,
+     "R_disc_nov": 0.2545269704929507,
+     "names": [
+      "ret10>=-1.275",
+      "atr_pct>=0.92",
+      "fail_against>=2"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift6",
+   "patterns": 3140745,
+   "top1_val": 0.09223885272594785,
+   "median_top_val": 0.057091240893575305,
+   "best_disc_t": 30.179301360682476,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      599
+     ],
+     "n_disc": 170,
+     "R_disc": 0.06527358111155351,
+     "t_disc": 30.179301360682476,
+     "n_val": 170,
+     "R_val": 0.09223885272594785,
+     "t_val": 29.213487248649237,
+     "totR_val": 15.680604963411135,
+     "totR_val_XAUUSD": 15.680604963411135,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.06527358111155351,
+     "names": [
+      "bar_rng<=0.3427",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      599
+     ],
+     "n_disc": 169,
+     "R_disc": 0.06516826606425083,
+     "t_disc": 29.988417369785143,
+     "n_val": 168,
+     "R_val": 0.09112688528909298,
+     "t_val": 29.905795295799454,
+     "totR_val": 15.30931672856762,
+     "totR_val_XAUUSD": 15.30931672856762,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 169,
+     "R_disc_nov": 0.06516826606425084,
+     "names": [
+      "ret3<=0.2594",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      612
+     ],
+     "n_disc": 171,
+     "R_disc": 0.049437218455694903,
+     "t_disc": 29.968999508628638,
+     "n_val": 171,
+     "R_val": 0.06901639297264234,
+     "t_val": 29.49832986166539,
+     "totR_val": 11.801803198321839,
+     "totR_val_XAUUSD": 11.801803198321839,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 171,
+     "R_disc_nov": 0.04943721845569492,
+     "names": [
+      "bar_rng<=0.3427",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      612
+     ],
+     "n_disc": 170,
+     "R_disc": 0.04954822733250607,
+     "t_disc": 29.927966877101493,
+     "n_val": 169,
+     "R_val": 0.06827433113593552,
+     "t_val": 30.795953001968464,
+     "totR_val": 11.538361961973102,
+     "totR_val_XAUUSD": 11.538361961973102,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.04954822733250607,
+     "names": [
+      "ret3<=0.2594",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      588
+     ],
+     "n_disc": 178,
+     "R_disc": 0.08588459724031429,
+     "t_disc": 28.68664384588788,
+     "n_val": 175,
+     "R_val": 0.12251339246484856,
+     "t_val": 28.15201818426996,
+     "totR_val": 21.4398436813485,
+     "totR_val_XAUUSD": 21.4398436813485,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.0858845972403143,
+     "names": [
+      "bar_rng<=0.3427",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      599
+     ],
+     "n_disc": 172,
+     "R_disc": 0.06415003949024047,
+     "t_disc": 27.83135374349227,
+     "n_val": 173,
+     "R_val": 0.09155676704772621,
+     "t_val": 29.298803222015174,
+     "totR_val": 15.839320699256634,
+     "totR_val_XAUUSD": 15.839320699256634,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 172,
+     "R_disc_nov": 0.06415003949024047,
+     "names": [
+      "brk5>=-0.02963",
+      "bar_rng<=0.3427",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      588
+     ],
+     "n_disc": 135,
+     "R_disc": 0.07675902422984648,
+     "t_disc": 24.880580370343242,
+     "n_val": 149,
+     "R_val": 0.10811594698340062,
+     "t_val": 30.097254621851754,
+     "totR_val": 16.109276100526692,
+     "totR_val_XAUUSD": 16.109276100526692,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 135,
+     "R_disc_nov": 0.07675902422984646,
+     "names": [
+      "ret3<=0.2594",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      588
+     ],
+     "n_disc": 179,
+     "R_disc": 0.09142100813189316,
+     "t_disc": 14.285779525405493,
+     "n_val": 175,
+     "R_val": 0.12227239428398133,
+     "t_val": 28.016761006070855,
+     "totR_val": 21.397668999696734,
+     "totR_val_XAUUSD": 21.397668999696734,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 179,
+     "R_disc_nov": 0.09142100813189313,
+     "names": [
+      "brk5>=-0.02963",
+      "bar_rng<=0.3427",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      612
+     ],
+     "n_disc": 182,
+     "R_disc": 0.038359299489773103,
+     "t_disc": 5.905472003872501,
+     "n_val": 178,
+     "R_val": 0.06402030192407171,
+     "t_val": 18.294961086212997,
+     "totR_val": 11.395613742484764,
+     "totR_val_XAUUSD": 11.395613742484764,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 182,
+     "R_disc_nov": 0.038359299489773103,
+     "names": [
+      "brk5>=-0.02963",
+      "bar_rng<=0.3427",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "ch10",
+     "scope": "XAUUSD",
+     "conds": [
+      84,
+      96,
+      281
+     ],
+     "n_disc": 352,
+     "R_disc": 0.39875328424774287,
+     "t_disc": 3.4055894472987593,
+     "n_val": 336,
+     "R_val": 0.031585389619225156,
+     "t_val": 0.4023960637823208,
+     "totR_val": 10.612690912059653,
+     "totR_val_XAUUSD": 10.612690912059653,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 353,
+     "R_disc_nov": 0.3968098356439315,
+     "names": [
+      "brk100>=-3.087",
+      "pos20>=0.3734",
+      "c_ema50<=0.7749"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift7",
+   "patterns": 3140745,
+   "top1_val": 0.1445321577127078,
+   "median_top_val": -0.029888536065814632,
+   "best_disc_t": 3.2846464069890793,
+   "top": [
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      208,
+      296,
+      553
+     ],
+     "n_disc": 86,
+     "R_disc": 0.48404488903970483,
+     "t_disc": 3.2846464069890793,
+     "n_val": 68,
+     "R_val": 0.1445321577127078,
+     "t_val": 0.8490270115637282,
+     "totR_val": 9.82818672446413,
+     "totR_val_XAUUSD": 9.82818672446413,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 86,
+     "R_disc_nov": 0.48404488903970483,
+     "names": [
+      "ret30>=1.149",
+      "atr_pct>=0.492",
+      "since_brk_opp<=12"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      64,
+      208,
+      553
+     ],
+     "n_disc": 80,
+     "R_disc": 0.4728358231217767,
+     "t_disc": 3.1267853666614545,
+     "n_val": 64,
+     "R_val": 0.05453817223612339,
+     "t_val": 0.3135674896722057,
+     "totR_val": 3.490443023111897,
+     "totR_val_XAUUSD": 3.490443023111897,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 80,
+     "R_disc_nov": 0.472835823121777,
+     "names": [
+      "brk55>=-3.298",
+      "ret30>=1.149",
+      "since_brk_opp<=12"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      60,
+      208,
+      553
+     ],
+     "n_disc": 90,
+     "R_disc": 0.44153875565786943,
+     "t_disc": 3.0965421336105816,
+     "n_val": 82,
+     "R_val": -0.05911997062108801,
+     "t_val": -0.39452619798471467,
+     "totR_val": -4.847837590929217,
+     "totR_val_XAUUSD": -4.847837590929217,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 90,
+     "R_disc_nov": 0.44153875565786965,
+     "names": [
+      "brk55>=-5.536",
+      "ret30>=1.149",
+      "since_brk_opp<=12"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "ch10",
+     "scope": "XAUUSD",
+     "conds": [
+      208,
+      296,
+      553
+     ],
+     "n_disc": 81,
+     "R_disc": 0.7446676981704214,
+     "t_disc": 2.9731526151083667,
+     "n_val": 68,
+     "R_val": 0.15199751674678866,
+     "t_val": 0.7418731252676265,
+     "totR_val": 10.335831138781629,
+     "totR_val_XAUUSD": 10.335831138781629,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 81,
+     "R_disc_nov": 0.7446676981704214,
+     "names": [
+      "ret30>=1.149",
+      "atr_pct>=0.492",
+      "since_brk_opp<=12"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      208,
+      294,
+      553
+     ],
+     "n_disc": 91,
+     "R_disc": 0.4168411960415257,
+     "t_disc": 2.9071133184853966,
+     "n_val": 75,
+     "R_val": 0.08723376280077531,
+     "t_val": 0.5448540983859916,
+     "totR_val": 6.542532210058148,
+     "totR_val_XAUUSD": 6.542532210058148,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 91,
+     "R_disc_nov": 0.4168411960415258,
+     "names": [
+      "ret30>=1.149",
+      "atr_pct>=0.396",
+      "since_brk_opp<=12"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      66,
+      316,
+      555
+     ],
+     "n_disc": 204,
+     "R_disc": 0.293975928378399,
+     "t_disc": 2.903710561506467,
+     "n_val": 174,
+     "R_val": -0.10039620936308996,
+     "t_val": -1.0002367641661782,
+     "totR_val": -17.468940429177653,
+     "totR_val_XAUUSD": -17.468940429177653,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 204,
+     "R_disc_nov": 0.293975928378399,
+     "names": [
+      "brk55>=-2.364",
+      "atr_ratio>=1.194",
+      "since_brk_opp<=21"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      66,
+      324,
+      553
+     ],
+     "n_disc": 149,
+     "R_disc": 0.3542108702377211,
+     "t_disc": 2.889029532618383,
+     "n_val": 114,
+     "R_val": -0.204961482846974,
+     "t_val": -1.6815748274286755,
+     "totR_val": -23.365609044555036,
+     "totR_val_XAUUSD": -23.365609044555036,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 149,
+     "R_disc_nov": 0.3542108702377212,
+     "names": [
+      "brk55>=-2.364",
+      "squeeze>=0.096",
+      "since_brk_opp<=12"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      66,
+      356,
+      555
+     ],
+     "n_disc": 112,
+     "R_disc": 0.36945900847168994,
+     "t_disc": 2.8320784403245995,
+     "n_val": 93,
+     "R_val": -0.02553888014470656,
+     "t_val": -0.1822471705561293,
+     "totR_val": -2.37511585345771,
+     "totR_val_XAUUSD": -2.37511585345771,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 112,
+     "R_disc_nov": 0.3694590084716899,
+     "names": [
+      "brk55>=-2.364",
+      "vr>=2.017",
+      "since_brk_opp<=21"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      208,
+      280,
+      553
+     ],
+     "n_disc": 82,
+     "R_disc": 0.42362446840832163,
+     "t_disc": 2.780865003038967,
+     "n_val": 70,
+     "R_val": 0.008080981235145564,
+     "t_val": 0.04908760125348646,
+     "totR_val": 0.5656686864601894,
+     "totR_val_XAUUSD": 0.5656686864601894,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 82,
+     "R_disc_nov": 0.42362446840832163,
+     "names": [
+      "ret30>=1.149",
+      "c_ema50>=0.7422",
+      "since_brk_opp<=12"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "ch10",
+     "scope": "XAUUSD",
+     "conds": [
+      208,
+      314,
+      553
+     ],
+     "n_disc": 83,
+     "R_disc": 0.6751939097768642,
+     "t_disc": 2.7251236863387045,
+     "n_val": 71,
+     "R_val": 0.13310567022531838,
+     "t_val": 0.6643960707905538,
+     "totR_val": 9.450502585997606,
+     "totR_val_XAUUSD": 9.450502585997606,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 83,
+     "R_disc_nov": 0.6751939097768642,
+     "names": [
+      "ret30>=1.149",
+      "atr_ratio>=1.079",
+      "since_brk_opp<=12"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift8",
+   "patterns": 3137525,
+   "top1_val": -0.009680640338217276,
+   "median_top_val": -0.05333750464817222,
+   "best_disc_t": 3.8063151803946034,
+   "top": [
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      318,
+      562,
+      614
+     ],
+     "n_disc": 325,
+     "R_disc": 0.287292561532551,
+     "t_disc": 3.8063151803946034,
+     "n_val": 304,
+     "R_val": -0.009680640338217276,
+     "t_val": -0.12225008723379781,
+     "totR_val": -2.942914662818052,
+     "totR_val_XAUUSD": -2.942914662818052,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 326,
+     "R_disc_nov": 0.2869634444822696,
+     "names": [
+      "atr_ratio>=1.312",
+      "since_brk_opp>=98",
+      "long"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      318,
+      560,
+      614
+     ],
+     "n_disc": 403,
+     "R_disc": 0.25721857867821357,
+     "t_disc": 3.761727655621828,
+     "n_val": 398,
+     "R_val": 0.01710799425991173,
+     "t_val": 0.251232393150578,
+     "totR_val": 6.808981715444868,
+     "totR_val_XAUUSD": 6.808981715444868,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 403,
+     "R_disc_nov": 0.2605225902655492,
+     "names": [
+      "atr_ratio>=1.312",
+      "since_brk_opp>=72",
+      "long"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      318,
+      509,
+      562
+     ],
+     "n_disc": 497,
+     "R_disc": 0.21265971905026707,
+     "t_disc": 3.3959150033976306,
+     "n_val": 453,
+     "R_val": -0.09107101222758177,
+     "t_val": -1.4805251254125422,
+     "totR_val": -41.25516853909454,
+     "totR_val_XAUUSD": -41.25516853909454,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 498,
+     "R_disc_nov": 0.21259413809462568,
+     "names": [
+      "atr_ratio>=1.312",
+      "h1_opp_when<=0.8475",
+      "since_brk_opp>=98"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      169,
+      409,
+      553
+     ],
+     "n_disc": 158,
+     "R_disc": 0.3239789505070192,
+     "t_disc": 3.3714310055615178,
+     "n_val": 164,
+     "R_val": -0.13777248641714732,
+     "t_val": -1.5333755942982066,
+     "totR_val": -22.594687772412158,
+     "totR_val_XAUUSD": -22.594687772412158,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 159,
+     "R_disc_nov": 0.32224505032594386,
+     "names": [
+      "ret3<=-0.2568",
+      "body>=1",
+      "since_brk_opp<=32"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      318,
+      507,
+      562
+     ],
+     "n_disc": 471,
+     "R_disc": 0.21509902714604046,
+     "t_disc": 3.3361204179725847,
+     "n_val": 440,
+     "R_val": -0.09761707372389193,
+     "t_val": -1.5787447649741635,
+     "totR_val": -42.95151243851245,
+     "totR_val_XAUUSD": -42.95151243851245,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 472,
+     "R_disc_nov": 0.21502466565450412,
+     "names": [
+      "atr_ratio>=1.312",
+      "h1_opp_when<=0.661",
+      "since_brk_opp>=98"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      166,
+      169,
+      409
+     ],
+     "n_disc": 243,
+     "R_disc": 0.26031152063731905,
+     "t_disc": 3.317036554801062,
+     "n_val": 264,
+     "R_val": -0.0199486394881085,
+     "t_val": -0.2691784792838653,
+     "totR_val": -5.266440824860644,
+     "totR_val_XAUUSD": -5.266440824860644,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 244,
+     "R_disc_nov": 0.2594425751499365,
+     "names": [
+      "ret3>=-0.6158",
+      "ret3<=-0.2568",
+      "body>=1"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      169,
+      218,
+      409
+     ],
+     "n_disc": 296,
+     "R_disc": 0.22853260609934234,
+     "t_disc": 3.310070015494302,
+     "n_val": 282,
+     "R_val": 0.012886690503882,
+     "t_val": 0.17506015822090454,
+     "totR_val": 3.634046722094724,
+     "totR_val_XAUUSD": 3.634046722094724,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 297,
+     "R_disc_nov": 0.22792572467044234,
+     "names": [
+      "ret3<=-0.2568",
+      "ret100>=-8.362",
+      "body>=1"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      46,
+      171,
+      409
+     ],
+     "n_disc": 148,
+     "R_disc": 0.35144177243024494,
+     "t_disc": 3.308082960622122,
+     "n_val": 160,
+     "R_val": -0.015290868128443835,
+     "t_val": -0.14641379831140994,
+     "totR_val": -2.4465389005510136,
+     "totR_val_XAUUSD": -2.4465389005510136,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 148,
+     "R_disc_nov": 0.35144177243024494,
+     "names": [
+      "brk20>=-1.731",
+      "ret3<=0",
+      "body>=1"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      213,
+      230,
+      318
+     ],
+     "n_disc": 192,
+     "R_disc": 0.232586114652116,
+     "t_disc": 3.2885127161245737,
+     "n_val": 146,
+     "R_val": -0.09307322951858193,
+     "t_val": -1.1031582974904304,
+     "totR_val": -13.588691509712962,
+     "totR_val_XAUUSD": -13.588691509712962,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 192,
+     "R_disc_nov": 0.232586114652116,
+     "names": [
+      "ret30<=4.115",
+      "ret100>=8.121",
+      "atr_ratio>=1.312"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "ch10",
+     "scope": "XAUUSD",
+     "conds": [
+      224,
+      304,
+      517
+     ],
+     "n_disc": 448,
+     "R_disc": 0.27616115993422874,
+     "t_disc": 3.274837939799734,
+     "n_val": 519,
+     "R_val": -0.09859271021784742,
+     "t_val": -1.9415169045522154,
+     "totR_val": -51.16961660306281,
+     "totR_val_XAUUSD": -51.16961660306281,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 449,
+     "R_disc_nov": 0.273068817476462,
+     "names": [
+      "ret100>=0",
+      "atr_pct>=0.908",
+      "fail_against>=1"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift9",
+   "patterns": 3137525,
+   "top1_val": 0.0708190850694208,
+   "median_top_val": 0.04942610362330796,
+   "best_disc_t": 28.718040356162316,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      409,
+      612
+     ],
+     "n_disc": 176,
+     "R_disc": 0.06320773573807358,
+     "t_disc": 28.718040356162316,
+     "n_val": 177,
+     "R_val": 0.0708190850694208,
+     "t_val": 29.859115662649323,
+     "totR_val": 12.534978057287482,
+     "totR_val_XAUUSD": 12.534978057287482,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 176,
+     "R_disc_nov": 0.06320773573807358,
+     "names": [
+      "ret3<=0.2567",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      409,
+      612
+     ],
+     "n_disc": 177,
+     "R_disc": 0.06291642813951483,
+     "t_disc": 28.497224705886698,
+     "n_val": 177,
+     "R_val": 0.0708190850694208,
+     "t_val": 29.859115662649323,
+     "totR_val": 12.534978057287482,
+     "totR_val_XAUUSD": 12.534978057287482,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 177,
+     "R_disc_nov": 0.06291642813951481,
+     "names": [
+      "ret3<=0.6176",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      612
+     ],
+     "n_disc": 170,
+     "R_disc": 0.06367139409823422,
+     "t_disc": 28.430005141334448,
+     "n_val": 170,
+     "R_val": 0.0703391114070552,
+     "t_val": 28.869404106070533,
+     "totR_val": 11.957648939199386,
+     "totR_val_XAUUSD": 11.957648939199386,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.06367139409823423,
+     "names": [
+      "ret3<=0.2567",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      409,
+      599
+     ],
+     "n_disc": 178,
+     "R_disc": 0.08245465932438881,
+     "t_disc": 27.908386336299074,
+     "n_val": 177,
+     "R_val": 0.09393640154770753,
+     "t_val": 27.8363977733815,
+     "totR_val": 16.626743073944233,
+     "totR_val_XAUUSD": 16.626743073944233,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.08245465932438885,
+     "names": [
+      "ret3<=0.6176",
+      "body>=1",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      409,
+      599
+     ],
+     "n_disc": 177,
+     "R_disc": 0.0821100833269614,
+     "t_disc": 27.82507235509265,
+     "n_val": 176,
+     "R_val": 0.09301614859418744,
+     "t_val": 28.487224554395826,
+     "totR_val": 16.37084215257699,
+     "totR_val_XAUUSD": 16.37084215257699,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 177,
+     "R_disc_nov": 0.08211008332696144,
+     "names": [
+      "ret3<=0.2567",
+      "body>=1",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      599
+     ],
+     "n_disc": 168,
+     "R_disc": 0.08321609677322346,
+     "t_disc": 27.26071121037452,
+     "n_val": 169,
+     "R_val": 0.0935940788802765,
+     "t_val": 27.976345792288992,
+     "totR_val": 15.817399330766728,
+     "totR_val_XAUUSD": 15.817399330766728,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 168,
+     "R_disc_nov": 0.08321609677322349,
+     "names": [
+      "bar_rng<=0.3394",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      195,
+      409,
+      588
+     ],
+     "n_disc": 171,
+     "R_disc": 0.11042589115102736,
+     "t_disc": 27.199055767247728,
+     "n_val": 173,
+     "R_val": 0.12611077275323218,
+     "t_val": 26.833830157044606,
+     "totR_val": 21.817163686309165,
+     "totR_val_XAUUSD": 21.817163686309165,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 171,
+     "R_disc_nov": 0.11042589115102738,
+     "names": [
+      "ret10<=2.279",
+      "body>=1",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      195,
+      409,
+      612
+     ],
+     "n_disc": 164,
+     "R_disc": 0.06225246520967113,
+     "t_disc": 27.01614592344094,
+     "n_val": 168,
+     "R_val": 0.07044395488843781,
+     "t_val": 28.848255846835066,
+     "totR_val": 11.834584421257553,
+     "totR_val_XAUUSD": 11.834584421257553,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 164,
+     "R_disc_nov": 0.06225246520967112,
+     "names": [
+      "ret10<=2.279",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      409,
+      588
+     ],
+     "n_disc": 176,
+     "R_disc": 0.10861981761363092,
+     "t_disc": 26.95747047723966,
+     "n_val": 175,
+     "R_val": 0.12560544291960407,
+     "t_val": 26.94593825951921,
+     "totR_val": 21.980952510930713,
+     "totR_val_XAUUSD": 21.980952510930713,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 176,
+     "R_disc_nov": 0.10861981761363092,
+     "names": [
+      "ret3<=0.6176",
+      "body>=1",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      193,
+      409,
+      588
+     ],
+     "n_disc": 167,
+     "R_disc": 0.1089570520718204,
+     "t_disc": 26.768700658393215,
+     "n_val": 170,
+     "R_val": 0.12387993462349427,
+     "t_val": 26.982283219720298,
+     "totR_val": 21.059588885994025,
+     "totR_val_XAUUSD": 21.059588885994025,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 167,
+     "R_disc_nov": 0.1089570520718204,
+     "names": [
+      "ret10<=1.362",
+      "body>=1",
+      "hour03"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift10",
+   "patterns": 3140745,
+   "top1_val": 0.09644960527768556,
+   "median_top_val": 0.03934615967684066,
+   "best_disc_t": 28.688873664661973,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      599
+     ],
+     "n_disc": 167,
+     "R_disc": 0.07546633709571307,
+     "t_disc": 28.688873664661973,
+     "n_val": 170,
+     "R_val": 0.09644960527768556,
+     "t_val": 30.371620375793327,
+     "totR_val": 16.396432897206545,
+     "totR_val_XAUUSD": 16.396432897206545,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 167,
+     "R_disc_nov": 0.07546633709571307,
+     "names": [
+      "bar_rng<=0.3452",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      588
+     ],
+     "n_disc": 178,
+     "R_disc": 0.09892679722235342,
+     "t_disc": 27.580361629795743,
+     "n_val": 175,
+     "R_val": 0.12799185442981886,
+     "t_val": 29.93802199027138,
+     "totR_val": 22.3985745252183,
+     "totR_val_XAUUSD": 22.3985745252183,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.09892679722235347,
+     "names": [
+      "bar_rng<=0.3452",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      599
+     ],
+     "n_disc": 170,
+     "R_disc": 0.07421829525381991,
+     "t_disc": 27.101847189266312,
+     "n_val": 173,
+     "R_val": 0.09597914328043841,
+     "t_val": 30.630982469405307,
+     "totR_val": 16.604391787515844,
+     "totR_val_XAUUSD": 16.604391787515844,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.07421829525381993,
+     "names": [
+      "brk5>=-0.02534",
+      "bar_rng<=0.3452",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      494,
+      599
+     ],
+     "n_disc": 176,
+     "R_disc": 0.07301954931897199,
+     "t_disc": 21.31178381892923,
+     "n_val": 171,
+     "R_val": 0.09564383619292381,
+     "t_val": 31.11397139107061,
+     "totR_val": 16.355095988989973,
+     "totR_val_XAUUSD": 16.355095988989973,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 176,
+     "R_disc_nov": 0.07301954931897198,
+     "names": [
+      "bar_rng<=0.3452",
+      "h1_ext_when>=1",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      612
+     ],
+     "n_disc": 182,
+     "R_disc": 0.047622106571289284,
+     "t_disc": 12.94565589995478,
+     "n_val": 179,
+     "R_val": 0.06807501568432232,
+     "t_val": 19.70724534349473,
+     "totR_val": 12.185427807493696,
+     "totR_val_XAUUSD": 12.185427807493696,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 182,
+     "R_disc_nov": 0.0476221065712893,
+     "names": [
+      "brk5>=-0.02534",
+      "bar_rng<=0.3452",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      588
+     ],
+     "n_disc": 179,
+     "R_disc": 0.10900620349915462,
+     "t_disc": 10.023436877715273,
+     "n_val": 175,
+     "R_val": 0.1277710321462656,
+     "t_val": 29.8085057359545,
+     "totR_val": 22.359930625596476,
+     "totR_val_XAUUSD": 22.359930625596476,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 179,
+     "R_disc_nov": 0.10900620349915466,
+     "names": [
+      "brk5>=-0.02534",
+      "bar_rng<=0.3452",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      494,
+      588
+     ],
+     "n_disc": 176,
+     "R_disc": 0.11000999975497171,
+     "t_disc": 9.094762775874997,
+     "n_val": 168,
+     "R_val": 0.13126772559845426,
+     "t_val": 28.425936104853267,
+     "totR_val": 22.052977900540316,
+     "totR_val_XAUUSD": 22.052977900540316,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 176,
+     "R_disc_nov": 0.11000999975497171,
+     "names": [
+      "bar_rng<=0.3452",
+      "h1_ext_when>=1",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      612
+     ],
+     "n_disc": 172,
+     "R_disc": 0.05005112086106109,
+     "t_disc": 7.293969074025204,
+     "n_val": 171,
+     "R_val": 0.07355224218371675,
+     "t_val": 30.245023378990123,
+     "totR_val": 12.577433413415566,
+     "totR_val_XAUUSD": 12.577433413415566,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 172,
+     "R_disc_nov": 0.050051120861061095,
+     "names": [
+      "bar_rng<=0.3452",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      289,
+      361
+     ],
+     "n_disc": 142,
+     "R_disc": 0.044399488547906034,
+     "t_disc": 5.235907767061461,
+     "n_val": 142,
+     "R_val": 0.07255449782008187,
+     "t_val": 4.6503078084085265,
+     "totR_val": 10.302738690451626,
+     "totR_val_XAUUSD": 10.302738690451626,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 142,
+     "R_disc_nov": 0.04439948854790606,
+     "names": [
+      "brk5>=-0.02534",
+      "atr_pct<=0.056",
+      "bar_rng<=0.3452"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      494,
+      612
+     ],
+     "n_disc": 183,
+     "R_disc": 0.04451505242088454,
+     "t_disc": 5.107003932153844,
+     "n_val": 173,
+     "R_val": 0.07456621366848902,
+     "t_val": 30.67533330295393,
+     "totR_val": 12.8999549646486,
+     "totR_val_XAUUSD": 12.8999549646486,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 183,
+     "R_disc_nov": 0.04451505242088453,
+     "names": [
+      "bar_rng<=0.3452",
+      "h1_ext_when>=1",
+      "hour01"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift11",
+   "patterns": 3137525,
+   "top1_val": 0.07165759620717052,
+   "median_top_val": 0.08574795458714818,
+   "best_disc_t": 29.65703082784233,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      464,
+      612
+     ],
+     "n_disc": 184,
+     "R_disc": 0.05645311060452071,
+     "t_disc": 29.65703082784233,
+     "n_val": 178,
+     "R_val": 0.07165759620717052,
+     "t_val": 30.227358357018684,
+     "totR_val": 12.755052124876354,
+     "totR_val_XAUUSD": 12.755052124876354,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 184,
+     "R_disc_nov": 0.05645311060452069,
+     "names": [
+      "bar_rng<=0.3428",
+      "h1_share<=0.2333",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      155,
+      405,
+      612
+     ],
+     "n_disc": 184,
+     "R_disc": 0.056114561420452444,
+     "t_disc": 29.654390792027215,
+     "n_val": 179,
+     "R_val": 0.07099500690528032,
+     "t_val": 31.071374061356163,
+     "totR_val": 12.708106236045179,
+     "totR_val_XAUUSD": 12.708106236045179,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 184,
+     "R_disc_nov": 0.05611456142045244,
+     "names": [
+      "ret1<=0.1191",
+      "body>=0.4839",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      409,
+      612
+     ],
+     "n_disc": 183,
+     "R_disc": 0.056862279482532356,
+     "t_disc": 29.22603230130424,
+     "n_val": 179,
+     "R_val": 0.07145368572734608,
+     "t_val": 30.928557372376936,
+     "totR_val": 12.790209745194948,
+     "totR_val_XAUUSD": 12.790209745194948,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 183,
+     "R_disc_nov": 0.056862279482532335,
+     "names": [
+      "bar_rng<=0.3428",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      155,
+      409,
+      612
+     ],
+     "n_disc": 183,
+     "R_disc": 0.056862279482532356,
+     "t_disc": 29.22603230130424,
+     "n_val": 179,
+     "R_val": 0.07145368572734608,
+     "t_val": 30.928557372376936,
+     "totR_val": 12.790209745194948,
+     "totR_val_XAUUSD": 12.790209745194948,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 183,
+     "R_disc_nov": 0.056862279482532335,
+     "names": [
+      "ret1<=0.1191",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      155,
+      405,
+      599
+     ],
+     "n_disc": 178,
+     "R_disc": 0.0734964958192321,
+     "t_disc": 29.091681879705323,
+     "n_val": 177,
+     "R_val": 0.09433894485754968,
+     "t_val": 29.570925982415442,
+     "totR_val": 16.697993239786292,
+     "totR_val_XAUUSD": 16.697993239786292,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.07349649581923211,
+     "names": [
+      "ret1<=0.1191",
+      "body>=0.4839",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      409,
+      612
+     ],
+     "n_disc": 175,
+     "R_disc": 0.057498917667366214,
+     "t_disc": 28.96586757374016,
+     "n_val": 171,
+     "R_val": 0.07227904935990924,
+     "t_val": 30.136951216763435,
+     "totR_val": 12.359717440544479,
+     "totR_val_XAUUSD": 12.359717440544479,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 175,
+     "R_disc_nov": 0.05749891766736618,
+     "names": [
+      "ret3<=0.6178",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      409,
+      612
+     ],
+     "n_disc": 175,
+     "R_disc": 0.057498917667366214,
+     "t_disc": 28.96586757374016,
+     "n_val": 171,
+     "R_val": 0.07227904935990924,
+     "t_val": 30.136951216763435,
+     "totR_val": 12.359717440544479,
+     "totR_val_XAUUSD": 12.359717440544479,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 175,
+     "R_disc_nov": 0.05749891766736618,
+     "names": [
+      "ret3<=0.2606",
+      "body>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      407,
+      599
+     ],
+     "n_disc": 178,
+     "R_disc": 0.07339451089807573,
+     "t_disc": 28.95027868090511,
+     "n_val": 177,
+     "R_val": 0.09433894485754968,
+     "t_val": 29.570925982415442,
+     "totR_val": 16.697993239786292,
+     "totR_val_XAUUSD": 16.697993239786292,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.07339451089807576,
+     "names": [
+      "bar_rng<=0.3428",
+      "body>=0.6993",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      427,
+      612
+     ],
+     "n_disc": 180,
+     "R_disc": 0.05726529474379239,
+     "t_disc": 28.870171599617894,
+     "n_val": 179,
+     "R_val": 0.07190799311306349,
+     "t_val": 31.11972047447089,
+     "totR_val": 12.871530767238365,
+     "totR_val_XAUUSD": 12.871530767238365,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 180,
+     "R_disc_nov": 0.057265294743792355,
+     "names": [
+      "bar_rng<=0.3428",
+      "clpos>=1",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      155,
+      409,
+      599
+     ],
+     "n_disc": 178,
+     "R_disc": 0.07409442193443093,
+     "t_disc": 28.820894450117848,
+     "n_val": 175,
+     "R_val": 0.09607006670585398,
+     "t_val": 29.09850361128307,
+     "totR_val": 16.812261673524446,
+     "totR_val_XAUUSD": 16.812261673524446,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.07409442193443093,
+     "names": [
+      "ret1<=0.1191",
+      "body>=1",
+      "hour02"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift12",
+   "patterns": 3140745,
+   "top1_val": 0.07677959218240483,
+   "median_top_val": 0.07110795719585375,
+   "best_disc_t": 29.992077642666295,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      612
+     ],
+     "n_disc": 172,
+     "R_disc": 0.06351951965768834,
+     "t_disc": 29.992077642666295,
+     "n_val": 170,
+     "R_val": 0.07677959218240483,
+     "t_val": 32.361509345254106,
+     "totR_val": 13.052530671008821,
+     "totR_val_XAUUSD": 13.052530671008821,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 172,
+     "R_disc_nov": 0.06351951965768833,
+     "names": [
+      "bar_rng<=0.3442",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      612
+     ],
+     "n_disc": 170,
+     "R_disc": 0.063563938599173,
+     "t_disc": 29.69572938988295,
+     "n_val": 170,
+     "R_val": 0.07677959218240483,
+     "t_val": 32.361509345254106,
+     "totR_val": 13.052530671008821,
+     "totR_val_XAUUSD": 13.052530671008821,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.06356393859917298,
+     "names": [
+      "ret3<=0.2609",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      599
+     ],
+     "n_disc": 166,
+     "R_disc": 0.08502601874269312,
+     "t_disc": 27.796528270987572,
+     "n_val": 170,
+     "R_val": 0.10226822883511463,
+     "t_val": 30.966912741630534,
+     "totR_val": 17.385598901969487,
+     "totR_val_XAUUSD": 17.385598901969487,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 166,
+     "R_disc_nov": 0.0850260187426931,
+     "names": [
+      "bar_rng<=0.3442",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      599
+     ],
+     "n_disc": 165,
+     "R_disc": 0.08525115878858312,
+     "t_disc": 27.777070003373687,
+     "n_val": 171,
+     "R_val": 0.09563772804140816,
+     "t_val": 12.926084621474688,
+     "totR_val": 16.354051495080796,
+     "totR_val_XAUUSD": 16.354051495080796,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 165,
+     "R_disc_nov": 0.0852511587885831,
+     "names": [
+      "ret3<=0.2609",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      588
+     ],
+     "n_disc": 178,
+     "R_disc": 0.10996797356441083,
+     "t_disc": 27.043594508968702,
+     "n_val": 175,
+     "R_val": 0.1359114077954711,
+     "t_val": 29.129110725090936,
+     "totR_val": 23.784496364207442,
+     "totR_val_XAUUSD": 23.784496364207442,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.10996797356441088,
+     "names": [
+      "bar_rng<=0.3442",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      588
+     ],
+     "n_disc": 140,
+     "R_disc": 0.10227971073556633,
+     "t_disc": 24.558768594381625,
+     "n_val": 146,
+     "R_val": 0.11802159365988009,
+     "t_val": 32.04057963307115,
+     "totR_val": 17.231152674342493,
+     "totR_val_XAUUSD": 17.231152674342493,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 140,
+     "R_disc_nov": 0.1022797107355663,
+     "names": [
+      "ret3<=0.2609",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      191,
+      289,
+      526
+     ],
+     "n_disc": 139,
+     "R_disc": 0.06524887500156654,
+     "t_disc": 23.406759951631955,
+     "n_val": 142,
+     "R_val": 0.10060499645849082,
+     "t_val": 4.865315974987301,
+     "totR_val": 14.285909497105695,
+     "totR_val_XAUUSD": 14.285909497105695,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 139,
+     "R_disc_nov": 0.06524887500156654,
+     "names": [
+      "ret10<=0.655",
+      "atr_pct<=0.06",
+      "run_with>=6"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      526,
+      599
+     ],
+     "n_disc": 167,
+     "R_disc": 0.08240342158890807,
+     "t_disc": 20.522342947474222,
+     "n_val": 171,
+     "R_val": 0.09563772804140816,
+     "t_val": 12.926084621474688,
+     "totR_val": 16.354051495080796,
+     "totR_val_XAUUSD": 16.354051495080796,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 167,
+     "R_disc_nov": 0.08240342158890804,
+     "names": [
+      "ret3<=0.6159",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      191,
+      340,
+      526
+     ],
+     "n_disc": 158,
+     "R_disc": 0.0663402322526652,
+     "t_disc": 17.7193312163073,
+     "n_val": 167,
+     "R_val": 0.09324641683218922,
+     "t_val": 4.897272138774346,
+     "totR_val": 15.572151610975599,
+     "totR_val_XAUUSD": 15.572151610975599,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 158,
+     "R_disc_nov": 0.06634023225266518,
+     "names": [
+      "ret10<=0.655",
+      "squeeze>=0.936",
+      "run_with>=6"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      193,
+      340,
+      526
+     ],
+     "n_disc": 174,
+     "R_disc": 0.07154514969142768,
+     "t_disc": 16.58616597556817,
+     "n_val": 183,
+     "R_val": 0.09560958403082256,
+     "t_val": 5.474388509123747,
+     "totR_val": 17.49655387764053,
+     "totR_val_XAUUSD": 17.49655387764053,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 174,
+     "R_disc_nov": 0.07154514969142765,
+     "names": [
+      "ret10<=1.382",
+      "squeeze>=0.936",
+      "run_with>=6"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift13",
+   "patterns": 3137525,
+   "top1_val": 0.06004815236953753,
+   "median_top_val": 0.021256109992436475,
+   "best_disc_t": 28.117053965997943,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      612
+     ],
+     "n_disc": 171,
+     "R_disc": 0.03847234567147543,
+     "t_disc": 28.117053965997943,
+     "n_val": 172,
+     "R_val": 0.06004815236953753,
+     "t_val": 31.46025280366256,
+     "totR_val": 10.328282207560456,
+     "totR_val_XAUUSD": 10.328282207560456,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 171,
+     "R_disc_nov": 0.03847234567147543,
+     "names": [
+      "bar_rng<=0.3401",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      599
+     ],
+     "n_disc": 168,
+     "R_disc": 0.050299644406597746,
+     "t_disc": 27.765590813185725,
+     "n_val": 171,
+     "R_val": 0.07963853664890286,
+     "t_val": 30.138350328689885,
+     "totR_val": 13.61818976696239,
+     "totR_val_XAUUSD": 13.61818976696239,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 168,
+     "R_disc_nov": 0.05029964440659775,
+     "names": [
+      "bar_rng<=0.3401",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      599
+     ],
+     "n_disc": 167,
+     "R_disc": 0.050128916582770314,
+     "t_disc": 27.62911428236686,
+     "n_val": 171,
+     "R_val": 0.08980624591517633,
+     "t_val": 8.247563754165142,
+     "totR_val": 15.356868051495152,
+     "totR_val_XAUUSD": 15.356868051495152,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 167,
+     "R_disc_nov": 0.05012891658277033,
+     "names": [
+      "ret3<=0.2584",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      588
+     ],
+     "n_disc": 178,
+     "R_disc": 0.06536683639233437,
+     "t_disc": 27.212113515484464,
+     "n_val": 176,
+     "R_val": 0.11540938891805874,
+     "t_val": 10.330120591910712,
+     "totR_val": 20.31205244957834,
+     "totR_val_XAUUSD": 20.31205244957834,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.06536683639233441,
+     "names": [
+      "brk5>=-0.0215",
+      "bar_rng<=0.3401",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      173,
+      599
+     ],
+     "n_disc": 172,
+     "R_disc": 0.04880721517205571,
+     "t_disc": 24.298090738792713,
+     "n_val": 172,
+     "R_val": 0.08311191797078106,
+     "t_val": 6.492730115509636,
+     "totR_val": 14.295249890974343,
+     "totR_val_XAUUSD": 14.295249890974343,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 172,
+     "R_disc_nov": 0.04880721517205571,
+     "names": [
+      "brk5>=-0.0215",
+      "ret3<=0.2584",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      588
+     ],
+     "n_disc": 137,
+     "R_disc": 0.062289042599149406,
+     "t_disc": 24.071022919137384,
+     "n_val": 150,
+     "R_val": 0.09350328992331126,
+     "t_val": 31.489647515776586,
+     "totR_val": 14.02549348849669,
+     "totR_val_XAUUSD": 14.02549348849669,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 137,
+     "R_disc_nov": 0.06228904259914942,
+     "names": [
+      "ret3<=0.2584",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      173,
+      588
+     ],
+     "n_disc": 137,
+     "R_disc": 0.06206836314706507,
+     "t_disc": 23.865492674622256,
+     "n_val": 150,
+     "R_val": 0.09307440628816238,
+     "t_val": 31.17281764266784,
+     "totR_val": 13.961160943224357,
+     "totR_val_XAUUSD": 13.961160943224357,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 137,
+     "R_disc_nov": 0.06206836314706507,
+     "names": [
+      "brk5>=-0.0215",
+      "ret3<=0.2584",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      588
+     ],
+     "n_disc": 179,
+     "R_disc": 0.06760028237963069,
+     "t_disc": 21.464859858672604,
+     "n_val": 175,
+     "R_val": 0.10517621793572626,
+     "t_val": 29.794294687534453,
+     "totR_val": 18.405838138752095,
+     "totR_val_XAUUSD": 18.405838138752095,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 179,
+     "R_disc_nov": 0.06760028237963071,
+     "names": [
+      "bar_rng<=0.3401",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      599
+     ],
+     "n_disc": 174,
+     "R_disc": 0.05122771308009976,
+     "t_disc": 17.05567480830635,
+     "n_val": 171,
+     "R_val": 0.07962655668428323,
+     "t_val": 30.12478994602798,
+     "totR_val": 13.616141193012432,
+     "totR_val_XAUUSD": 13.616141193012432,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 174,
+     "R_disc_nov": 0.05122771308009976,
+     "names": [
+      "brk5>=-0.0215",
+      "bar_rng<=0.3401",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      612
+     ],
+     "n_disc": 180,
+     "R_disc": 0.03388529320093497,
+     "t_disc": 13.549413364655772,
+     "n_val": 174,
+     "R_val": 0.05853550919629446,
+     "t_val": 24.84124651646482,
+     "totR_val": 10.185178600155236,
+     "totR_val_XAUUSD": 10.185178600155236,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 180,
+     "R_disc_nov": 0.03388529320093497,
+     "names": [
+      "brk5>=-0.0215",
+      "bar_rng<=0.3401",
+      "hour01"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift14",
+   "patterns": 3137525,
+   "top1_val": 0.0768843638006096,
+   "median_top_val": 0.05457141791120504,
+   "best_disc_t": 30.888023373811873,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      612
+     ],
+     "n_disc": 171,
+     "R_disc": 0.060659010662480695,
+     "t_disc": 30.888023373811873,
+     "n_val": 171,
+     "R_val": 0.0768843638006096,
+     "t_val": 32.38246489004907,
+     "totR_val": 13.147226209904241,
+     "totR_val_XAUUSD": 13.147226209904241,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 171,
+     "R_disc_nov": 0.060659010662480695,
+     "names": [
+      "bar_rng<=0.3431",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      599
+     ],
+     "n_disc": 168,
+     "R_disc": 0.0799044570761963,
+     "t_disc": 28.756962279122,
+     "n_val": 171,
+     "R_val": 0.1023086695780581,
+     "t_val": 30.411475109977427,
+     "totR_val": 17.494782497847936,
+     "totR_val_XAUUSD": 17.494782497847936,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 168,
+     "R_disc_nov": 0.07990445707619628,
+     "names": [
+      "bar_rng<=0.3431",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      599
+     ],
+     "n_disc": 166,
+     "R_disc": 0.07974688851487599,
+     "t_disc": 28.502613758497347,
+     "n_val": 172,
+     "R_val": 0.11292186237550794,
+     "t_val": 10.147815294525078,
+     "totR_val": 19.422560328587366,
+     "totR_val_XAUUSD": 19.422560328587366,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 166,
+     "R_disc_nov": 0.07974688851487596,
+     "names": [
+      "ret3<=0.2556",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      588
+     ],
+     "n_disc": 130,
+     "R_disc": 0.09400586877891418,
+     "t_disc": 25.573842975519636,
+     "n_val": 149,
+     "R_val": 0.11176376631672798,
+     "t_val": 12.984929237101479,
+     "totR_val": 16.65280118119247,
+     "totR_val_XAUUSD": 16.65280118119247,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 130,
+     "R_disc_nov": 0.09400586877891422,
+     "names": [
+      "ret3<=0.2556",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      588
+     ],
+     "n_disc": 179,
+     "R_disc": 0.0976144488105079,
+     "t_disc": 13.154833687779647,
+     "n_val": 175,
+     "R_val": 0.13611593432801763,
+     "t_val": 29.3029727153805,
+     "totR_val": 23.820288507403088,
+     "totR_val_XAUUSD": 23.820288507403088,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 179,
+     "R_disc_nov": 0.0976144488105079,
+     "names": [
+      "bar_rng<=0.3431",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      526,
+      588
+     ],
+     "n_disc": 179,
+     "R_disc": 0.09713923535265878,
+     "t_disc": 12.397846528157256,
+     "n_val": 178,
+     "R_val": 0.13327413057724807,
+     "t_val": 9.111931428584006,
+     "totR_val": 23.72279524275016,
+     "totR_val_XAUUSD": 23.72279524275016,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 179,
+     "R_disc_nov": 0.09713923535265878,
+     "names": [
+      "ret3<=0.6252",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      526,
+      599
+     ],
+     "n_disc": 169,
+     "R_disc": 0.07297811421468865,
+     "t_disc": 9.786815463268256,
+     "n_val": 174,
+     "R_val": 0.09987764925591656,
+     "t_val": 6.966019434329692,
+     "totR_val": 17.378710970529482,
+     "totR_val_XAUUSD": 17.378710970529482,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 169,
+     "R_disc_nov": 0.07297811421468865,
+     "names": [
+      "ret3<=0.6252",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      193,
+      289,
+      526
+     ],
+     "n_disc": 142,
+     "R_disc": 0.05423823209531163,
+     "t_disc": 6.649438544850222,
+     "n_val": 142,
+     "R_val": 0.08255278808809483,
+     "t_val": 5.273300375869972,
+     "totR_val": 11.722495908509465,
+     "totR_val_XAUUSD": 11.722495908509465,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 142,
+     "R_disc_nov": 0.05423823209531161,
+     "names": [
+      "ret10<=1.361",
+      "atr_pct<=0.0556",
+      "run_with>=6"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      612
+     ],
+     "n_disc": 170,
+     "R_disc": 0.07119720594139299,
+     "t_disc": 6.5013309652190845,
+     "n_val": 170,
+     "R_val": 0.07700059062695269,
+     "t_val": 32.2799032670479,
+     "totR_val": 13.090100406581957,
+     "totR_val_XAUUSD": 13.090100406581957,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.07119720594139299,
+     "names": [
+      "ret3<=0.2556",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      195,
+      289,
+      526
+     ],
+     "n_disc": 142,
+     "R_disc": 0.05106928976102553,
+     "t_disc": 6.311839651029182,
+     "n_val": 142,
+     "R_val": 0.07735420366641034,
+     "t_val": 4.960645345332395,
+     "totR_val": 10.984296920630268,
+     "totR_val_XAUUSD": 10.984296920630268,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 142,
+     "R_disc_nov": 0.05106928976102551,
+     "names": [
+      "ret10<=2.292",
+      "atr_pct<=0.0556",
+      "run_with>=6"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift15",
+   "patterns": 3137525,
+   "top1_val": -0.12755173205927364,
+   "median_top_val": -0.034648088761061416,
+   "best_disc_t": 3.15050821884276,
+   "top": [
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      258,
+      597,
+      618
+     ],
+     "n_disc": 232,
+     "R_disc": 0.2932650968291605,
+     "t_disc": 3.15050821884276,
+     "n_val": 311,
+     "R_val": -0.12755173205927364,
+     "t_val": -1.7292526508864283,
+     "totR_val": -39.668588670434104,
+     "totR_val_XAUUSD": -39.668588670434104,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 232,
+     "R_disc_nov": 0.2932650968291607,
+     "names": [
+      "c_ema200>=-1.64",
+      "htf2_with",
+      "wday1"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      255,
+      516,
+      559
+     ],
+     "n_disc": 154,
+     "R_disc": 0.3506425629171313,
+     "t_disc": 3.0262777908527982,
+     "n_val": 130,
+     "R_val": 0.09908781121149371,
+     "t_val": 0.7056160888701266,
+     "totR_val": 12.881415457494182,
+     "totR_val_XAUUSD": 12.881415457494182,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 154,
+     "R_disc_nov": 0.35064256291713114,
+     "names": [
+      "c_ema200<=-5.952",
+      "fail_with>=2",
+      "since_brk_opp<=47"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      296,
+      546,
+      614
+     ],
+     "n_disc": 191,
+     "R_disc": 0.30564377564635165,
+     "t_disc": 3.01647169611432,
+     "n_val": 247,
+     "R_val": -0.041936925074573424,
+     "t_val": -0.5129691262859148,
+     "totR_val": -10.358420493419636,
+     "totR_val_XAUUSD": -10.358420493419636,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 191,
+     "R_disc_nov": 0.30564377564635165,
+     "names": [
+      "atr_pct>=0.492",
+      "since_brk>=114",
+      "long"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      256,
+      597,
+      618
+     ],
+     "n_disc": 401,
+     "R_disc": 0.1572768385312519,
+     "t_disc": 3.010592076628669,
+     "n_val": 546,
+     "R_val": -0.03398538586016902,
+     "t_val": -0.8897070724146354,
+     "totR_val": -18.556020679652285,
+     "totR_val_XAUUSD": -18.556020679652285,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 401,
+     "R_disc_nov": 0.15727683853125188,
+     "names": [
+      "c_ema200>=-3.555",
+      "htf2_with",
+      "wday1"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      298,
+      546,
+      614
+     ],
+     "n_disc": 156,
+     "R_disc": 0.33155041492521903,
+     "t_disc": 2.9427163544422603,
+     "n_val": 204,
+     "R_val": 0.0014358333577840243,
+     "t_val": 0.015852842449286773,
+     "totR_val": 0.29291000498794095,
+     "totR_val_XAUUSD": 0.29291000498794095,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 156,
+     "R_disc_nov": 0.33155041492521914,
+     "names": [
+      "atr_pct>=0.592",
+      "since_brk>=114",
+      "long"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      130,
+      597,
+      618
+     ],
+     "n_disc": 369,
+     "R_disc": 0.16407130403516765,
+     "t_disc": 2.9423216722766794,
+     "n_val": 523,
+     "R_val": -0.024647332724229254,
+     "t_val": -0.5565770194410459,
+     "totR_val": -12.8905550147719,
+     "totR_val_XAUUSD": -12.8905550147719,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 369,
+     "R_disc_nov": 0.1640713040351676,
+     "names": [
+      "pos250>=0.2587",
+      "htf2_with",
+      "wday1"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      572,
+      597,
+      618
+     ],
+     "n_disc": 370,
+     "R_disc": 0.1559629612948798,
+     "t_disc": 2.866818129951488,
+     "n_val": 542,
+     "R_val": -0.03024430751394819,
+     "t_val": -0.6961447700752673,
+     "totR_val": -16.39241467255992,
+     "totR_val_XAUUSD": -16.39241467255992,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 370,
+     "R_disc_nov": 0.1559629612948798,
+     "names": [
+      "htf_pos>=0.2412",
+      "htf2_with",
+      "wday1"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      516,
+      546,
+      614
+     ],
+     "n_disc": 109,
+     "R_disc": 0.38290605454459076,
+     "t_disc": 2.8569587232350395,
+     "n_val": 136,
+     "R_val": 0.10996539940175444,
+     "t_val": 0.9080109833174129,
+     "totR_val": 14.955294318638604,
+     "totR_val_XAUUSD": 14.955294318638604,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 109,
+     "R_disc_nov": 0.3829060545445906,
+     "names": [
+      "fail_with>=2",
+      "since_brk>=114",
+      "long"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      186,
+      302
+     ],
+     "n_disc": 666,
+     "R_disc": 0.14966992740629012,
+     "t_disc": 2.844590981646112,
+     "n_val": 684,
+     "R_val": -0.10443877132532982,
+     "t_val": -2.1726562778564453,
+     "totR_val": -71.43611958652559,
+     "totR_val_XAUUSD": -71.43611958652559,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 667,
+     "R_disc_nov": 0.14977296931401407,
+     "names": [
+      "ret10>=-0.6211",
+      "atr_pct>=0.816"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      69,
+      304,
+      578
+     ],
+     "n_disc": 206,
+     "R_disc": 0.22931666220619018,
+     "t_disc": 2.839392298605969,
+     "n_val": 192,
+     "R_val": -0.15352761472842383,
+     "t_val": -1.904418722346261,
+     "totR_val": -29.477302027857377,
+     "totR_val_XAUUSD": -29.477302027857377,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 207,
+     "R_disc_nov": 0.2315359511830449,
+     "names": [
+      "brk55<=-1.418",
+      "atr_pct>=0.908",
+      "htf_pos>=0.8565"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift16",
+   "patterns": 3137525,
+   "top1_val": 0.11790862689141206,
+   "median_top_val": -0.08030789022901685,
+   "best_disc_t": 2.9635677752069864,
+   "top": [
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      104,
+      263,
+      363
+     ],
+     "n_disc": 169,
+     "R_disc": 0.3193043167401798,
+     "t_disc": 2.9635677752069864,
+     "n_val": 135,
+     "R_val": 0.11790862689141206,
+     "t_val": 1.0729650515719378,
+     "totR_val": 15.917664630340628,
+     "totR_val_XAUUSD": 15.917664630340628,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 169,
+     "R_disc_nov": 0.3193043167401799,
+     "names": [
+      "pos20>=0.859",
+      "c_ema200<=1.492",
+      "bar_rng<=0.4666"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      104,
+      135,
+      363
+     ],
+     "n_disc": 147,
+     "R_disc": 0.33089718682396907,
+     "t_disc": 2.834763920202637,
+     "n_val": 105,
+     "R_val": 0.10505246312276999,
+     "t_val": 0.836093876199065,
+     "totR_val": 11.030508627890848,
+     "totR_val_XAUUSD": 11.030508627890848,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 147,
+     "R_disc_nov": 0.3308971868239693,
+     "names": [
+      "pos20>=0.859",
+      "pos250<=0.5",
+      "bar_rng<=0.4666"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      104,
+      263,
+      361
+     ],
+     "n_disc": 117,
+     "R_disc": 0.3692693710479835,
+     "t_disc": 2.7762071989027226,
+     "n_val": 94,
+     "R_val": 0.0717252003591499,
+     "t_val": 0.5369448744536376,
+     "totR_val": 6.74216883376009,
+     "totR_val_XAUUSD": 6.74216883376009,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 117,
+     "R_disc_nov": 0.3692693710479835,
+     "names": [
+      "pos20>=0.859",
+      "c_ema200<=1.492",
+      "bar_rng<=0.04247"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      104,
+      261,
+      363
+     ],
+     "n_disc": 114,
+     "R_disc": 0.3607814565184928,
+     "t_disc": 2.728177832885012,
+     "n_val": 72,
+     "R_val": 0.21806420615976657,
+     "t_val": 1.3695588274936528,
+     "totR_val": 15.700622843503194,
+     "totR_val_XAUUSD": 15.700622843503194,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 114,
+     "R_disc_nov": 0.3607814565184929,
+     "names": [
+      "pos20>=0.859",
+      "c_ema200<=0",
+      "bar_rng<=0.4666"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      6,
+      516,
+      589
+     ],
+     "n_disc": 239,
+     "R_disc": 0.19132739354133774,
+     "t_disc": 2.4593590863568244,
+     "n_val": 290,
+     "R_val": -0.07072752918765121,
+     "t_val": -1.020007234865675,
+     "totR_val": -20.510983464418853,
+     "totR_val_XAUUSD": -20.510983464418853,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 240,
+     "R_disc_nov": 0.1905321947805154,
+     "names": [
+      "brk5>=-1.311",
+      "fail_with>=2",
+      "wday4"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      79,
+      322,
+      470
+     ],
+     "n_disc": 165,
+     "R_disc": 0.2504142982148055,
+     "t_disc": 2.458358754413892,
+     "n_val": 148,
+     "R_val": -0.09748851566925304,
+     "t_val": -0.9468405172018277,
+     "totR_val": -14.42830031904945,
+     "totR_val_XAUUSD": -14.42830031904945,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 165,
+     "R_disc_nov": 0.25041429821480554,
+     "names": [
+      "brk100<=-7.779",
+      "atr_ratio>=1.927",
+      "h1_share<=0.4667"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      353,
+      516,
+      589
+     ],
+     "n_disc": 237,
+     "R_disc": 0.19171139772530957,
+     "t_disc": 2.434248814686529,
+     "n_val": 287,
+     "R_val": -0.13358440858394371,
+     "t_val": -2.0396819975370213,
+     "totR_val": -38.33872526359185,
+     "totR_val_XAUUSD": -38.33872526359185,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 238,
+     "R_disc_nov": 0.19022766235083752,
+     "names": [
+      "vr<=1.099",
+      "fail_with>=2",
+      "wday4"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      104,
+      302,
+      575
+     ],
+     "n_disc": 113,
+     "R_disc": 0.2938409486017013,
+     "t_disc": 2.3723540521021627,
+     "n_val": 142,
+     "R_val": 0.06359213680902813,
+     "t_val": 0.6022687243773681,
+     "totR_val": 9.030083426881994,
+     "totR_val_XAUUSD": 9.030083426881994,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 114,
+     "R_disc_nov": 0.2866172010075528,
+     "names": [
+      "pos20>=0.859",
+      "atr_pct>=0.812",
+      "htf_pos<=0.3824"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      75,
+      314,
+      522
+     ],
+     "n_disc": 106,
+     "R_disc": 0.31461940917579295,
+     "t_disc": 2.372223417936412,
+     "n_val": 108,
+     "R_val": 0.08263734815773027,
+     "t_val": 0.5714376568277284,
+     "totR_val": 8.92483360103487,
+     "totR_val_XAUUSD": 8.92483360103487,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 106,
+     "R_disc_nov": 0.31461940917579306,
+     "names": [
+      "brk100<=-16.8",
+      "atr_ratio>=1.021",
+      "fail_against<=3"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      355,
+      516,
+      589
+     ],
+     "n_disc": 245,
+     "R_disc": 0.18484723358020141,
+     "t_disc": 2.3619280363126647,
+     "n_val": 294,
+     "R_val": -0.0933963519485325,
+     "t_val": -1.4143927480157559,
+     "totR_val": -27.458527472868557,
+     "totR_val_XAUUSD": -27.458527472868557,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 246,
+     "R_disc_nov": 0.18194270711389482,
+     "names": [
+      "vr<=1.419",
+      "fail_with>=2",
+      "wday4"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift17",
+   "patterns": 3140745,
+   "top1_val": 0.06851291223392092,
+   "median_top_val": 0.018587951396351117,
+   "best_disc_t": 29.962298514200025,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      612
+     ],
+     "n_disc": 170,
+     "R_disc": 0.05041628002519541,
+     "t_disc": 29.962298514200025,
+     "n_val": 169,
+     "R_val": 0.06851291223392092,
+     "t_val": 29.017871759078734,
+     "totR_val": 11.578682167532635,
+     "totR_val_XAUUSD": 11.578682167532635,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.050416280025195416,
+     "names": [
+      "ret3<=0.2573",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      588
+     ],
+     "n_disc": 137,
+     "R_disc": 0.08194109509808462,
+     "t_disc": 23.20077363772783,
+     "n_val": 149,
+     "R_val": 0.10809475332182851,
+     "t_val": 26.237653210227307,
+     "totR_val": 16.106118244952448,
+     "totR_val_XAUUSD": 16.106118244952448,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 137,
+     "R_disc_nov": 0.08194109509808466,
+     "names": [
+      "ret3<=0.2573",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      599
+     ],
+     "n_disc": 168,
+     "R_disc": 0.06000230775940615,
+     "t_disc": 8.431958353195757,
+     "n_val": 170,
+     "R_val": 0.09266511764566819,
+     "t_val": 26.867542924123896,
+     "totR_val": 15.753069999763593,
+     "totR_val_XAUUSD": 15.753069999763593,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 168,
+     "R_disc_nov": 0.060002307759406126,
+     "names": [
+      "ret3<=0.2573",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      316,
+      511,
+      562
+     ],
+     "n_disc": 208,
+     "R_disc": 0.4251770419283992,
+     "t_disc": 4.122562769617066,
+     "n_val": 201,
+     "R_val": -0.06104726686878501,
+     "t_val": -0.6900185129944206,
+     "totR_val": -12.270500640625787,
+     "totR_val_XAUUSD": -12.270500640625787,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 208,
+     "R_disc_nov": 0.42517704192839917,
+     "names": [
+      "atr_ratio>=1.205",
+      "fail_with<=1",
+      "since_brk_opp>=178"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      316,
+      513,
+      562
+     ],
+     "n_disc": 275,
+     "R_disc": 0.31169229628180406,
+     "t_disc": 3.575406461916385,
+     "n_val": 259,
+     "R_val": -0.03959244124428484,
+     "t_val": -0.5163559334470913,
+     "totR_val": -10.254442282269775,
+     "totR_val_XAUUSD": -10.254442282269775,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 275,
+     "R_disc_nov": 0.3116922962818042,
+     "names": [
+      "atr_ratio>=1.205",
+      "fail_with<=2",
+      "since_brk_opp>=178"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      140,
+      300,
+      521
+     ],
+     "n_disc": 107,
+     "R_disc": 0.42009135417217963,
+     "t_disc": 3.5188670148339534,
+     "n_val": 104,
+     "R_val": 0.09879099136655646,
+     "t_val": 0.8330061117314119,
+     "totR_val": 10.274263102121871,
+     "totR_val_XAUUSD": 10.274263102121871,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 107,
+     "R_disc_nov": 0.4200913541721793,
+     "names": [
+      "pos250>=0.8453",
+      "atr_pct>=0.708",
+      "fail_against>=3"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "chand",
+     "scope": "XAUUSD",
+     "conds": [
+      316,
+      513,
+      562
+     ],
+     "n_disc": 213,
+     "R_disc": 0.5144793308515685,
+     "t_disc": 3.427092097842961,
+     "n_val": 208,
+     "R_val": -0.0025231024966858905,
+     "t_val": -0.02031209077147777,
+     "totR_val": -0.5248053193106652,
+     "totR_val_XAUUSD": -0.5248053193106652,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 213,
+     "R_disc_nov": 0.5144793308515684,
+     "names": [
+      "atr_ratio>=1.205",
+      "fail_with<=2",
+      "since_brk_opp>=178"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      318,
+      511,
+      562
+     ],
+     "n_disc": 150,
+     "R_disc": 0.4313085964200537,
+     "t_disc": 3.400958457514895,
+     "n_val": 145,
+     "R_val": -0.059020244557753614,
+     "t_val": -0.5371020450000416,
+     "totR_val": -8.557935460874274,
+     "totR_val_XAUUSD": -8.557935460874274,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 150,
+     "R_disc_nov": 0.4313085964200537,
+     "names": [
+      "atr_ratio>=1.386",
+      "fail_with<=1",
+      "since_brk_opp>=178"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      140,
+      265,
+      574
+     ],
+     "n_disc": 208,
+     "R_disc": 0.29108394513210095,
+     "t_disc": 3.3413972598146215,
+     "n_val": 237,
+     "R_val": -0.032433308049183686,
+     "t_val": -0.3944117299641028,
+     "totR_val": -7.686694007656533,
+     "totR_val_XAUUSD": -7.686694007656533,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 209,
+     "R_disc_nov": 0.2866902515292337,
+     "names": [
+      "pos250>=0.8453",
+      "c_ema200<=3.646",
+      "htf_pos>=0.6551"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      228,
+      280,
+      298
+     ],
+     "n_disc": 510,
+     "R_disc": 0.198751152100655,
+     "t_disc": 3.201541046068521,
+     "n_val": 540,
+     "R_val": 0.11747828569396422,
+     "t_val": 2.0282674632064284,
+     "totR_val": 63.43827427474068,
+     "totR_val_XAUUSD": 63.43827427474068,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 511,
+     "R_disc_nov": 0.1981468046732718,
+     "names": [
+      "ret100>=4.513",
+      "c_ema50>=0.8334",
+      "atr_pct>=0.592"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift18",
+   "patterns": 3140745,
+   "top1_val": 0.12089261984295747,
+   "median_top_val": 0.07652735585418621,
+   "best_disc_t": 3.1941443378702443,
+   "top": [
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      246,
+      322,
+      614
+     ],
+     "n_disc": 121,
+     "R_disc": 0.4904415770773723,
+     "t_disc": 3.1941443378702443,
+     "n_val": 129,
+     "R_val": 0.12089261984295747,
+     "t_val": 1.0354394458224834,
+     "totR_val": 15.595147959741514,
+     "totR_val_XAUUSD": 15.595147959741514,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 121,
+     "R_disc_nov": 0.4904415770773723,
+     "names": [
+      "ema20_50>=0.8178",
+      "atr_ratio>=1.664",
+      "long"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      266,
+      320,
+      578
+     ],
+     "n_disc": 164,
+     "R_disc": 0.3767412202524129,
+     "t_disc": 3.1813458754895807,
+     "n_val": 148,
+     "R_val": 0.11061948454384686,
+     "t_val": 0.9930722600532556,
+     "totR_val": 16.371683712489336,
+     "totR_val_XAUUSD": 16.371683712489336,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 165,
+     "R_disc_nov": 0.37823945835284506,
+     "names": [
+      "c_ema200>=5.821",
+      "atr_ratio>=1.459",
+      "htf_pos>=0.6209"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "t6",
+     "scope": "XAUUSD",
+     "conds": [
+      300,
+      464,
+      554
+     ],
+     "n_disc": 142,
+     "R_disc": 0.30249306946081916,
+     "t_disc": 3.1774199119790754,
+     "n_val": 148,
+     "R_val": -0.08422299360907896,
+     "t_val": -1.5637891757997275,
+     "totR_val": -12.465003054143686,
+     "totR_val_XAUUSD": -12.465003054143686,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 142,
+     "R_disc_nov": 0.3024930694608191,
+     "names": [
+      "atr_pct>=0.712",
+      "h1_share<=0.2333",
+      "since_brk_opp>=47"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      266,
+      320,
+      580
+     ],
+     "n_disc": 161,
+     "R_disc": 0.378433937261857,
+     "t_disc": 3.173694308052294,
+     "n_val": 144,
+     "R_val": 0.12192006610572043,
+     "t_val": 1.07964410390565,
+     "totR_val": 17.556489519223742,
+     "totR_val_XAUUSD": 17.556489519223742,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 162,
+     "R_disc_nov": 0.37994947164186843,
+     "names": [
+      "c_ema200>=5.821",
+      "atr_ratio>=1.459",
+      "htf_pos>=0.7424"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      266,
+      320,
+      582
+     ],
+     "n_disc": 154,
+     "R_disc": 0.3796604478003316,
+     "t_disc": 3.103204698502527,
+     "n_val": 135,
+     "R_val": 0.1499602338500889,
+     "t_val": 1.2822247085397618,
+     "totR_val": 20.244631569762,
+     "totR_val_XAUUSD": 20.244631569762,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 155,
+     "R_disc_nov": 0.38123651269725684,
+     "names": [
+      "c_ema200>=5.821",
+      "atr_ratio>=1.459",
+      "htf_pos>=0.8463"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      512,
+      593,
+      598
+     ],
+     "n_disc": 289,
+     "R_disc": 0.2519148178388729,
+     "t_disc": 3.097657982879806,
+     "n_val": 410,
+     "R_val": 0.058088591299767386,
+     "t_val": 0.8350181454107772,
+     "totR_val": 23.816322432904627,
+     "totR_val_XAUUSD": 23.816322432904627,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 289,
+     "R_disc_nov": 0.25191481783887293,
+     "names": [
+      "fail_with>=2",
+      "htf2_with",
+      "wday0"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      228,
+      264,
+      322
+     ],
+     "n_disc": 138,
+     "R_disc": 0.4310409761911811,
+     "t_disc": 3.07147187006441,
+     "n_val": 135,
+     "R_val": -0.0018027447765185866,
+     "t_val": -0.016271080303820653,
+     "totR_val": -0.2433705448300092,
+     "totR_val_XAUUSD": -0.2433705448300092,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 138,
+     "R_disc_nov": 0.4310409761911811,
+     "names": [
+      "ret100>=4.583",
+      "c_ema200>=3.392",
+      "atr_ratio>=1.664"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      244,
+      322,
+      614
+     ],
+     "n_disc": 188,
+     "R_disc": 0.34552762053925085,
+     "t_disc": 3.013128455991198,
+     "n_val": 181,
+     "R_val": 0.16947257003157334,
+     "t_val": 1.7160193368151924,
+     "totR_val": 30.674535175714773,
+     "totR_val_XAUUSD": 30.674535175714773,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 188,
+     "R_disc_nov": 0.34552762053925085,
+     "names": [
+      "ema20_50>=0.3772",
+      "atr_ratio>=1.664",
+      "long"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "chand",
+     "scope": "XAUUSD",
+     "conds": [
+      355,
+      379,
+      604
+     ],
+     "n_disc": 869,
+     "R_disc": 0.20087864830247312,
+     "t_disc": 3.0083977008418685,
+     "n_val": 944,
+     "R_val": 0.04490900585869283,
+     "t_val": 0.7379999288341945,
+     "totR_val": 42.39410153060603,
+     "totR_val_XAUUSD": 42.39410153060603,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 870,
+     "R_disc_nov": 0.20554223460742124,
+     "names": [
+      "vr<=1.419",
+      "h1_big>=0.2151",
+      "htf1_with"
+     ]
+    },
+    {
+     "tf": "H1",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      228,
+      322,
+      582
+     ],
+     "n_disc": 109,
+     "R_disc": 0.4946287120277789,
+     "t_disc": 2.9966329124774416,
+     "n_val": 104,
+     "R_val": 0.01889446100884157,
+     "t_val": 0.1482887972136965,
+     "totR_val": 1.9650239449195235,
+     "totR_val_XAUUSD": 1.9650239449195235,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 109,
+     "R_disc_nov": 0.49462871202777897,
+     "names": [
+      "ret100>=4.583",
+      "atr_ratio>=1.664",
+      "htf_pos>=0.8463"
+     ]
+    }
+   ]
+  },
+  {
+   "label": "drift19",
+   "patterns": 3137525,
+   "top1_val": 0.08051571865976558,
+   "median_top_val": 0.06876065719560011,
+   "best_disc_t": 26.865178594730583,
+   "top": [
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      612
+     ],
+     "n_disc": 170,
+     "R_disc": 0.06436878745423119,
+     "t_disc": 26.865178594730583,
+     "n_val": 169,
+     "R_val": 0.08051571865976558,
+     "t_val": 30.673295624467087,
+     "totR_val": 13.607156453500382,
+     "totR_val_XAUUSD": 13.607156453500382,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 170,
+     "R_disc_nov": 0.0643687874542312,
+     "names": [
+      "ret3<=0.2542",
+      "run_with>=6",
+      "hour01"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      175,
+      526,
+      588
+     ],
+     "n_disc": 178,
+     "R_disc": 0.11117169551832919,
+     "t_disc": 25.822618832720707,
+     "n_val": 177,
+     "R_val": 0.13904059763649845,
+     "t_val": 9.347181628965375,
+     "totR_val": 24.610185781660228,
+     "totR_val_XAUUSD": 24.610185781660228,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 178,
+     "R_disc_nov": 0.11117169551832919,
+     "names": [
+      "ret3<=0.6135",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      599
+     ],
+     "n_disc": 164,
+     "R_disc": 0.0866872311828492,
+     "t_disc": 25.655052543842043,
+     "n_val": 168,
+     "R_val": 0.10869640114909658,
+     "t_val": 28.30757378815079,
+     "totR_val": 18.260995393048226,
+     "totR_val_XAUUSD": 18.260995393048226,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 164,
+     "R_disc_nov": 0.08668723118284916,
+     "names": [
+      "bar_rng<=0.3442",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      193,
+      526,
+      599
+     ],
+     "n_disc": 154,
+     "R_disc": 0.08653129840522322,
+     "t_disc": 24.438448586999915,
+     "n_val": 159,
+     "R_val": 0.09874765226101336,
+     "t_val": 8.137940897987857,
+     "totR_val": 15.700876709501124,
+     "totR_val_XAUUSD": 15.700876709501124,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 154,
+     "R_disc_nov": 0.08653129840522321,
+     "names": [
+      "ret10<=1.337",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      191,
+      526,
+      599
+     ],
+     "n_disc": 140,
+     "R_disc": 0.087973757337371,
+     "t_disc": 23.274017322600994,
+     "n_val": 145,
+     "R_val": 0.11016316730665864,
+     "t_val": 24.33580101825265,
+     "totR_val": 15.973659259465503,
+     "totR_val_XAUUSD": 15.973659259465503,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 140,
+     "R_disc_nov": 0.087973757337371,
+     "names": [
+      "ret10<=0.6284",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      588
+     ],
+     "n_disc": 145,
+     "R_disc": 0.1042925384309429,
+     "t_disc": 22.985441777861983,
+     "n_val": 148,
+     "R_val": 0.12553176113143893,
+     "t_val": 30.772136858001016,
+     "totR_val": 18.578700647452962,
+     "totR_val_XAUUSD": 18.578700647452962,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 145,
+     "R_disc_nov": 0.10429253843094287,
+     "names": [
+      "ret3<=0.2542",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      361,
+      588
+     ],
+     "n_disc": 179,
+     "R_disc": 0.11618158832804332,
+     "t_disc": 17.044597309414318,
+     "n_val": 175,
+     "R_val": 0.14397258929254025,
+     "t_val": 27.011437459307132,
+     "totR_val": 25.195203126194546,
+     "totR_val_XAUUSD": 25.195203126194546,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 179,
+     "R_disc_nov": 0.11618158832804328,
+     "names": [
+      "brk5>=-0.0343",
+      "bar_rng<=0.3442",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      361,
+      526,
+      588
+     ],
+     "n_disc": 179,
+     "R_disc": 0.10456760087228276,
+     "t_disc": 13.286338986067388,
+     "n_val": 175,
+     "R_val": 0.1441545012004575,
+     "t_val": 27.06082010587014,
+     "totR_val": 25.22703771008006,
+     "totR_val_XAUUSD": 25.22703771008006,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 179,
+     "R_disc_nov": 0.10456760087228276,
+     "names": [
+      "bar_rng<=0.3442",
+      "run_with>=6",
+      "hour03"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      173,
+      526,
+      599
+     ],
+     "n_disc": 164,
+     "R_disc": 0.07963437711224057,
+     "t_disc": 10.31214760344461,
+     "n_val": 166,
+     "R_val": 0.10772876940850135,
+     "t_val": 28.582779032042488,
+     "totR_val": 17.882975721811224,
+     "totR_val_XAUUSD": 17.882975721811224,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 164,
+     "R_disc_nov": 0.07963437711224056,
+     "names": [
+      "ret3<=0.2542",
+      "run_with>=6",
+      "hour02"
+     ]
+    },
+    {
+     "tf": "M30",
+     "exit": "tp2",
+     "scope": "XAUUSD",
+     "conds": [
+      14,
+      173,
+      588
+     ],
+     "n_disc": 146,
+     "R_disc": 0.0956050567594478,
+     "t_disc": 10.09993225811323,
+     "n_val": 151,
+     "R_val": 0.13573992476850244,
+     "t_val": 8.216144576346666,
+     "totR_val": 20.49672864004387,
+     "totR_val_XAUUSD": 20.49672864004387,
+     "totR_val_XAGUSD": 0.0,
+     "totR_val_BTCUSD": 0.0,
+     "n_disc_nov": 146,
+     "R_disc_nov": 0.09560505675944778,
+     "names": [
+      "brk5>=-0.0343",
+      "ret3<=0.2542",
+      "hour03"
+     ]
+    }
+   ]
+  }
+ ],
+ "verdict": {
+  "candidates": 0,
+  "whole": false,
+  "bar_top1": 0.1445321577127078
+ }
+}
